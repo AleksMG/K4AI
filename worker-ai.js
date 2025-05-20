@@ -1,6 +1,5 @@
 // Scoring function - evaluates how "meaningful" a key might be
 function scoreKey(key, alphabet) {
-    // English letter frequency (approximate)
     const englishFreq = {
         'E': 12.7, 'T': 9.1, 'A': 8.2, 'O': 7.5, 'I': 7.0,
         'N': 6.7, 'S': 6.3, 'H': 6.1, 'R': 6.0, 'D': 4.3,
@@ -13,21 +12,18 @@ function scoreKey(key, alphabet) {
     let score = 0;
     const keyUpper = key.toUpperCase();
     
-    // Score based on letter frequency
     for (const char of keyUpper) {
         const normalizedChar = char in englishFreq ? char : char.toUpperCase();
         score += englishFreq[normalizedChar] || 0;
     }
     
-    // Normalize score by key length
     score = score / key.length;
     
-    // Bonus for repeating patterns (potential key repetitions)
     if (key.length >= 6) {
         const half1 = key.substring(0, Math.floor(key.length / 2));
         const half2 = key.substring(Math.floor(key.length / 2));
         if (half1 === half2) {
-            score *= 1.5; // Significant boost for repeating keys
+            score *= 1.5;
         }
     }
     
@@ -73,14 +69,11 @@ function findKeyPositions(ciphertext, knownText, alphabet) {
 function analyzeCiphertext(ciphertext, knownText, alphabet, minKeyLength) {
     const n = alphabet.length;
     const knownLength = knownText.length;
-    const totalPositions = ciphertext.length - knownLength + 1;
     const keyMap = new Map();
     const results = [];
     
-    // Find all possible key positions
     const keyPositions = findKeyPositions(ciphertext, knownText, alphabet);
     
-    // Group keys by their value
     for (const {position, key} of keyPositions) {
         if (!keyMap.has(key)) {
             keyMap.set(key, []);
@@ -88,44 +81,45 @@ function analyzeCiphertext(ciphertext, knownText, alphabet, minKeyLength) {
         keyMap.get(key).push(position);
     }
     
-    // Process each unique key
     let processed = 0;
     const totalKeys = keyMap.size;
     
     for (const [key, positions] of keyMap.entries()) {
         if (key.length < minKeyLength) continue;
         
-        // Calculate score for this key
-        const keyScore = scoreKey(key, alphabet);
-        
-        // Decrypt a sample with this key
-        let decryptedSample = '';
-        const samplePosition = positions[0];
-        const sampleLength = Math.min(20, ciphertext.length - samplePosition);
-        
-        for (let i = 0; i < sampleLength; i++) {
-            const cipherChar = ciphertext[samplePosition + i];
-            const keyChar = key[i % key.length];
+        // Generate all possible shorter keys
+        for (let keyLen = minKeyLength; keyLen <= key.length; keyLen++) {
+            const shortKey = key.substring(0, keyLen);
+            const keyScore = scoreKey(shortKey, alphabet);
             
-            const cipherIndex = alphabet.indexOf(cipherChar);
-            const keyIndex = alphabet.indexOf(keyChar);
+            let decryptedSample = '';
+            const samplePosition = positions[0];
+            const sampleLength = Math.min(20, ciphertext.length - samplePosition);
             
-            if (cipherIndex === -1 || keyIndex === -1) {
-                decryptedSample += '?';
-            } else {
-                const plainIndex = (cipherIndex - keyIndex + n) % n;
-                decryptedSample += alphabet[plainIndex];
+            for (let i = 0; i < sampleLength; i++) {
+                const cipherChar = ciphertext[samplePosition + i];
+                const keyChar = shortKey[i % shortKey.length];
+                
+                const cipherIndex = alphabet.indexOf(cipherChar);
+                const keyIndex = alphabet.indexOf(keyChar);
+                
+                if (cipherIndex === -1 || keyIndex === -1) {
+                    decryptedSample += '?';
+                } else {
+                    const plainIndex = (cipherIndex - keyIndex + n) % n;
+                    decryptedSample += alphabet[plainIndex];
+                }
             }
+            
+            results.push({
+                key: shortKey,
+                keyLength: keyLen,
+                positions,
+                decryptedSample,
+                score: keyScore
+            });
         }
         
-        results.push({
-            key,
-            positions,
-            decryptedSample,
-            score: keyScore
-        });
-        
-        // Update progress
         processed++;
         const progress = Math.floor((processed / totalKeys) * 100);
         self.postMessage({
@@ -134,7 +128,6 @@ function analyzeCiphertext(ciphertext, knownText, alphabet, minKeyLength) {
         });
     }
     
-    // Sort results by score (highest first)
     results.sort((a, b) => b.score - a.score);
     
     return results;
@@ -147,7 +140,6 @@ self.onmessage = function(e) {
         try {
             const results = analyzeCiphertext(ciphertext, knownText, alphabet, minKeyLength);
             
-            // Send results back
             for (const result of results) {
                 self.postMessage({
                     type: 'result',
