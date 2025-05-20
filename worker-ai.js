@@ -1,7 +1,7 @@
 // worker-ai.js
 class K4AIWorker {
     constructor() {
-        this.alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        this.alphabet = 'ZXWVUQNMLJIHGFEDCBASOTPYRK';
         this.charMap = new Uint8Array(256);
         this.charMap.fill(255);
         for (let i = 0; i < this.alphabet.length; i++) {
