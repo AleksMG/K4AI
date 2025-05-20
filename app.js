@@ -1,127 +1,159 @@
-import { K4CrackerWorker } from './worker.js';
-
-class K4CrackerApp {
+class KryptosCracker {
     constructor() {
-        this.workers = [];
-        this.results = [];
+        this.worker = null;
         this.isRunning = false;
-        
         this.initElements();
-        this.initEvents();
+        this.initEventListeners();
     }
-    
+
     initElements() {
         this.elements = {
-            startBtn: document.getElementById('startBtn'),
-            stopBtn: document.getElementById('stopBtn'),
             ciphertext: document.getElementById('ciphertext'),
-            plaintext: document.getElementById('plaintext'),
+            knownText: document.getElementById('knownText'),
             alphabet: document.getElementById('alphabet'),
-            keyLength: document.getElementById('keyLength'),
-            workers: document.getElementById('workers'),
-            progress: document.getElementById('progress'),
-            bestKey: document.getElementById('bestKey'),
-            output: document.getElementById('output')
+            minKeyLength: document.getElementById('minKeyLength'),
+            analyzeBtn: document.getElementById('analyzeBtn'),
+            stopBtn: document.getElementById('stopBtn'),
+            progressBar: document.getElementById('progressBar'),
+            progressText: document.getElementById('progressText'),
+            progressContainer: document.getElementById('progressContainer'),
+            resultsGrid: document.getElementById('resultsGrid'),
+            template: document.querySelector('.template')
         };
     }
-    
-    initEvents() {
-        this.elements.startBtn.addEventListener('click', () => this.start());
-        this.elements.stopBtn.addEventListener('click', () => this.stop());
+
+    initEventListeners() {
+        this.elements.analyzeBtn.addEventListener('click', () => this.startAnalysis());
+        this.elements.stopBtn.addEventListener('click', () => this.stopAnalysis());
     }
-    
-    start() {
+
+    startAnalysis() {
         if (this.isRunning) return;
         
+        const ciphertext = this.elements.ciphertext.value.trim().toUpperCase();
+        const knownText = this.elements.knownText.value.trim().toUpperCase();
+        const alphabet = this.elements.alphabet.value.trim().toUpperCase();
+        const minKeyLength = parseInt(this.elements.minKeyLength.value);
+
+        if (!ciphertext || !knownText || !alphabet) {
+            alert('Please fill in all required fields');
+            return;
+        }
+
+        if (knownText.length < 3) {
+            alert('Known text should be at least 3 characters long');
+            return;
+        }
+
+        // Clear previous results
+        this.elements.resultsGrid.innerHTML = '';
+        this.elements.progressBar.value = 0;
+        this.elements.progressText.textContent = '0%';
+        this.elements.progressContainer.style.display = 'flex';
+
         this.isRunning = true;
-        this.elements.startBtn.disabled = true;
+        this.elements.analyzeBtn.disabled = true;
         this.elements.stopBtn.disabled = false;
-        this.results = [];
-        this.elements.output.textContent = '';
+
+        // Create new worker
+        this.worker = new Worker('worker.js');
+
+        // Send data to worker
+        this.worker.postMessage({
+            type: 'start',
+            ciphertext,
+            knownText,
+            alphabet,
+            minKeyLength
+        });
+
+        // Handle worker messages
+        this.worker.onmessage = (e) => {
+            const { type, data } = e.data;
+
+            switch (type) {
+                case 'progress':
+                    this.updateProgress(data);
+                    break;
+                case 'result':
+                    this.addResult(data);
+                    break;
+                case 'complete':
+                    this.analysisComplete();
+                    break;
+                case 'error':
+                    this.handleError(data);
+                    break;
+            }
+        };
+    }
+
+    stopAnalysis() {
+        if (this.worker) {
+            this.worker.terminate();
+            this.worker = null;
+        }
+        this.isRunning = false;
+        this.elements.analyzeBtn.disabled = false;
+        this.elements.stopBtn.disabled = true;
+    }
+
+    updateProgress(percent) {
+        this.elements.progressBar.value = percent;
+        this.elements.progressText.textContent = `${percent}%`;
+    }
+
+    addResult(result) {
+        const template = this.elements.template;
+        const clone = template.cloneNode(true);
+        clone.classList.remove('template');
         
-        const config = {
-            ciphertext: this.elements.ciphertext.value.trim().toUpperCase(),
-            knownTexts: [this.elements.plaintext.value.trim().toUpperCase()],
-            alphabet: this.elements.alphabet.value.trim().toUpperCase(),
-            keyLength: parseInt(this.elements.keyLength.value),
-            totalWorkers: parseInt(this.elements.workers.value)
+        clone.querySelector('.key').textContent = result.key;
+        clone.querySelector('.positions span').textContent = result.positions.join(', ');
+        clone.querySelector('.decrypted span').textContent = result.decryptedSample;
+        clone.querySelector('.score span').textContent = result.score.toFixed(2);
+        
+        const exportBtn = clone.querySelector('.export-btn');
+        exportBtn.addEventListener('click', () => this.exportResult(result));
+        
+        this.elements.resultsGrid.appendChild(clone);
+    }
+
+    exportResult(result) {
+        const data = {
+            key: result.key,
+            positions: result.positions,
+            decryptedSample: result.decryptedSample,
+            score: result.score,
+            alphabet: this.elements.alphabet.value,
+            ciphertext: this.elements.ciphertext.value,
+            knownText: this.elements.knownText.value
         };
         
-        this.createWorkers(config);
-    }
-    
-    createWorkers(config) {
-        this.workers = [];
-        const keysPerWorker = Math.ceil(26 ** config.keyLength / config.totalWorkers);
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
         
-        for (let i = 0; i < config.totalWorkers; i++) {
-            const worker = new K4CrackerWorker();
-            
-            worker.onmessage = (e) => {
-                switch (e.data.type) {
-                    case 'progress':
-                        this.updateProgress(e.data);
-                        break;
-                    case 'result':
-                        this.handleResult(e.data);
-                        break;
-                    case 'completed':
-                        this.workerCompleted();
-                        break;
-                }
-            };
-            
-            worker.postMessage({
-                type: 'init',
-                ...config,
-                workerId: i,
-                startKey: i * keysPerWorker,
-                endKey: (i + 1) * keysPerWorker
-            });
-            
-            this.workers.push(worker);
-        }
-        
-        this.workers.forEach(w => w.postMessage({ type: 'start' }));
-        this.elements.progress.textContent = `Запущено ${config.totalWorkers} воркеров...`;
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `kryptos-key-${result.key}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     }
-    
-    updateProgress(data) {
-        this.elements.progress.textContent = 
-            `Проверено ключей: ${data.totalTested} | Лучший счет: ${data.bestScore}`;
-        
-        if (data.bestKey) {
-            this.elements.bestKey.textContent = `Лучший ключ: ${data.bestKey}`;
-            this.elements.output.textContent = data.bestPlaintext;
-        }
+
+    analysisComplete() {
+        this.stopAnalysis();
+        this.elements.progressText.textContent = 'Analysis complete';
     }
-    
-    handleResult(data) {
-        this.results.push(data);
-        this.results.sort((a, b) => b.score - a.score);
-        
-        if (this.results[0]) {
-            const best = this.results[0];
-            this.elements.bestKey.textContent = `Найден ключ: ${best.key} (счет: ${best.score})`;
-            this.elements.output.textContent = best.plaintext;
-        }
-    }
-    
-    workerCompleted() {
-        if (this.workers.every(w => w.terminated)) {
-            this.stop();
-        }
-    }
-    
-    stop() {
-        this.isRunning = false;
-        this.workers.forEach(w => {
-            w.terminate();
-        });
-        this.elements.startBtn.disabled = false;
-        this.elements.stopBtn.disabled = true;
-        this.elements.progress.textContent += " | Анализ завершен";
+
+    handleError(error) {
+        this.stopAnalysis();
+        alert(`Error: ${error}`);
     }
 }
 
-new K4CrackerApp();
+// Initialize the app when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    new KryptosCracker();
+});
