@@ -45,7 +45,6 @@ class KryptosCracker {
             return;
         }
 
-        // Clear previous results
         this.elements.resultsGrid.innerHTML = '';
         this.elements.progressBar.value = 0;
         this.elements.progressText.textContent = '0%';
@@ -55,10 +54,8 @@ class KryptosCracker {
         this.elements.analyzeBtn.disabled = true;
         this.elements.stopBtn.disabled = false;
 
-        // Create new worker
         this.worker = new Worker('worker-ai.js');
 
-        // Send data to worker
         this.worker.postMessage({
             type: 'start',
             ciphertext,
@@ -67,7 +64,6 @@ class KryptosCracker {
             minKeyLength
         });
 
-        // Handle worker messages
         this.worker.onmessage = (e) => {
             const { type, data } = e.data;
 
@@ -85,6 +81,12 @@ class KryptosCracker {
                     this.handleError(data);
                     break;
             }
+        };
+
+        this.worker.onerror = (error) => {
+            console.error('Worker error:', error);
+            this.handleError(error.message);
+            this.stopAnalysis();
         };
     }
 
@@ -112,6 +114,7 @@ class KryptosCracker {
         clone.querySelector('.positions span').textContent = result.positions.join(', ');
         clone.querySelector('.decrypted span').textContent = result.decryptedSample;
         clone.querySelector('.score span').textContent = result.score.toFixed(2);
+        clone.querySelector('.key-length').textContent = result.keyLength;
         
         const exportBtn = clone.querySelector('.export-btn');
         exportBtn.addEventListener('click', () => this.exportResult(result));
@@ -122,6 +125,7 @@ class KryptosCracker {
     exportResult(result) {
         const data = {
             key: result.key,
+            keyLength: result.keyLength,
             positions: result.positions,
             decryptedSample: result.decryptedSample,
             score: result.score,
@@ -153,7 +157,6 @@ class KryptosCracker {
     }
 }
 
-// Initialize the app when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     new KryptosCracker();
 });
