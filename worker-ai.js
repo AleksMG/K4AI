@@ -1,104 +1,127 @@
-class KryptosApp {
+class KryptosWorker {
     constructor() {
-        this.workers = [];
-        this.isRunning = false;
-        this.keysTested = 0;
-        this.startTime = 0;
+        // Инициализация алфавита
+        this.alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        this.charMap = new Uint8Array(256).fill(255);
+        for (let i = 0; i < this.alphabet.length; i++) {
+            this.charMap[this.alphabet.charCodeAt(i)] = i;
+        }
         
-        // Элементы UI
-        this.elements = {
-            ciphertext: document.getElementById('ciphertext'),
-            keyLength: document.getElementById('keyLength'),
-            workers: document.getElementById('workers'),
-            startBtn: document.getElementById('startBtn'),
-            stopBtn: document.getElementById('stopBtn'),
-            results: document.getElementById('results'),
-            status: document.getElementById('status')
+        // Настройки производительности
+        this.BATCH_SIZE = 25000;
+        this.MIN_SCORE = 150;
+        
+        // Частотная таблица английского языка
+        this.freqTable = new Uint8Array(26);
+        const freqOrder = 'ETAOINSHRDLCUMWFGYPBVKJXQZ';
+        for (let i = 0; i < freqOrder.length; i++) {
+            this.freqTable[freqOrder.charCodeAt(i) - 65] = 10 - Math.min(i, 10);
+        }
+        
+        // Обработчик сообщений
+        self.onmessage = (e) => {
+            const msg = e.data;
+            if (msg.type === 'init') this.init(msg);
+            if (msg.type === 'start') this.start();
+            if (msg.type === 'stop') this.stop();
         };
+    }
+    
+    init(msg) {
+        this.ciphertext = msg.ciphertext;
+        this.keyLength = msg.keyLength;
+        this.workerId = msg.workerId;
         
-        // Обработчики событий
-        this.elements.startBtn.addEventListener('click', () => this.start());
-        this.elements.stopBtn.addEventListener('click', () => this.stop());
+        // Преобразование ciphertext в числовые коды
+        this.cipherCodes = new Uint8Array(this.ciphertext.length);
+        for (let i = 0; i < this.ciphertext.length; i++) {
+            this.cipherCodes[i] = this.charMap[this.ciphertext.charCodeAt(i)];
+        }
     }
     
     start() {
-        if (this.isRunning) return;
-        
-        this.isRunning = true;
-        this.keysTested = 0;
-        this.startTime = performance.now();
-        
-        // Очистка предыдущих результатов
-        this.elements.results.innerHTML = '';
-        this.elements.status.textContent = 'Running...';
-        
-        // Настройка кнопок
-        this.elements.startBtn.disabled = true;
-        this.elements.stopBtn.disabled = false;
-        
-        // Создание workers
-        const ciphertext = this.elements.ciphertext.value.trim();
-        const keyLength = parseInt(this.elements.keyLength.value);
-        const numWorkers = parseInt(this.elements.workers.value);
-        
-        this.workers = [];
-        for (let i = 0; i < numWorkers; i++) {
-            const worker = new Worker('worker.js');
-            worker.onmessage = (e) => this.handleWorkerMessage(e.data);
-            worker.postMessage({
-                type: 'init',
-                ciphertext: ciphertext,
-                keyLength: keyLength,
-                workerId: i
-            });
-            this.workers.push(worker);
-        }
-        
-        // Запуск workers
-        this.workers.forEach(w => w.postMessage({ type: 'start' }));
-        
-        // Обновление UI
-        this.updateInterval = setInterval(() => this.updateStatus(), 1000);
+        this.running = true;
+        this.processBatches();
     }
     
     stop() {
-        if (!this.isRunning) return;
-        
-        this.isRunning = false;
-        clearInterval(this.updateInterval);
-        
-        this.workers.forEach(w => {
-            w.postMessage({ type: 'stop' });
-            w.terminate();
-        });
-        
-        this.elements.startBtn.disabled = false;
-        this.elements.stopBtn.disabled = true;
-        this.updateStatus();
+        this.running = false;
     }
     
-    handleWorkerMessage(data) {
-        if (data.type === 'result') {
-            this.elements.results.innerHTML += 
-                `Key: ${data.key} | Score: ${data.score}\n` +
-                `Text: ${data.plaintext}\n` +
-                '----------------\n';
-        }
-        else if (data.type === 'progress') {
-            this.keysTested += data.keysTested;
+    async processBatches() {
+        while (this.running) {
+            const batchStart = performance.now();
+            let bestKey = null;
+            let bestScore = 0;
+            let bestText = '';
+            
+            // Обработка батча
+            for (let i = 0; i < this.BATCH_SIZE; i++) {
+                const key = this.generateKey();
+                const [text, score] = this.processKey(key);
+                
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestKey = key;
+                    bestText = text;
+                }
+            }
+            
+            // Отправка результатов
+            if (bestScore >= this.MIN_SCORE) {
+                self.postMessage({
+                    type: 'result',
+                    key: bestKey,
+                    plaintext: bestText,
+                    score: bestScore
+                });
+            }
+            
+            // Отчет о прогрессе
+            self.postMessage({
+                type: 'progress',
+                keysTested: this.BATCH_SIZE
+            });
+            
+            // Даем браузеру перерыв
+            await new Promise(resolve => setTimeout(resolve, 0));
         }
     }
     
-    updateStatus() {
-        const elapsed = (performance.now() - this.startTime) / 1000;
-        const kps = Math.round(this.keysTested / elapsed);
-        this.elements.status.textContent = 
-            `Keys tested: ${this.keysTested.toLocaleString()} | ` +
-            `Speed: ${kps.toLocaleString()} keys/sec`;
+    generateKey() {
+        const key = new Uint8Array(this.keyLength);
+        for (let i = 0; i < this.keyLength; i++) {
+            key[i] = Math.floor(Math.random() * 26);
+        }
+        return key;
+    }
+    
+    processKey(key) {
+        let text = '';
+        let score = 0;
+        
+        // Дешифровка и оценка
+        for (let i = 0; i < Math.min(32, this.cipherCodes.length); i++) {
+            const p = (this.cipherCodes[i] - key[i % this.keyLength] + 26) % 26;
+            text += this.alphabet[p];
+            score += this.freqTable[p];
+        }
+        
+        // Полная дешифровка только для хороших ключей
+        if (score > 50) {
+            text = '';
+            for (let i = 0; i < this.cipherCodes.length; i++) {
+                const p = (this.cipherCodes[i] - key[i % this.keyLength] + 26) % 26;
+                text += this.alphabet[p];
+            }
+            
+            // Проверка важных паттернов
+            if (text.includes('BERLIN')) score += 100;
+            if (text.includes('CLOCK')) score += 80;
+        }
+        
+        return [text, score];
     }
 }
 
-// Инициализация при загрузке
-document.addEventListener('DOMContentLoaded', () => {
-    window.app = new KryptosApp();
-});
+new KryptosWorker();
