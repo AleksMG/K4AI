@@ -1,55 +1,71 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kryptos K4 Cracker</title>
     <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <h1>Kryptos K4 Cracker</h1>
-        
-        <div class="input-section">
-            <div>
-                <label for="ciphertext">Шифртекст:</label>
-                <textarea id="ciphertext">OBKRUOXOGHULBSOLIFBBWFLRVQQPRNGKSSOTWTQSJQSSEKZZWATJKLUDIAWINFBNYPVTTMZFPKWGDKZXTJCDIGKUHUAUEKCAR</textarea>
-            </div>
-            
-            <div>
-                <label for="plaintext">Известный текст:</label>
-                <textarea id="plaintext">BERLINCLOCK</textarea>
-            </div>
-            
-            <div>
-                <label for="alphabet">Алфавит:</label>
-                <input type="text" id="alphabet" value="ZXWVUQNMLJIHGFEDCBASOTPYRK">
-            </div>
-            
-            <div class="settings">
-                <div>
-                    <label for="keyLength">Длина ключа:</label>
-                    <input type="number" id="keyLength" value="12" min="1" max="20">
+    <div class="app-container">
+        <header class="app-header">
+            <h1>Kryptos K4 Cracker</h1>
+            <p class="subtitle">Vigenère cipher reverse engineering tool</p>
+        </header>
+
+        <main class="app-main">
+            <div class="input-section">
+                <div class="form-group">
+                    <label for="ciphertext">Ciphertext</label>
+                    <textarea id="ciphertext" rows="3" placeholder="Paste K4 ciphertext here..."></textarea>
                 </div>
-                
-                <div>
-                    <label for="workers">Количество воркеров:</label>
-                    <input type="number" id="workers" value="4" min="1" max="16">
+
+                <div class="form-group">
+                    <label for="knownText">Known plaintext</label>
+                    <input type="text" id="knownText" placeholder="BERLIN">
+                </div>
+
+                <div class="form-group">
+                    <label for="alphabet">Custom alphabet</label>
+                    <input type="text" id="alphabet" value="KRYPTOSABCDEFGHIJLMNQUVWXZ">
+                </div>
+
+                <div class="form-group">
+                    <label for="minKeyLength">Minimum key length</label>
+                    <input type="number" id="minKeyLength" value="6" min="1">
+                </div>
+
+                <button id="analyzeBtn" class="primary-btn">Analyze</button>
+                <button id="stopBtn" class="secondary-btn" disabled>Stop</button>
+            </div>
+
+            <div class="results-section">
+                <div class="results-header">
+                    <h2>Results</h2>
+                    <div class="progress-container" id="progressContainer">
+                        <progress id="progressBar" value="0" max="100"></progress>
+                        <span id="progressText">0%</span>
+                    </div>
+                </div>
+
+                <div class="results-grid" id="resultsGrid">
+                    <div class="result-card template">
+                        <div class="key">KEY</div>
+                        <div class="positions">Positions: <span></span></div>
+                        <div class="decrypted">Decrypted: <span></span></div>
+                        <div class="score">Score: <span></span></div>
+                        <button class="export-btn">Export</button>
+                    </div>
                 </div>
             </div>
-        </div>
-        
-        <div class="controls">
-            <button id="startBtn">Запуск</button>
-            <button id="stopBtn" disabled>Стоп</button>
-        </div>
-        
-        <div class="results">
-            <h3>Результаты:</h3>
-            <div id="progress">Готов к работе</div>
-            <div id="bestKey"></div>
-            <pre id="output"></pre>
-        </div>
+        </main>
+
+        <footer class="app-footer">
+            <p>Kryptos K4 analysis tool © 2023 | Professional cryptographic implementation</p>
+        </footer>
     </div>
 
-    <script src="app.js" type="module"></script>
+    <script src="app.js"></script>
 </body>
 </html>
