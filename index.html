@@ -1,8 +1,6 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kryptos K4 Cracker</title>
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -10,35 +8,48 @@
     <div class="container">
         <h1>Kryptos K4 Cracker</h1>
         
-        <div class="input-group">
-            <label for="ciphertext">Ciphertext:</label>
-            <textarea id="ciphertext" rows="4">OBKRUOXOGHULBSOLIFBBWFLRVQQPRNGKSSOTWTQSJQSSEKZZWATJKLUDIAWINFBNYPVTTMZFPKWGDKZXTJCDIGKUHUAUEKCAR</textarea>
+        <div class="input-section">
+            <div>
+                <label for="ciphertext">Шифртекст:</label>
+                <textarea id="ciphertext">OBKRUOXOGHULBSOLIFBBWFLRVQQPRNGKSSOTWTQSJQSSEKZZWATJKLUDIAWINFBNYPVTTMZFPKWGDKZXTJCDIGKUHUAUEKCAR</textarea>
+            </div>
+            
+            <div>
+                <label for="plaintext">Известный текст:</label>
+                <textarea id="plaintext">BERLINCLOCK</textarea>
+            </div>
+            
+            <div>
+                <label for="alphabet">Алфавит:</label>
+                <input type="text" id="alphabet" value="ZXWVUQNMLJIHGFEDCBASOTPYRK">
+            </div>
+            
+            <div class="settings">
+                <div>
+                    <label for="keyLength">Длина ключа:</label>
+                    <input type="number" id="keyLength" value="12" min="1" max="20">
+                </div>
+                
+                <div>
+                    <label for="workers">Количество воркеров:</label>
+                    <input type="number" id="workers" value="4" min="1" max="16">
+                </div>
+            </div>
         </div>
         
-        <div class="input-group">
-            <label for="keyLength">Key Length (8-20):</label>
-            <input type="number" id="keyLength" min="8" max="20" value="12">
+        <div class="controls">
+            <button id="startBtn">Запуск</button>
+            <button id="stopBtn" disabled>Стоп</button>
         </div>
-        
-        <div class="input-group">
-            <label for="workers">Worker Threads:</label>
-            <input type="number" id="workers" min="1" max="16" value="4">
-        </div>
-        
-        <button id="startBtn">Start Cracking</button>
-        <button id="stopBtn" disabled>Stop</button>
         
         <div class="results">
-            <h3>Best Candidates:</h3>
-            <div id="results"></div>
-        </div>
-        
-        <div class="status">
-            <div id="progress"></div>
-            <div id="speed"></div>
+            <h3>Результаты:</h3>
+            <div id="progress">Готов к работе</div>
+            <div id="bestKey"></div>
+            <pre id="output"></pre>
         </div>
     </div>
 
-    <script src="app.js"></script>
+    <script src="app.js" type="module"></script>
 </body>
 </html>
