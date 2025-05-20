@@ -56,7 +56,7 @@ class KryptosCracker {
         this.elements.stopBtn.disabled = false;
 
         // Create new worker
-        this.worker = new Worker('worker.js');
+        this.worker = new Worker('worker-ai.js');
 
         // Send data to worker
         this.worker.postMessage({
