@@ -5,240 +5,441 @@
     <style>
         :root {
             --primary: #2c3e50;
-            --secondary: #3498db;
+            --accent: #e74c3c;
+            --background: #f8f9fa;
+            --text: #2c3e50;
         }
 
         body {
-            font-family: 'Courier New', monospace;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            background: #f5f6fa;
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 2rem;
+            background: var(--background);
+            color: var(--text);
         }
 
-        .header {
-            background: var(--primary);
-            color: white;
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .cipher-input {
+            width: 100%;
+            height: 150px;
             padding: 1rem;
+            border: 2px solid var(--primary);
             border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 2rem;
+            resize: vertical;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
             margin-bottom: 2rem;
         }
 
-        .analyzer-container {
-            display: grid;
-            grid-template-columns: 300px 1fr;
-            gap: 20px;
+        .analysis-types {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
-        .control-panel {
+        .progress-container {
             background: white;
-            padding: 1rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        .visualization {
-            background: white;
-            padding: 1rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
         button {
-            background: var(--secondary);
+            background: var(--accent);
             color: white;
             border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
+            padding: 1rem 2rem;
+            border-radius: 25px;
+            font-size: 1.1rem;
             cursor: pointer;
-            transition: opacity 0.3s;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         button:hover {
-            opacity: 0.8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+        }
+
+        .results {
+            margin-top: 2rem;
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
         .result-item {
-            background: #fff;
-            margin: 10px 0;
-            padding: 10px;
-            border-left: 4px solid var(--secondary);
+            padding: 1.5rem;
+            border-bottom: 1px solid #eee;
+            transition: background 0.2s;
+        }
+
+        .result-item:hover {
+            background: #f8f9fa;
+        }
+
+        .highlight {
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        #progressBar {
+            width: 100%;
+            height: 12px;
+            background: #eee;
+            border-radius: 6px;
+            margin-top: 1rem;
+            overflow: hidden;
+        }
+
+        #progressFill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), #ff6b6b);
+            transition: width 0.3s ease;
+        }
+
+        .key-info {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .key-badge {
+            background: var(--primary);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.9rem;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>K4 Decryption Platform</h1>
-        <p>v1.0 | Real-time Analysis | AI Scoring</p>
-    </div>
+    <div class="container">
+        <h1>🔐 Kryptos K4 Decryption Platform</h1>
+        
+        <textarea class="cipher-input" id="ciphertext" placeholder="Введите шифротекст...">
+OBKRUOXOGHULBSOLIFBBWFLRVQQPRNGKSSOTWTQSJQSSEKZZWATJKLUDIAWINFBNYPVTTMZFPKWGDKZXTJCDIGKUHUAUEKCAR
+        </textarea>
 
-    <div class="analyzer-container">
-        <div class="control-panel">
-            <h3>Контрольная панель</h3>
-            <div class="input-group">
-                <label>Шифротекст:</label>
-                <textarea id="ciphertext" rows="6">OBKRUOXOGHULBSOLIFBBWFLRVQQPRNGKSSOTWTQSJQSSEKZZWATJKLUDIAWINFBNYPVTTMZFPK</textarea>
+        <div class="controls">
+            <div class="analysis-types">
+                <h2>🛠 Параметры анализа</h2>
+                <div class="param-group">
+                    <label>
+                        <input type="checkbox" name="method" value="vigenere" checked> 
+                        Шифр Виженера
+                    </label>
+                    <label>
+                        <input type="checkbox" name="method" value="transposition"> 
+                        Транспозиция
+                    </label>
+                    <label>
+                        <input type="checkbox" name="method" value="frequency"> 
+                        Частотный анализ
+                    </label>
+                </div>
             </div>
 
-            <div class="param-group">
-                <label>Методы:</label>
-                <select id="methods" multiple>
-                    <option value="vigenere">Виженер</option>
-                    <option value="transposition">Транспозиция</option>
-                    <option value="frequency">Частотный анализ</option>
-                </select>
+            <div class="progress-container">
+                <h2>📊 Прогресс анализа</h2>
+                <div id="progressBar">
+                    <div id="progressFill"></div>
+                </div>
+                <div id="statusText" style="margin-top: 0.5rem; color: #666;"></div>
             </div>
-
-            <button onclick="startAnalysis()">Запустить анализ</button>
-            <div id="progress"></div>
         </div>
 
-        <div class="visualization">
-            <div id="frequency-chart"></div>
-            <div id="live-results"></div>
+        <button onclick="startAnalysis()">
+            <span style="font-size: 1.2rem;">🚀</span> 
+            Начать дешифровку
+        </button>
+
+        <div class="results">
+            <h2>🔍 Результаты анализа</h2>
+            <div id="resultsContainer"></div>
         </div>
     </div>
 
     <script>
-        class K4Analyzer {
+        class K4Decoder {
             constructor() {
                 this.workers = [];
+                this.totalTasks = 0;
+                this.completedTasks = 0;
                 this.results = [];
-                this.STOP_ANALYSIS = false;
             }
 
             init() {
-                this.setupWebWorkers(4);
+                this.setupWorkers(4);
             }
 
-            setupWebWorkers(n) {
-                for(let i = 0; i < n; i++) {
+            setupWorkers(workerCount) {
+                for(let i = 0; i < workerCount; i++) {
                     const worker = new Worker(URL.createObjectURL(new Blob([`
-                        self.onmessage = ${workerFunction.toString()}
-                    `], {type: 'text/javascript'})));
+                        ${this.workerFunction.toString()}
+                        self.onmessage = handleWorkerMessage;
+                    `])));
                     
-                    worker.onmessage = (e) => this.handleWorkerMessage(e);
+                    worker.onmessage = (e) => this.handleWorkerResponse(e, i);
                     this.workers.push(worker);
                 }
             }
 
-            handleWorkerMessage(e) {
-                const {type, data} = e.data;
+            handleWorkerResponse(e, workerId) {
+                const { type, data } = e.data;
                 switch(type) {
-                    case 'result':
-                        this.results.push(data);
-                        this.updateUI(data);
-                        break;
                     case 'progress':
                         this.updateProgress(data);
+                        break;
+                    case 'result':
+                        this.results.push(data);
+                        this.displayResult(data);
                         break;
                 }
             }
 
-            async startAnalysis(config) {
-                this.STOP_ANALYSIS = false;
-                const hypotheses = this.generateHypotheses(config);
+            updateProgress({ processed, total }) {
+                this.completedTasks = processed;
+                this.totalTasks = total;
+                const progress = (processed / total) * 100;
                 
+                document.getElementById('progressFill').style.width = `${progress}%`;
+                document.getElementById('statusText').textContent = 
+                    `Обработано ${processed} из ${total} гипотез (${Math.round(progress)}%)`;
+            }
+
+            displayResult(result) {
+                const resultEl = document.createElement('div');
+                resultEl.className = 'result-item';
+                
+                const highlightedText = result.text.replace(
+                    new RegExp(`(${TARGET_WORDS.join('|')})`, 'gi'), 
+                    '<span class="highlight">$1</span>'
+                );
+
+                resultEl.innerHTML = `
+                    <div class="key-info">
+                        <span class="key-badge">${result.key}</span>
+                        <span>Score: ${result.score.toFixed(1)}</span>
+                    </div>
+                    <div>${highlightedText}</div>
+                `;
+
+                document.getElementById('resultsContainer').prepend(resultEl);
+            }
+
+            startAnalysis(ciphertext, methods) {
+                this.results = [];
+                this.completedTasks = 0;
+                document.getElementById('resultsContainer').innerHTML = '';
+
+                const hypotheses = this.generateHypotheses(ciphertext, methods);
+                this.totalTasks = hypotheses.length;
+
                 this.workers.forEach((worker, idx) => {
-                    const tasks = hypotheses.slice(idx * 100, (idx+1) * 100);
-                    worker.postMessage({type: 'start', config, tasks});
+                    const chunkSize = Math.ceil(hypotheses.length / this.workers.length);
+                    const tasks = hypotheses.slice(idx * chunkSize, (idx + 1) * chunkSize);
+                    
+                    worker.postMessage({
+                        type: 'start',
+                        ciphertext,
+                        tasks,
+                        methods
+                    });
                 });
             }
 
-            generateHypotheses(config) {
-                // Генератор гипотез с приоритезацией
-                const keys = ['CLOCKWISE', 'BERLIN', 'NORTHEAST', 'PALIMPSEST'];
-                const alphabets = keys.map(k => this.generateAlphabet(k));
+            generateHypotheses(ciphertext, methods) {
+                const baseKeys = ['CLOCKWISE', 'BERLIN', 'NORTHEAST', 'PALIMPSEST'];
+                const variants = [];
                 
-                return keys.flatMap(key => 
-                    alphabets.map(alpha => ({
+                // Генерация ключей
+                for(const key of baseKeys) {
+                    variants.push(...this.generateKeyVariations(key));
+                }
+
+                // Генерация алфавитов
+                return variants.flatMap(key => 
+                    this.generateAlphabets(key).map(alphabet => ({
                         key,
-                        alphabet: alpha,
-                        method: 'vigenere'
+                        alphabet,
+                        methods
                     }))
                 );
             }
 
-            generateAlphabet(keyword) {
-                const unique = [...new Set(keyword.toUpperCase().split(''))];
-                return [...unique, ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-                    .filter(c => !unique.includes(c))].join('');
+            generateKeyVariations(baseKey) {
+                const variations = [];
+                for(let i = 0; i < baseKey.length; i++) {
+                    variations.push(
+                        baseKey.slice(0, i) + 
+                        baseKey[i].toLowerCase() + 
+                        baseKey.slice(i + 1)
+                    );
+                }
+                return [baseKey, ...variations];
             }
 
-            updateUI(result) {
-                const div = document.createElement('div');
-                div.className = 'result-item';
-                div.innerHTML = `
-                    <strong>${result.key}</strong> (score: ${result.score.toFixed(1)})
-                    <div>${result.text.slice(0,50)}...</div>
-                `;
-                document.getElementById('live-results').appendChild(div);
+            generateAlphabets(key) {
+                const base = [...new Set([...key.toUpperCase(), ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'])];
+                return [
+                    base.join(''),
+                    [...base].reverse().join(''),
+                    this.rotateAlphabet(base, 13).join('')
+                ];
             }
 
-            updateProgress(percent) {
-                document.getElementById('progress').textContent = 
-                    `Progress: ${percent}% | Found: ${this.results.length} candidates`;
+            rotateAlphabet(arr, n) {
+                return arr.slice(n).concat(arr.slice(0, n));
             }
         }
 
-        // Worker логика
-        function workerFunction(e) {
-            const {type, config, tasks} = e.data;
-            if(type === 'start') {
-                tasks.forEach(task => {
-                    const result = processTask(task, config.ciphertext);
-                    self.postMessage({type: 'result', data: result});
+        // Конфигурация
+        const TARGET_WORDS = ['BERLIN', 'CLOCK', 'SOUTH'];
+        const decoder = new K4Decoder();
+        decoder.init();
+
+        function workerFunction() {
+            function handleWorkerMessage(e) {
+                const { type, ciphertext, tasks, methods } = e.data;
+                if(type === 'start') {
+                    processTasks(ciphertext, tasks, methods);
+                }
+            }
+
+            function processTasks(ciphertext, tasks, methods) {
+                tasks.forEach((task, index) => {
+                    const result = {
+                        key: task.key,
+                        text: decrypt(ciphertext, task),
+                        score: calculateScore(decryptedText),
+                        alphabet: task.alphabet
+                    };
+
+                    self.postMessage({
+                        type: 'result',
+                        data: result
+                    });
+
+                    self.postMessage({
+                        type: 'progress',
+                        data: {
+                            processed: index + 1,
+                            total: tasks.length
+                        }
+                    });
                 });
             }
-        }
 
-        function processTask(task, ciphertext) {
-            // Реальное дешифрование
-            const decrypted = vigenereDecrypt(
-                ciphertext, 
-                task.key, 
-                task.alphabet
-            );
-            
-            const score = calculateScore(decrypted);
-            
-            return {
-                key: task.key,
-                alphabet: task.alphabet,
-                text: decrypted,
-                score
-            };
-        }
+            function decrypt(text, { key, alphabet, methods }) {
+                let result = text;
+                
+                if(methods.includes('vigenere')) {
+                    result = vigenereDecrypt(result, key, alphabet);
+                }
+                
+                if(methods.includes('transposition')) {
+                    result = transpose(result, 9, 11);
+                }
+                
+                return result;
+            }
 
-        function vigenereDecrypt(text, key, alphabet) {
-            const standardAlphabet = 'ABCDEFGHIJKLMNOPQRSTUVSTUVWXYZ';
-            return text.split('').map((c, i) => {
-                const keyChar = key[i % key.length];
-                const shift = alphabet.indexOf(keyChar);
-                const encryptedIndex = alphabet.indexOf(c);
-                return standardAlphabet[(encryptedIndex - shift + 26) % 26];
-            }).join('');
-        }
+            function vigenereDecrypt(text, key, alphabet) {
+                const standard = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                return [...text].map((c, i) => {
+                    const keyChar = key[i % key.length].toUpperCase();
+                    const shift = alphabet.indexOf(keyChar);
+                    const charIndex = alphabet.indexOf(c);
+                    return standard[(charIndex - shift + 26) % 26];
+                }).join('');
+            }
 
-        function calculateScore(text) {
-            const targets = ['BERLIN', 'CLOCK', 'SOUTH'];
-            const matches = targets.filter(w => text.includes(w)).length;
-            return matches * 100 + Math.random() * 50;
-        }
+            function transpose(text, rows, cols) {
+                const grid = Array.from({ length: rows }, () => 
+                    Array(cols).fill(null));
+                
+                let index = 0;
+                for(let i = 0; i < rows; i++) {
+                    for(let j = 0; j < cols; j++) {
+                        if(index < text.length) {
+                            grid[i][j] = text[index++];
+                        }
+                    }
+                }
+                
+                // Спиральное чтение
+                let result = '';
+                let top = 0, bottom = rows-1, left = 0, right = cols-1;
+                
+                while(top <= bottom && left <= right) {
+                    for(let i = left; i <= right; i++) 
+                        result += grid[top][i] || '';
+                    top++;
+                    
+                    for(let i = top; i <= bottom; i++) 
+                        result += grid[i][right] || '';
+                    right--;
+                    
+                    if(top <= bottom) {
+                        for(let i = right; i >= left; i--) 
+                            result += grid[bottom][i] || '';
+                        bottom--;
+                    }
+                    
+                    if(left <= right) {
+                        for(let i = bottom; i >= top; i--) 
+                            result += grid[i][left] || '';
+                        left++;
+                    }
+                }
+                
+                return result;
+            }
 
-        // Инициализация
-        const analyzer = new K4Analyzer();
-        analyzer.init();
+            function calculateScore(text) {
+                const cleanText = text.toUpperCase();
+                let score = 0;
+                
+                // Поиск ключевых слов
+                TARGET_WORDS.forEach(word => {
+                    const count = (cleanText.match(new RegExp(word, 'gi')) || []).length;
+                    score += count * 100;
+                });
+
+                // Частотный анализ
+                const freq = {};
+                for(const char of cleanText) {
+                    freq[char] = (freq[char] || 0) + 1;
+                }
+                score += Math.abs(freq['E']/text.length*100 - 12.7) * -1;
+
+                return Math.round(score);
+            }
+        }
 
         function startAnalysis() {
-            document.getElementById('live-results').innerHTML = '';
+            const ciphertext = document.getElementById('ciphertext').value;
+            const methods = Array.from(document.querySelectorAll('input[name="method"]:checked'))
+                .map(el => el.value);
             
-            const config = {
-                ciphertext: document.getElementById('ciphertext').value,
-                methods: [...document.getElementById('methods').selectedOptions].map(o => o.value)
-            };
-
-            analyzer.startAnalysis(config);
+            decoder.startAnalysis(ciphertext, methods);
         }
     </script>
 </body>
