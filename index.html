@@ -6,316 +6,313 @@
     <title>Kryptos K4 Professional Suite</title>
     <style>
         :root {
-            --primary: #2c3e50;
-            --secondary: #3498db;
-            --accent: #e74c3c;
-            --background: #f8f9fa;
+            --primary: #1a1a1a;
+            --accent: #4CAF50;
+            --background: #f5f5f5;
+            --text: #333;
         }
 
         body {
-            font-family: 'Roboto', sans-serif;
+            font-family: 'Roboto Mono', monospace;
             margin: 0;
             padding: 2rem;
             background: var(--background);
-            color: var(--primary);
+            color: var(--text);
         }
 
         .dashboard {
-            max-width: 1400px;
-            margin: 0 auto;
             display: grid;
             grid-template-columns: 300px 1fr;
             gap: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
         }
 
         .control-panel {
             background: white;
             padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
 
         .visualization {
             background: white;
             padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
 
-        .cipher-input {
+        textarea {
             width: 100%;
             height: 150px;
             padding: 1rem;
             border: 2px solid var(--primary);
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            margin-bottom: 2rem;
+            border-radius: 6px;
+            font-family: inherit;
+            margin-bottom: 1.5rem;
+            resize: vertical;
         }
 
         .progress-container {
             height: 8px;
             background: #eee;
             border-radius: 4px;
-            margin: 1rem 0;
+            margin: 1.5rem 0;
             overflow: hidden;
         }
 
         .progress-bar {
             width: 0%;
             height: 100%;
-            background: linear-gradient(90deg, var(--accent), #ff6b6b);
-            transition: width 0.3s ease;
+            background: linear-gradient(90deg, var(--accent), #81C784);
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .result-card {
-            background: white;
             padding: 1.5rem;
             margin: 1rem 0;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            animation: slideIn 0.3s ease;
+            background: #E8F5E9;
+            border-left: 4px solid var(--accent);
+            border-radius: 4px;
+            animation: cardEnter 0.4s ease;
         }
 
-        @keyframes slideIn {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+        @keyframes cardEnter {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .highlight {
-            color: var(--accent);
-            font-weight: 700;
-            background: #fff5f5;
-            padding: 2px 4px;
-            border-radius: 3px;
-        }
-
-        .settings-group {
-            margin-bottom: 2rem;
-        }
-
-        .param-item {
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
             margin: 1rem 0;
+        }
+
+        .stats-table td, .stats-table th {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
         }
     </style>
 </head>
 <body>
     <div class="dashboard">
         <div class="control-panel">
-            <h2>🔓 K4 Decryption Suite</h2>
-            <textarea class="cipher-input" id="ciphertext">OBKRUOXOGHULBSOLIFBBWFLRVQQPRNGKSSOTWTQSJQSSEKZZWATJKLUDIAWINFBNYPVTTMZFPK</textarea>
+            <h2>K4 Analysis Toolkit</h2>
+            <textarea id="ciphertext">OBKRUOXOGHULBSOLIFBBWFLRVQQPRNGKSSOTWTQSJQSSEKZZWATJKLUDIAWINFBNYPVTTMZFPK</textarea>
             
-            <div class="settings-group">
-                <h3>⚙️ Настройки</h3>
-                <div class="param-item">
-                    <label>Метод дешифровки:</label>
-                    <select id="decryptionMethod">
-                        <option value="vigenere">Виженер</option>
-                        <option value="transposition">Транспозиция</option>
-                        <option value="combined">Комбинированный</option>
-                    </select>
-                </div>
-
-                <div class="param-item">
-                    <label>Генератор ключей:</label>
-                    <select id="keyGenerator">
-                        <option value="kasiski">Метод Казиски</option>
-                        <option value="friedman">Тест Фридмана</option>
-                        <option value="custom">Ручной ввод</option>
-                    </select>
-                </div>
-
-                <div class="param-item">
-                    <label>Потоки:</label>
-                    <input type="range" id="workerThreads" min="1" max="8" value="4">
-                    <span id="threadCount">4</span>
-                </div>
+            <div class="toolbar">
+                <button onclick="AnalysisManager.start()">▶️ Start</button>
+                <button onclick="AnalysisManager.stop()">⏹ Stop</button>
+                <button onclick="AnalysisManager.export()">💾 Export</button>
             </div>
 
-            <button onclick="startDeepAnalysis()">🚀 Запустить анализ</button>
             <div class="progress-container">
                 <div class="progress-bar" id="progressBar"></div>
             </div>
+
+            <table class="stats-table">
+                <tr>
+                    <th>Processed</th>
+                    <td id="processed">0</td>
+                </tr>
+                <tr>
+                    <th>Possible Keys</th>
+                    <td id="keysFound">0</td>
+                </tr>
+                <tr>
+                    <th>Matches</th>
+                    <td id="matches">0</td>
+                </tr>
+            </table>
         </div>
 
         <div class="visualization" id="results"></div>
     </div>
 
-    <script>
-        class K4ProfessionalAnalyzer {
-            constructor() {
-                this.workers = [];
-                this.results = [];
-                this.jobId = 0;
-                this.TARGETS = ['BERLIN', 'CLOCK', 'SOUTH'];
+<script>
+class CryptoEngine {
+    static ENG_FREQ = {
+        'A': 8.2, 'B': 1.5, 'C': 2.8, 'D': 4.3, 'E': 12.7,
+        'F': 2.2, 'G': 2.0, 'H': 6.1, 'I': 6.7, 'J': 0.15,
+        'K': 0.77, 'L': 4.0, 'M': 2.4, 'N': 6.7, 'O': 7.5,
+        'P': 1.9, 'Q': 0.095, 'R': 6.0, 'S': 6.3, 'T': 9.1,
+        'U': 2.8, 'V': 1.0, 'W': 2.4, 'X': 0.15, 'Y': 2.0,
+        'Z': 0.074
+    };
+
+    static kasiskiAnalysis(text) {
+        const trigrams = new Map();
+        for (let i = 0; i < text.length - 2; i++) {
+            const trigram = text.substr(i, 3);
+            const positions = trigrams.get(trigram) || [];
+            positions.push(i);
+            trigrams.set(trigram, positions);
+        }
+
+        const distances = [];
+        for (const [_, positions] of trigrams) {
+            if (positions.length > 1) {
+                for (let i = 1; i < positions.length; i++) {
+                    distances.push(positions[i] - positions[i-1]);
+                }
+            }
+        }
+
+        const gcd = (a, b) => b === 0 ? a : gcd(b, a % b);
+        return distances.reduce((a, b) => gcd(a, b), distances[0]) || 1;
+    }
+
+    static friedmanTest(text) {
+        const freq = {};
+        for (const c of text) freq[c] = (freq[c] || 0) + 1;
+        
+        const n = text.length;
+        const sum = Object.values(freq).reduce((a, v) => a + v*(v-1), 0);
+        const IC = sum / (n*(n-1));
+        
+        return (0.027 * n) / ((n-1)*IC - 0.038) + 0.065;
+    }
+
+    static frequencyAnalysis(text, keyLength) {
+        const columns = Array.from({length: keyLength}, () => []);
+        for (let i = 0; i < text.length; i++) {
+            columns[i % keyLength].push(text[i]);
+        }
+
+        return columns.map(col => {
+            const freq = col.reduce((a, c) => (a[c] = (a[c] || 0) + 1, a), {});
+            const bestShift = Object.entries(freq).reduce((best, [c, count]) => {
+                const shift = (c.charCodeAt(0) - 'E'.charCodeAt(0) + 26) % 26;
+                const score = count * this.ENG_FREQ[String.fromCharCode((shift + 65) % 26)] || 0;
+                return score > best.score ? {shift, score} : best;
+            }, {shift: 0, score: 0}).shift;
+            
+            return String.fromCharCode(65 + bestShift);
+        }).join('');
+    }
+}
+
+class AnalysisManager {
+    static workers = [];
+    static isRunning = false;
+    static results = [];
+    
+    static async start() {
+        if (this.isRunning) return;
+        this.isRunning = true;
+        this.results = [];
+        
+        const text = document.getElementById('ciphertext').value
+            .toUpperCase().replace(/[^A-Z]/g, '');
+        
+        const keyLength = Math.round(
+            (CryptoEngine.kasiskiAnalysis(text) + 
+             CryptoEngine.friedmanTest(text)) / 2
+        );
+        
+        this.initWorkers(4);
+        this.distributeTasks(text, keyLength);
+    }
+
+    static initWorkers(count) {
+        this.workers.forEach(w => w.terminate());
+        this.workers = Array(count).fill().map(() => {
+            const worker = new Worker(URL.createObjectURL(new Blob([`
+                ${CryptoEngine.frequencyAnalysis.toString()}
                 
-                this.methods = {
-                    vigenere: this.vigenereDecrypt,
-                    transposition: this.spiralTranspose,
-                    combined: (text, key) => this.spiralTranspose(this.vigenereDecrypt(text, key))
+                self.onmessage = ({data}) => {
+                    const key = CryptoEngine.frequencyAnalysis(data.text, data.keyLength);
+                    self.postMessage({ key, text: data.text });
                 };
-            }
-
-            init() {
-                this.setupWorkers();
-                this.setupEventListeners();
-            }
-
-            setupWorkers() {
-                const workerCount = document.getElementById('workerThreads').value;
-                this.workers.forEach(w => w.terminate());
-                this.workers = [];
-                
-                for(let i = 0; i < workerCount; i++) {
-                    const worker = new Worker(URL.createObjectURL(new Blob([this.workerCode()])));
-                    worker.onmessage = (e) => this.handleWorkerMessage(e);
-                    this.workers.push(worker);
-                }
-            }
-
-            workerCode() {
-                return `
-                    ${this.vigenereDecrypt.toString()}
-                    ${this.spiralTranspose.toString()}
-                    ${this.calculateScore.toString()}
-
-                    self.onmessage = function(e) {
-                        const { jobId, text, method, key } = e.data;
-                        let result;
-                        
-                        switch(method) {
-                            case 'vigenere':
-                                result = vigenereDecrypt(text, key);
-                                break;
-                            case 'transposition':
-                                result = spiralTranspose(text);
-                                break;
-                            case 'combined':
-                                result = spiralTranspose(vigenereDecrypt(text, key));
-                                break;
-                        }
-
-                        const score = calculateScore(result);
-                        self.postMessage({ jobId, result, score, key });
-                    };
-                `;
-            }
-
-            vigenereDecrypt(text, key) {
-                return [...text].map((c, i) => {
-                    const textChar = c.charCodeAt(0) - 65;
-                    const keyChar = key[i % key.length].toUpperCase().charCodeAt(0) - 65;
-                    return String.fromCharCode(((textChar - keyChar + 26) % 26) + 65);
-                }).join('');
-            }
-
-            spiralTranspose(text) {
-                const size = Math.ceil(Math.sqrt(text.length));
-                const grid = Array.from({ length: size }, () => Array(size).fill(''));
-                let idx = 0;
-                
-                for(let i = 0; i < size; i++) {
-                    for(let j = 0; j < size; j++) {
-                        grid[i][j] = text[idx++] || 'X';
-                    }
-                }
-
-                let result = '';
-                let [top, bottom, left, right] = [0, size-1, 0, size-1];
-                
-                while(top <= bottom && left <= right) {
-                    for(let i = left; i <= right; i++) result += grid[top][i];
-                    top++;
-                    for(let i = top; i <= bottom; i++) result += grid[i][right];
-                    right--;
-                    if(top <= bottom) {
-                        for(let i = right; i >= left; i--) result += grid[bottom][i];
-                        bottom--;
-                    }
-                    if(left <= right) {
-                        for(let i = bottom; i >= top; i--) result += grid[i][left];
-                        left++;
-                    }
-                }
-                return result;
-            }
-
-            calculateScore(text) {
-                return this.TARGETS.reduce((acc, word) => 
-                    acc + (text.includes(word) ? 100 : 0), 0);
-            }
-
-            handleWorkerMessage(e) {
-                const { jobId, result, score, key } = e.data;
-                if(jobId !== this.jobId) return;
-                
-                this.results.push({ key, result, score });
-                this.displayResult({ key, result, score });
-                this.updateProgress();
-            }
-
-            displayResult({ key, result, score }) {
-                const resultCard = document.createElement('div');
-                resultCard.className = 'result-card';
-                const highlighted = result.replace(
-                    new RegExp(this.TARGETS.join('|'), 'gi'),
-                    m => `<span class="highlight">${m}</span>`
-                );
-
-                resultCard.innerHTML = `
-                    <h3>🔑 ${key}</h3>
-                    <p>⭐ Score: ${score}</p>
-                    <pre>${highlighted.substring(0, 100)}...</pre>
-                `;
-
-                document.getElementById('results').prepend(resultCard);
-            }
-
-            updateProgress() {
-                const progress = (this.results.length / this.workers.length * 100);
-                document.getElementById('progressBar').style.width = `${progress}%`;
-            }
-
-            generateKeys() {
-                return ['CLOCKWISE', 'BERLIN', 'NORTHEAST', 'ABSCISSA', 
-                        'PALIMPSEST', 'KRYPTOS', 'EASTERLY', 'SLOW'];
-            }
-
-            startAnalysis(ciphertext) {
-                this.jobId++;
-                this.results = [];
-                document.getElementById('results').innerHTML = '';
-                
-                const method = document.getElementById('decryptionMethod').value;
-                const keys = this.generateKeys();
-                
-                this.workers.forEach((worker, idx) => {
-                    const chunk = keys.slice(idx * 2, idx * 2 + 2);
-                    chunk.forEach(key => {
-                        worker.postMessage({
-                            jobId: this.jobId,
-                            text: ciphertext,
-                            method,
-                            key
-                        });
-                    });
-                });
-            }
-        }
-
-        const analyzer = new K4ProfessionalAnalyzer();
-        analyzer.init();
-
-        function startDeepAnalysis() {
-            const ciphertext = document.getElementById('ciphertext').value
-                .toUpperCase().replace(/[^A-Z]/g, '');
-            analyzer.startAnalysis(ciphertext);
-        }
-
-        // Обработчики событий
-        document.getElementById('workerThreads').addEventListener('input', function(e) {
-            document.getElementById('threadCount').textContent = e.target.value;
-            analyzer.setupWorkers();
+            `])));
+            
+            worker.onmessage = ({data}) => this.handleResult(data);
+            return worker;
         });
-    </script>
+    }
+
+    static distributeTasks(text, keyLength) {
+        const chunkSize = Math.ceil(26 / this.workers.length);
+        this.workers.forEach((worker, i) => {
+            const start = i * chunkSize;
+            const end = start + chunkSize;
+            worker.postMessage({ 
+                text, 
+                keyLength,
+                range: [start, end] 
+            });
+        });
+    }
+
+    static handleResult({ key, text }) {
+        if (!this.isRunning) return;
+        
+        const decrypted = this.vigenereDecrypt(text, key);
+        const score = this.calculateScore(decrypted);
+        
+        this.results.push({ key, decrypted, score });
+        this.updateUI();
+    }
+
+    static vigenereDecrypt(text, key) {
+        return [...text].map((c, i) => {
+            const shift = key.charCodeAt(i % key.length) - 65;
+            return String.fromCharCode((c.charCodeAt(0) - 65 - shift + 26) % 26 + 65);
+        }).join('');
+    }
+
+    static calculateScore(text) {
+        const targets = ['BERLIN', 'CLOCK', 'SOUTH'];
+        return targets.reduce((acc, word) => 
+            acc + (text.includes(word) ? 100 : 0), 0);
+    }
+
+    static updateUI() {
+        document.getElementById('keysFound').textContent = this.results.length;
+        document.getElementById('processed').textContent = 
+            this.results.length * 100;
+        document.getElementById('matches').textContent = 
+            this.results.filter(r => r.score > 0).length;
+        
+        document.getElementById('progressBar').style.width = 
+            `${Math.min(100, (this.results.length / 26) * 100)}%`;
+        
+        this.results.slice(-5).forEach(result => {
+            const exists = document.getElementById(`key-${result.key}`);
+            if (exists) return;
+
+            const card = document.createElement('div');
+            card.className = 'result-card';
+            card.id = `key-${result.key}`;
+            card.innerHTML = `
+                <div class="key-header">
+                    <strong>🔑 ${result.key}</strong>
+                    <span class="score">⭐ ${result.score}</span>
+                </div>
+                <div class="preview">${result.decrypted.substring(0, 80)}...</div>
+            `;
+            
+            document.getElementById('results').prepend(card);
+        });
+    }
+
+    static stop() {
+        this.isRunning = false;
+        this.workers.forEach(w => w.terminate());
+    }
+
+    static export() {
+        const data = JSON.stringify(this.results, null, 2);
+        const blob = new Blob([data], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'k4-analysis-results.json';
+        a.click();
+    }
+}
+</script>
 </body>
 </html>
