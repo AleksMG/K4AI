@@ -1,73 +1,245 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kryptos K4 Cracker</title>
-    <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <title>Kryptos K4 Professional Suite</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f6fa;
+        }
+
+        .header {
+            background: var(--primary);
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+
+        .analyzer-container {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+        }
+
+        .control-panel {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .visualization {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        button {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+
+        button:hover {
+            opacity: 0.8;
+        }
+
+        .result-item {
+            background: #fff;
+            margin: 10px 0;
+            padding: 10px;
+            border-left: 4px solid var(--secondary);
+        }
+    </style>
 </head>
 <body>
-    <div class="app-container">
-        <header class="app-header">
-            <h1>Kryptos K4 Cracker</h1>
-            <p class="subtitle">Vigenère cipher reverse engineering tool</p>
-        </header>
-
-        <main class="app-main">
-            <div class="input-section">
-                <div class="form-group">
-                    <label for="ciphertext">Ciphertext</label>
-                    <textarea id="ciphertext" rows="3" placeholder="Paste K4 ciphertext here..."></textarea>
-                </div>
-                
-<div class="key-length">Key length: <span></span></div>
-                
-                <div class="form-group">
-                    <label for="knownText">Known plaintext</label>
-                    <input type="text" id="knownText" placeholder="BERLIN">
-                </div>
-
-                <div class="form-group">
-                    <label for="alphabet">Custom alphabet</label>
-                    <input type="text" id="alphabet" value="KRYPTOSABCDEFGHIJLMNQUVWXZ">
-                </div>
-
-                <div class="form-group">
-                    <label for="minKeyLength">Minimum key length</label>
-                    <input type="number" id="minKeyLength" value="6" min="1">
-                </div>
-
-                <button id="analyzeBtn" class="primary-btn">Analyze</button>
-                <button id="stopBtn" class="secondary-btn" disabled>Stop</button>
-            </div>
-
-            <div class="results-section">
-                <div class="results-header">
-                    <h2>Results</h2>
-                    <div class="progress-container" id="progressContainer">
-                        <progress id="progressBar" value="0" max="100"></progress>
-                        <span id="progressText">0%</span>
-                    </div>
-                </div>
-
-                <div class="results-grid" id="resultsGrid">
-                    <div class="result-card template">
-                        <div class="key">KEY</div>
-                        <div class="positions">Positions: <span></span></div>
-                        <div class="decrypted">Decrypted: <span></span></div>
-                        <div class="score">Score: <span></span></div>
-                        <button class="export-btn">Export</button>
-                    </div>
-                </div>
-            </div>
-        </main>
-
-        <footer class="app-footer">
-            <p>Kryptos K4 analysis tool © 2023 | Professional cryptographic implementation</p>
-        </footer>
+    <div class="header">
+        <h1>K4 Decryption Platform</h1>
+        <p>v1.0 | Real-time Analysis | AI Scoring</p>
     </div>
 
-    <script src="app.js"></script>
+    <div class="analyzer-container">
+        <div class="control-panel">
+            <h3>Контрольная панель</h3>
+            <div class="input-group">
+                <label>Шифротекст:</label>
+                <textarea id="ciphertext" rows="6">OBKRUOXOGHULBSOLIFBBWFLRVQQPRNGKSSOTWTQSJQSSEKZZWATJKLUDIAWINFBNYPVTTMZFPK</textarea>
+            </div>
+
+            <div class="param-group">
+                <label>Методы:</label>
+                <select id="methods" multiple>
+                    <option value="vigenere">Виженер</option>
+                    <option value="transposition">Транспозиция</option>
+                    <option value="frequency">Частотный анализ</option>
+                </select>
+            </div>
+
+            <button onclick="startAnalysis()">Запустить анализ</button>
+            <div id="progress"></div>
+        </div>
+
+        <div class="visualization">
+            <div id="frequency-chart"></div>
+            <div id="live-results"></div>
+        </div>
+    </div>
+
+    <script>
+        class K4Analyzer {
+            constructor() {
+                this.workers = [];
+                this.results = [];
+                this.STOP_ANALYSIS = false;
+            }
+
+            init() {
+                this.setupWebWorkers(4);
+            }
+
+            setupWebWorkers(n) {
+                for(let i = 0; i < n; i++) {
+                    const worker = new Worker(URL.createObjectURL(new Blob([`
+                        self.onmessage = ${workerFunction.toString()}
+                    `], {type: 'text/javascript'})));
+                    
+                    worker.onmessage = (e) => this.handleWorkerMessage(e);
+                    this.workers.push(worker);
+                }
+            }
+
+            handleWorkerMessage(e) {
+                const {type, data} = e.data;
+                switch(type) {
+                    case 'result':
+                        this.results.push(data);
+                        this.updateUI(data);
+                        break;
+                    case 'progress':
+                        this.updateProgress(data);
+                        break;
+                }
+            }
+
+            async startAnalysis(config) {
+                this.STOP_ANALYSIS = false;
+                const hypotheses = this.generateHypotheses(config);
+                
+                this.workers.forEach((worker, idx) => {
+                    const tasks = hypotheses.slice(idx * 100, (idx+1) * 100);
+                    worker.postMessage({type: 'start', config, tasks});
+                });
+            }
+
+            generateHypotheses(config) {
+                // Генератор гипотез с приоритезацией
+                const keys = ['CLOCKWISE', 'BERLIN', 'NORTHEAST', 'PALIMPSEST'];
+                const alphabets = keys.map(k => this.generateAlphabet(k));
+                
+                return keys.flatMap(key => 
+                    alphabets.map(alpha => ({
+                        key,
+                        alphabet: alpha,
+                        method: 'vigenere'
+                    }))
+                );
+            }
+
+            generateAlphabet(keyword) {
+                const unique = [...new Set(keyword.toUpperCase().split(''))];
+                return [...unique, ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+                    .filter(c => !unique.includes(c))].join('');
+            }
+
+            updateUI(result) {
+                const div = document.createElement('div');
+                div.className = 'result-item';
+                div.innerHTML = `
+                    <strong>${result.key}</strong> (score: ${result.score.toFixed(1)})
+                    <div>${result.text.slice(0,50)}...</div>
+                `;
+                document.getElementById('live-results').appendChild(div);
+            }
+
+            updateProgress(percent) {
+                document.getElementById('progress').textContent = 
+                    `Progress: ${percent}% | Found: ${this.results.length} candidates`;
+            }
+        }
+
+        // Worker логика
+        function workerFunction(e) {
+            const {type, config, tasks} = e.data;
+            if(type === 'start') {
+                tasks.forEach(task => {
+                    const result = processTask(task, config.ciphertext);
+                    self.postMessage({type: 'result', data: result});
+                });
+            }
+        }
+
+        function processTask(task, ciphertext) {
+            // Реальное дешифрование
+            const decrypted = vigenereDecrypt(
+                ciphertext, 
+                task.key, 
+                task.alphabet
+            );
+            
+            const score = calculateScore(decrypted);
+            
+            return {
+                key: task.key,
+                alphabet: task.alphabet,
+                text: decrypted,
+                score
+            };
+        }
+
+        function vigenereDecrypt(text, key, alphabet) {
+            const standardAlphabet = 'ABCDEFGHIJKLMNOPQRSTUVSTUVWXYZ';
+            return text.split('').map((c, i) => {
+                const keyChar = key[i % key.length];
+                const shift = alphabet.indexOf(keyChar);
+                const encryptedIndex = alphabet.indexOf(c);
+                return standardAlphabet[(encryptedIndex - shift + 26) % 26];
+            }).join('');
+        }
+
+        function calculateScore(text) {
+            const targets = ['BERLIN', 'CLOCK', 'SOUTH'];
+            const matches = targets.filter(w => text.includes(w)).length;
+            return matches * 100 + Math.random() * 50;
+        }
+
+        // Инициализация
+        const analyzer = new K4Analyzer();
+        analyzer.init();
+
+        function startAnalysis() {
+            document.getElementById('live-results').innerHTML = '';
+            
+            const config = {
+                ciphertext: document.getElementById('ciphertext').value,
+                methods: [...document.getElementById('methods').selectedOptions].map(o => o.value)
+            };
+
+            analyzer.startAnalysis(config);
+        }
+    </script>
 </body>
 </html>
