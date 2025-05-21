@@ -1,445 +1,166 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Kryptos K4 Professional Suite</title>
+    <title>Kryptos K4 Decryptor</title>
     <style>
         :root {
             --primary: #2c3e50;
             --accent: #e74c3c;
             --background: #f8f9fa;
-            --text: #2c3e50;
         }
 
         body {
-            font-family: 'Roboto', sans-serif;
-            margin: 0;
-            padding: 2rem;
+            font-family: Arial, sans-serif;
+            margin: 20px;
             background: var(--background);
-            color: var(--text);
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 800px;
             margin: 0 auto;
         }
 
-        .cipher-input {
+        textarea {
             width: 100%;
-            height: 150px;
-            padding: 1rem;
+            height: 100px;
+            padding: 10px;
+            margin: 10px 0;
             border: 2px solid var(--primary);
-            border-radius: 8px;
+            border-radius: 5px;
             font-family: 'Courier New', monospace;
-            margin-bottom: 2rem;
-            resize: vertical;
-        }
-
-        .controls {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-bottom: 2rem;
-        }
-
-        .analysis-types {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-
-        .progress-container {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
         button {
             background: var(--accent);
             color: white;
             border: none;
-            padding: 1rem 2rem;
+            padding: 12px 24px;
             border-radius: 25px;
-            font-size: 1.1rem;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+            font-size: 16px;
+            transition: transform 0.2s;
+            display: block;
+            width: 100%;
         }
 
         button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+            transform: scale(1.02);
         }
 
-        .results {
-            margin-top: 2rem;
-            background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-
-        .result-item {
-            padding: 1.5rem;
-            border-bottom: 1px solid #eee;
-            transition: background 0.2s;
-        }
-
-        .result-item:hover {
-            background: #f8f9fa;
-        }
-
-        .highlight {
-            color: var(--accent);
-            font-weight: bold;
-        }
-
-        #progressBar {
-            width: 100%;
-            height: 12px;
+        .progress {
+            height: 8px;
             background: #eee;
-            border-radius: 6px;
-            margin-top: 1rem;
+            border-radius: 4px;
+            margin: 15px 0;
             overflow: hidden;
         }
 
-        #progressFill {
+        .progress-bar {
             width: 0%;
             height: 100%;
-            background: linear-gradient(90deg, var(--accent), #ff6b6b);
+            background: linear-gradient(90deg, #e74c3c, #ff6b6b);
             transition: width 0.3s ease;
         }
 
-        .key-info {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-            margin-bottom: 0.5rem;
+        .results {
+            margin-top: 20px;
+            border-top: 2px solid #eee;
+            padding-top: 15px;
         }
 
-        .key-badge {
-            background: var(--primary);
-            color: white;
-            padding: 0.3rem 0.8rem;
-            border-radius: 15px;
-            font-size: 0.9rem;
+        .result-item {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .highlight {
+            color: #e74c3c;
+            font-weight: bold;
+            background: #fff5f5;
+            padding: 2px 4px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🔐 Kryptos K4 Decryption Platform</h1>
+        <h1>Kryptos K4 Decryptor</h1>
         
-        <textarea class="cipher-input" id="ciphertext" placeholder="Введите шифротекст...">
-OBKRUOXOGHULBSOLIFBBWFLRVQQPRNGKSSOTWTQSJQSSEKZZWATJKLUDIAWINFBNYPVTTMZFPKWGDKZXTJCDIGKUHUAUEKCAR
-        </textarea>
-
-        <div class="controls">
-            <div class="analysis-types">
-                <h2>🛠 Параметры анализа</h2>
-                <div class="param-group">
-                    <label>
-                        <input type="checkbox" name="method" value="vigenere" checked> 
-                        Шифр Виженера
-                    </label>
-                    <label>
-                        <input type="checkbox" name="method" value="transposition"> 
-                        Транспозиция
-                    </label>
-                    <label>
-                        <input type="checkbox" name="method" value="frequency"> 
-                        Частотный анализ
-                    </label>
-                </div>
-            </div>
-
-            <div class="progress-container">
-                <h2>📊 Прогресс анализа</h2>
-                <div id="progressBar">
-                    <div id="progressFill"></div>
-                </div>
-                <div id="statusText" style="margin-top: 0.5rem; color: #666;"></div>
-            </div>
+        <textarea id="ciphertext">OBKRUOXOGHULBSOLIFBBWFLRVQQPRNGKSSOTWTQSJQSSEKZZWATJKLUDIAWINFBNYPVTTMZFPK</textarea>
+        
+        <button onclick="start()">🚀 Start Decryption</button>
+        
+        <div class="progress">
+            <div class="progress-bar" id="progressBar"></div>
         </div>
-
-        <button onclick="startAnalysis()">
-            <span style="font-size: 1.2rem;">🚀</span> 
-            Начать дешифровку
-        </button>
-
-        <div class="results">
-            <h2>🔍 Результаты анализа</h2>
-            <div id="resultsContainer"></div>
-        </div>
+        
+        <div id="results" class="results"></div>
     </div>
 
     <script>
-        class K4Decoder {
-            constructor() {
-                this.workers = [];
-                this.totalTasks = 0;
-                this.completedTasks = 0;
-                this.results = [];
-            }
+        const TARGETS = ['BERLIN', 'CLOCK', 'SOUTH', 'EAST', 'WEST'];
+        const KEYS = ['CLOCKWISE', 'BERLIN', 'NORTHEAST', 'ABSCISSA', 'PALIMPSEST', 'KRYPTOS'];
 
-            init() {
-                this.setupWorkers(4);
-            }
-
-            setupWorkers(workerCount) {
-                for(let i = 0; i < workerCount; i++) {
-                    const worker = new Worker(URL.createObjectURL(new Blob([`
-                        ${this.workerFunction.toString()}
-                        self.onmessage = handleWorkerMessage;
-                    `])));
-                    
-                    worker.onmessage = (e) => this.handleWorkerResponse(e, i);
-                    this.workers.push(worker);
-                }
-            }
-
-            handleWorkerResponse(e, workerId) {
-                const { type, data } = e.data;
-                switch(type) {
-                    case 'progress':
-                        this.updateProgress(data);
-                        break;
-                    case 'result':
-                        this.results.push(data);
-                        this.displayResult(data);
-                        break;
-                }
-            }
-
-            updateProgress({ processed, total }) {
-                this.completedTasks = processed;
-                this.totalTasks = total;
-                const progress = (processed / total) * 100;
-                
-                document.getElementById('progressFill').style.width = `${progress}%`;
-                document.getElementById('statusText').textContent = 
-                    `Обработано ${processed} из ${total} гипотез (${Math.round(progress)}%)`;
-            }
-
-            displayResult(result) {
-                const resultEl = document.createElement('div');
-                resultEl.className = 'result-item';
-                
-                const highlightedText = result.text.replace(
-                    new RegExp(`(${TARGET_WORDS.join('|')})`, 'gi'), 
-                    '<span class="highlight">$1</span>'
-                );
-
-                resultEl.innerHTML = `
-                    <div class="key-info">
-                        <span class="key-badge">${result.key}</span>
-                        <span>Score: ${result.score.toFixed(1)}</span>
-                    </div>
-                    <div>${highlightedText}</div>
-                `;
-
-                document.getElementById('resultsContainer').prepend(resultEl);
-            }
-
-            startAnalysis(ciphertext, methods) {
-                this.results = [];
-                this.completedTasks = 0;
-                document.getElementById('resultsContainer').innerHTML = '';
-
-                const hypotheses = this.generateHypotheses(ciphertext, methods);
-                this.totalTasks = hypotheses.length;
-
-                this.workers.forEach((worker, idx) => {
-                    const chunkSize = Math.ceil(hypotheses.length / this.workers.length);
-                    const tasks = hypotheses.slice(idx * chunkSize, (idx + 1) * chunkSize);
-                    
-                    worker.postMessage({
-                        type: 'start',
-                        ciphertext,
-                        tasks,
-                        methods
-                    });
-                });
-            }
-
-            generateHypotheses(ciphertext, methods) {
-                const baseKeys = ['CLOCKWISE', 'BERLIN', 'NORTHEAST', 'PALIMPSEST'];
-                const variants = [];
-                
-                // Генерация ключей
-                for(const key of baseKeys) {
-                    variants.push(...this.generateKeyVariations(key));
-                }
-
-                // Генерация алфавитов
-                return variants.flatMap(key => 
-                    this.generateAlphabets(key).map(alphabet => ({
-                        key,
-                        alphabet,
-                        methods
-                    }))
-                );
-            }
-
-            generateKeyVariations(baseKey) {
-                const variations = [];
-                for(let i = 0; i < baseKey.length; i++) {
-                    variations.push(
-                        baseKey.slice(0, i) + 
-                        baseKey[i].toLowerCase() + 
-                        baseKey.slice(i + 1)
-                    );
-                }
-                return [baseKey, ...variations];
-            }
-
-            generateAlphabets(key) {
-                const base = [...new Set([...key.toUpperCase(), ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'])];
-                return [
-                    base.join(''),
-                    [...base].reverse().join(''),
-                    this.rotateAlphabet(base, 13).join('')
-                ];
-            }
-
-            rotateAlphabet(arr, n) {
-                return arr.slice(n).concat(arr.slice(0, n));
-            }
+        function generateAlphabet(key) {
+            const unique = Array.from(new Set(key.toUpperCase().split('')));
+            const rest = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
+                         .filter(c => !unique.includes(c));
+            return [...unique, ...rest].join('');
         }
 
-        // Конфигурация
-        const TARGET_WORDS = ['BERLIN', 'CLOCK', 'SOUTH'];
-        const decoder = new K4Decoder();
-        decoder.init();
-
-        function workerFunction() {
-            function handleWorkerMessage(e) {
-                const { type, ciphertext, tasks, methods } = e.data;
-                if(type === 'start') {
-                    processTasks(ciphertext, tasks, methods);
-                }
-            }
-
-            function processTasks(ciphertext, tasks, methods) {
-                tasks.forEach((task, index) => {
-                    const result = {
-                        key: task.key,
-                        text: decrypt(ciphertext, task),
-                        score: calculateScore(decryptedText),
-                        alphabet: task.alphabet
-                    };
-
-                    self.postMessage({
-                        type: 'result',
-                        data: result
-                    });
-
-                    self.postMessage({
-                        type: 'progress',
-                        data: {
-                            processed: index + 1,
-                            total: tasks.length
-                        }
-                    });
-                });
-            }
-
-            function decrypt(text, { key, alphabet, methods }) {
-                let result = text;
-                
-                if(methods.includes('vigenere')) {
-                    result = vigenereDecrypt(result, key, alphabet);
-                }
-                
-                if(methods.includes('transposition')) {
-                    result = transpose(result, 9, 11);
-                }
-                
-                return result;
-            }
-
-            function vigenereDecrypt(text, key, alphabet) {
-                const standard = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-                return [...text].map((c, i) => {
-                    const keyChar = key[i % key.length].toUpperCase();
-                    const shift = alphabet.indexOf(keyChar);
-                    const charIndex = alphabet.indexOf(c);
-                    return standard[(charIndex - shift + 26) % 26];
-                }).join('');
-            }
-
-            function transpose(text, rows, cols) {
-                const grid = Array.from({ length: rows }, () => 
-                    Array(cols).fill(null));
-                
-                let index = 0;
-                for(let i = 0; i < rows; i++) {
-                    for(let j = 0; j < cols; j++) {
-                        if(index < text.length) {
-                            grid[i][j] = text[index++];
-                        }
-                    }
-                }
-                
-                // Спиральное чтение
-                let result = '';
-                let top = 0, bottom = rows-1, left = 0, right = cols-1;
-                
-                while(top <= bottom && left <= right) {
-                    for(let i = left; i <= right; i++) 
-                        result += grid[top][i] || '';
-                    top++;
-                    
-                    for(let i = top; i <= bottom; i++) 
-                        result += grid[i][right] || '';
-                    right--;
-                    
-                    if(top <= bottom) {
-                        for(let i = right; i >= left; i--) 
-                            result += grid[bottom][i] || '';
-                        bottom--;
-                    }
-                    
-                    if(left <= right) {
-                        for(let i = bottom; i >= top; i--) 
-                            result += grid[i][left] || '';
-                        left++;
-                    }
-                }
-                
-                return result;
-            }
-
-            function calculateScore(text) {
-                const cleanText = text.toUpperCase();
-                let score = 0;
-                
-                // Поиск ключевых слов
-                TARGET_WORDS.forEach(word => {
-                    const count = (cleanText.match(new RegExp(word, 'gi')) || []).length;
-                    score += count * 100;
-                });
-
-                // Частотный анализ
-                const freq = {};
-                for(const char of cleanText) {
-                    freq[char] = (freq[char] || 0) + 1;
-                }
-                score += Math.abs(freq['E']/text.length*100 - 12.7) * -1;
-
-                return Math.round(score);
-            }
+        function vigenereDecrypt(ciphertext, key, alphabet) {
+            const standard = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            return ciphertext.split('').map((c, i) => {
+                const keyChar = key[i % key.length].toUpperCase();
+                const shift = alphabet.indexOf(keyChar);
+                const charIndex = alphabet.indexOf(c);
+                return standard[(charIndex - shift + 26) % 26];
+            }).join('');
         }
 
-        function startAnalysis() {
-            const ciphertext = document.getElementById('ciphertext').value;
-            const methods = Array.from(document.querySelectorAll('input[name="method"]:checked'))
-                .map(el => el.value);
+        function calculateScore(text) {
+            return TARGETS.reduce((acc, word) => 
+                acc + (text.toUpperCase().includes(word) ? 100 : 0), 0);
+        }
+
+        function createResult(key, score, text) {
+            const div = document.createElement('div');
+            div.className = 'result-item';
             
-            decoder.startAnalysis(ciphertext, methods);
+            const highlighted = text.replace(
+                new RegExp(TARGETS.join('|'), 'gi'), 
+                m => `<span class="highlight">${m}</span>`
+            );
+
+            div.innerHTML = `
+                <strong>🔑 Key:</strong> ${key}<br>
+                <strong>⭐ Score:</strong> ${score}<br>
+                <div class="text">${highlighted.substring(0, 80)}...</div>
+            `;
+            
+            return div;
+        }
+
+        async function start() {
+            const ciphertext = document.getElementById('ciphertext').value.toUpperCase();
+            const results = document.getElementById('results');
+            const progressBar = document.getElementById('progressBar');
+            
+            results.innerHTML = '';
+            progressBar.style.width = '0%';
+            
+            for(let i = 0; i < KEYS.length; i++) {
+                const key = KEYS[i];
+                const alphabet = generateAlphabet(key);
+                const decrypted = vigenereDecrypt(ciphertext, key, alphabet);
+                const score = calculateScore(decrypted);
+                
+                results.prepend(createResult(key, score, decrypted));
+                progressBar.style.width = `${((i + 1) / KEYS.length) * 100}%`;
+                await new Promise(r => setTimeout(r, 20));
+            }
         }
     </script>
 </body>
