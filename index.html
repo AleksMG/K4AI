@@ -1,160 +1,59 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kryptos K4 Professional Suite</title>
+    <title>K4 Full Functional Analyzer</title>
     <style>
-        :root {
-            --primary: #1a1a1a;
-            --accent: #4CAF50;
-            --background: #f5f5f5;
-            --text: #333;
-        }
-
         body {
-            font-family: 'Roboto Mono', monospace;
-            margin: 0;
-            padding: 2rem;
-            background: var(--background);
-            color: var(--text);
+            font-family: 'Courier New', monospace;
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 20px;
+            background: #f8f9fa;
         }
-
-        .dashboard {
-            display: grid;
-            grid-template-columns: 300px 1fr;
-            gap: 2rem;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .control-panel {
+        .result {
             background: white;
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        }
-
-        .visualization {
-            background: white;
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        }
-
-        textarea {
-            width: 100%;
-            height: 150px;
             padding: 1rem;
-            border: 2px solid var(--primary);
-            border-radius: 6px;
-            font-family: inherit;
-            margin-bottom: 1.5rem;
-            resize: vertical;
-        }
-
-        .progress-container {
-            height: 8px;
-            background: #eee;
-            border-radius: 4px;
-            margin: 1.5rem 0;
-            overflow: hidden;
-        }
-
-        .progress-bar {
-            width: 0%;
-            height: 100%;
-            background: linear-gradient(90deg, var(--accent), #81C784);
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .result-card {
-            padding: 1.5rem;
             margin: 1rem 0;
-            background: #E8F5E9;
-            border-left: 4px solid var(--accent);
+            border: 1px solid #ddd;
             border-radius: 4px;
-            animation: cardEnter 0.4s ease;
         }
-
-        @keyframes cardEnter {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .stats-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 1rem 0;
-        }
-
-        .stats-table td, .stats-table th {
-            padding: 0.75rem;
-            text-align: left;
-            border-bottom: 1px solid #eee;
+        pre {
+            white-space: pre-wrap;
+            word-break: break-all;
         }
     </style>
 </head>
 <body>
-    <div class="dashboard">
-        <div class="control-panel">
-            <h2>K4 Analysis Toolkit</h2>
-            <textarea id="ciphertext">OBKRUOXOGHULBSOLIFBBWFLRVQQPRNGKSSOTWTQSJQSSEKZZWATJKLUDIAWINFBNYPVTTMZFPK</textarea>
-            
-            <div class="toolbar">
-                <button onclick="AnalysisManager.start()">▶️ Start</button>
-                <button onclick="AnalysisManager.stop()">⏹ Stop</button>
-                <button onclick="AnalysisManager.export()">💾 Export</button>
-            </div>
-
-            <div class="progress-container">
-                <div class="progress-bar" id="progressBar"></div>
-            </div>
-
-            <table class="stats-table">
-                <tr>
-                    <th>Processed</th>
-                    <td id="processed">0</td>
-                </tr>
-                <tr>
-                    <th>Possible Keys</th>
-                    <td id="keysFound">0</td>
-                </tr>
-                <tr>
-                    <th>Matches</th>
-                    <td id="matches">0</td>
-                </tr>
-            </table>
-        </div>
-
-        <div class="visualization" id="results"></div>
-    </div>
+    <h2>Kryptos K4 Full Analysis</h2>
+    <textarea id="input" rows="10" style="width: 100%">OBKRUOXOGHULBSOLIFBBWFLRVQQPRNGKSSOTWTQSJQSSEKZZWATJKLUDIAWINFBNYPVTTMZFPK</textarea>
+    <button onclick="startFullAnalysis()">Start Analysis</button>
+    <div id="output"></div>
 
 <script>
-class CryptoEngine {
-    static ENG_FREQ = {
-        'A': 8.2, 'B': 1.5, 'C': 2.8, 'D': 4.3, 'E': 12.7,
-        'F': 2.2, 'G': 2.0, 'H': 6.1, 'I': 6.7, 'J': 0.15,
-        'K': 0.77, 'L': 4.0, 'M': 2.4, 'N': 6.7, 'O': 7.5,
-        'P': 1.9, 'Q': 0.095, 'R': 6.0, 'S': 6.3, 'T': 9.1,
-        'U': 2.8, 'V': 1.0, 'W': 2.4, 'X': 0.15, 'Y': 2.0,
-        'Z': 0.074
-    };
+class K4Analyzer {
+    constructor() {
+        this.ENG_FREQ = {
+            'E': 12.70, 'T': 9.10, 'A': 8.20, 'O': 7.50, 'I': 6.90,
+            'N': 6.70, 'S': 6.30, 'H': 6.10, 'R': 6.00, 'D': 4.30
+        };
+        this.TARGETS = ['BERLIN', 'CLOCK', 'SOUTH'];
+    }
 
-    static kasiskiAnalysis(text) {
-        const trigrams = new Map();
+    // Полный метод Казиски
+    kasiskiAnalysis(text) {
+        const trigramMap = new Map();
         for (let i = 0; i < text.length - 2; i++) {
-            const trigram = text.substr(i, 3);
-            const positions = trigrams.get(trigram) || [];
+            const trigram = text.slice(i, i + 3);
+            const positions = trigramMap.get(trigram) || [];
             positions.push(i);
-            trigrams.set(trigram, positions);
+            trigramMap.set(trigram, positions);
         }
 
         const distances = [];
-        for (const [_, positions] of trigrams) {
+        for (const [trigram, positions] of trigramMap) {
             if (positions.length > 1) {
                 for (let i = 1; i < positions.length; i++) {
-                    distances.push(positions[i] - positions[i-1]);
+                    distances.push(positions[i] - positions[i - 1]);
                 }
             }
         }
@@ -163,155 +62,109 @@ class CryptoEngine {
         return distances.reduce((a, b) => gcd(a, b), distances[0]) || 1;
     }
 
-    static friedmanTest(text) {
+    // Полный тест Фридмана
+    friedmanTest(text) {
         const freq = {};
         for (const c of text) freq[c] = (freq[c] || 0) + 1;
-        
         const n = text.length;
-        const sum = Object.values(freq).reduce((a, v) => a + v*(v-1), 0);
-        const IC = sum / (n*(n-1));
-        
-        return (0.027 * n) / ((n-1)*IC - 0.038) + 0.065;
+        const sum = Object.values(freq).reduce((acc, val) => acc + val * (val - 1), 0);
+        return sum / (n * (n - 1));
     }
 
-    static frequencyAnalysis(text, keyLength) {
-        const columns = Array.from({length: keyLength}, () => []);
-        for (let i = 0; i < text.length; i++) {
-            columns[i % keyLength].push(text[i]);
-        }
+    // Полный частотный анализ
+    frequencyAnalysis(text) {
+        const freq = {};
+        for (const c of text) freq[c] = (freq[c] || 0) + 1;
+        return Object.entries(freq)
+            .sort((a, b) => b[1] - a[1])
+            .map(([char, count]) => `${char}: ${count} (${(count/text.length*100).toFixed(2)}%)`);
+    }
 
-        return columns.map(col => {
-            const freq = col.reduce((a, c) => (a[c] = (a[c] || 0) + 1, a), {});
-            const bestShift = Object.entries(freq).reduce((best, [c, count]) => {
-                const shift = (c.charCodeAt(0) - 'E'.charCodeAt(0) + 26) % 26;
-                const score = count * this.ENG_FREQ[String.fromCharCode((shift + 65) % 26)] || 0;
-                return score > best.score ? {shift, score} : best;
-            }, {shift: 0, score: 0}).shift;
-            
-            return String.fromCharCode(65 + bestShift);
+    // Генерация гипотез ключей
+    generateKeys(text, keyLength) {
+        const keys = [];
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        
+        // Базовые ключи
+        keys.push('BERLIN', 'CLOCK', 'NORTHEAST');
+        
+        // Генерация случайных ключей
+        for (let i = 0; i < 20; i++) {
+            let key = '';
+            for (let j = 0; j < keyLength; j++) {
+                key += chars[Math.floor(Math.random() * chars.length)];
+            }
+            keys.push(key);
+        }
+        return [...new Set(keys)];
+    }
+
+    // Полная дешифровка Виженера
+    decrypt(text, key) {
+        return [...text].map((c, i) => {
+            const keyChar = key[i % key.length].toUpperCase();
+            const shift = keyChar.charCodeAt(0) - 65;
+            return String.fromCharCode(
+                (c.toUpperCase().charCodeAt(0) - 65 - shift + 26) % 26 + 65
+            );
         }).join('');
+    }
+
+    // Оценка результатов
+    scoreDecryption(decrypted) {
+        let score = 0;
+        // Совпадение с частотностью
+        const freq = this.frequencyAnalysis(decrypted);
+        score += freq.reduce((acc, item) => {
+            const char = item.split(':')[0];
+            return acc + (this.ENG_FREQ[char] || 0);
+        }, 0);
+        
+        // Наличие целевых слов
+        score += this.TARGETS.reduce((acc, word) => 
+            acc + (decrypted.includes(word) ? 100 : 0), 0);
+            
+        return score;
     }
 }
 
-class AnalysisManager {
-    static workers = [];
-    static isRunning = false;
-    static results = [];
-    
-    static async start() {
-        if (this.isRunning) return;
-        this.isRunning = true;
-        this.results = [];
-        
-        const text = document.getElementById('ciphertext').value
-            .toUpperCase().replace(/[^A-Z]/g, '');
-        
-        const keyLength = Math.round(
-            (CryptoEngine.kasiskiAnalysis(text) + 
-             CryptoEngine.friedmanTest(text)) / 2
-        );
-        
-        this.initWorkers(4);
-        this.distributeTasks(text, keyLength);
-    }
+function startFullAnalysis() {
+    const input = document.getElementById('input').value.toUpperCase().replace(/[^A-Z]/g, '');
+    const analyzer = new K4Analyzer();
+    const output = document.getElementById('output');
+    output.innerHTML = '';
 
-    static initWorkers(count) {
-        this.workers.forEach(w => w.terminate());
-        this.workers = Array(count).fill().map(() => {
-            const worker = new Worker(URL.createObjectURL(new Blob([`
-                ${CryptoEngine.frequencyAnalysis.toString()}
-                
-                self.onmessage = ({data}) => {
-                    const key = CryptoEngine.frequencyAnalysis(data.text, data.keyLength);
-                    self.postMessage({ key, text: data.text });
-                };
-            `])));
-            
-            worker.onmessage = ({data}) => this.handleResult(data);
-            return worker;
-        });
-    }
+    // 1. Анализ длины ключа
+    const keyLength = analyzer.kasiskiAnalysis(input);
+    output.innerHTML += `<div class="result"><h3>Key Length Analysis (Kasiski)</h3>Estimated key length: ${keyLength}</div>`;
 
-    static distributeTasks(text, keyLength) {
-        const chunkSize = Math.ceil(26 / this.workers.length);
-        this.workers.forEach((worker, i) => {
-            const start = i * chunkSize;
-            const end = start + chunkSize;
-            worker.postMessage({ 
-                text, 
-                keyLength,
-                range: [start, end] 
-            });
-        });
-    }
+    // 2. Тест Фридмана
+    const friedmanIC = analyzer.friedmanTest(input);
+    output.innerHTML += `<div class="result"><h3>Friedman Test</h3>Index of Coincidence: ${friedmanIC.toFixed(4)}</div>`;
 
-    static handleResult({ key, text }) {
-        if (!this.isRunning) return;
-        
-        const decrypted = this.vigenereDecrypt(text, key);
-        const score = this.calculateScore(decrypted);
-        
-        this.results.push({ key, decrypted, score });
-        this.updateUI();
-    }
+    // 3. Частотный анализ
+    const freqResults = analyzer.frequencyAnalysis(input);
+    output.innerHTML += `<div class="result"><h3>Frequency Analysis</h3><pre>${freqResults.join('\n')}</pre></div>`;
 
-    static vigenereDecrypt(text, key) {
-        return [...text].map((c, i) => {
-            const shift = key.charCodeAt(i % key.length) - 65;
-            return String.fromCharCode((c.charCodeAt(0) - 65 - shift + 26) % 26 + 65);
-        }).join('');
-    }
+    // 4. Дешифровка с ключами
+    const keys = analyzer.generateKeys(input, keyLength);
+    const results = keys.map(key => ({
+        key,
+        decrypted: analyzer.decrypt(input, key),
+        score: analyzer.scoreDecryption(analyzer.decrypt(input, key))
+    })).sort((a, b) => b.score - a.score);
 
-    static calculateScore(text) {
-        const targets = ['BERLIN', 'CLOCK', 'SOUTH'];
-        return targets.reduce((acc, word) => 
-            acc + (text.includes(word) ? 100 : 0), 0);
-    }
-
-    static updateUI() {
-        document.getElementById('keysFound').textContent = this.results.length;
-        document.getElementById('processed').textContent = 
-            this.results.length * 100;
-        document.getElementById('matches').textContent = 
-            this.results.filter(r => r.score > 0).length;
-        
-        document.getElementById('progressBar').style.width = 
-            `${Math.min(100, (this.results.length / 26) * 100)}%`;
-        
-        this.results.slice(-5).forEach(result => {
-            const exists = document.getElementById(`key-${result.key}`);
-            if (exists) return;
-
-            const card = document.createElement('div');
-            card.className = 'result-card';
-            card.id = `key-${result.key}`;
-            card.innerHTML = `
-                <div class="key-header">
-                    <strong>🔑 ${result.key}</strong>
-                    <span class="score">⭐ ${result.score}</span>
-                </div>
-                <div class="preview">${result.decrypted.substring(0, 80)}...</div>
-            `;
-            
-            document.getElementById('results').prepend(card);
-        });
-    }
-
-    static stop() {
-        this.isRunning = false;
-        this.workers.forEach(w => w.terminate());
-    }
-
-    static export() {
-        const data = JSON.stringify(this.results, null, 2);
-        const blob = new Blob([data], {type: 'application/json'});
-        const url = URL.createObjectURL(blob);
-        
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'k4-analysis-results.json';
-        a.click();
-    }
+    // 5. Вывод топ-10 результатов
+    output.innerHTML += `<div class="result"><h3>Top 10 Results</h3>`;
+    results.slice(0, 10).forEach((result, index) => {
+        output.innerHTML += `
+            <div style="margin: 15px 0; padding: 10px; background: #fff; border: 1px solid #eee;">
+                <strong>#${index + 1}</strong> Key: ${result.key} (Score: ${result.score})<br>
+                <pre>${result.decrypted.slice(0, 150)}...</pre>
+                Matches: ${analyzer.TARGETS.filter(word => result.decrypted.includes(word)).join(', ')}
+            </div>`;
+    });
+    output.innerHTML += `</div>`;
 }
 </script>
 </body>
