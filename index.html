@@ -37,8 +37,8 @@
 
         .visualization {
             background: white;
-            border-radius: 12px;
             padding: 2rem;
+            border-radius: 12px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
@@ -50,15 +50,6 @@
             border-radius: 8px;
             font-family: 'Courier New', monospace;
             margin-bottom: 2rem;
-        }
-
-        .settings-group {
-            margin-bottom: 2rem;
-        }
-
-        .settings-group h3 {
-            margin-bottom: 1rem;
-            color: var(--secondary);
         }
 
         .progress-container {
@@ -98,139 +89,84 @@
             border-radius: 3px;
         }
 
-        .frequency-chart {
-            height: 200px;
-            margin: 2rem 0;
+        .settings-group {
+            margin-bottom: 2rem;
         }
 
-        .tooltip {
-            position: absolute;
-            background: rgba(0,0,0,0.8);
-            color: white;
-            padding: 0.5rem;
-            border-radius: 4px;
-            pointer-events: none;
+        .param-item {
+            margin: 1rem 0;
         }
     </style>
 </head>
 <body>
     <div class="dashboard">
         <div class="control-panel">
-            <h2>Kryptos K4 Analyzer</h2>
+            <h2>🔓 K4 Decryption Suite</h2>
+            <textarea class="cipher-input" id="ciphertext">OBKRUOXOGHULBSOLIFBBWFLRVQQPRNGKSSOTWTQSJQSSEKZZWATJKLUDIAWINFBNYPVTTMZFPK</textarea>
             
-            <textarea class="cipher-input" id="ciphertext">
-OBKRUOXOGHULBSOLIFBBWFLRVQQPRNGKSSOTWTQSJQSSEKZZWATJKLUDIAWINFBNYPVTTMZFPK
-            </textarea>
-
             <div class="settings-group">
-                <h3>🔧 Analysis Parameters</h3>
+                <h3>⚙️ Настройки</h3>
                 <div class="param-item">
-                    <label>Cipher Method:</label>
-                    <select id="cipherMethod">
-                        <option value="vigenere">Vigenère</option>
-                        <option value="transposition">Transposition</option>
-                        <option value="combined">Combined</option>
+                    <label>Метод дешифровки:</label>
+                    <select id="decryptionMethod">
+                        <option value="vigenere">Виженер</option>
+                        <option value="transposition">Транспозиция</option>
+                        <option value="combined">Комбинированный</option>
                     </select>
                 </div>
 
                 <div class="param-item">
-                    <label>Key Generation:</label>
-                    <select id="keyGenMethod">
-                        <option value="kasiski">Kasiski Method</option>
-                        <option value="friedman">Friedman Test</option>
-                        <option value="custom">Custom Keys</option>
+                    <label>Генератор ключей:</label>
+                    <select id="keyGenerator">
+                        <option value="kasiski">Метод Казиски</option>
+                        <option value="friedman">Тест Фридмана</option>
+                        <option value="custom">Ручной ввод</option>
                     </select>
                 </div>
 
                 <div class="param-item">
-                    <label>Alphabet Settings:</label>
-                    <div class="alphabet-controls">
-                        <button onclick="generateCustomAlphabet()">🔄 Generate Alphabet</button>
-                        <input type="text" id="customAlphabet" placeholder="Custom alphabet...">
-                    </div>
-                </div>
-            </div>
-
-            <div class="settings-group">
-                <h3>⚡ Performance</h3>
-                <div class="param-item">
-                    <label>Worker Threads:</label>
+                    <label>Потоки:</label>
                     <input type="range" id="workerThreads" min="1" max="8" value="4">
                     <span id="threadCount">4</span>
                 </div>
-
-                <div class="param-item">
-                    <label>Priority:</label>
-                    <select id="priority">
-                        <option value="speed">Maximum Speed</option>
-                        <option value="accuracy">High Accuracy</option>
-                        <option value="balanced">Balanced</option>
-                    </select>
-                </div>
             </div>
 
-            <button class="analyze-btn" onclick="startAnalysis()">🚀 Start Deep Analysis</button>
+            <button onclick="startDeepAnalysis()">🚀 Запустить анализ</button>
             <div class="progress-container">
                 <div class="progress-bar" id="progressBar"></div>
             </div>
         </div>
 
-        <div class="visualization">
-            <div class="frequency-chart" id="frequencyChart"></div>
-            
-            <div class="results-header">
-                <h3>🔍 Analysis Results</h3>
-                <div class="result-controls">
-                    <button onclick="exportResults()">📤 Export Data</button>
-                    <button onclick="clearResults()">🗑 Clear Results</button>
-                </div>
-            </div>
-
-            <div class="results-container" id="results"></div>
-        </div>
+        <div class="visualization" id="results"></div>
     </div>
 
     <script>
         class K4ProfessionalAnalyzer {
             constructor() {
                 this.workers = [];
-                this.currentJobId = 0;
                 this.results = [];
-                this.analysisParams = {
-                    method: 'vigenere',
-                    keyLength: 0,
-                    alphabet: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-                    workerCount: 4
+                this.jobId = 0;
+                this.TARGETS = ['BERLIN', 'CLOCK', 'SOUTH'];
+                
+                this.methods = {
+                    vigenere: this.vigenereDecrypt,
+                    transposition: this.spiralTranspose,
+                    combined: (text, key) => this.spiralTranspose(this.vigenereDecrypt(text, key))
                 };
             }
 
             init() {
+                this.setupWorkers();
                 this.setupEventListeners();
-                this.initializeWorkers();
-                this.setupFrequencyChart();
             }
 
-            setupEventListeners() {
-                document.getElementById('workerThreads').addEventListener('input', (e) => {
-                    this.analysisParams.workerCount = e.target.value;
-                    document.getElementById('threadCount').textContent = e.target.value;
-                    this.initializeWorkers();
-                });
-
-                document.getElementById('cipherMethod').addEventListener('change', (e) => {
-                    this.analysisParams.method = e.target.value;
-                });
-            }
-
-            initializeWorkers() {
+            setupWorkers() {
+                const workerCount = document.getElementById('workerThreads').value;
                 this.workers.forEach(w => w.terminate());
                 this.workers = [];
                 
-                for(let i = 0; i < this.analysisParams.workerCount; i++) {
-                    const worker = new Worker(URL.createObjectURL(new Blob([`
-                        ${this.workerCode()}
-                    `])));
-                    
+                for(let i = 0; i < workerCount; i++) {
+                    const worker = new Worker(URL.createObjectURL(new Blob([this.workerCode()])));
                     worker.onmessage = (e) => this.handleWorkerMessage(e);
                     this.workers.push(worker);
                 }
@@ -238,80 +174,148 @@ OBKRUOXOGHULBSOLIFBBWFLRVQQPRNGKSSOTWTQSJQSSEKZZWATJKLUDIAWINFBNYPVTTMZFPK
 
             workerCode() {
                 return `
-                    self.onmessage = function(e) {
-                        const { jobId, ciphertext, params } = e.data;
-                        // Реальная логика анализа
-                        const result = performDeepAnalysis(ciphertext, params);
-                        self.postMessage({ jobId, result });
-                    };
+                    ${this.vigenereDecrypt.toString()}
+                    ${this.spiralTranspose.toString()}
+                    ${this.calculateScore.toString()}
 
-                    function performDeepAnalysis(text, params) {
-                        // Реализация алгоритмов анализа
-                        return {
-                            key: 'CLOCKWISE',
-                            score: 95,
-                            decrypted: '...BERLIN...'
-                        };
-                    }
+                    self.onmessage = function(e) {
+                        const { jobId, text, method, key } = e.data;
+                        let result;
+                        
+                        switch(method) {
+                            case 'vigenere':
+                                result = vigenereDecrypt(text, key);
+                                break;
+                            case 'transposition':
+                                result = spiralTranspose(text);
+                                break;
+                            case 'combined':
+                                result = spiralTranspose(vigenereDecrypt(text, key));
+                                break;
+                        }
+
+                        const score = calculateScore(result);
+                        self.postMessage({ jobId, result, score, key });
+                    };
                 `;
+            }
+
+            vigenereDecrypt(text, key) {
+                return [...text].map((c, i) => {
+                    const textChar = c.charCodeAt(0) - 65;
+                    const keyChar = key[i % key.length].toUpperCase().charCodeAt(0) - 65;
+                    return String.fromCharCode(((textChar - keyChar + 26) % 26) + 65);
+                }).join('');
+            }
+
+            spiralTranspose(text) {
+                const size = Math.ceil(Math.sqrt(text.length));
+                const grid = Array.from({ length: size }, () => Array(size).fill(''));
+                let idx = 0;
+                
+                for(let i = 0; i < size; i++) {
+                    for(let j = 0; j < size; j++) {
+                        grid[i][j] = text[idx++] || 'X';
+                    }
+                }
+
+                let result = '';
+                let [top, bottom, left, right] = [0, size-1, 0, size-1];
+                
+                while(top <= bottom && left <= right) {
+                    for(let i = left; i <= right; i++) result += grid[top][i];
+                    top++;
+                    for(let i = top; i <= bottom; i++) result += grid[i][right];
+                    right--;
+                    if(top <= bottom) {
+                        for(let i = right; i >= left; i--) result += grid[bottom][i];
+                        bottom--;
+                    }
+                    if(left <= right) {
+                        for(let i = bottom; i >= top; i--) result += grid[i][left];
+                        left++;
+                    }
+                }
+                return result;
+            }
+
+            calculateScore(text) {
+                return this.TARGETS.reduce((acc, word) => 
+                    acc + (text.includes(word) ? 100 : 0), 0);
             }
 
             handleWorkerMessage(e) {
-                const { jobId, result } = e.data;
-                this.results.push(result);
-                this.updateVisualization(result);
+                const { jobId, result, score, key } = e.data;
+                if(jobId !== this.jobId) return;
+                
+                this.results.push({ key, result, score });
+                this.displayResult({ key, result, score });
                 this.updateProgress();
             }
 
-            startAnalysis() {
-                this.currentJobId++;
-                const ciphertext = document.getElementById('ciphertext').value;
-                
-                this.workers.forEach(worker => {
-                    worker.postMessage({
-                        jobId: this.currentJobId,
-                        ciphertext,
-                        params: this.analysisParams
-                    });
-                });
-            }
-
-            updateVisualization(result) {
+            displayResult({ key, result, score }) {
                 const resultCard = document.createElement('div');
                 resultCard.className = 'result-card';
+                const highlighted = result.replace(
+                    new RegExp(this.TARGETS.join('|'), 'gi'),
+                    m => `<span class="highlight">${m}</span>`
+                );
+
                 resultCard.innerHTML = `
-                    <div class="result-header">
-                        <span class="key">🔑 ${result.key}</span>
-                        <span class="score">⭐ ${result.score}</span>
-                    </div>
-                    <div class="result-text">${result.decrypted}</div>
+                    <h3>🔑 ${key}</h3>
+                    <p>⭐ Score: ${score}</p>
+                    <pre>${highlighted.substring(0, 100)}...</pre>
                 `;
-                document.getElementById('results').appendChild(resultCard);
+
+                document.getElementById('results').prepend(resultCard);
             }
 
             updateProgress() {
-                // Логика обновления прогресса
+                const progress = (this.results.length / this.workers.length * 100);
+                document.getElementById('progressBar').style.width = `${progress}%`;
             }
 
-            setupFrequencyChart() {
-                // Инициализация графика частот
+            generateKeys() {
+                return ['CLOCKWISE', 'BERLIN', 'NORTHEAST', 'ABSCISSA', 
+                        'PALIMPSEST', 'KRYPTOS', 'EASTERLY', 'SLOW'];
+            }
+
+            startAnalysis(ciphertext) {
+                this.jobId++;
+                this.results = [];
+                document.getElementById('results').innerHTML = '';
+                
+                const method = document.getElementById('decryptionMethod').value;
+                const keys = this.generateKeys();
+                
+                this.workers.forEach((worker, idx) => {
+                    const chunk = keys.slice(idx * 2, idx * 2 + 2);
+                    chunk.forEach(key => {
+                        worker.postMessage({
+                            jobId: this.jobId,
+                            text: ciphertext,
+                            method,
+                            key
+                        });
+                    });
+                });
             }
         }
 
         const analyzer = new K4ProfessionalAnalyzer();
         analyzer.init();
 
-        function startAnalysis() {
-            analyzer.startAnalysis();
+        function startDeepAnalysis() {
+            const ciphertext = document.getElementById('ciphertext').value
+                .toUpperCase().replace(/[^A-Z]/g, '');
+            analyzer.startAnalysis(ciphertext);
         }
 
-        function exportResults() {
-            // Логика экспорта
-        }
-
-        function clearResults() {
-            document.getElementById('results').innerHTML = '';
-        }
+        // Обработчики событий
+        document.getElementById('workerThreads').addEventListener('input', function(e) {
+            document.getElementById('threadCount').textContent = e.target.value;
+            analyzer.setupWorkers();
+        });
     </script>
 </body>
 </html>
