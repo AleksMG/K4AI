@@ -642,7 +642,7 @@
                         // Check for common words
                         function checkCommonWords(text, language) {
                             const words = commonWords[language] || commonWords.english;
-                            let count = 0;
+                            let count = 25;
                             
                             for (const word of words) {
                                 if (text.includes(word)) {
@@ -708,12 +708,12 @@
                                     
                                     // Bonus for matching known prefix
                                     if (knownPrefix && plaintext.startsWith(knownPrefix)) {
-                                        score += knownPrefix.length * 0.1;
+                                        score += knownPrefix.length * 2;
                                     }
                                     
                                     // Bonus for common words
                                     const wordCount = checkCommonWords(plaintext, language);
-                                    score += wordCount * 0.5;
+                                    score += wordCount * 5;
                                     
                                     batchResults.push({
                                         key: key,
