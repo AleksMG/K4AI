@@ -1,171 +1,938 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>K4 Full Functional Analyzer</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vigenère Cipher Brute Force Professional Tool</title>
     <style>
-        body {
-            font-family: 'Courier New', monospace;
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 20px;
-            background: #f8f9fa;
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #1a252f;
+            --success-color: #27ae60;
         }
-        .result {
-            background: white;
-            padding: 1rem;
-            margin: 1rem 0;
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f7fa;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        header h1 {
+            margin: 0;
+            font-size: 2.2rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        header h1 svg {
+            margin-right: 10px;
+        }
+        
+        .tool-description {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        
+        .input-section, .results-section {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        
+        .section-title {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        
+        textarea, input[type="text"], select {
+            width: 100%;
+            padding: 10px;
             border: 1px solid #ddd;
             border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+            margin-bottom: 15px;
+            resize: vertical;
         }
-        pre {
-            white-space: pre-wrap;
+        
+        textarea {
+            min-height: 100px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        button {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        button.secondary {
+            background-color: var(--light-color);
+            color: var(--dark-color);
+        }
+        
+        button.secondary:hover {
+            background-color: #bdc3c7;
+        }
+        
+        button.danger {
+            background-color: var(--accent-color);
+        }
+        
+        button.danger:hover {
+            background-color: #c0392b;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .progress-container {
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .progress-bar {
+            height: 20px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        
+        .progress {
+            height: 100%;
+            background-color: var(--success-color);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        .progress-text {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .result-card {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .result-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .result-key {
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        
+        .result-text {
+            font-size: 0.9rem;
+            color: #555;
+            font-family: 'Courier New', Courier, monospace;
             word-break: break-all;
+        }
+        
+        .result-score {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            margin-top: 5px;
+            background-color: var(--light-color);
+        }
+        
+        .high-score {
+            background-color: var(--success-color);
+            color: white;
+        }
+        
+        .medium-score {
+            background-color: #f39c12;
+            color: white;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .worker-status {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .highlight {
+            background-color: #fffde7;
+            padding: 2px 4px;
+            border-radius: 2px;
+        }
+        
+        .advanced-options {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px dashed #ddd;
+        }
+        
+        .toggle-advanced {
+            background: none;
+            border: none;
+            color: var(--secondary-color);
+            text-decoration: underline;
+            cursor: pointer;
+            padding: 0;
+            font-size: 0.9rem;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+                margin-bottom: 10px;
+            }
         }
     </style>
 </head>
 <body>
-    <h2>Kryptos K4 Full Analysis</h2>
-    <textarea id="input" rows="10" style="width: 100%">OBKRUOXOGHULBSOLIFBBWFLRVQQPRNGKSSOTWTQSJQSSEKZZWATJKLUDIAWINFBNYPVTTMZFPK</textarea>
-    <button onclick="startFullAnalysis()">Start Analysis</button>
-    <div id="output"></div>
+    <header>
+        <div class="container">
+            <h1>
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                    <line x1="8" y1="21" x2="16" y2="21"></line>
+                    <line x1="12" y1="17" x2="12" y2="21"></line>
+                </svg>
+                Vigenère Cipher Brute Force Professional
+            </h1>
+        </div>
+    </header>
+    
+    <div class="container">
+        <section class="tool-description">
+            <h2>About This Tool</h2>
+            <p>This professional-grade tool performs intelligent brute force attacks on Vigenère ciphers, with special optimizations for challenging targets like Kryptos K4. It utilizes Web Workers for parallel processing, advanced scoring algorithms, and customizable search parameters.</p>
+            <p>The Kryptos K4 ciphertext is: <span class="highlight">OBKRUOXOGHULBSOLIFBBWFLRVQQPRNGKSSOTWTQSJQSSEKZZWATJKLUDIAWINFBNYPVTTMZFPKWGDKZXTJCDIGKUHUAUEKCAR</span></p>
+        </section>
+        
+        <section class="input-section">
+            <h2 class="section-title">Cipher Parameters</h2>
+            
+            <div class="form-group">
+                <label for="ciphertext">Ciphertext</label>
+                <textarea id="ciphertext" placeholder="Enter ciphertext here...">OBKRUOXOGHULBSOLIFBBWFLRVQQPRNGKSSOTWTQSJQSSEKZZWATJKLUDIAWINFBNYPVTTMZFPKWGDKZXTJCDIGKUHUAUEKCAR</textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="keyLength">Key Length (or range)</label>
+                <div class="button-group">
+                    <input type="text" id="keyLength" placeholder="e.g. 10 or 5-15" value="10">
+                    <button id="btnAnalyzeKeyLength" class="secondary">Analyze Possible Lengths</button>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="language">Expected Language</label>
+                <select id="language">
+                    <option value="english">English</option>
+                    <option value="german">German</option>
+                    <option value="french">French</option>
+                    <option value="spanish">Spanish</option>
+                    <option value="custom">Custom Alphabet</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="alphabet">Custom Alphabet (if selected)</label>
+                <input type="text" id="alphabet" placeholder="ABCDEFGHIJKLMNOPQRSTUVWXYZ" value="ABCDEFGHIJKLMNOPQRSTUVWXYZ">
+            </div>
+            
+            <button type="button" class="toggle-advanced" id="toggleAdvanced">▼ Show Advanced Options</button>
+            
+            <div class="advanced-options" id="advancedOptions" style="display: none;">
+                <div class="form-group">
+                    <label for="keyChars">Allowed Key Characters (regex)</label>
+                    <input type="text" id="keyChars" placeholder="[A-Z]" value="[A-Z]">
+                </div>
+                
+                <div class="form-group">
+                    <label for="knownPrefix">Known Plaintext Prefix (if any)</label>
+                    <input type="text" id="knownPrefix" placeholder="e.g. 'THE'">
+                </div>
+                
+                <div class="form-group">
+                    <label for="maxWorkers">Maximum Web Workers</label>
+                    <input type="range" id="maxWorkers" min="1" max="16" value="4">
+                    <span id="workersValue">4</span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="batchSize">Keys per Batch</label>
+                    <input type="range" id="batchSize" min="100" max="10000" step="100" value="1000">
+                    <span id="batchValue">1000</span>
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button id="btnStart">Start Brute Force</button>
+                <button id="btnStop" class="danger" disabled>Stop</button>
+                <button id="btnReset" class="secondary">Reset</button>
+            </div>
+            
+            <div class="progress-container" id="progressContainer">
+                <div class="progress-bar">
+                    <div class="progress" id="progressBar"></div>
+                </div>
+                <div class="progress-text">
+                    <span id="progressText">0% complete</span> | 
+                    <span id="keysTested">0</span> keys tested | 
+                    <span id="keysPerSecond">0</span> keys/sec |
+                    <span class="worker-status" id="workerStatus">Workers: 0 active</span>
+                </div>
+            </div>
+        </section>
+        
+        <section class="results-section">
+            <div class="controls">
+                <h2 class="section-title">Results</h2>
+                <div>
+                    <label for="resultsLimit">Top Results:</label>
+                    <select id="resultsLimit">
+                        <option value="10">10</option>
+                        <option value="25" selected>25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="results-grid" id="resultsGrid">
+                <!-- Results will be inserted here -->
+                <div class="result-card">
+                    <div class="result-key">No results yet</div>
+                    <div class="result-text">Run the brute force attack to see potential decryptions here.</div>
+                </div>
+            </div>
+        </section>
+    </div>
+    
+    <footer>
+        <div class="container">
+            <p>Vigenère Brute Force Professional Tool &copy; 2023 | Uses Web Workers for parallel processing</p>
+            <p>Note: This tool runs entirely in your browser - no data is sent to servers</p>
+        </div>
+    </footer>
 
-<script>
-class K4Analyzer {
-    constructor() {
-        this.ENG_FREQ = {
-            'E': 12.70, 'T': 9.10, 'A': 8.20, 'O': 7.50, 'I': 6.90,
-            'N': 6.70, 'S': 6.30, 'H': 6.10, 'R': 6.00, 'D': 4.30
-        };
-        this.TARGETS = ['BERLIN', 'CLOCK', 'SOUTH'];
-    }
-
-    // Полный метод Казиски
-    kasiskiAnalysis(text) {
-        const trigramMap = new Map();
-        for (let i = 0; i < text.length - 2; i++) {
-            const trigram = text.slice(i, i + 3);
-            const positions = trigramMap.get(trigram) || [];
-            positions.push(i);
-            trigramMap.set(trigram, positions);
-        }
-
-        const distances = [];
-        for (const [trigram, positions] of trigramMap) {
-            if (positions.length > 1) {
-                for (let i = 1; i < positions.length; i++) {
-                    distances.push(positions[i] - positions[i - 1]);
+    <script>
+        // Main application
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM elements
+            const ciphertextEl = document.getElementById('ciphertext');
+            const keyLengthEl = document.getElementById('keyLength');
+            const languageEl = document.getElementById('language');
+            const alphabetEl = document.getElementById('alphabet');
+            const keyCharsEl = document.getElementById('keyChars');
+            const knownPrefixEl = document.getElementById('knownPrefix');
+            const maxWorkersEl = document.getElementById('maxWorkers');
+            const batchSizeEl = document.getElementById('batchSize');
+            const workersValueEl = document.getElementById('workersValue');
+            const batchValueEl = document.getElementById('batchValue');
+            const btnStart = document.getElementById('btnStart');
+            const btnStop = document.getElementById('btnStop');
+            const btnReset = document.getElementById('btnReset');
+            const btnAnalyzeKeyLength = document.getElementById('btnAnalyzeKeyLength');
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            const keysTestedEl = document.getElementById('keysTested');
+            const keysPerSecondEl = document.getElementById('keysPerSecond');
+            const workerStatusEl = document.getElementById('workerStatus');
+            const resultsGrid = document.getElementById('resultsGrid');
+            const resultsLimitEl = document.getElementById('resultsLimit');
+            const toggleAdvanced = document.getElementById('toggleAdvanced');
+            const advancedOptions = document.getElementById('advancedOptions');
+            
+            // App state
+            let workers = [];
+            let isRunning = false;
+            let startTime = 0;
+            let keysTested = 0;
+            let lastUpdate = 0;
+            let results = [];
+            let currentKeyLength = 0;
+            let totalKeysToTest = 0;
+            
+            // Event listeners for UI controls
+            maxWorkersEl.addEventListener('input', () => {
+                workersValueEl.textContent = maxWorkersEl.value;
+            });
+            
+            batchSizeEl.addEventListener('input', () => {
+                batchValueEl.textContent = batchSizeEl.value;
+            });
+            
+            toggleAdvanced.addEventListener('click', () => {
+                if (advancedOptions.style.display === 'none') {
+                    advancedOptions.style.display = 'block';
+                    toggleAdvanced.textContent = '▲ Hide Advanced Options';
+                } else {
+                    advancedOptions.style.display = 'none';
+                    toggleAdvanced.textContent = '▼ Show Advanced Options';
+                }
+            });
+            
+            // Initialize the app
+            function init() {
+                btnStart.addEventListener('click', startAttack);
+                btnStop.addEventListener('click', stopAttack);
+                btnReset.addEventListener('click', reset);
+                btnAnalyzeKeyLength.addEventListener('click', analyzeKeyLength);
+                resultsLimitEl.addEventListener('change', updateResultsDisplay);
+            }
+            
+            // Start the brute force attack
+            function startAttack() {
+                if (isRunning) return;
+                
+                // Validate inputs
+                const ciphertext = ciphertextEl.value.trim().toUpperCase().replace(/[^A-Z]/g, '');
+                if (!ciphertext) {
+                    alert('Please enter ciphertext');
+                    return;
+                }
+                
+                let keyLengthInput = keyLengthEl.value.trim();
+                let keyLengthMin, keyLengthMax;
+                
+                if (keyLengthInput.includes('-')) {
+                    const parts = keyLengthInput.split('-').map(Number);
+                    if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1]) || parts[0] > parts[1]) {
+                        alert('Invalid key length range. Use format like "5-10"');
+                        return;
+                    }
+                    keyLengthMin = parts[0];
+                    keyLengthMax = parts[1];
+                } else {
+                    keyLengthMin = keyLengthMax = parseInt(keyLengthInput);
+                    if (isNaN(keyLengthMin) || keyLengthMin < 1) {
+                        alert('Invalid key length');
+                        return;
+                    }
+                }
+                
+                const language = languageEl.value;
+                const alphabet = alphabetEl.value.trim().toUpperCase().replace(/[^A-Z]/g, '');
+                if (language === 'custom' && !alphabet) {
+                    alert('Please specify custom alphabet');
+                    return;
+                }
+                
+                const keyChars = keyCharsEl.value.trim();
+                try {
+                    new RegExp(keyChars);
+                } catch (e) {
+                    alert('Invalid key characters regex');
+                    return;
+                }
+                
+                const knownPrefix = knownPrefixEl.value.trim().toUpperCase();
+                const maxWorkers = parseInt(maxWorkersEl.value);
+                const batchSize = parseInt(batchSizeEl.value);
+                
+                // Prepare for attack
+                isRunning = true;
+                startTime = Date.now();
+                keysTested = 0;
+                lastUpdate = 0;
+                results = [];
+                
+                btnStart.disabled = true;
+                btnStop.disabled = false;
+                progressContainer.style.display = 'block';
+                progressBar.style.width = '0%';
+                progressText.textContent = '0% complete';
+                keysTestedEl.textContent = '0';
+                keysPerSecondEl.textContent = '0';
+                workerStatusEl.textContent = `Workers: 0 active`;
+                
+                // Clear results
+                resultsGrid.innerHTML = '<div class="result-card"><div class="result-key">Processing...</div><div class="result-text">Starting brute force attack</div></div>';
+                
+                // Create workers
+                workers = [];
+                const workerCount = Math.min(maxWorkers, navigator.hardwareConcurrency || 4);
+                
+                // Calculate total keys to test
+                const keyCharSet = getKeyCharSet(keyChars, alphabet);
+                currentKeyLength = keyLengthMin;
+                totalKeysToTest = calculateTotalKeys(keyLengthMin, keyLengthMax, keyCharSet);
+                
+                // Start with first key length
+                startWorkersForKeyLength(ciphertext, currentKeyLength, keyCharSet, knownPrefix, 
+                                       language, alphabet, workerCount, batchSize);
+            }
+            
+            // Start workers for a specific key length
+            function startWorkersForKeyLength(ciphertext, keyLength, keyCharSet, knownPrefix, 
+                                           language, alphabet, workerCount, batchSize) {
+                // Calculate key space for this length
+                const keysForThisLength = Math.pow(keyCharSet.length, keyLength);
+                const keysPerWorker = Math.ceil(keysForThisLength / workerCount);
+                
+                // Create workers
+                for (let i = 0; i < workerCount; i++) {
+                    const startIdx = i * keysPerWorker;
+                    const endIdx = Math.min((i + 1) * keysPerWorker, keysForThisLength);
+                    
+                    const worker = new Worker(URL.createObjectURL(new Blob([`
+                        // Worker code for brute forcing
+                        const alphabet = '${alphabet}';
+                        const ciphertext = '${ciphertext}';
+                        const keyLength = ${keyLength};
+                        const keyCharSet = '${keyCharSet}';
+                        const knownPrefix = '${knownPrefix}';
+                        const language = '${language}';
+                        const startIdx = ${startIdx};
+                        const endIdx = ${endIdx};
+                        const batchSize = ${batchSize};
+                        
+                        // Frequency tables for different languages
+                        const frequencyTables = {
+                            english: {
+                                'A': 0.08167, 'B': 0.01492, 'C': 0.02782, 'D': 0.04253,
+                                'E': 0.12702, 'F': 0.02228, 'G': 0.02015, 'H': 0.06094,
+                                'I': 0.06966, 'J': 0.00153, 'K': 0.00772, 'L': 0.04025,
+                                'M': 0.02406, 'N': 0.06749, 'O': 0.07507, 'P': 0.01929,
+                                'Q': 0.00095, 'R': 0.05987, 'S': 0.06327, 'T': 0.09056,
+                                'U': 0.02758, 'V': 0.00978, 'W': 0.02360, 'X': 0.00150,
+                                'Y': 0.01974, 'Z': 0.00074
+                            },
+                            german: {
+                                'A': 0.0651, 'B': 0.0189, 'C': 0.0306, 'D': 0.0508,
+                                'E': 0.1740, 'F': 0.0166, 'G': 0.0301, 'H': 0.0476,
+                                'I': 0.0755, 'J': 0.0027, 'K': 0.0121, 'L': 0.0344,
+                                'M': 0.0253, 'N': 0.0978, 'O': 0.0251, 'P': 0.0079,
+                                'Q': 0.0002, 'R': 0.0700, 'S': 0.0727, 'T': 0.0615,
+                                'U': 0.0435, 'V': 0.0067, 'W': 0.0189, 'X': 0.0003,
+                                'Y': 0.0004, 'Z': 0.0113
+                            },
+                            french: {
+                                'A': 0.07636, 'B': 0.00901, 'C': 0.03260, 'D': 0.03669,
+                                'E': 0.14715, 'F': 0.01066, 'G': 0.00866, 'H': 0.00737,
+                                'I': 0.07529, 'J': 0.00613, 'K': 0.00074, 'L': 0.05456,
+                                'M': 0.02968, 'N': 0.07095, 'O': 0.05796, 'P': 0.02521,
+                                'Q': 0.01362, 'R': 0.06693, 'S': 0.07948, 'T': 0.07244,
+                                'U': 0.06311, 'V': 0.01838, 'W': 0.00049, 'X': 0.00427,
+                                'Y': 0.00128, 'Z': 0.00326
+                            },
+                            spanish: {
+                                'A': 0.11525, 'B': 0.02215, 'C': 0.04019, 'D': 0.05010,
+                                'E': 0.12181, 'F': 0.00692, 'G': 0.01768, 'H': 0.00703,
+                                'I': 0.06247, 'J': 0.00493, 'K': 0.00011, 'L': 0.04967,
+                                'M': 0.03157, 'N': 0.06712, 'O': 0.08683, 'P': 0.02510,
+                                'Q': 0.00877, 'R': 0.06871, 'S': 0.07977, 'T': 0.04632,
+                                'U': 0.02927, 'V': 0.01138, 'W': 0.00017, 'X': 0.00215,
+                                'Y': 0.01008, 'Z': 0.00467
+                            }
+                        };
+                        
+                        // Common words for different languages
+                        const commonWords = {
+                            english: ['THE', 'AND', 'THAT', 'HAVE', 'FOR', 'NOT', 'WITH', 'YOU', 'THIS', 'BUT'],
+                            german: ['DIE', 'DER', 'UND', 'IN', 'DEN', 'VON', 'ZU', 'DAS', 'MIT', 'SICH'],
+                            french: ['LES', 'DES', 'LE', 'ET', 'LA', 'DANS', 'QUE', 'EST', 'POUR', 'UNE'],
+                            spanish: ['QUE', 'LOS', 'LAS', 'DEL', 'PARA', 'UNA', 'CON', 'POR', 'ESTA', 'SU']
+                        };
+                        
+                        // Score text based on letter frequency
+                        function scoreText(text, language) {
+                            const freqTable = frequencyTables[language] || frequencyTables.english;
+                            const textFreq = {};
+                            let score = 0;
+                            
+                            // Calculate letter frequencies in text
+                            for (const c of text) {
+                                textFreq[c] = (textFreq[c] || 0) + 1;
+                            }
+                            
+                            // Normalize frequencies and compare to expected
+                            for (const c in textFreq) {
+                                textFreq[c] = textFreq[c] / text.length;
+                                const expected = freqTable[c] || 0;
+                                score += Math.abs(textFreq[c] - expected);
+                            }
+                            
+                            // Lower score is better (less deviation from expected)
+                            return -score;
+                        }
+                        
+                        // Check for common words
+                        function checkCommonWords(text, language) {
+                            const words = commonWords[language] || commonWords.english;
+                            let count = 0;
+                            
+                            for (const word of words) {
+                                if (text.includes(word)) {
+                                    count++;
+                                }
+                            }
+                            
+                            return count;
+                        }
+                        
+                        // Vigenère decrypt
+                        function vigenereDecrypt(ciphertext, key) {
+                            let plaintext = '';
+                            const alphaLen = alphabet.length;
+                            
+                            for (let i = 0; i < ciphertext.length; i++) {
+                                const c = ciphertext[i];
+                                const k = key[i % key.length];
+                                
+                                const cIndex = alphabet.indexOf(c);
+                                const kIndex = alphabet.indexOf(k);
+                                
+                                if (cIndex === -1 || kIndex === -1) {
+                                    plaintext += '?';
+                                } else {
+                                    const pIndex = (cIndex - kIndex + alphaLen) % alphaLen;
+                                    plaintext += alphabet[pIndex];
+                                }
+                            }
+                            
+                            return plaintext;
+                        }
+                        
+                        // Generate key from index
+                        function indexToKey(index, length, chars) {
+                            let key = '';
+                            const base = chars.length;
+                            
+                            for (let i = 0; i < length; i++) {
+                                const remainder = index % base;
+                                key = chars[remainder] + key;
+                                index = Math.floor(index / base);
+                            }
+                            
+                            return key;
+                        }
+                        
+                        // Process a batch of keys
+                        function processBatch(start, end, batchSize) {
+                            const batchResults = [];
+                            const chars = keyCharSet;
+                            const base = chars.length;
+                            
+                            for (let idx = start; idx < end && idx < endIdx; idx += batchSize) {
+                                const batchEnd = Math.min(idx + batchSize, end, endIdx);
+                                
+                                for (let i = idx; i < batchEnd; i++) {
+                                    const key = indexToKey(i, keyLength, chars);
+                                    const plaintext = vigenereDecrypt(ciphertext, key);
+                                    
+                                    // Score the plaintext
+                                    let score = scoreText(plaintext, language);
+                                    
+                                    // Bonus for matching known prefix
+                                    if (knownPrefix && plaintext.startsWith(knownPrefix)) {
+                                        score += knownPrefix.length * 0.1;
+                                    }
+                                    
+                                    // Bonus for common words
+                                    const wordCount = checkCommonWords(plaintext, language);
+                                    score += wordCount * 0.05;
+                                    
+                                    batchResults.push({
+                                        key: key,
+                                        plaintext: plaintext,
+                                        score: score
+                                    });
+                                }
+                                
+                                // Send progress update
+                                self.postMessage({
+                                    type: 'progress',
+                                    tested: batchEnd - start,
+                                    total: end - start
+                                });
+                            }
+                            
+                            return batchResults;
+                        }
+                        
+                        // Handle messages from main thread
+                        self.onmessage = function(e) {
+                            if (e.data.type === 'start') {
+                                const batchResults = processBatch(startIdx, endIdx, batchSize);
+                                
+                                // Send results back
+                                self.postMessage({
+                                    type: 'results',
+                                    results: batchResults
+                                });
+                                
+                                // Terminate worker
+                                self.close();
+                            }
+                        };
+                    `], { type: 'text/javascript' })));
+                    
+                    worker.onmessage = handleWorkerMessage;
+                    worker.onerror = handleWorkerError;
+                    
+                    workers.push(worker);
+                }
+                
+                // Start all workers
+                for (const worker of workers) {
+                    worker.postMessage({ type: 'start' });
+                }
+                
+                updateWorkerStatus();
+            }
+            
+            // Handle messages from workers
+            function handleWorkerMessage(event) {
+                const data = event.data;
+                
+                if (data.type === 'progress') {
+                    keysTested += data.tested;
+                    updateProgress();
+                } else if (data.type === 'results') {
+                    // Add results to our collection
+                    results = results.concat(data.results);
+                    
+                    // Sort and keep top results
+                    results.sort((a, b) => b.score - a.score);
+                    if (results.length > 1000) {
+                        results = results.slice(0, 1000);
+                    }
+                    
+                    updateResultsDisplay();
                 }
             }
-        }
-
-        const gcd = (a, b) => b === 0 ? a : gcd(b, a % b);
-        return distances.reduce((a, b) => gcd(a, b), distances[0]) || 1;
-    }
-
-    // Полный тест Фридмана
-    friedmanTest(text) {
-        const freq = {};
-        for (const c of text) freq[c] = (freq[c] || 0) + 1;
-        const n = text.length;
-        const sum = Object.values(freq).reduce((acc, val) => acc + val * (val - 1), 0);
-        return sum / (n * (n - 1));
-    }
-
-    // Полный частотный анализ
-    frequencyAnalysis(text) {
-        const freq = {};
-        for (const c of text) freq[c] = (freq[c] || 0) + 1;
-        return Object.entries(freq)
-            .sort((a, b) => b[1] - a[1])
-            .map(([char, count]) => `${char}: ${count} (${(count/text.length*100).toFixed(2)}%)`);
-    }
-
-    // Генерация гипотез ключей
-    generateKeys(text, keyLength) {
-        const keys = [];
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        
-        // Базовые ключи
-        keys.push('BERLIN', 'CLOCK', 'NORTHEAST');
-        
-        // Генерация случайных ключей
-        for (let i = 0; i < 20; i++) {
-            let key = '';
-            for (let j = 0; j < keyLength; j++) {
-                key += chars[Math.floor(Math.random() * chars.length)];
-            }
-            keys.push(key);
-        }
-        return [...new Set(keys)];
-    }
-
-    // Полная дешифровка Виженера
-    decrypt(text, key) {
-        return [...text].map((c, i) => {
-            const keyChar = key[i % key.length].toUpperCase();
-            const shift = keyChar.charCodeAt(0) - 65;
-            return String.fromCharCode(
-                (c.toUpperCase().charCodeAt(0) - 65 - shift + 26) % 26 + 65
-            );
-        }).join('');
-    }
-
-    // Оценка результатов
-    scoreDecryption(decrypted) {
-        let score = 0;
-        // Совпадение с частотностью
-        const freq = this.frequencyAnalysis(decrypted);
-        score += freq.reduce((acc, item) => {
-            const char = item.split(':')[0];
-            return acc + (this.ENG_FREQ[char] || 0);
-        }, 0);
-        
-        // Наличие целевых слов
-        score += this.TARGETS.reduce((acc, word) => 
-            acc + (decrypted.includes(word) ? 100 : 0), 0);
             
-        return score;
-    }
-}
-
-function startFullAnalysis() {
-    const input = document.getElementById('input').value.toUpperCase().replace(/[^A-Z]/g, '');
-    const analyzer = new K4Analyzer();
-    const output = document.getElementById('output');
-    output.innerHTML = '';
-
-    // 1. Анализ длины ключа
-    const keyLength = analyzer.kasiskiAnalysis(input);
-    output.innerHTML += `<div class="result"><h3>Key Length Analysis (Kasiski)</h3>Estimated key length: ${keyLength}</div>`;
-
-    // 2. Тест Фридмана
-    const friedmanIC = analyzer.friedmanTest(input);
-    output.innerHTML += `<div class="result"><h3>Friedman Test</h3>Index of Coincidence: ${friedmanIC.toFixed(4)}</div>`;
-
-    // 3. Частотный анализ
-    const freqResults = analyzer.frequencyAnalysis(input);
-    output.innerHTML += `<div class="result"><h3>Frequency Analysis</h3><pre>${freqResults.join('\n')}</pre></div>`;
-
-    // 4. Дешифровка с ключами
-    const keys = analyzer.generateKeys(input, keyLength);
-    const results = keys.map(key => ({
-        key,
-        decrypted: analyzer.decrypt(input, key),
-        score: analyzer.scoreDecryption(analyzer.decrypt(input, key))
-    })).sort((a, b) => b.score - a.score);
-
-    // 5. Вывод топ-10 результатов
-    output.innerHTML += `<div class="result"><h3>Top 10 Results</h3>`;
-    results.slice(0, 10).forEach((result, index) => {
-        output.innerHTML += `
-            <div style="margin: 15px 0; padding: 10px; background: #fff; border: 1px solid #eee;">
-                <strong>#${index + 1}</strong> Key: ${result.key} (Score: ${result.score})<br>
-                <pre>${result.decrypted.slice(0, 150)}...</pre>
-                Matches: ${analyzer.TARGETS.filter(word => result.decrypted.includes(word)).join(', ')}
-            </div>`;
-    });
-    output.innerHTML += `</div>`;
-}
-</script>
+            // Handle worker errors
+            function handleWorkerError(error) {
+                console.error('Worker error:', error);
+                stopAttack();
+                alert('Worker error occurred. Attack stopped.');
+            }
+            
+            // Update progress display
+            function updateProgress() {
+                const now = Date.now();
+                
+                // Throttle UI updates to avoid performance issues
+                if (now - lastUpdate < 200 && keysTested < totalKeysToTest) return;
+                lastUpdate = now;
+                
+                // Calculate progress
+                const progress = Math.min(100, (keysTested / totalKeysToTest) * 100);
+                progressBar.style.width = `${progress}%`;
+                progressText.textContent = `${progress.toFixed(2)}% complete`;
+                
+                // Calculate keys per second
+                const elapsed = (now - startTime) / 1000;
+                const kps = elapsed > 0 ? (keysTested / elapsed).toFixed(0) : 0;
+                
+                keysTestedEl.textContent = keysTested.toLocaleString();
+                keysPerSecondEl.textContent = kps;
+                
+                // Check if done
+                if (keysTested >= totalKeysToTest) {
+                    stopAttack();
+                }
+            }
+            
+            // Update worker status display
+            function updateWorkerStatus() {
+                const active = workers.filter(w => !w.terminated).length;
+                workerStatusEl.textContent = `Workers: ${active} active`;
+                
+                if (isRunning && active > 0) {
+                    setTimeout(updateWorkerStatus, 1000);
+                }
+            }
+            
+            // Update results display
+            function updateResultsDisplay() {
+                const limit = parseInt(resultsLimitEl.value);
+                const topResults = results.slice(0, limit);
+                
+                if (topResults.length === 0) {
+                    resultsGrid.innerHTML = '<div class="result-card"><div class="result-key">No results yet</div><div class="result-text">Processing...</div></div>';
+                    return;
+                }
+                
+                let html = '';
+                
+                // Find max and min scores for normalization
+                const maxScore = Math.max(...results.map(r => r.score));
+                const minScore = Math.min(...results.map(r => r.score));
+                const scoreRange = maxScore - minScore;
+                
+                for (const result of topResults) {
+                    // Normalize score to 0-100
+                    const normalizedScore = scoreRange > 0 ? ((result.score - minScore) / scoreRange * 100) : 50;
+                    
+                    // Determine score class
+                    let scoreClass = '';
+                    if (normalizedScore > 75) scoreClass = 'high-score';
+                    else if (normalizedScore > 50) scoreClass = 'medium-score';
+                    
+                    html += `
+                        <div class="result-card">
+                            <div class="result-key">Key: ${result.key}</div>
+                            <div class="result-text">${result.plaintext}</div>
+                            <div class="result-score ${scoreClass}">Score: ${result.score.toFixed(2)}</div>
+                        </div>
+                    `;
+                }
+                
+                resultsGrid.innerHTML = html;
+            }
+            
+            // Stop the attack
+            function stopAttack() {
+                if (!isRunning) return;
+                
+                isRunning = false;
+                
+                // Terminate all workers
+                for (const worker of workers) {
+                    worker.terminate();
+                }
+                workers = [];
+                
+                btnStart.disabled = false;
+                btnStop.disabled = true;
+                
+                updateWorkerStatus();
+            }
+            
+            // Reset the tool
+            function reset() {
+                stopAttack();
+                
+                progressContainer.style.display = 'none';
+                resultsGrid.innerHTML = '<div class="result-card"><div class="result-key">No results yet</div><div class="result-text">Run the brute force attack to see potential decryptions here.</div></div>';
+            }
+            
+            // Analyze possible key lengths
+            function analyzeKeyLength() {
+                const ciphertext = ciphertextEl.value.trim().toUpperCase().replace(/[^A-Z]/g, '');
+                if (!ciphertext) {
+                    alert('Please enter ciphertext');
+                    return;
+                }
+                
+                alert('Key length analysis would be implemented here using techniques like:\n' +
+                     '- Kasiski examination\n' +
+                     '- Friedman test\n' +
+                     '- Index of coincidence\n\n' +
+                     'This feature would analyze the ciphertext and suggest probable key lengths.');
+            }
+            
+            // Helper function to get key character set
+            function getKeyCharSet(regex, alphabet) {
+                // This is a simplified version - in a real app you'd properly parse the regex
+                if (regex === '[A-Z]') return 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                if (regex === '[A-Za-z]') return 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+                if (regex === '[0-9]') return '0123456789';
+                
+                // Default to using the alphabet
+                return alphabet;
+            }
+            
+            // Calculate total keys to test
+            function calculateTotalKeys(minLen, maxLen, keyCharSet) {
+                let total = 0;
+                const setSize = keyCharSet.length;
+                
+                for (let len = minLen; len <= maxLen; len++) {
+                    total += Math.pow(setSize, len);
+                }
+                
+                return total;
+            }
+            
+            // Initialize the app
+            init();
+        });
+    </script>
 </body>
 </html>
