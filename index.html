@@ -434,6 +434,10 @@
             let results = [];
             let currentKeyLength = 0;
             let totalKeysToTest = 0;
+            let currentKeyRange = { min: 0, max: 0 };
+            let workerTasks = [];
+            let activeWorkers = 0;
+            let completedKeyLengths = new Set();
             
             // Event listeners for UI controls
             maxWorkersEl.addEventListener('input', () => {
@@ -461,6 +465,202 @@
                 btnReset.addEventListener('click', reset);
                 btnAnalyzeKeyLength.addEventListener('click', analyzeKeyLength);
                 resultsLimitEl.addEventListener('change', updateResultsDisplay);
+                
+                // Set up worker pool
+                setupWorkerPool();
+            }
+            
+            // Set up worker pool
+            function setupWorkerPool() {
+                // Create worker code as a string
+                const workerCode = `
+                    const frequencyTables = {
+                        english: {
+                            'A': 0.08167, 'B': 0.01492, 'C': 0.02782, 'D': 0.04253,
+                            'E': 0.12702, 'F': 0.02228, 'G': 0.02015, 'H': 0.06094,
+                            'I': 0.06966, 'J': 0.00153, 'K': 0.00772, 'L': 0.04025,
+                            'M': 0.02406, 'N': 0.06749, 'O': 0.07507, 'P': 0.01929,
+                            'Q': 0.00095, 'R': 0.05987, 'S': 0.06327, 'T': 0.09056,
+                            'U': 0.02758, 'V': 0.00978, 'W': 0.02360, 'X': 0.00150,
+                            'Y': 0.01974, 'Z': 0.00074
+                        },
+                        german: {
+                            'A': 0.0651, 'B': 0.0189, 'C': 0.0306, 'D': 0.0508,
+                            'E': 0.1740, 'F': 0.0166, 'G': 0.0301, 'H': 0.0476,
+                            'I': 0.0755, 'J': 0.0027, 'K': 0.0121, 'L': 0.0344,
+                            'M': 0.0253, 'N': 0.0978, 'O': 0.0251, 'P': 0.0079,
+                            'Q': 0.0002, 'R': 0.0700, 'S': 0.0727, 'T': 0.0615,
+                            'U': 0.0435, 'V': 0.0067, 'W': 0.0189, 'X': 0.0003,
+                            'Y': 0.0004, 'Z': 0.0113
+                        },
+                        french: {
+                            'A': 0.07636, 'B': 0.00901, 'C': 0.03260, 'D': 0.03669,
+                            'E': 0.14715, 'F': 0.01066, 'G': 0.00866, 'H': 0.00737,
+                            'I': 0.07529, 'J': 0.00613, 'K': 0.00074, 'L': 0.05456,
+                            'M': 0.02968, 'N': 0.07095, 'O': 0.05796, 'P': 0.02521,
+                            'Q': 0.01362, 'R': 0.06693, 'S': 0.07948, 'T': 0.07244,
+                            'U': 0.06311, 'V': 0.01838, 'W': 0.00049, 'X': 0.00427,
+                            'Y': 0.00128, 'Z': 0.00326
+                        },
+                        spanish: {
+                            'A': 0.11525, 'B': 0.02215, 'C': 0.04019, 'D': 0.05010,
+                            'E': 0.12181, 'F': 0.00692, 'G': 0.01768, 'H': 0.00703,
+                            'I': 0.06247, 'J': 0.00493, 'K': 0.00011, 'L': 0.04967,
+                            'M': 0.03157, 'N': 0.06712, 'O': 0.08683, 'P': 0.02510,
+                            'Q': 0.00877, 'R': 0.06871, 'S': 0.07977, 'T': 0.04632,
+                            'U': 0.02927, 'V': 0.01138, 'W': 0.00017, 'X': 0.00215,
+                            'Y': 0.01008, 'Z': 0.00467
+                        }
+                    };
+                    
+                    const commonWords = {
+                        english: ['THE', 'AND', 'THAT', 'HAVE', 'FOR', 'NOT', 'WITH', 'YOU', 'THIS', 'BUT'],
+                        german: ['DIE', 'DER', 'UND', 'IN', 'DEN', 'VON', 'ZU', 'DAS', 'MIT', 'SICH'],
+                        french: ['LES', 'DES', 'LE', 'ET', 'LA', 'DANS', 'QUE', 'EST', 'POUR', 'UNE'],
+                        spanish: ['QUE', 'LOS', 'LAS', 'DEL', 'PARA', 'UNA', 'CON', 'POR', 'ESTA', 'SU']
+                    };
+                    
+                    // Score text based on letter frequency
+                    function scoreText(text, language) {
+                        const freqTable = frequencyTables[language] || frequencyTables.english;
+                        const textFreq = {};
+                        let score = 0;
+                        
+                        for (const c of text) {
+                            textFreq[c] = (textFreq[c] || 0) + 1;
+                        }
+                        
+                        for (const c in textFreq) {
+                            textFreq[c] = textFreq[c] / text.length;
+                            const expected = freqTable[c] || 0;
+                            score += Math.abs(textFreq[c] - expected);
+                        }
+                        
+                        return -score;
+                    }
+                    
+                    // Check for common words
+                    function checkCommonWords(text, language) {
+                        const words = commonWords[language] || commonWords.english;
+                        let count = 0;
+                        
+                        for (const word of words) {
+                            if (text.includes(word)) {
+                                count++;
+                            }
+                        }
+                        
+                        return count;
+                    }
+                    
+                    // Vigenère decrypt
+                    function vigenereDecrypt(ciphertext, key, alphabet) {
+                        let plaintext = '';
+                        const alphaLen = alphabet.length;
+                        
+                        for (let i = 0; i < ciphertext.length; i++) {
+                            const c = ciphertext[i];
+                            const k = key[i % key.length];
+                            
+                            const cIndex = alphabet.indexOf(c);
+                            const kIndex = alphabet.indexOf(k);
+                            
+                            if (cIndex === -1 || kIndex === -1) {
+                                plaintext += '?';
+                            } else {
+                                const pIndex = (cIndex - kIndex + alphaLen) % alphaLen;
+                                plaintext += alphabet[pIndex];
+                            }
+                        }
+                        
+                        return plaintext;
+                    }
+                    
+                    // Generate key from index
+                    function indexToKey(index, length, chars) {
+                        let key = '';
+                        const base = chars.length;
+                        
+                        for (let i = 0; i < length; i++) {
+                            const remainder = index % base;
+                            key = chars[remainder] + key;
+                            index = Math.floor(index / base);
+                        }
+                        
+                        return key;
+                    }
+                    
+                    // Process a batch of keys
+                    function processBatch(task) {
+                        const { start, end, keyLength, keyCharSet, ciphertext, knownPrefix, language, alphabet } = task;
+                        const batchResults = [];
+                        const chars = keyCharSet;
+                        const base = chars.length;
+                        
+                        for (let idx = start; idx < end; idx++) {
+                            const key = indexToKey(idx, keyLength, chars);
+                            const plaintext = vigenereDecrypt(ciphertext, key, alphabet);
+                            
+                            let score = scoreText(plaintext, language);
+                            
+                            if (knownPrefix && plaintext.startsWith(knownPrefix)) {
+                                score += knownPrefix.length * 0.1;
+                            }
+                            
+                            const wordCount = checkCommonWords(plaintext, language);
+                            score += wordCount * 0.05;
+                            
+                            batchResults.push({
+                                key: key,
+                                plaintext: plaintext,
+                                score: score
+                            });
+                        }
+                        
+                        return {
+                            results: batchResults,
+                            tested: end - start,
+                            keyLength: keyLength
+                        };
+                    }
+                    
+                    // Handle messages from main thread
+                    self.onmessage = function(e) {
+                        if (e.data.type === 'task') {
+                            try {
+                                const result = processBatch(e.data.task);
+                                self.postMessage({
+                                    type: 'result',
+                                    result: result
+                                });
+                            } catch (error) {
+                                self.postMessage({
+                                    type: 'error',
+                                    error: error.message,
+                                    task: e.data.task
+                                });
+                            }
+                        }
+                    };
+                `;
+                
+                // Create worker blob
+                const workerBlob = new Blob([workerCode], { type: 'text/javascript' });
+                const workerUrl = URL.createObjectURL(workerBlob);
+                
+                // Create worker pool
+                const workerCount = Math.min(16, navigator.hardwareConcurrency || 4);
+                workers = Array(workerCount).fill().map(() => {
+                    const worker = new Worker(workerUrl);
+                    worker.onmessage = handleWorkerMessage;
+                    worker.onerror = handleWorkerError;
+                    return worker;
+                });
+                
+                // Clean up URL when page unloads
+                window.addEventListener('beforeunload', () => {
+                    URL.revokeObjectURL(workerUrl);
+                });
             }
             
             // Start the brute force attack
@@ -468,7 +668,7 @@
                 if (isRunning) return;
                 
                 // Validate inputs
-                const ciphertext = ciphertextEl.value.trim().toUpperCase().replace(/[^A-Z]/g, '');
+                const ciphertext = ciphertextEl.value.trim().toUpperCase();
                 if (!ciphertext) {
                     alert('Please enter ciphertext');
                     return;
@@ -494,10 +694,18 @@
                 }
                 
                 const language = languageEl.value;
-                const alphabet = alphabetEl.value.trim().toUpperCase().replace(/[^A-Z]/g, '');
-                if (language === 'custom' && !alphabet) {
-                    alert('Please specify custom alphabet');
-                    return;
+                let alphabet = alphabetEl.value.trim().toUpperCase();
+                if (language === 'custom') {
+                    if (!alphabet) {
+                        alert('Please specify custom alphabet');
+                        return;
+                    }
+                    // Remove duplicates from alphabet
+                    alphabet = [...new Set(alphabet.split(''))].join('');
+                    alphabetEl.value = alphabet;
+                } else {
+                    // Use standard alphabet for the language
+                    alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
                 }
                 
                 const keyChars = keyCharsEl.value.trim();
@@ -512,12 +720,21 @@
                 const maxWorkers = parseInt(maxWorkersEl.value);
                 const batchSize = parseInt(batchSizeEl.value);
                 
+                // Get valid key characters
+                const keyCharSet = getKeyCharSet(keyChars, alphabet);
+                if (!keyCharSet) {
+                    alert('No valid key characters match your criteria');
+                    return;
+                }
+                
                 // Prepare for attack
                 isRunning = true;
                 startTime = Date.now();
                 keysTested = 0;
                 lastUpdate = 0;
                 results = [];
+                workerTasks = [];
+                completedKeyLengths = new Set();
                 
                 btnStart.disabled = true;
                 btnStop.disabled = false;
@@ -526,270 +743,130 @@
                 progressText.textContent = '0% complete';
                 keysTestedEl.textContent = '0';
                 keysPerSecondEl.textContent = '0';
-                workerStatusEl.textContent = `Workers: 0 active`;
                 
                 // Clear results
                 resultsGrid.innerHTML = '<div class="result-card"><div class="result-key">Processing...</div><div class="result-text">Starting brute force attack</div></div>';
                 
-                // Create workers
-                workers = [];
-                const workerCount = Math.min(maxWorkers, navigator.hardwareConcurrency || 4);
-                
                 // Calculate total keys to test
-                const keyCharSet = getKeyCharSet(keyChars, alphabet);
-                currentKeyLength = keyLengthMin;
+                currentKeyRange = { min: keyLengthMin, max: keyLengthMax };
                 totalKeysToTest = calculateTotalKeys(keyLengthMin, keyLengthMax, keyCharSet);
                 
-                // Start with first key length
-                startWorkersForKeyLength(ciphertext, currentKeyLength, keyCharSet, knownPrefix, 
-                                       language, alphabet, workerCount, batchSize);
+                // Create tasks for all key lengths
+                for (let len = keyLengthMin; len <= keyLengthMax; len++) {
+                    const keysForLength = Math.pow(keyCharSet.length, len);
+                    const batches = Math.ceil(keysForLength / batchSize);
+                    
+                    for (let i = 0; i < batches; i++) {
+                        const start = i * batchSize;
+                        const end = Math.min((i + 1) * batchSize, keysForLength);
+                        
+                        workerTasks.push({
+                            start,
+                            end,
+                            keyLength: len,
+                            keyCharSet,
+                            ciphertext,
+                            knownPrefix,
+                            language,
+                            alphabet
+                        });
+                    }
+                }
+                
+                // Shuffle tasks to distribute work evenly
+                workerTasks = shuffleArray(workerTasks);
+                
+                // Start processing
+                currentKeyLength = keyLengthMin;
+                assignTasksToWorkers();
+                updateWorkerStatus();
             }
             
-            // Start workers for a specific key length
-            function startWorkersForKeyLength(ciphertext, keyLength, keyCharSet, knownPrefix, 
-                                           language, alphabet, workerCount, batchSize) {
-                // Calculate key space for this length
-                const keysForThisLength = Math.pow(keyCharSet.length, keyLength);
-                const keysPerWorker = Math.ceil(keysForThisLength / workerCount);
+            // Assign tasks to available workers
+            function assignTasksToWorkers() {
+                if (!isRunning) return;
                 
-                // Create workers
-                for (let i = 0; i < workerCount; i++) {
-                    const startIdx = i * keysPerWorker;
-                    const endIdx = Math.min((i + 1) * keysPerWorker, keysForThisLength);
-                    
-                    const worker = new Worker(URL.createObjectURL(new Blob([`
-                        // Worker code for brute forcing
-                        const alphabet = '${alphabet}';
-                        const ciphertext = '${ciphertext}';
-                        const keyLength = ${keyLength};
-                        const keyCharSet = '${keyCharSet}';
-                        const knownPrefix = '${knownPrefix}';
-                        const language = '${language}';
-                        const startIdx = ${startIdx};
-                        const endIdx = ${endIdx};
-                        const batchSize = ${batchSize};
-                        
-                        // Frequency tables for different languages
-                        const frequencyTables = {
-                            english: {
-                                'A': 0.08167, 'B': 0.01492, 'C': 0.02782, 'D': 0.04253,
-                                'E': 0.12702, 'F': 0.02228, 'G': 0.02015, 'H': 0.06094,
-                                'I': 0.06966, 'J': 0.00153, 'K': 0.00772, 'L': 0.04025,
-                                'M': 0.02406, 'N': 0.06749, 'O': 0.07507, 'P': 0.01929,
-                                'Q': 0.00095, 'R': 0.05987, 'S': 0.06327, 'T': 0.09056,
-                                'U': 0.02758, 'V': 0.00978, 'W': 0.02360, 'X': 0.00150,
-                                'Y': 0.01974, 'Z': 0.00074
-                            },
-                            german: {
-                                'A': 0.0651, 'B': 0.0189, 'C': 0.0306, 'D': 0.0508,
-                                'E': 0.1740, 'F': 0.0166, 'G': 0.0301, 'H': 0.0476,
-                                'I': 0.0755, 'J': 0.0027, 'K': 0.0121, 'L': 0.0344,
-                                'M': 0.0253, 'N': 0.0978, 'O': 0.0251, 'P': 0.0079,
-                                'Q': 0.0002, 'R': 0.0700, 'S': 0.0727, 'T': 0.0615,
-                                'U': 0.0435, 'V': 0.0067, 'W': 0.0189, 'X': 0.0003,
-                                'Y': 0.0004, 'Z': 0.0113
-                            },
-                            french: {
-                                'A': 0.07636, 'B': 0.00901, 'C': 0.03260, 'D': 0.03669,
-                                'E': 0.14715, 'F': 0.01066, 'G': 0.00866, 'H': 0.00737,
-                                'I': 0.07529, 'J': 0.00613, 'K': 0.00074, 'L': 0.05456,
-                                'M': 0.02968, 'N': 0.07095, 'O': 0.05796, 'P': 0.02521,
-                                'Q': 0.01362, 'R': 0.06693, 'S': 0.07948, 'T': 0.07244,
-                                'U': 0.06311, 'V': 0.01838, 'W': 0.00049, 'X': 0.00427,
-                                'Y': 0.00128, 'Z': 0.00326
-                            },
-                            spanish: {
-                                'A': 0.11525, 'B': 0.02215, 'C': 0.04019, 'D': 0.05010,
-                                'E': 0.12181, 'F': 0.00692, 'G': 0.01768, 'H': 0.00703,
-                                'I': 0.06247, 'J': 0.00493, 'K': 0.00011, 'L': 0.04967,
-                                'M': 0.03157, 'N': 0.06712, 'O': 0.08683, 'P': 0.02510,
-                                'Q': 0.00877, 'R': 0.06871, 'S': 0.07977, 'T': 0.04632,
-                                'U': 0.02927, 'V': 0.01138, 'W': 0.00017, 'X': 0.00215,
-                                'Y': 0.01008, 'Z': 0.00467
-                            }
-                        };
-                        
-                        // Common words for different languages
-                        const commonWords = {
-                            english: ['THE', 'AND', 'THAT', 'HAVE', 'FOR', 'NOT', 'WITH', 'YOU', 'THIS', 'BUT'],
-                            german: ['DIE', 'DER', 'UND', 'IN', 'DEN', 'VON', 'ZU', 'DAS', 'MIT', 'SICH'],
-                            french: ['LES', 'DES', 'LE', 'ET', 'LA', 'DANS', 'QUE', 'EST', 'POUR', 'UNE'],
-                            spanish: ['QUE', 'LOS', 'LAS', 'DEL', 'PARA', 'UNA', 'CON', 'POR', 'ESTA', 'SU']
-                        };
-                        
-                        // Score text based on letter frequency
-                        function scoreText(text, language) {
-                            const freqTable = frequencyTables[language] || frequencyTables.english;
-                            const textFreq = {};
-                            let score = 0;
-                            
-                            // Calculate letter frequencies in text
-                            for (const c of text) {
-                                textFreq[c] = (textFreq[c] || 0) + 1;
-                            }
-                            
-                            // Normalize frequencies and compare to expected
-                            for (const c in textFreq) {
-                                textFreq[c] = textFreq[c] / text.length;
-                                const expected = freqTable[c] || 0;
-                                score += Math.abs(textFreq[c] - expected);
-                            }
-                            
-                            // Lower score is better (less deviation from expected)
-                            return -score;
-                        }
-                        
-                        // Check for common words
-                        function checkCommonWords(text, language) {
-                            const words = commonWords[language] || commonWords.english;
-                            let count = 25;
-                            
-                            for (const word of words) {
-                                if (text.includes(word)) {
-                                    count++;
-                                }
-                            }
-                            
-                            return count;
-                        }
-                        
-                        // Vigenère decrypt
-                        function vigenereDecrypt(ciphertext, key) {
-                            let plaintext = '';
-                            const alphaLen = alphabet.length;
-                            
-                            for (let i = 0; i < ciphertext.length; i++) {
-                                const c = ciphertext[i];
-                                const k = key[i % key.length];
-                                
-                                const cIndex = alphabet.indexOf(c);
-                                const kIndex = alphabet.indexOf(k);
-                                
-                                if (cIndex === -1 || kIndex === -1) {
-                                    plaintext += '?';
-                                } else {
-                                    const pIndex = (cIndex - kIndex + alphaLen) % alphaLen;
-                                    plaintext += alphabet[pIndex];
-                                }
-                            }
-                            
-                            return plaintext;
-                        }
-                        
-                        // Generate key from index
-                        function indexToKey(index, length, chars) {
-                            let key = '';
-                            const base = chars.length;
-                            
-                            for (let i = 0; i < length; i++) {
-                                const remainder = index % base;
-                                key = chars[remainder] + key;
-                                index = Math.floor(index / base);
-                            }
-                            
-                            return key;
-                        }
-                        
-                        // Process a batch of keys
-                        function processBatch(start, end, batchSize) {
-                            const batchResults = [];
-                            const chars = keyCharSet;
-                            const base = chars.length;
-                            
-                            for (let idx = start; idx < end && idx < endIdx; idx += batchSize) {
-                                const batchEnd = Math.min(idx + batchSize, end, endIdx);
-                                
-                                for (let i = idx; i < batchEnd; i++) {
-                                    const key = indexToKey(i, keyLength, chars);
-                                    const plaintext = vigenereDecrypt(ciphertext, key);
-                                    
-                                    // Score the plaintext
-                                    let score = scoreText(plaintext, language);
-                                    
-                                    // Bonus for matching known prefix
-                                    if (knownPrefix && plaintext.startsWith(knownPrefix)) {
-                                        score += knownPrefix.length * 2;
-                                    }
-                                    
-                                    // Bonus for common words
-                                    const wordCount = checkCommonWords(plaintext, language);
-                                    score += wordCount * 5;
-                                    
-                                    batchResults.push({
-                                        key: key,
-                                        plaintext: plaintext,
-                                        score: score
-                                    });
-                                }
-                                
-                                // Send progress update
-                                self.postMessage({
-                                    type: 'progress',
-                                    tested: batchEnd - start,
-                                    total: end - start
-                                });
-                            }
-                            
-                            return batchResults;
-                        }
-                        
-                        // Handle messages from main thread
-                        self.onmessage = function(e) {
-                            if (e.data.type === 'start') {
-                                const batchResults = processBatch(startIdx, endIdx, batchSize);
-                                
-                                // Send results back
-                                self.postMessage({
-                                    type: 'results',
-                                    results: batchResults
-                                });
-                                
-                                // Terminate worker
-                                self.close();
-                            }
-                        };
-                    `], { type: 'text/javascript' })));
-                    
-                    worker.onmessage = handleWorkerMessage;
-                    worker.onerror = handleWorkerError;
-                    
-                    workers.push(worker);
+                const availableWorkers = workers.filter(w => !w.busy);
+                if (availableWorkers.length === 0 || workerTasks.length === 0) {
+                    // Check if all work is done
+                    if (workerTasks.length === 0 && activeWorkers === 0) {
+                        stopAttack();
+                        progressText.textContent = '100% complete - Finished!';
+                    }
+                    return;
                 }
                 
-                // Start all workers
-                for (const worker of workers) {
-                    worker.postMessage({ type: 'start' });
+                // Assign tasks to available workers
+                for (const worker of availableWorkers) {
+                    if (workerTasks.length > 0) {
+                        const task = workerTasks.pop();
+                        worker.busy = true;
+                        activeWorkers++;
+                        
+                        worker.postMessage({
+                            type: 'task',
+                            task: task
+                        });
+                    }
                 }
                 
-                updateWorkerStatus();
+                // Schedule next assignment check
+                setTimeout(assignTasksToWorkers, 100);
             }
             
             // Handle messages from workers
             function handleWorkerMessage(event) {
                 const data = event.data;
                 
-                if (data.type === 'progress') {
-                    keysTested += data.tested;
+                if (data.type === 'result') {
+                    const result = data.result;
+                    
+                    // Mark worker as available
+                    event.target.busy = false;
+                    activeWorkers--;
+                    
+                    // Update stats
+                    keysTested += result.tested;
                     updateProgress();
-                } else if (data.type === 'results') {
+                    
                     // Add results to our collection
-                    results = results.concat(data.results);
+                    results = results.concat(result.results);
+                    
+                    // Mark this key length as having some progress
+                    if (!completedKeyLengths.has(result.keyLength)) {
+                        completedKeyLengths.add(result.keyLength);
+                    }
                     
                     // Sort and keep top results
                     results.sort((a, b) => b.score - a.score);
-                    if (results.length > 50) {
+                    if (results.length > 1000) {
                         results = results.slice(0, 1000);
                     }
                     
                     updateResultsDisplay();
+                    
+                    // Assign more work if available
+                    assignTasksToWorkers();
+                } else if (data.type === 'error') {
+                    console.error('Worker error:', data.error);
+                    event.target.busy = false;
+                    activeWorkers--;
+                    
+                    // Retry the task if it failed
+                    if (data.task) {
+                        workerTasks.push(data.task);
+                    }
+                    
+                    assignTasksToWorkers();
                 }
             }
             
             // Handle worker errors
             function handleWorkerError(error) {
                 console.error('Worker error:', error);
-                stopAttack();
-                alert('Worker error occurred. Attack stopped.');
+                error.target.busy = false;
+                activeWorkers--;
+                assignTasksToWorkers();
             }
             
             // Update progress display
@@ -811,19 +888,14 @@
                 
                 keysTestedEl.textContent = keysTested.toLocaleString();
                 keysPerSecondEl.textContent = kps;
-                
-                // Check if done
-                if (keysTested >= totalKeysToTest) {
-                    stopAttack();
-                }
             }
             
             // Update worker status display
             function updateWorkerStatus() {
-                const active = workers.filter(w => !w.terminated).length;
-                workerStatusEl.textContent = `Workers: ${active} active`;
+                const active = workers.filter(w => w.busy).length;
+                workerStatusEl.textContent = `Workers: ${active} active | Tasks: ${workerTasks.length} remaining`;
                 
-                if (isRunning && active > 0) {
+                if (isRunning) {
                     setTimeout(updateWorkerStatus, 1000);
                 }
             }
@@ -841,8 +913,8 @@
                 let html = '';
                 
                 // Find max and min scores for normalization
-                const maxScore = Math.max(...results.map(r => r.score));
-                const minScore = Math.min(...results.map(r => r.score));
+                const maxScore = results.length > 0 ? Math.max(...results.map(r => r.score)) : 0;
+                const minScore = results.length > 0 ? Math.min(...results.map(r => r.score)) : 0;
                 const scoreRange = maxScore - minScore;
                 
                 for (const result of topResults) {
@@ -871,12 +943,7 @@
                 if (!isRunning) return;
                 
                 isRunning = false;
-                
-                // Terminate all workers
-                for (const worker of workers) {
-                    worker.terminate();
-                }
-                workers = [];
+                workerTasks = [];
                 
                 btnStart.disabled = false;
                 btnStop.disabled = true;
@@ -909,13 +976,23 @@
             
             // Helper function to get key character set
             function getKeyCharSet(regex, alphabet) {
-                // This is a simplified version - in a real app you'd properly parse the regex
-                if (regex === '[A-Z]') return 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-                if (regex === '[A-Za-z]') return 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-                if (regex === '[0-9]') return '0123456789';
-                
-                // Default to using the alphabet
-                return alphabet;
+                try {
+                    // Create a regex pattern to match allowed characters
+                    const pattern = new RegExp(`^${regex}$`);
+                    const validChars = [];
+                    
+                    // Check each character in the alphabet
+                    for (const char of alphabet) {
+                        if (pattern.test(char)) {
+                            validChars.push(char);
+                        }
+                    }
+                    
+                    return validChars.join('');
+                } catch (e) {
+                    console.error('Error parsing key character regex:', e);
+                    return alphabet; // Fallback to full alphabet
+                }
             }
             
             // Calculate total keys to test
@@ -928,6 +1005,15 @@
                 }
                 
                 return total;
+            }
+            
+            // Shuffle array (Fisher-Yates algorithm)
+            function shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array;
             }
             
             // Initialize the app
