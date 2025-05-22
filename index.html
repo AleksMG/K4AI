@@ -713,7 +713,7 @@
                                     
                                     // Bonus for common words
                                     const wordCount = checkCommonWords(plaintext, language);
-                                    score += wordCount * 0.05;
+                                    score += wordCount * 0.5;
                                     
                                     batchResults.push({
                                         key: key,
@@ -777,7 +777,7 @@
                     
                     // Sort and keep top results
                     results.sort((a, b) => b.score - a.score);
-                    if (results.length > 100) {
+                    if (results.length > 50) {
                         results = results.slice(0, 1000);
                     }
                     
