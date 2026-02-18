@@ -1912,22 +1912,59 @@ window.addEventListener('load', () => {
     init();
 });
 
-window.startAnalysis = function() {  // ← ОТКРЫВАЮЩАЯ СКОБКА {
-    if (!window.analyzer) {
-        window.analyzer = new K4Analyzer();
+window.startAnalysis = function() {
+    if (analysisRunning) {
+        logK4('⚠️ Анализ уже запущен', 'warning');
+        return;
     }
     
-    if (window.analysisRunning) return;
-    
-    window.analysisRunning = true;
+    analysisRunning = true;
     document.getElementById('btnAnalyze').disabled = true;
     document.getElementById('btnAnalyze').textContent = '⏳ АНАЛИЗ...';
+    document.getElementById('btnAnalyze').classList.add('pulse');
     
-    window.analyzer.analyze(5000, (progress) => {
-        document.getElementById('progressFill').style.width = progress.progress + '%';
-        document.getElementById('consciousnessValue').innerText = progress.consciousness.toFixed(3);
+    updateSystemStatus('ANALYZING');
+    logK4('🚀 Запуск криптоанализа K4...', 'k4');
+    
+    analyzer.analyze(5000, (progress) => {
+        document.getElementById('progressFill').style.width = `${progress.progress.toFixed(1)}%`;
+        document.getElementById('progressPercent').textContent = `${progress.progress.toFixed(1)}%`;
+        document.getElementById('statIterations').textContent = progress.iteration;
+        document.getElementById('consciousnessValue').textContent = progress.consciousness.toFixed(3);
+        document.getElementById('consciousnessFill').style.width = `${(progress.consciousness * 100).toFixed(1)}%`;
+        document.getElementById('currentMethod').textContent = `${progress.method} · Итерация ${progress.iteration}`;
+        document.getElementById('wordsFound').textContent = progress.wordsFound;
+        
+        updateNeuralViz(progress.consciousness);
+        
+        if(progress.bestResult) {
+            displayResult(progress.bestResult);
+            
+            let matched = 0;
+            for(let i = 0; i < K4_DATA.knownPairs.length; i++) {
+                if(progress.bestResult.decrypted[K4_DATA.knownPairs[i].pos] === K4_DATA.knownPairs[i].plain) {
+                    matched++;
+                }
+            }
+            document.getElementById('pairsMatched').textContent = `${matched}/${K4_DATA.knownPairs.length}`;
+        }
+    }).then(() => {
+        analysisRunning = false;
+        document.getElementById('btnAnalyze').disabled = false;
+        document.getElementById('btnAnalyze').textContent = '🔬 ЗАПУСК АНАЛИЗА';
+        document.getElementById('btnAnalyze').classList.remove('pulse');
+        updateSystemStatus('READY');
+        logK4('✅ Анализ завершён', 'ok');
+    }).catch(error => {
+        console.error(error);
+        analysisRunning = false;
+        document.getElementById('btnAnalyze').disabled = false;
+        document.getElementById('btnAnalyze').textContent = '🔬 ЗАПУСК АНАЛИЗА';
+        document.getElementById('btnAnalyze').classList.remove('pulse');
+        updateSystemStatus('READY');
+        logK4('❌ Ошибка: ' + error.message, 'err');
     });
-};  // ← ЗАКРЫВАЮЩАЯ СКОБКА }
+};
 
 </script>
 </body>
