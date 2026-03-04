@@ -1735,7 +1735,7 @@ class Cortex2Brain {
         }
 
         // 10/10 PATCH 3: Preserve sign of action values for proper policy gradient
-        const entries = Object.entries(actions).filter(e => Math.abs(e[1]) > 0.3);
+        const entries = Object.entries(actions).filter(e => Math.abs(e[1]) > 0.01);
         if (entries.length === 0) return { action: 'IDLE', probs: {}, actions };
 
         const scaled = entries.map(e => [e[0], Math.exp(e[1] / temp)]);  // ✅ Removed Math.abs()
