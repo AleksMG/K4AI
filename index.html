@@ -650,25 +650,29 @@ class SeededRNG {
         return (x * 0x2545F4914F6CDD1D) >>> 0 / 4294967296;
     }
     deriveWeights(rows, cols, scale) {
-        const weights = [];
-        for (let i = 0; i < rows; i++) {
-            const row = new Float32Array(cols);
-            for (let j = 0; j < cols; j++) {
-                const hash = Utils.hashSeed(String(this._baseSeed), i * 1000 + j, 0);
-                row[j] = (hash * 2 - 1) * scale;
-            }
-            weights.push(row);
+    const weights = [];
+    for (let i = 0; i < rows; i++) {
+        const row = new Float32Array(cols);
+        for (let j = 0; j < cols; j++) {
+            // ✅ Правильная генерация через this.next()
+            const value = this.next();
+            row[j] = (value * 2 - 1) * scale;
         }
-        return weights;
+        weights.push(row);
     }
-    deriveVector(length, scale) {
-        const vec = new Float32Array(length);
-        for (let i = 0; i < length; i++) {
-            const hash = Utils.hashSeed(String(this._baseSeed), i, 1000);
-            vec[i] = (hash * 2 - 1) * scale;
-        }
-        return vec;
+    return weights;
+}
+
+deriveVector(length, scale) {
+    const vec = new Float32Array(length);
+    for (let i = 0; i < length; i++) {
+        // ✅ Правильная генерация через this.next()
+        const value = this.next();
+        vec[i] = (value * 2 - 1) * scale;
     }
+    return vec;
+}
+    
     reset() { this._state = this._baseSeed; }
     getSeed() { return String(this._baseSeed); }
     getChecksum() { return this._state ^ (this._callCount * 0x12345678); }
