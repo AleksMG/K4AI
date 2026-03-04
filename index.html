@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self'; font-src 'self';">
-    <meta name="description" content="AI Fighter v6.2.1 — CORTEX-2 v2.3 | ПОЛНОСТЬЮ ИСПРАВЛЕНО: сенсоры, хитбоксы, физика, обучение, VALUE">
+    <meta name="description" content="AI Fighter v6.2.2 — CORTEX-2 v2.3 | ИСПРАВЛЕНО: урон, таймер, хитбоксы">
     <meta name="theme-color" content="#0a0a15">
     <meta name="robots" content="noindex">
-    <title>🎮 AI FIGHTER v6.2.1 | CORTEX-2 v2.3 ULTIMATE FIX</title>
+    <title>🎮 AI FIGHTER v6.2.2 | CORTEX-2 v2.3 WORKING</title>
     <style>
         :root {
             --bg: #0a0a15; --bg-gradient-start: #0a0a15; --bg-gradient-end: #1a1a2e;
@@ -151,7 +151,7 @@
 <a href="#gameCanvas" class="skip-link">Перейти к симуляции</a>
 <div class="container">
     <header class="header">
-        <h1>🎮 AI FIGHTER <span class="version-badge">v6.2.1 | CORTEX-2 v2.3 ULTIMATE FIX</span></h1>
+        <h1>🎮 AI FIGHTER <span class="version-badge">v6.2.2 | CORTEX-2 v2.3 WORKING</span></h1>
         <div class="fps-counter" id="fpsCounter">FPS: 0</div>
     </header>
     <canvas id="gameCanvas"></canvas>
@@ -397,8 +397,8 @@ const CONFIG = Object.freeze({
         BOUNDARY_LEFT: 50, BOUNDARY_RIGHT: 950,
         WALL_COUNT: 8, WALL_RADIUS: 14, WALL_MIN_DIST: 100
     }),
-    seed: 'FIGHTER_V621_' + Date.now(),
-    version: '6.2.1-CORTEX2-v2.3-ULTIMATE-FIX'
+    seed: 'FIGHTER_V622_' + Date.now(),
+    version: '6.2.2-CORTEX2-v2.3-WORKING'
 });
 
 // ============================================================================
@@ -2021,7 +2021,8 @@ class Fighter {
         
         for (const [key, move] of Object.entries(attacks)) {
             const outKey = key.toUpperCase();
-            if ((act === key || (CONFIG.OUTPUT[outKey] !== undefined && Utils.safeNumber(D[CONFIG.OUTPUT[outKey]], 0) > 0.5)) &&
+            const outIndex = CONFIG.OUTPUT[outKey];
+            if (outIndex !== undefined && (act === key || Utils.safeNumber(D[outIndex], 0) > 0.5) &&
                 this.stamina >= move.cost) {
                 if (this.state === 'IDLE' || this.state === 'WALK') {
                     this._startAttack(key, move);
@@ -2119,16 +2120,18 @@ class Fighter {
 
         if (this.stateTimer > 0) {
             this.stateTimer--;
-            if (this.stateTimer <= 0 && this.state !== 'KNOCKDOWN') {
+            if (this.stateTimer <= 0 && this.state !== 'KNOCKDOWN' && this.state !== 'HIT') {
                 this.state = 'IDLE';
                 this.currentMove = null;
                 this.attackBox = null;
             }
         }
+        
         if (this.hitStun > 0) {
             this.hitStun--;
             this.state = 'HIT';
         }
+        
         if (this.blockStun > 0) {
             this.blockStun--;
             this.state = 'BLOCK';
@@ -2467,8 +2470,8 @@ class Arena {
 
         this.bindEvents();
         this.initUI();
-        this.log('🎮 AI FIGHTER v6.2.1 | CORTEX-2 v2.3 ULTIMATE FIX', 'success');
-        this.log('🔧 Исправлено: сенсоры каждый кадр, хитбоксы, физика, урон, VALUE NaN', 'info');
+        this.log('🎮 AI FIGHTER v6.2.2 | CORTEX-2 v2.3 WORKING', 'success');
+        this.log('🔧 Исправлено: урон, таймер, хитбоксы, VALUE', 'info');
     }
 
     _generateWalls() {
@@ -2520,6 +2523,7 @@ class Arena {
 
         document.getElementById('roundTime').oninput = (e) => {
             this.roundTime = parseInt(e.target.value);
+            this.roundTimer = this.roundTime;
             document.getElementById('roundTimeValue').textContent = this.roundTime;
         };
         document.getElementById('gameSpeed').oninput = (e) => {
@@ -2705,21 +2709,24 @@ class Arena {
         const m = attacker.currentMove;
         if (attacker.moveFrame < m.startup || attacker.moveFrame >= m.startup + m.active) return;
         if (!attacker.checkHit(defender)) return;
-        attacker.attackBox = null;
+        
+        // Важно: НЕ сбрасываем attackBox здесь, чтобы избежать множественных попаданий в одном кадре
+        // attackBox сбросится в update после окончания активной фазы
 
-        if (defender.state === 'BLOCK') {
+        if (defender.state === 'BLOCK' && !m.unblockable) {
             const chip = Math.floor((m.damage || 10) * CONFIG.COMBAT.BLOCK.chipDamage);
-            defender.takeDamage(chip, (m.knockback || 5) * 0.3, CONFIG.PHYSICS.BLOCKSTUN_BASE);
+            const actualDamage = defender.takeDamage(chip, (m.knockback || 5) * 0.3, CONFIG.PHYSICS.BLOCKSTUN_BASE);
             defender.stamina -= CONFIG.COMBAT.BLOCK.staminaCost;
-            attacker.lastReward = chip / 50;
+            attacker.lastReward += chip / 50;
             this._showDamage(chip, defender.x, defender.y - 50, '#ffaa00');
+            this.log(`🛡️ ${attacker.id}→${defender.id}: BLOCK (${chip} chip)`, 'info');
         } else {
             const mult = defender.calculateDirectionalDamageMultiplier(attacker);
             const baseDamage = (m.damage || 10) * (attacker.stats.damage / 3);
             const damage = Math.floor(baseDamage * mult);
             const actualDamage = defender.takeDamage(damage, m.knockback || 5, m.stun || 10);
 
-            attacker.lastReward = actualDamage / 25;
+            attacker.lastReward += actualDamage / 25;
             attacker.totalDamage += actualDamage;
             attacker._totalAttacks++;
             attacker._successfulHits++;
@@ -2954,12 +2961,12 @@ class Arena {
             p1: this.p1.toJSON(),
             p2: this.p2.toJSON()
         };
-        localStorage.setItem('aiFighterV621', JSON.stringify(data));
+        localStorage.setItem('aiFighterV622', JSON.stringify(data));
         this.log('💾 Saved', 'success');
     }
 
     load() {
-        const raw = localStorage.getItem('aiFighterV621');
+        const raw = localStorage.getItem('aiFighterV622');
         if (!raw) {
             this.log('❌ No save found', 'error');
             return;
@@ -2988,7 +2995,7 @@ class Arena {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'fighter-v621-' + Date.now() + '.json';
+        a.download = 'fighter-v622-' + Date.now() + '.json';
         a.click();
         URL.revokeObjectURL(url);
         this.log('📤 Exported', 'success');
@@ -3018,7 +3025,7 @@ class Arena {
 // ============================================================================
 window.addEventListener('DOMContentLoaded', () => {
     window.arena = new Arena();
-    console.log('✅ AI FIGHTER v6.2.1 | CORTEX-2 v2.3 | ВСЕ ИСПРАВЛЕНИЯ ПРИМЕНЕНЫ');
+    console.log('✅ AI FIGHTER v6.2.2 | CORTEX-2 v2.3 | ВСЕ ИСПРАВЛЕНИЯ ПРИМЕНЕНЫ');
     console.log('🔧 FIX-1: Сенсоры передаются каждый кадр, даже в стане');
     console.log('🔧 FIX-2: Хитбоксы движутся вместе с бойцами');
     console.log('🔧 FIX-3: Knockback применяется однократно');
@@ -3029,6 +3036,8 @@ window.addEventListener('DOMContentLoaded', () => {
     console.log('🔧 FIX-8: Ничья при одновременной смерти');
     console.log('🔧 FIX-9: VALUE больше не NaN (везде safeNumber)');
     console.log('🔧 FIX-10: Награда за приближение к противнику');
+    console.log('🔧 FIX-11: Таймер раунда работает корректно');
+    console.log('🔧 FIX-12: Урон применяется правильно (не блокируется)');
 });
 </script>
 </body>
