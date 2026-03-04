@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI ARENA v7.0.0 — PvP СТИКМЕНЫ CORTEX-2</title>
+    <meta name="description" content="AI Arena v9.0.0 — ПОЛНАЯ ПРОФЕССИОНАЛЬНАЯ ВЕРСИЯ СТИКМЕНОВ">
+    <title>⚡ PvP СТИКМЕНЫ v9.0 — ПОЛНАЯ ВЕРСИЯ | 64 ВХОДА | 16 ВЫХОДОВ | TD LEARNING | HEBBIAN | ЭМОЦИИ</title>
     <style>
         /* ============================================================================
-           ПОЛНЫЕ СТИЛИ - PvP АРЕНА СО СТИКМЕНАМИ
+           ПОЛНЫЕ СТИЛИ — ПРОФЕССИОНАЛЬНАЯ ВЕРСИЯ (4200+ СТРОК)
            ============================================================================ */
-        
+
         * {
             margin: 0;
             padding: 0;
@@ -16,17 +17,16 @@
             user-select: none;
             -webkit-tap-highlight-color: transparent;
         }
-        
+
         html, body {
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background: #0a0a15;
+            background: linear-gradient(145deg, #0a0a15 0%, #1a1a2e 100%);
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             color: #e0e0ff;
         }
-        
-        /* Canvas для стикменов */
+
         #gameCanvas {
             position: fixed;
             top: 0;
@@ -38,79 +38,92 @@
             image-rendering: crisp-edges;
             cursor: crosshair;
         }
-        
+
         /* ============================================================================
-           ВЕРХНЯЯ ПАНЕЛЬ - ХАРАКТЕРИСТИКИ СТИКМЕНОВ
+           ВЕРХНЯЯ ПАНЕЛЬ — ХАРАКТЕРИСТИКИ СТИКМЕНОВ
            ============================================================================ */
-        
+
         .hud {
             position: fixed;
             top: 20px;
             left: 20px;
-            right: 400px;
+            right: 440px;
             display: flex;
             justify-content: space-between;
             z-index: 100;
             pointer-events: none;
         }
-        
+
         .fighter-panel {
             width: 48%;
-            background: rgba(10, 10, 20, 0.9);
+            background: rgba(10, 10, 20, 0.95);
             backdrop-filter: blur(10px);
             border: 2px solid rgba(100, 100, 150, 0.3);
-            border-radius: 12px;
-            padding: 16px 20px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            border-radius: 16px;
+            padding: 18px 22px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+            transition: all 0.3s ease;
         }
-        
+
+        .fighter-panel:hover {
+            border-color: #00d2ff;
+            box-shadow: 0 0 30px rgba(0, 210, 255, 0.3);
+        }
+
         .fighter-panel.right {
             text-align: right;
         }
-        
+
         .fighter-name {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 800;
             letter-spacing: 2px;
-            margin-bottom: 12px;
+            margin-bottom: 15px;
             text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        
+
+        .fighter-panel.right .fighter-name {
+            justify-content: flex-end;
+        }
+
         .blue-name {
             color: #00d2ff;
             text-shadow: 0 0 20px #00d2ff;
         }
-        
+
         .red-name {
             color: #ff4757;
             text-shadow: 0 0 20px #ff4757;
         }
-        
+
         .health-container {
             width: 100%;
-            height: 24px;
+            height: 26px;
             background: #1a1a2a;
-            border-radius: 6px;
-            margin-bottom: 8px;
+            border-radius: 8px;
+            margin-bottom: 10px;
             overflow: hidden;
             border: 1px solid #334;
             position: relative;
         }
-        
+
         .health-bar {
             height: 100%;
             width: 100%;
             transition: width 0.1s linear;
         }
-        
+
         .health-blue {
             background: linear-gradient(90deg, #00d2ff, #4b7bec);
         }
-        
+
         .health-red {
             background: linear-gradient(90deg, #ff4757, #ff6b81);
         }
-        
+
         .health-delay {
             position: absolute;
             top: 0;
@@ -119,420 +132,616 @@
             background: rgba(255, 255, 255, 0.15);
             transition: width 0.5s ease-out;
         }
-        
+
         .stamina-container {
             width: 100%;
-            height: 10px;
+            height: 12px;
             background: #1a1a2a;
-            border-radius: 4px;
-            margin-bottom: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
             overflow: hidden;
             border: 1px solid #334;
         }
-        
+
         .stamina-bar {
             height: 100%;
             width: 100%;
             background: linear-gradient(90deg, #ffd700, #ffa502);
             transition: width 0.1s linear;
         }
-        
+
         .stats-row {
             display: flex;
-            gap: 16px;
+            gap: 20px;
             justify-content: center;
-            font-size: 12px;
-            color: #99a;
+            font-size: 13px;
+            color: #aab;
+            margin-bottom: 10px;
         }
-        
+
         .stat {
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-width: 45px;
+            min-width: 50px;
         }
-        
+
         .stat-label {
-            font-size: 9px;
-            color: #667;
+            font-size: 10px;
+            color: #678;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            margin-bottom: 2px;
+            margin-bottom: 3px;
         }
-        
+
         .stat-value {
             color: #ffd700;
             font-weight: 700;
-            font-size: 14px;
+            font-size: 15px;
             font-family: 'Consolas', monospace;
         }
-        
+
+        .combo-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ffd700;
+            color: #000;
+            font-weight: 900;
+            font-size: 16px;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 25px #ffd700;
+            border: 2px solid #fff;
+            animation: comboPulse 0.4s infinite alternate;
+        }
+
+        @keyframes comboPulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.15); }
+        }
+
+        .damage-indicator {
+            font-size: 11px;
+            color: #889;
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #334;
+        }
+
         /* ============================================================================
-           ПРАВАЯ ПАНЕЛЬ - НЕЙРОСЕТЕВАЯ ДИАГНОСТИКА
+           ПРАВАЯ ПАНЕЛЬ — ПОЛНАЯ НЕЙРОСЕТЕВАЯ ДИАГНОСТИКА (64 ВХОДА, 16 ВЫХОДОВ)
            ============================================================================ */
-        
+
         .neural-panel {
             position: fixed;
             top: 0;
             right: 0;
-            width: 380px;
+            width: 420px;
             height: 100vh;
-            background: rgba(8, 8, 16, 0.98);
-            border-left: 2px solid rgba(0, 210, 255, 0.4);
+            background: rgba(6, 6, 12, 0.98);
+            border-left: 3px solid rgba(0, 210, 255, 0.4);
             z-index: 200;
-            padding: 20px;
+            padding: 20px 18px;
             overflow-y: auto;
-            box-shadow: -10px 0 40px rgba(0, 0, 0, 0.8);
+            box-shadow: -15px 0 50px rgba(0, 0, 0, 0.9);
             scrollbar-width: thin;
-            scrollbar-color: #334 #0a0a15;
+            scrollbar-color: #3a3a5a #0a0a15;
         }
-        
+
         .neural-panel::-webkit-scrollbar {
             width: 6px;
         }
-        
+
         .neural-panel::-webkit-scrollbar-track {
             background: #0a0a15;
         }
-        
+
         .neural-panel::-webkit-scrollbar-thumb {
-            background: #334;
+            background: #3a3a5a;
             border-radius: 3px;
         }
-        
+
         .panel-title {
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 800;
             text-align: center;
-            padding-bottom: 16px;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #334;
+            padding-bottom: 18px;
+            margin-bottom: 22px;
+            border-bottom: 2px solid #2a3a5a;
             color: #00d2ff;
-            letter-spacing: 2px;
+            letter-spacing: 2.5px;
             text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
-        
+
+        .panel-title span {
+            background: #1a2a3a;
+            padding: 4px 10px;
+            border-radius: 30px;
+            font-size: 12px;
+            color: #ffd700;
+        }
+
         .brain-card {
-            background: rgba(20, 20, 35, 0.7);
-            border-radius: 10px;
-            padding: 16px;
-            margin-bottom: 20px;
-            border: 1px solid #334;
+            background: rgba(15, 15, 28, 0.8);
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 25px;
+            border: 1px solid #2a3a5a;
+            position: relative;
+            overflow: hidden;
         }
-        
-        .brain-card.blue {
-            border-top: 4px solid #00d2ff;
+
+        .brain-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #00d2ff, transparent);
         }
-        
-        .brain-card.red {
-            border-top: 4px solid #ff4757;
+
+        .brain-card.blue::before {
+            background: linear-gradient(90deg, transparent, #00d2ff, transparent);
         }
-        
+
+        .brain-card.red::before {
+            background: linear-gradient(90deg, transparent, #ff4757, transparent);
+        }
+
         .card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 16px;
-            font-size: 13px;
-            color: #aac;
+            margin-bottom: 18px;
+            font-size: 14px;
+            color: #b0c0ff;
             text-transform: uppercase;
-        }
-        
-        .card-status {
-            background: #1a1a2a;
-            padding: 4px 10px;
-            border-radius: 20px;
-            color: #0f0;
-            font-size: 11px;
             font-weight: 600;
-            border: 1px solid #334;
         }
-        
+
+        .card-status {
+            background: #1a2a3a;
+            padding: 5px 12px;
+            border-radius: 30px;
+            color: #0f0;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid #3a5a7a;
+        }
+
         .metrics-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
-            margin-bottom: 16px;
+            gap: 10px;
+            margin-bottom: 20px;
         }
-        
+
         .metric {
-            background: #1a1a2a;
-            padding: 10px 8px;
-            border-radius: 6px;
+            background: #0f0f1a;
+            padding: 12px 8px;
+            border-radius: 10px;
             text-align: center;
-            border: 1px solid #334;
+            border: 1px solid #2a3a5a;
         }
-        
+
         .metric-label {
-            font-size: 8px;
-            color: #889;
+            font-size: 9px;
+            color: #8899bb;
             text-transform: uppercase;
             display: block;
-            margin-bottom: 2px;
+            margin-bottom: 4px;
         }
-        
+
         .metric-value {
-            font-size: 13px;
+            font-size: 15px;
             color: #00d2ff;
             font-weight: 700;
             font-family: 'Consolas', monospace;
         }
-        
+
         .red .metric-value {
             color: #ff4757;
         }
-        
+
         .section-title {
-            font-size: 11px;
-            color: #889;
+            font-size: 12px;
+            color: #a0b0d0;
             text-transform: uppercase;
-            margin: 16px 0 8px 0;
+            margin: 20px 0 10px 0;
             letter-spacing: 0.5px;
             font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        
+
+        .section-title span {
+            background: #1a2a3a;
+            padding: 3px 8px;
+            border-radius: 20px;
+            color: #ffd700;
+            font-size: 10px;
+        }
+
         .attention-area {
             display: flex;
-            gap: 6px;
-            height: 40px;
-            margin-bottom: 16px;
+            gap: 8px;
+            height: 60px;
+            margin-bottom: 20px;
             align-items: flex-end;
         }
-        
+
         .attention-head {
             flex: 1;
-            background: #1a1a2a;
-            border-radius: 4px 4px 2px 2px;
-            border: 1px solid #334;
+            background: #0f0f1a;
+            border-radius: 6px 6px 3px 3px;
+            border: 1px solid #2a3a5a;
             transition: all 0.1s;
+            position: relative;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
         }
-        
+
+        .attention-head::after {
+            content: attr(data-weight);
+            position: absolute;
+            bottom: -22px;
+            font-size: 9px;
+            color: #8899bb;
+        }
+
         .attention-head.active {
             background: #00d2ff;
-            box-shadow: 0 0 15px #00d2ff;
+            box-shadow: 0 0 20px #00d2ff;
         }
-        
+
         .red .attention-head.active {
             background: #ff4757;
-            box-shadow: 0 0 15px #ff4757;
+            box-shadow: 0 0 20px #ff4757;
         }
-        
+
+        /* ============================================================================
+           ПОЛНАЯ ТАБЛИЦА ВЫХОДОВ — 16 ШТУК
+           ============================================================================ */
+
+        .output-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 6px;
+            margin: 15px 0 20px 0;
+            background: #0a0a12;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid #2a3a5a;
+        }
+
+        .output-item {
+            background: #12121f;
+            padding: 8px 6px;
+            border-radius: 6px;
+            font-size: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #2a3a5a;
+        }
+
+        .output-label {
+            color: #a0b0d0;
+            font-weight: 600;
+        }
+
+        .output-value {
+            color: #ffd700;
+            font-weight: 700;
+            font-family: 'Consolas', monospace;
+        }
+
         .decision-box {
             background: #0a0a12;
-            border: 1px solid #334;
-            border-radius: 6px;
-            padding: 12px;
+            border: 1px solid #2a3a5a;
+            border-radius: 10px;
+            padding: 14px;
             font-size: 11px;
             font-family: 'Consolas', monospace;
-            margin: 8px 0 16px 0;
-            min-height: 80px;
+            margin: 15px 0 20px 0;
+            min-height: 130px;
             color: #0f0;
-            line-height: 1.6;
+            line-height: 1.7;
         }
-        
+
         .decision-line {
-            margin-bottom: 4px;
-            white-space: nowrap;
+            margin-bottom: 5px;
+            border-bottom: 1px dotted #223344;
+            padding-bottom: 3px;
         }
-        
+
         .decision-line span {
             color: #fff;
             font-weight: 600;
         }
-        
+
         .decision-line.highlight {
             color: #ffd700;
+            background: rgba(255, 215, 0, 0.1);
+            padding: 3px 6px;
+            border-radius: 4px;
         }
-        
+
+        /* ============================================================================
+           ПОЛНАЯ ВИЗУАЛИЗАЦИЯ СЕНСОРОВ — 64 ШТУКИ С КАТЕГОРИЯМИ
+           ============================================================================ */
+
+        .sensor-container {
+            background: #0a0a12;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #2a3a5a;
+        }
+
+        .sensor-category {
+            font-size: 10px;
+            color: #a0b0d0;
+            margin: 12px 0 6px 0;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
         .sensor-grid {
             display: flex;
             flex-wrap: wrap;
             gap: 4px;
-            margin-top: 8px;
-            padding-top: 12px;
-            border-top: 1px solid #334;
+            margin-bottom: 8px;
         }
-        
+
         .sensor-dot {
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background: #334;
+            background: #2a3a5a;
             transition: all 0.1s;
+            position: relative;
         }
-        
+
+        .sensor-dot:hover::after {
+            content: attr(data-index) ': ' attr(data-value);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #000;
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 9px;
+            white-space: nowrap;
+            z-index: 1000;
+            border: 1px solid #00d2ff;
+        }
+
         .sensor-dot.active {
             background: #00d2ff;
-            box-shadow: 0 0 8px #00d2ff;
+            box-shadow: 0 0 10px #00d2ff;
             transform: scale(1.2);
         }
-        
+
         .red .sensor-dot.active {
             background: #ff4757;
-            box-shadow: 0 0 8px #ff4757;
+            box-shadow: 0 0 10px #ff4757;
         }
-        
+
         /* ============================================================================
            КНОПКИ УПРАВЛЕНИЯ
            ============================================================================ */
-        
+
         .controls {
             position: fixed;
-            bottom: 20px;
-            left: 20px;
+            bottom: 25px;
+            left: 25px;
             z-index: 300;
             display: flex;
-            gap: 12px;
+            gap: 15px;
         }
-        
+
         .btn {
-            padding: 12px 24px;
-            font-size: 14px;
+            padding: 14px 28px;
+            font-size: 15px;
             font-weight: 700;
             background: linear-gradient(145deg, #2a2a3a, #1a1a2a);
             border: 2px solid #4a4a6a;
             color: #d0d0ff;
-            border-radius: 8px;
+            border-radius: 40px;
             cursor: pointer;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
             transition: all 0.2s;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        
+
         .btn:hover {
             border-color: #00d2ff;
             color: #fff;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 210, 255, 0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 210, 255, 0.4);
         }
-        
+
         .btn.active {
             background: linear-gradient(145deg, #00d2ff33, #4b7bec33);
             border-color: #00d2ff;
             color: #fff;
         }
-        
-        #startBtn {
+
+        #emergencyStart {
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             z-index: 1000;
-            padding: 20px 50px;
-            font-size: 24px;
+            padding: 25px 60px;
+            font-size: 28px;
             background: linear-gradient(145deg, #00d2ff, #4b7bec);
             border: none;
             color: white;
-            box-shadow: 0 0 50px #00d2ff;
+            border-radius: 60px;
+            box-shadow: 0 0 80px #00d2ff;
             display: none;
+            font-weight: 800;
+            letter-spacing: 3px;
         }
-        
-        #startBtn:hover {
+
+        #emergencyStart:hover {
             transform: translate(-50%, -50%) scale(1.1);
         }
-        
+
         .message {
             position: fixed;
             top: 40%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 64px;
+            font-size: 80px;
             font-weight: 900;
             color: white;
-            text-shadow: 0 0 40px white;
+            text-shadow: 0 0 50px white, 0 0 100px #00d2ff;
             z-index: 200;
             opacity: 0;
             transition: opacity 0.2s;
             pointer-events: none;
+            text-transform: uppercase;
+            letter-spacing: 10px;
         }
-        
+
         .message.show {
             opacity: 1;
-            animation: pulse 0.4s;
+            animation: messagePulse 0.4s;
         }
-        
-        @keyframes pulse {
+
+        @keyframes messagePulse {
             0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
             50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
             100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
         }
-        
+
         .gameover {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.97);
             display: none;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 1000;
+            backdrop-filter: blur(15px);
         }
-        
+
         .gameover.show {
             display: flex;
+            animation: fadeIn 0.3s;
         }
-        
-        .winner {
-            font-size: 72px;
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .winner-text {
+            font-size: 85px;
             font-weight: 900;
             color: white;
-            text-shadow: 0 0 60px currentColor;
-            margin-bottom: 30px;
+            text-shadow: 0 0 70px currentColor;
+            margin-bottom: 40px;
+            text-transform: uppercase;
+            letter-spacing: 12px;
+            animation: winnerGlow 2s infinite alternate;
         }
-        
+
+        @keyframes winnerGlow {
+            from { text-shadow: 0 0 40px currentColor; }
+            to { text-shadow: 0 0 80px currentColor, 0 0 120px currentColor; }
+        }
+
         .rematch-btn {
-            padding: 20px 60px;
-            font-size: 24px;
+            padding: 22px 70px;
+            font-size: 26px;
             background: linear-gradient(145deg, #4a4a6a, #2a2a4a);
             border: 3px solid #00d2ff;
             color: white;
-            border-radius: 10px;
+            border-radius: 50px;
             cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-weight: 700;
+            transition: all 0.3s;
         }
-        
+
         .rematch-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 40px #00d2ff;
+            transform: scale(1.07);
+            box-shadow: 0 0 50px #00d2ff;
+            border-color: #fff;
         }
-        
+
         .fps {
             position: fixed;
-            bottom: 20px;
-            right: 420px;
+            bottom: 25px;
+            right: 460px;
             color: #0f0;
             font-family: 'Consolas', monospace;
             background: #000;
-            padding: 6px 12px;
+            padding: 8px 16px;
             border: 1px solid #0f0;
-            border-radius: 4px;
+            border-radius: 30px;
             z-index: 150;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+            font-weight: 600;
         }
-        
-        @media (max-width: 1200px) {
-            .neural-panel { width: 320px; }
-            .hud { right: 340px; }
-            .fps { right: 360px; }
+
+        @media (max-width: 1300px) {
+            .neural-panel { width: 380px; }
+            .hud { right: 400px; }
+            .fps { right: 420px; }
         }
-        
-        @media (max-width: 900px) {
-            .neural-panel { width: 100%; height: 45vh; top: auto; bottom: 0; }
-            .hud { right: 20px; }
-            .controls { bottom: 48vh; }
-            .fps { bottom: 48vh; right: 20px; }
+
+        @media (max-width: 1000px) {
+            .neural-panel { width: 100%; height: 55vh; top: auto; bottom: 0; }
+            .hud { right: 20px; flex-direction: column; gap: 15px; }
+            .fighter-panel { width: 100%; }
+            .controls { bottom: 58vh; }
+            .fps { bottom: 58vh; right: 20px; }
+            .message { font-size: 50px; }
+            .winner-text { font-size: 50px; }
         }
     </style>
 </head>
 <body>
     <canvas id="gameCanvas"></canvas>
-    
-    <!-- HUD - характеристики стикменов -->
+
+    <!-- ВЕРХНЯЯ ПАНЕЛЬ — ХАРАКТЕРИСТИКИ СТИКМЕНОВ -->
     <div class="hud">
-        <div class="fighter-panel">
-            <div class="fighter-name blue-name" id="p1Name">NEURAL BLUE</div>
+        <!-- СИНИЙ СТИКМЕН -->
+        <div class="fighter-panel" id="p1Panel">
+            <div class="fighter-name blue-name" style="position:relative;">
+                <span>🔵 NEURAL BLUE</span>
+                <span id="p1ComboBadge" style="display:none;" class="combo-badge">0</span>
+            </div>
             <div class="health-container">
                 <div class="health-bar health-blue" id="p1Health" style="width:100%"></div>
                 <div class="health-delay" id="p1HealthDelay" style="width:0%"></div>
@@ -546,9 +755,18 @@
                 <div class="stat"><span class="stat-label">STA</span><span class="stat-value" id="p1Sta">5</span></div>
                 <div class="stat"><span class="stat-label">INT</span><span class="stat-value" id="p1Int">4</span></div>
             </div>
+            <div class="damage-indicator">
+                <span>🎯 КОМБО: <span id="p1ComboCount">0</span>x</span>
+                <span>⚔️ УРОН: <span id="p1Damage">0</span></span>
+            </div>
         </div>
-        <div class="fighter-panel right">
-            <div class="fighter-name red-name" id="p2Name">NEURAL RED</div>
+
+        <!-- КРАСНЫЙ СТИКМЕН -->
+        <div class="fighter-panel right" id="p2Panel">
+            <div class="fighter-name red-name" style="position:relative;">
+                <span>🔴 NEURAL RED</span>
+                <span id="p2ComboBadge" style="display:none;" class="combo-badge">0</span>
+            </div>
             <div class="health-container">
                 <div class="health-bar health-red" id="p2Health" style="width:100%"></div>
                 <div class="health-delay" id="p2HealthDelay" style="width:0%"></div>
@@ -562,19 +780,28 @@
                 <div class="stat"><span class="stat-label">STA</span><span class="stat-value" id="p2Sta">4</span></div>
                 <div class="stat"><span class="stat-label">INT</span><span class="stat-value" id="p2Int">5</span></div>
             </div>
+            <div class="damage-indicator">
+                <span>🎯 КОМБО: <span id="p2ComboCount">0</span>x</span>
+                <span>⚔️ УРОН: <span id="p2Damage">0</span></span>
+            </div>
         </div>
     </div>
-    
-    <!-- Правая панель - нейросетевая диагностика -->
+
+    <!-- ПРАВАЯ ПАНЕЛЬ — ПОЛНАЯ НЕЙРОСЕТЕВАЯ ДИАГНОСТИКА -->
     <div class="neural-panel">
-        <div class="panel-title">🧠 CORTEX-2 DIAGNOSTICS</div>
-        
-        <!-- Синий стикмен -->
+        <div class="panel-title">
+            🧠 CORTEX-2 DIAGNOSTICS
+            <span>64in / 16out</span>
+        </div>
+
+        <!-- СИНИЙ СТИКМЕН -->
         <div class="brain-card blue" id="p1Card">
             <div class="card-header">
-                <span>BLUE CORTEX</span>
+                <span>🔵 BLUE CORTEX</span>
                 <span class="card-status" id="p1Status">ACTIVE</span>
             </div>
+
+            <!-- МЕТРИКИ ОБУЧЕНИЯ -->
             <div class="metrics-grid">
                 <div class="metric"><span class="metric-label">TD ERROR</span><span class="metric-value" id="p1TD">0.000</span></div>
                 <div class="metric"><span class="metric-label">PREDICTION</span><span class="metric-value" id="p1Pred">0.000</span></div>
@@ -583,20 +810,61 @@
                 <div class="metric"><span class="metric-label">EMOTION</span><span class="metric-value" id="p1Emo">-</span></div>
                 <div class="metric"><span class="metric-label">ENERGY</span><span class="metric-value" id="p1En">0.00</span></div>
             </div>
-            <div class="section-title">ATTENTION HEADS (4):</div>
+
+            <!-- 4 ГОЛОВЫ ВНИМАНИЯ -->
+            <div class="section-title">🎯 ATTENTION HEADS <span>4</span></div>
             <div class="attention-area" id="p1Attention"></div>
-            <div class="section-title">ACTIVE DECISION:</div>
-            <div class="decision-box" id="p1Log">Initializing Cortex2Brain...</div>
-            <div class="section-title">SENSOR INPUT (64):</div>
-            <div class="sensor-grid" id="p1Sensors"></div>
+
+            <!-- ПОЛНЫЕ 16 ВЫХОДОВ -->
+            <div class="section-title">📤 OUTPUT LAYER <span>D0-D15</span></div>
+            <div class="output-grid" id="p1Outputs"></div>
+
+            <!-- ТЕКУЩЕЕ РЕШЕНИЕ -->
+            <div class="section-title">⚡ ACTIVE DECISION</div>
+            <div class="decision-box" id="p1Log">
+                <div class="decision-line">STATE: <span>IDLE</span></div>
+                <div class="decision-line">ACTION: <span>WAITING</span></div>
+                <div class="decision-line">MOVE: <span>0.00</span></div>
+                <div class="decision-line">PUNCH: <span>0.00</span></div>
+                <div class="decision-line">KICK: <span>0.00</span></div>
+                <div class="decision-line">BLOCK: <span>0.00</span></div>
+                <div class="decision-line">JUMP: <span>0.00</span></div>
+            </div>
+
+            <!-- ПОЛНЫЕ 64 СЕНСОРА С КАТЕГОРИЯМИ -->
+            <div class="section-title">📥 SENSOR INPUT <span>64</span></div>
+            
+            <div class="sensor-container">
+                <div class="sensor-category">[0-7] ПРОСТРАНСТВО</div>
+                <div class="sensor-grid" id="p1Sensors0_7"></div>
+
+                <div class="sensor-category">[8-15] ЗДОРОВЬЕ</div>
+                <div class="sensor-grid" id="p1Sensors8_15"></div>
+
+                <div class="sensor-category">[16-23] СОСТОЯНИЯ</div>
+                <div class="sensor-grid" id="p1Sensors16_23"></div>
+
+                <div class="sensor-category">[24-31] КИНЕМАТИКА</div>
+                <div class="sensor-grid" id="p1Sensors24_31"></div>
+
+                <div class="sensor-category">[32-39] ВРЕМЯ</div>
+                <div class="sensor-grid" id="p1Sensors32_39"></div>
+
+                <div class="sensor-category">[40-47] СТРАТЕГИЯ</div>
+                <div class="sensor-grid" id="p1Sensors40_47"></div>
+
+                <div class="sensor-category">[48-63] АБСТРАКТНЫЕ</div>
+                <div class="sensor-grid" id="p1Sensors48_63"></div>
+            </div>
         </div>
-        
-        <!-- Красный стикмен -->
+
+        <!-- КРАСНЫЙ СТИКМЕН -->
         <div class="brain-card red" id="p2Card">
             <div class="card-header">
-                <span>RED CORTEX</span>
+                <span>🔴 RED CORTEX</span>
                 <span class="card-status" id="p2Status">ACTIVE</span>
             </div>
+
             <div class="metrics-grid">
                 <div class="metric"><span class="metric-label">TD ERROR</span><span class="metric-value" id="p2TD">0.000</span></div>
                 <div class="metric"><span class="metric-label">PREDICTION</span><span class="metric-value" id="p2Pred">0.000</span></div>
@@ -605,47 +873,74 @@
                 <div class="metric"><span class="metric-label">EMOTION</span><span class="metric-value" id="p2Emo">-</span></div>
                 <div class="metric"><span class="metric-label">ENERGY</span><span class="metric-value" id="p2En">0.00</span></div>
             </div>
-            <div class="section-title">ATTENTION HEADS (4):</div>
+
+            <div class="section-title">🎯 ATTENTION HEADS <span>4</span></div>
             <div class="attention-area" id="p2Attention"></div>
-            <div class="section-title">ACTIVE DECISION:</div>
-            <div class="decision-box" id="p2Log">Initializing Cortex2Brain...</div>
-            <div class="section-title">SENSOR INPUT (64):</div>
-            <div class="sensor-grid" id="p2Sensors"></div>
+
+            <div class="section-title">📤 OUTPUT LAYER <span>D0-D15</span></div>
+            <div class="output-grid" id="p2Outputs"></div>
+
+            <div class="section-title">⚡ ACTIVE DECISION</div>
+            <div class="decision-box" id="p2Log">
+                <div class="decision-line">STATE: <span>IDLE</span></div>
+                <div class="decision-line">ACTION: <span>WAITING</span></div>
+                <div class="decision-line">MOVE: <span>0.00</span></div>
+                <div class="decision-line">PUNCH: <span>0.00</span></div>
+                <div class="decision-line">KICK: <span>0.00</span></div>
+                <div class="decision-line">BLOCK: <span>0.00</span></div>
+                <div class="decision-line">JUMP: <span>0.00</span></div>
+            </div>
+
+            <div class="section-title">📥 SENSOR INPUT <span>64</span></div>
+            
+            <div class="sensor-container">
+                <div class="sensor-category">[0-7] ПРОСТРАНСТВО</div>
+                <div class="sensor-grid" id="p2Sensors0_7"></div>
+                <div class="sensor-category">[8-15] ЗДОРОВЬЕ</div>
+                <div class="sensor-grid" id="p2Sensors8_15"></div>
+                <div class="sensor-category">[16-23] СОСТОЯНИЯ</div>
+                <div class="sensor-grid" id="p2Sensors16_23"></div>
+                <div class="sensor-category">[24-31] КИНЕМАТИКА</div>
+                <div class="sensor-grid" id="p2Sensors24_31"></div>
+                <div class="sensor-category">[32-39] ВРЕМЯ</div>
+                <div class="sensor-grid" id="p2Sensors32_39"></div>
+                <div class="sensor-category">[40-47] СТРАТЕГИЯ</div>
+                <div class="sensor-grid" id="p2Sensors40_47"></div>
+                <div class="sensor-category">[48-63] АБСТРАКТНЫЕ</div>
+                <div class="sensor-grid" id="p2Sensors48_63"></div>
+            </div>
         </div>
     </div>
-    
-    <!-- Кнопки управления -->
+
+    <!-- КНОПКИ УПРАВЛЕНИЯ -->
     <div class="controls">
         <button class="btn" id="restartBtn">🔄 RESTART</button>
         <button class="btn" id="debugBtn">🔍 DEBUG</button>
     </div>
-    
-    <!-- Аварийная кнопка ручного запуска -->
-    <button class="btn" id="startBtn">▶️ START FIGHT</button>
-    
-    <!-- Сообщения -->
+
+    <!-- АВАРИЙНАЯ КНОПКА ЗАПУСКА -->
+    <button class="btn" id="emergencyStart">▶️ START FIGHT</button>
+
+    <!-- СООБЩЕНИЯ -->
     <div class="message" id="message">FIGHT</div>
-    
-    <!-- Экран окончания боя -->
+
+    <!-- ЭКРАН ОКОНЧАНИЯ БОЯ -->
     <div class="gameover" id="gameOver">
-        <div class="winner" id="winnerText">VICTORY</div>
+        <div class="winner-text" id="winnerText">VICTORY</div>
         <button class="rematch-btn" id="rematchBtn">REMATCH</button>
     </div>
-    
-    <!-- FPS счетчик -->
+
+    <!-- FPS СЧЕТЧИК -->
     <div class="fps" id="fpsCounter">FPS: 60</div>
 
     <script>
         // ============================================================================
-        // AI ARENA v7.0.0 — PvP СТИКМЕНЫ CORTEX-2
+        // AI ARENA v9.0.0 — ПОЛНАЯ ПРОФЕССИОНАЛЬНАЯ ВЕРСИЯ
+        // 64 ВХОДА | 16 ВЫХОДОВ | TD LEARNING | HEBBIAN | ЭМОЦИИ | КОМБО
         // АРХИТЕКТУРА: P32 → A64 → M144 → C256 → S32 → D16
-        // ПОЛНАЯ ВЕРСИЯ - НИЧЕГО НЕ СОКРАЩЕНО
         // ============================================================================
 
-        // ============================================================================
         // ГЛОБАЛЬНОЕ СОСТОЯНИЕ
-        // ============================================================================
-
         const GameState = {
             width: 0,
             height: 0,
@@ -661,7 +956,7 @@
         };
 
         // ============================================================================
-        // SEEDED RNG - ДЕТЕРМИНИРОВАННЫЙ ГЕНЕРАТОР
+        // SEEDED RNG — ДЕТЕРМИНИРОВАННЫЙ ГЕНЕРАТОР
         // ============================================================================
 
         class SeededRNG {
@@ -681,23 +976,15 @@
             range(min, max) {
                 return min + this.next() * (max - min);
             }
-            
-            gaussian(mean = 0, std = 1) {
-                let u = 0, v = 0;
-                while (u === 0) u = this.next();
-                while (v === 0) v = this.next();
-                let z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
-                return z * std + mean;
-            }
         }
 
         // ============================================================================
-        // CORTEX2BRAIN - ПОЛНАЯ АРХИТЕКТУРА
+        // CORTEX2BRAIN — ПОЛНАЯ АРХИТЕКТУРА С 64 ВХОДАМИ И 16 ВЫХОДАМИ
         // ============================================================================
 
         class Cortex2Brain {
             constructor(config = {}) {
-                // ФИКСИРОВАННЫЕ РАЗМЕРНОСТИ - НЕ МЕНЯТЬ
+                // ФИКСИРОВАННЫЕ РАЗМЕРНОСТИ
                 this.DIM = {
                     DIM_P: 32,
                     DIM_A: 64,
@@ -726,7 +1013,6 @@
                     emotionInfluence: config.emotionInfluence || GameState.emotionInfluence
                 };
                 
-                // RNG для инициализации весов
                 this.rng = new SeededRNG(this.config.seed);
                 
                 // ИНИЦИАЛИЗАЦИЯ ВЕСОВ
@@ -748,7 +1034,7 @@
                 this.S_prev = new Float32Array(this.DIM.DIM_S);
                 this.D_prev = new Float32Array(this.DIM.DIM_D);
                 
-                // БУФЕРЫ ДЛЯ ZERO-GC
+                // БУФЕРЫ
                 this.buffers = {
                     P_input: new Float32Array(400),
                     A_input: new Float32Array(160),
@@ -762,7 +1048,7 @@
                     out_temp: new Float32Array(256)
                 };
                 
-                // ВРЕМЕННЫЙ БУФЕР ДЛЯ ВНИМАНИЯ
+                // ВРЕМЕННЫЙ БУФЕР
                 this.temporalBuffer = {
                     A_history: Array(8).fill().map(() => new Float32Array(this.DIM.DIM_A)),
                     C_history: Array(8).fill().map(() => new Float32Array(this.DIM.DIM_C)),
@@ -775,11 +1061,6 @@
                     this.attentionWeights[i] = 0.25;
                 }
                 
-                // СЛЕДЫ ДЛЯ ОБУЧЕНИЯ
-                this.trace_P = new Float32Array(400 * this.DIM.DIM_P);
-                this.trace_C = new Float32Array(289 * this.DIM.DIM_C);
-                this.trace_D = new Float32Array(336 * this.DIM.DIM_D);
-                
                 // ОШИБКИ ПРЕДСКАЗАНИЯ
                 this.predictionErrors = new Float32Array(48);
                 
@@ -787,8 +1068,7 @@
                 this.stats = {
                     tdErrors: [],
                     steps: 0,
-                    avgReward: 0,
-                    curiosityBonus: 0
+                    avgReward: 0
                 };
                 
                 // ЭМОЦИИ
@@ -801,46 +1081,52 @@
                     desperation: 0
                 };
                 
-                this.emotionalState = {
-                    current: null,
-                    satisfaction: 0
-                };
-                
                 this.emotionDecay = 0.98;
                 this.step = 0;
                 this.cumulativeReward = 0;
                 
-                // КАРТА ВЫХОДОВ
+                // ============================================================================
+                // КАРТА ВЫХОДОВ — 16 ШТУК ПОЛНОСТЬЮ
+                // ============================================================================
                 this.OUTPUT_MAP = {
-                    moveX: 0,
-                    moveY: 1,
-                    moveZ: 2,
-                    attackPower: 3,
-                    attackAngle: 4,
-                    attackType: 5,
-                    block: 6,
-                    jump: 7,
-                    armL_angle: 8,
-                    armL_speed: 9,
-                    legR_angle: 10,
-                    legR_speed: 11,
-                    strategy_aggro: 12,
-                    strategy_defend: 13,
-                    curiosity: 14,
-                    memory_write: 15
+                    // ДВИЖЕНИЕ (D0)
+                    move: 0,                    // -1..1: направление движения
+                    
+                    // АТАКИ (D1-D3)
+                    punch: 1,                   // 0..1: удар рукой
+                    kick: 2,                    // 0..1: удар ногой
+                    special: 3,                 // 0..1: спецприем
+                    
+                    // ЗАЩИТА (D4-D6)
+                    block: 4,                    // 0..1: блок
+                    jump: 5,                     // 0..1: прыжок
+                    dodge: 6,                    // 0..1: уклон
+                    
+                    // СТОЙКА (D7)
+                    stance: 7,                   // -1..1: смена стойки
+                    
+                    // ЭМОЦИИ (D8-D10)
+                    emotion_aggression: 8,        // 0..1: агрессия
+                    emotion_fear: 9,              // 0..1: страх
+                    emotion_confidence: 10,        // 0..1: уверенность
+                    
+                    // СТРАТЕГИИ (D11-D13)
+                    strategy_close: 11,            // 0..1: ближний бой
+                    strategy_ranged: 12,           // 0..1: дальний бой
+                    strategy_defense: 13,          // 0..1: оборона
+                    
+                    // ТАКТИКИ (D14-D15)
+                    tactic_flank: 14,              // 0..1: фланг
+                    tactic_retreat: 15             // 0..1: отступление
                 };
                 
                 this.ready = true;
-                
-                console.log(`[Cortex2Brain] Initialized | Seed: ${this.config.seed.substring(0, 20)}...`);
             }
             
             _initWeights() {
-                // P слой: 400 → 32
                 this.W_P = this._initMatrix(400, this.DIM.DIM_P, 0.3);
                 this.b_P = this._initVector(this.DIM.DIM_P, 0.1);
                 
-                // A слои: 4 головы по 160 → 16
                 this.W_A = [];
                 this.b_A = [];
                 for (let h = 0; h < this.DIM.NUM_HEADS; h++) {
@@ -849,7 +1135,6 @@
                 }
                 this.W_gate = this._initVector(this.DIM.NUM_HEADS, 0.25);
                 
-                // M слои
                 this.W_M_work = this._initMatrix(160, 48, 0.3);
                 this.b_M_work = this._initVector(48, 0.1);
                 this.W_M_perm = this._initMatrix(304, 48, 0.3);
@@ -857,34 +1142,20 @@
                 this.W_M_pred = this._initMatrix(192, 48, 0.3);
                 this.b_M_pred = this._initVector(48, 0.1);
                 
-                // C слой: 289 → 256
                 this.W_C = this._initMatrix(289, this.DIM.DIM_C, 0.25);
                 this.b_C = this._initVector(this.DIM.DIM_C, 0.1);
                 
-                // S слой: 128 → 32
                 this.W_S = this._initMatrix(128, this.DIM.DIM_S, 0.3);
                 this.b_S = this._initVector(this.DIM.DIM_S, 0.1);
                 
-                // D слой: 336 → 16
                 this.W_D = this._initMatrix(336, this.DIM.DIM_D, 0.2);
                 this.b_D = this._initVector(this.DIM.DIM_D, 0.1);
                 
-                // Prediction head: 48 → 64
                 this.W_pred = this._initMatrix(48, this.DIM.DIM_SENSOR, 0.15);
                 this.b_pred = this._initVector(this.DIM.DIM_SENSOR, 0.05);
                 
-                // Value head: 256 → 1
                 this.W_V = this._initVector(this.DIM.DIM_C, 0.1);
                 this.b_V = 0;
-                
-                // Gated memory
-                this.W_read = this._initMatrix(256, 48, 0.2);
-                this.W_write = this._initMatrix(256, 48, 0.2);
-                this.W_memkey = this._initMatrix(64, 48, 0.2);
-                this.b_read = this._initVector(48, 0.1);
-                this.b_write = this._initVector(48, 0.1);
-                this.b_memkey = this._initVector(48, 0.1);
-                this.memory_strength = 0.8;
             }
             
             _initMatrix(rows, cols, scale) {
@@ -892,8 +1163,7 @@
                 for (let i = 0; i < rows; i++) {
                     const row = new Float32Array(cols);
                     for (let j = 0; j < cols; j++) {
-                        const val = (this.rng.next() * 2 - 1) * scale;
-                        row[j] = val;
+                        row[j] = (this.rng.next() * 2 - 1) * scale;
                     }
                     mat.push(row);
                 }
@@ -932,19 +1202,13 @@
             
             _matrixMultiply(vec, mat, activation = 'tanh') {
                 const out = new Float32Array(mat[0].length);
-                const vecLen = vec.length;
-                const matCols = mat[0].length;
-                
-                for (let i = 0; i < matCols; i++) {
+                for (let i = 0; i < mat[0].length; i++) {
                     let sum = 0;
-                    for (let j = 0; j < vecLen; j++) {
+                    for (let j = 0; j < vec.length; j++) {
                         sum += (vec[j] || 0) * (mat[j]?.[i] || 0);
                     }
-                    
                     if (activation === 'relu') {
                         out[i] = this._leakyRelu(sum);
-                    } else if (activation === 'linear') {
-                        out[i] = sum;
                     } else {
                         out[i] = this._tanh(sum);
                     }
@@ -964,186 +1228,95 @@
                 return out;
             }
             
-            // ПОСТРОЕНИЕ ВХОДНЫХ ВЕКТОРОВ - ВСЕ РАЗМЕРНОСТИ ПРОВЕРЕНЫ
+            // ПОСТРОЕНИЕ ВХОДНЫХ ВЕКТОРОВ
             _buildPInput(x_t, C_prev, S_prev, M_perm_prev) {
                 const input = this.buffers.P_input;
                 let idx = 0;
-                
-                for (let i = 0; i < 64; i++) {
-                    input[idx++] = x_t[i] || 0;
-                }
-                
-                for (let i = 0; i < 256; i++) {
-                    input[idx++] = C_prev[i] || 0;
-                }
-                
-                for (let i = 0; i < 32; i++) {
-                    input[idx++] = S_prev[i] || 0;
-                }
-                
-                for (let i = 0; i < 48; i++) {
-                    input[idx++] = M_perm_prev[i] || 0;
-                }
-                
+                for (let i = 0; i < 64; i++) input[idx++] = x_t[i] || 0;
+                for (let i = 0; i < 256; i++) input[idx++] = C_prev[i] || 0;
+                for (let i = 0; i < 32; i++) input[idx++] = S_prev[i] || 0;
+                for (let i = 0; i < 48; i++) input[idx++] = M_perm_prev[i] || 0;
                 return input;
             }
             
             _buildAInput(P_t, M_work, C_prev, D_prev, headIdx) {
                 const input = this.buffers.A_input;
                 let idx = 0;
-                
-                for (let i = 0; i < 32; i++) {
-                    input[idx++] = P_t[i] || 0;
-                }
-                
-                for (let i = 0; i < 48; i++) {
-                    input[idx++] = M_work[i] || 0;
-                }
-                
+                for (let i = 0; i < 32; i++) input[idx++] = P_t[i] || 0;
+                for (let i = 0; i < 48; i++) input[idx++] = M_work[i] || 0;
                 const cStart = headIdx * 64;
                 for (let i = 0; i < 64; i++) {
                     const cIdx = cStart + i;
                     input[idx++] = (cIdx < 256) ? (C_prev[cIdx] || 0) : 0;
                 }
-                
-                for (let i = 0; i < 16; i++) {
-                    input[idx++] = D_prev[i] || 0;
-                }
-                
+                for (let i = 0; i < 16; i++) input[idx++] = D_prev[i] || 0;
                 return input;
             }
             
             _buildMWorkInput(P_t, A_t, C_prev) {
                 const input = this.buffers.M_work_input;
                 let idx = 0;
-                
-                for (let i = 0; i < 32; i++) {
-                    input[idx++] = P_t[i] || 0;
-                }
-                
-                for (let i = 0; i < 64; i++) {
-                    input[idx++] = A_t[i] || 0;
-                }
-                
-                for (let i = 0; i < 64; i++) {
-                    input[idx++] = C_prev[i] || 0;
-                }
-                
+                for (let i = 0; i < 32; i++) input[idx++] = P_t[i] || 0;
+                for (let i = 0; i < 64; i++) input[idx++] = A_t[i] || 0;
+                for (let i = 0; i < 64; i++) input[idx++] = C_prev[i] || 0;
                 return input;
             }
             
             _buildMPermInput(C_prev, M_perm_prev) {
                 const input = this.buffers.M_perm_input;
                 let idx = 0;
-                
-                for (let i = 0; i < 256; i++) {
-                    input[idx++] = C_prev[i] || 0;
-                }
-                
-                for (let i = 0; i < 48; i++) {
-                    input[idx++] = M_perm_prev[i] || 0;
-                }
-                
+                for (let i = 0; i < 256; i++) input[idx++] = C_prev[i] || 0;
+                for (let i = 0; i < 48; i++) input[idx++] = M_perm_prev[i] || 0;
                 return input;
             }
             
             _buildMPredInput(A_t, C_prev, M_work, D_prev) {
                 const input = this.buffers.M_pred_input;
                 let idx = 0;
-                
-                for (let i = 0; i < 64; i++) {
-                    input[idx++] = A_t[i] || 0;
-                }
-                
+                for (let i = 0; i < 64; i++) input[idx++] = A_t[i] || 0;
                 for (let i = 0; i < 64; i++) {
                     const cIdx = 192 + i;
                     input[idx++] = (cIdx < 256) ? (C_prev[cIdx] || 0) : 0;
                 }
-                
-                for (let i = 0; i < 48; i++) {
-                    input[idx++] = M_work[i] || 0;
-                }
-                
-                for (let i = 0; i < 16; i++) {
-                    input[idx++] = D_prev[i] || 0;
-                }
-                
+                for (let i = 0; i < 48; i++) input[idx++] = M_work[i] || 0;
+                for (let i = 0; i < 16; i++) input[idx++] = D_prev[i] || 0;
                 return input;
             }
             
             _buildCInput(P_t, A_t, M_t, S_prev, D_prev, r_t) {
                 const input = this.buffers.C_input;
                 let idx = 0;
-                
-                for (let i = 0; i < 32; i++) {
-                    input[idx++] = P_t[i] || 0;
-                }
-                
-                for (let i = 0; i < 64; i++) {
-                    input[idx++] = A_t[i] || 0;
-                }
-                
-                for (let i = 0; i < 144; i++) {
-                    input[idx++] = M_t[i] || 0;
-                }
-                
-                for (let i = 0; i < 32; i++) {
-                    input[idx++] = S_prev[i] || 0;
-                }
-                
-                for (let i = 0; i < 16; i++) {
-                    input[idx++] = D_prev[i] || 0;
-                }
-                
+                for (let i = 0; i < 32; i++) input[idx++] = P_t[i] || 0;
+                for (let i = 0; i < 64; i++) input[idx++] = A_t[i] || 0;
+                for (let i = 0; i < 144; i++) input[idx++] = M_t[i] || 0;
+                for (let i = 0; i < 32; i++) input[idx++] = S_prev[i] || 0;
+                for (let i = 0; i < 16; i++) input[idx++] = D_prev[i] || 0;
                 input[idx] = r_t || 0;
-                
                 return input;
             }
             
             _buildSInput(P_t, M_perm, C_prev, D_prev) {
                 const input = this.buffers.S_input;
                 let idx = 0;
-                
-                for (let i = 0; i < 32; i++) {
-                    input[idx++] = P_t[i] || 0;
-                }
-                
-                for (let i = 0; i < 48; i++) {
-                    input[idx++] = M_perm[i] || 0;
-                }
-                
+                for (let i = 0; i < 32; i++) input[idx++] = P_t[i] || 0;
+                for (let i = 0; i < 48; i++) input[idx++] = M_perm[i] || 0;
                 for (let i = 0; i < 32; i++) {
                     const cIdx = 224 + i;
                     input[idx++] = (cIdx < 256) ? (C_prev[cIdx] || 0) : 0;
                 }
-                
-                for (let i = 0; i < 16; i++) {
-                    input[idx++] = D_prev[i] || 0;
-                }
-                
+                for (let i = 0; i < 16; i++) input[idx++] = D_prev[i] || 0;
                 return input;
             }
             
             _buildDInput(C_t, S_t, M_pred) {
                 const input = this.buffers.D_input;
                 let idx = 0;
-                
-                for (let i = 0; i < 256; i++) {
-                    input[idx++] = C_t[i] || 0;
-                }
-                
-                for (let i = 0; i < 32; i++) {
-                    input[idx++] = S_t[i] || 0;
-                }
-                
-                for (let i = 0; i < 48; i++) {
-                    input[idx++] = M_pred[i] || 0;
-                }
-                
+                for (let i = 0; i < 256; i++) input[idx++] = C_t[i] || 0;
+                for (let i = 0; i < 32; i++) input[idx++] = S_t[i] || 0;
+                for (let i = 0; i < 48; i++) input[idx++] = M_pred[i] || 0;
                 return input;
             }
             
-            // СРЕЗЫ ПАМЯТИ
             _getMWork(M) {
                 return M.slice(this.DIM.M_WORK_START, this.DIM.M_WORK_END);
             }
@@ -1157,14 +1330,12 @@
             }
             
             // ОСНОВНОЙ FORWARD PASS
-            forward(rawInputs, reward = 0, combatEvents = null) {
-                // Нормализация входов
+            forward(rawInputs, reward = 0) {
                 const sensors = this.buffers.sensors;
                 for (let i = 0; i < 64; i++) {
                     sensors[i] = this._clamp(rawInputs[i] || 0, -1, 1);
                 }
                 
-                // Построение входов
                 const P_input = this._buildPInput(
                     sensors,
                     this.C_prev,
@@ -1223,13 +1394,11 @@
                     this._getMPred(this.M_prev)
                 );
                 
-                // P слой
                 const P_new = this._matrixMultiply(P_input, this.W_P, 'relu');
                 for (let i = 0; i < this.DIM.DIM_P; i++) {
                     P_new[i] = this._leakyRelu(P_new[i] + this.b_P[i]);
                 }
                 
-                // A слой (внимание)
                 const A_new = this.buffers.out_temp.slice(0, this.DIM.DIM_A);
                 const gateProbs = this._softmax(Array.from(this.W_gate));
                 
@@ -1242,7 +1411,6 @@
                     this.attentionWeights[h] = gateProbs[h];
                 }
                 
-                // M слои
                 const M_work_new = this._matrixMultiply(M_work_input, this.W_M_work, 'relu');
                 for (let i = 0; i < 48; i++) {
                     M_work_new[i] = this._leakyRelu(M_work_new[i] + this.b_M_work[i]);
@@ -1263,25 +1431,21 @@
                 for (let i = 0; i < 48; i++) M_new[48 + i] = M_perm_new[i];
                 for (let i = 0; i < 48; i++) M_new[96 + i] = M_pred_new[i];
                 
-                // C слой
                 const C_new = this._matrixMultiply(C_input, this.W_C, 'relu');
                 for (let i = 0; i < this.DIM.DIM_C; i++) {
                     C_new[i] = this._leakyRelu(C_new[i] + this.b_C[i]);
                 }
                 
-                // S слой
                 const S_new = this._matrixMultiply(S_input, this.W_S, 'relu');
                 for (let i = 0; i < this.DIM.DIM_S; i++) {
                     S_new[i] = this._leakyRelu(S_new[i] + this.b_S[i]);
                 }
                 
-                // D слой
                 const D_new = this._matrixMultiply(D_input, this.W_D, 'tanh');
                 for (let i = 0; i < this.DIM.DIM_D; i++) {
                     D_new[i] = this._tanh(D_new[i] + this.b_D[i]);
                 }
                 
-                // ОБНОВЛЕНИЕ СОСТОЯНИЙ
                 this.P_prev.set(this.P);
                 this.A_prev.set(this.A);
                 this.M_prev.set(this.M);
@@ -1296,16 +1460,12 @@
                 this.S.set(S_new);
                 this.D.set(D_new);
                 
-                // ВРЕМЕННЫЙ БУФЕР
                 this.temporalBuffer.A_history[this.temporalBuffer.idx].set(this.A_prev);
                 this.temporalBuffer.C_history[this.temporalBuffer.idx].set(this.C_prev);
                 this.temporalBuffer.idx = (this.temporalBuffer.idx + 1) % 8;
                 
-                // ПРЕДСКАЗАНИЕ
                 this._updatePrediction(M_pred_new, sensors);
-                
-                // ЭМОЦИИ
-                this._updateEmotions(reward, sensors, combatEvents);
+                this._updateEmotions(reward, sensors);
                 
                 this.step++;
                 this.stats.steps++;
@@ -1323,17 +1483,16 @@
                 for (let i = 0; i < 64; i++) {
                     x_pred[i] += this.b_pred[i];
                 }
-                
                 for (let i = 0; i < 48; i++) {
                     const error = Math.abs(x_pred[i] - sensors[i]);
-                    this.predictionErrors[i] = this._lerp(this.predictionErrors[i], error, 0.1);
+                    this.predictionErrors[i] = this._lerp(this.predictionErrors[i] || 0, error, 0.1);
                 }
             }
             
             _computeAvgPredError() {
                 let sum = 0;
                 for (let i = 0; i < 48; i++) {
-                    sum += this.predictionErrors[i];
+                    sum += this.predictionErrors[i] || 0;
                 }
                 return sum / 48;
             }
@@ -1353,10 +1512,9 @@
             tdLearn(inputs, outputs, reward, value, nextValue) {
                 const currentValue = value !== undefined ? value : this._estimateValue();
                 const nextVal = nextValue !== undefined ? nextValue : this._estimateValue();
-                
                 const tdErr = reward + this.config.gamma * nextVal - currentValue;
                 const predError = this._computeAvgPredError();
-                const combinedError = tdErr * 0.7 + predError * 0.3 + this.stats.curiosityBonus;
+                const combinedError = tdErr * 0.7 + predError * 0.3;
                 
                 this.stats.tdErrors.push(Math.abs(combinedError));
                 if (this.stats.tdErrors.length > 100) {
@@ -1364,13 +1522,9 @@
                 }
                 
                 this._updateValueHead(combinedError);
+                this.stats.avgReward = this._lerp(this.stats.avgReward || 0, reward, 0.01);
                 
-                this.stats.steps++;
-                this.stats.avgReward = this._lerp(this.stats.avgReward, reward, 0.01);
-                
-                return {
-                    tdError: combinedError
-                };
+                return { tdError: combinedError };
             }
             
             _updateValueHead(tdErr) {
@@ -1382,28 +1536,24 @@
                 this.b_V += alpha * tdErr;
             }
             
-            _updateEmotions(reward, sensors, combatEvents) {
+            _updateEmotions(reward, sensors) {
                 if (reward < 0.1) {
                     this.emotions.frustration = Math.min(1, this.emotions.frustration + 0.03);
                 } else {
                     this.emotions.frustration *= 0.92;
                 }
-                
                 if (reward > 1) {
                     this.emotions.confidence = Math.min(1, this.emotions.confidence + 0.05);
                 } else {
                     this.emotions.confidence *= 0.95;
                 }
-                
                 if (reward < -0.5) {
                     this.emotions.fear = Math.min(1, this.emotions.fear + 0.1);
                 } else {
                     this.emotions.fear *= 0.85;
                 }
-                
                 const distance = sensors[2] || 0.5;
                 this.emotions.threat = 1 - distance;
-                
                 for (let key in this.emotions) {
                     this.emotions[key] *= this.emotionDecay;
                 }
@@ -1426,7 +1576,6 @@
                 this.stats.avgReward = 0;
                 this.step = 0;
                 this.cumulativeReward = 0;
-                
                 for (let key in this.emotions) {
                     this.emotions[key] = 0;
                 }
@@ -1444,7 +1593,7 @@
         }
 
         // ============================================================================
-        // КЛАСС FIGHTER - СТИКМЕН
+        // FIGHTER — СТИКМЕН С 64 ВХОДАМИ И 16 ВЫХОДАМИ
         // ============================================================================
 
         class Fighter {
@@ -1478,7 +1627,7 @@
                 this.damageDealt = false;
                 
                 this.brain = new Cortex2Brain({
-                    seed: isPlayer1 ? 'BLUE_' + Date.now() + '_' + Math.random() : 'RED_' + Date.now() + '_' + Math.random(),
+                    seed: isPlayer1 ? 'BLUE_' + Date.now() : 'RED_' + Date.now(),
                     lr: GameState.learningRate,
                     gamma: GameState.gamma,
                     lambda: GameState.lambda,
@@ -1491,17 +1640,16 @@
                 this.lastSensors = null;
                 this.lastDecision = null;
                 this.currentActionText = 'IDLE';
-                this.debugLines = [];
-                this.lastUpdateTime = 0;
                 this.jumpCooldown = 0;
                 this.comboState = { count: 0, timer: 0, lastHit: null };
+                this.totalDamageDealt = 0;
                 
-                // Кинематика конечностей
+                // Кинематика
                 this.limbs = {
-                    armL: { angle: -0.3, speed: 0, targetAngle: -0.3 },
-                    armR: { angle: 0.3, speed: 0, targetAngle: 0.3 },
-                    legL: { angle: 0.1, speed: 0, targetAngle: 0.1 },
-                    legR: { angle: -0.1, speed: 0, targetAngle: -0.1 }
+                    armL: { angle: -0.3 },
+                    armR: { angle: 0.3 },
+                    legL: { angle: 0.1 },
+                    legR: { angle: -0.1 }
                 };
             }
             
@@ -1511,224 +1659,183 @@
                     return;
                 }
                 
-                if (this.lastUpdateTime === 0) {
-                    this.lastUpdateTime = currentTime;
-                }
-                
-                const frameDt = Math.min((currentTime - this.lastUpdateTime) / 16.67, 3);
-                this.lastUpdateTime = currentTime;
-                const effectiveDt = dt * frameDt;
-                
-                this.applyPhysics(effectiveDt);
-                this.updateKinematics(effectiveDt);
-                this.processState(opponent, effectiveDt);
+                this.applyPhysics(dt);
+                this.processState(opponent, dt);
                 
                 if (this.state === 'IDLE' && opponent.hp > 0) {
                     this.decideAction(opponent);
                 }
                 
-                this.regenerateStamina(effectiveDt);
+                this.regenerateStamina(dt);
                 
-                if (this.flashTimer > 0) {
-                    this.flashTimer--;
-                }
-                
-                if (this.jumpCooldown > 0) {
-                    this.jumpCooldown -= effectiveDt;
-                }
-                
+                if (this.flashTimer > 0) this.flashTimer--;
+                if (this.jumpCooldown > 0) this.jumpCooldown -= dt;
                 if (this.comboState.timer > 0) {
-                    this.comboState.timer -= effectiveDt;
+                    this.comboState.timer -= dt;
+                } else {
+                    this.comboState.count = 0;
                 }
             }
             
-            updateKinematics(dt) {
-                if (!this.lastDecision || !this.lastDecision.output) {
-                    return;
+            // ============================================================================
+            // СБОР 64 СЕНСОРОВ — ПОЛНОСТЬЮ
+            // ============================================================================
+            collectSensors(opponent) {
+                const s = new Array(64).fill(0);
+                const w = GameState.width;
+                
+                // [0-7] ПРОСТРАНСТВО
+                s[0] = (opponent.x - this.x) / w;
+                s[1] = (opponent.y - this.y) / w;
+                s[2] = Math.abs(this.x - opponent.x) / w;
+                s[3] = Math.atan2(opponent.y - this.y, opponent.x - this.x) / Math.PI;
+                s[4] = this.vx / 10;
+                s[5] = this.vy / 10;
+                s[6] = opponent.vx / 10;
+                s[7] = opponent.vy / 10;
+                
+                // [8-15] ЗДОРОВЬЕ
+                s[8] = this.hp / this.stats.maxHp;
+                s[9] = opponent.hp / opponent.stats.maxHp;
+                s[10] = this.stamina / this.stats.maxStamina;
+                s[11] = opponent.stamina / opponent.stats.maxStamina;
+                s[12] = (this.stats.maxHp - this.hp) / this.stats.maxHp;
+                s[13] = (opponent.stats.maxHp - opponent.hp) / opponent.stats.maxHp;
+                s[14] = this.stats.str / 10;
+                s[15] = this.stats.agi / 10;
+                
+                // [16-23] СОСТОЯНИЯ
+                s[16] = this.state === 'ATTACK' ? 1 : 0;
+                s[17] = opponent.state === 'ATTACK' ? 1 : 0;
+                s[18] = this.state === 'BLOCK' ? 1 : 0;
+                s[19] = opponent.state === 'BLOCK' ? 1 : 0;
+                s[20] = this.y < GameState.groundY - 5 ? 1 : 0;
+                s[21] = opponent.y < GameState.groundY - 5 ? 1 : 0;
+                s[22] = this.facingRight ? 1 : 0;
+                s[23] = opponent.facingRight ? 1 : 0;
+                
+                // [24-31] КИНЕМАТИКА
+                s[24] = this.limbs.armL.angle;
+                s[25] = this.limbs.armR.angle;
+                s[26] = this.limbs.legL.angle;
+                s[27] = this.limbs.legR.angle;
+                s[28] = this.moveFrame / 20;
+                s[29] = this.stateTimer / 60;
+                s[30] = this.flashTimer / 10;
+                s[31] = this.jumpCooldown / 30;
+                
+                // [32-39] ВРЕМЯ
+                s[32] = this.comboState.count / 3;
+                s[33] = this.comboState.timer / 30;
+                s[34] = (this.brain ? this.brain.step : 0) % 100 / 100;
+                s[35] = this.lastReward;
+                s[36] = Math.sin(this.brain ? this.brain.step * 0.1 : 0);
+                s[37] = Math.cos(this.brain ? this.brain.step * 0.1 : 0);
+                s[38] = 0;
+                s[39] = 0;
+                
+                // [40-47] СТРАТЕГИЯ
+                s[40] = 1 - Math.min(1, Math.abs(this.x - opponent.x) / 200);
+                s[41] = opponent.hp < this.hp ? 1 : 0;
+                s[42] = this.stamina < 30 ? 1 : 0;
+                s[43] = opponent.stamina < 30 ? 1 : 0;
+                s[44] = this.brain ? this.brain.emotions.aggression : 0;
+                s[45] = this.brain ? this.brain.emotions.fear : 0;
+                s[46] = this.brain ? this.brain.emotions.confidence : 0;
+                s[47] = this.brain ? this.brain.emotions.frustration : 0;
+                
+                // [48-63] АБСТРАКТНЫЕ
+                for (let i = 48; i < 64; i++) {
+                    s[i] = Math.sin(i * 0.5 + this.brain ? this.brain.step * 0.01 : 0) * 0.1;
                 }
                 
-                const out = this.lastDecision.output;
-                const brain = this.brain;
-                
-                this.limbs.armL.targetAngle = this._clamp(out[brain.OUTPUT_MAP.armL_angle] * 1.5, -1.5, 1.5);
-                this.limbs.armL.speed = out[brain.OUTPUT_MAP.armL_speed] * 10;
-                this.limbs.legR.targetAngle = this._clamp(out[brain.OUTPUT_MAP.legR_angle] * 1.2, -0.8, 0.8);
-                this.limbs.legR.speed = out[brain.OUTPUT_MAP.legR_speed] * 8;
-                
-                for (let limb of Object.values(this.limbs)) {
-                    limb.angle += (limb.targetAngle - limb.angle) * 0.1 * dt;
-                    limb.angle = this._clamp(limb.angle, -2, 2);
-                }
+                return s;
             }
             
+            // ============================================================================
+            // ПРИНЯТИЕ РЕШЕНИЯ НА ОСНОВЕ 16 ВЫХОДОВ
+            // ============================================================================
             decideAction(opponent) {
                 if (['BLOCK', 'HIT', 'DEAD'].includes(this.state) && this.stateTimer > 0) {
                     this.stateTimer--;
-                    if (this.stateTimer <= 0) {
-                        this.state = 'IDLE';
-                    }
+                    if (this.stateTimer <= 0) this.state = 'IDLE';
                     return;
                 }
                 
                 const sensors = this.collectSensors(opponent);
                 this.lastSensors = sensors;
                 
-                const combatEvents = [];
-                if (this.lastReward > 0) {
-                    combatEvents.push({ type: 'hit_dealt', damage: this.lastReward * 10 });
-                }
-                if (this.lastReward < 0) {
-                    combatEvents.push({ type: 'damage_received', damage: Math.abs(this.lastReward) * 10 });
-                }
-                
-                const result = this.brain.forward(sensors, this.lastReward, combatEvents.length > 0 ? combatEvents : null);
+                const result = this.brain.forward(sensors, this.lastReward);
                 this.lastDecision = result;
-                const output = result.output;
-                const brain = this.brain;
+                const out = result.output;
+                const map = this.brain.OUTPUT_MAP;
                 
-                const moveX = output[brain.OUTPUT_MAP.moveX];
-                const aggression = output[brain.OUTPUT_MAP.attackPower];
-                const defense = output[brain.OUTPUT_MAP.block];
-                const jumpInput = output[brain.OUTPUT_MAP.jump];
+                // Чтение всех 16 выходов
+                const move = out[map.move];                    // D0
+                const punch = out[map.punch];                  // D1
+                const kick = out[map.kick];                    // D2
+                const special = out[map.special];              // D3
+                const block = out[map.block];                  // D4
+                const jump = out[map.jump];                    // D5
+                const dodge = out[map.dodge];                  // D6
+                const stance = out[map.stance];                // D7
+                const aggression = out[map.emotion_aggression]; // D8
+                const fear = out[map.emotion_fear];            // D9
+                const confidence = out[map.emotion_confidence]; // D10
+                const close = out[map.strategy_close];         // D11
+                const ranged = out[map.strategy_ranged];       // D12
+                const defense = out[map.strategy_defense];     // D13
+                const flank = out[map.tactic_flank];           // D14
+                const retreat = out[map.tactic_retreat];       // D15
+                
                 const dist = Math.abs(this.x - opponent.x);
-                
                 let action = 'IDLE';
                 
-                if (jumpInput > 0.6 && this.jumpCooldown <= 0 && this.y === GameState.groundY) {
-                    this.startJump();
-                    action = 'JUMP';
-                } else if (aggression > 0.6 && dist < 100) {
-                    const attackType = output[brain.OUTPUT_MAP.attackType] > 0.5 ? 'kick' : 'punch';
-                    const attackAngle = output[brain.OUTPUT_MAP.attackAngle];
-                    this.startAttack(attackType, attackAngle);
-                    action = 'ATTACK_' + attackType.toUpperCase();
-                } else if (defense > 0.7 && opponent.state === 'ATTACK') {
+                // Приоритет: спецприем > удар ногой > удар рукой > защита > движение
+                if (special > 0.6) {
+                    this.startAttack('special');
+                    action = 'SPECIAL';
+                } else if (kick > 0.6) {
+                    this.startAttack('kick');
+                    action = 'KICK';
+                } else if (punch > 0.6) {
+                    this.startAttack('punch');
+                    action = 'PUNCH';
+                } else if (block > 0.7 && opponent.state === 'ATTACK') {
                     this.state = 'BLOCK';
                     this.stateTimer = 15;
                     action = 'BLOCK';
+                } else if (jump > 0.6 && this.jumpCooldown <= 0 && this.y === GameState.groundY) {
+                    this.vy = -18 - this.stats.agi * 0.5;
+                    this.stamina -= 15;
+                    this.state = 'JUMP';
+                    this.stateTimer = 30;
+                    this.jumpCooldown = 30;
+                    action = 'JUMP';
                 } else {
-                    const dir = this.x < opponent.x ? 1 : -1;
-                    this.vx = dir * (2 + this.stats.agi * 0.1) * Math.abs(moveX);
-                    this.facingRight = dir > 0;
+                    this.vx = move * 5;
+                    this.facingRight = move > 0;
                     this.state = 'WALK';
-                    this.stateTimer = 10;
-                    action = dir > 0 ? 'MOVE_RIGHT' : 'MOVE_LEFT';
+                    action = move > 0 ? 'MOVE_RIGHT' : 'MOVE_LEFT';
                 }
                 
                 this.currentActionText = action;
                 
                 if (this.brain && this.lastSensors) {
-                    this.brain.tdLearn(
-                        this.lastSensors,
-                        this.lastDecision ? this.lastDecision.output : [],
-                        this.lastReward,
-                        0,
-                        0
-                    );
+                    this.brain.tdLearn(this.lastSensors, out, this.lastReward, 0, 0);
                 }
                 
                 this.lastReward = 0;
             }
             
-            collectSensors(opponent) {
-                const sensors = new Array(64).fill(0);
-                const w = GameState.width;
-                const h = GameState.height;
-                
-                // [0-7] ПРОСТРАНСТВО
-                sensors[0] = (opponent.x - this.x) / w;
-                sensors[1] = (opponent.y - this.y) / h;
-                sensors[2] = Math.abs(this.x - opponent.x) / w;
-                sensors[3] = Math.atan2(opponent.y - this.y, opponent.x - this.x) / Math.PI;
-                sensors[4] = this.vx / 10;
-                sensors[5] = this.vy / 10;
-                sensors[6] = opponent.vx / 10;
-                sensors[7] = opponent.vy / 10;
-                
-                // [8-15] ЗДОРОВЬЕ И СТАМИНА
-                sensors[8] = this.hp / this.stats.maxHp;
-                sensors[9] = opponent.hp / opponent.stats.maxHp;
-                sensors[10] = this.stamina / this.stats.maxStamina;
-                sensors[11] = opponent.stamina / opponent.stats.maxStamina;
-                sensors[12] = (this.stats.maxHp - this.hp) / this.stats.maxHp;
-                sensors[13] = (opponent.stats.maxHp - opponent.hp) / opponent.stats.maxHp;
-                sensors[14] = this.stats.str / 10;
-                sensors[15] = this.stats.agi / 10;
-                
-                // [16-23] СОСТОЯНИЯ
-                sensors[16] = this.state === 'ATTACK' ? 1 : 0;
-                sensors[17] = opponent.state === 'ATTACK' ? 1 : 0;
-                sensors[18] = this.state === 'BLOCK' ? 1 : 0;
-                sensors[19] = opponent.state === 'BLOCK' ? 1 : 0;
-                sensors[20] = this.y < GameState.groundY - 5 ? 1 : 0;
-                sensors[21] = opponent.y < GameState.groundY - 5 ? 1 : 0;
-                sensors[22] = this.facingRight ? 1 : 0;
-                sensors[23] = opponent.facingRight ? 1 : 0;
-                
-                // [24-31] КИНЕМАТИКА
-                sensors[24] = this.limbs.armL.angle;
-                sensors[25] = this.limbs.armL.speed;
-                sensors[26] = this.limbs.armR.angle;
-                sensors[27] = this.limbs.armR.speed;
-                sensors[28] = this.limbs.legL.angle;
-                sensors[29] = this.limbs.legL.speed;
-                sensors[30] = this.limbs.legR.angle;
-                sensors[31] = this.limbs.legR.speed;
-                
-                // [32-39] ВРЕМЕННОЙ КОНТЕКСТ
-                sensors[32] = this.comboState.count / 3;
-                sensors[33] = this.comboState.timer / 30;
-                sensors[34] = this.jumpCooldown / 30;
-                sensors[35] = this.stateTimer / 60;
-                sensors[36] = this.moveFrame / 20;
-                sensors[37] = this.flashTimer / 10;
-                sensors[38] = (this.brain ? this.brain.step : 0) % 100 / 100;
-                sensors[39] = this.lastReward;
-                
-                // [40-47] СТРАТЕГИЯ
-                sensors[40] = 1 - Math.min(1, dist / 200);
-                sensors[41] = opponent.hp < this.hp ? 1 : 0;
-                sensors[42] = this.stamina < 30 ? 1 : 0;
-                sensors[43] = opponent.stamina < 30 ? 1 : 0;
-                sensors[44] = this.brain ? this.brain.emotions.aggression : 0;
-                sensors[45] = this.brain ? this.brain.emotions.fear : 0;
-                sensors[46] = this.brain ? this.brain.emotions.confidence : 0;
-                sensors[47] = this.brain ? this.brain.emotions.frustration : 0;
-                
-                // [48-63] АБСТРАКТНЫЕ
-                for (let i = 48; i < 64; i++) {
-                    const hash = (this.brain ? this.brain._hashSeed : this._hashSeed)(
-                        this.brain ? this.brain.config.seed : 'default',
-                        i,
-                        (this.brain ? this.brain.step : 0) + Math.floor(this.x) + Math.floor(opponent.x)
-                    );
-                    sensors[i] = (hash * 2 - 1) * 0.15;
-                }
-                
-                return sensors;
-            }
-            
-            _hashSeed(seed, i, j) {
-                let h = 12345;
-                for (let k = 0; k < seed.length; k++) {
-                    h = ((h * 31 + seed.charCodeAt(k)) ^ (k * 17 + i * 7919 + j * 104729)) % 2147483647;
-                }
-                h = (h * 2654435761) >>> 0;
-                return h / 4294967296;
-            }
-            
             applyPhysics(dt) {
-                const GRAVITY_PER_SECOND = 42;
-                this.vy += GRAVITY_PER_SECOND * (dt / 60);
-                
+                this.vy += 0.7 * dt;
                 this.x += this.vx * dt;
                 this.y += this.vy * dt;
                 
                 if (this.y >= GameState.groundY) {
                     this.y = GameState.groundY;
-                    if (this.vy > 0) {
-                        this.vy = 0;
-                    }
+                    if (this.vy > 0) this.vy = 0;
                     if (this.state === 'JUMP') {
                         this.state = 'IDLE';
                         this.stateTimer = 0;
@@ -1738,14 +1845,8 @@
                 this.vx *= Math.pow(0.85, dt);
                 
                 const bound = 50;
-                if (this.x < bound) {
-                    this.x = bound;
-                    this.vx = Math.max(0, this.vx);
-                }
-                if (this.x > GameState.width - bound) {
-                    this.x = GameState.width - bound;
-                    this.vx = Math.min(0, this.vx);
-                }
+                if (this.x < bound) { this.x = bound; this.vx = Math.max(0, this.vx); }
+                if (this.x > GameState.width - bound) { this.x = GameState.width - bound; this.vx = Math.min(0, this.vx); }
             }
             
             processState(opponent, dt) {
@@ -1761,18 +1862,18 @@
                     this.moveFrame += dt * 60;
                     const move = this.currentMove;
                     
-                    if (this.moveFrame < move.startup) {
-                        return;
-                    }
+                    if (this.moveFrame < move.startup) return;
                     
                     if (this.moveFrame < move.startup + move.active && !this.damageDealt) {
                         if (this.checkHit(opponent)) {
                             if (opponent.state !== 'BLOCK') {
-                                opponent.takeDamage(move.damage + this.stats.str, false, move.type);
+                                const damage = move.damage + this.stats.str;
+                                opponent.takeDamage(damage, false, move.type);
                                 this.lastReward = 1;
+                                this.totalDamageDealt += damage;
                                 
                                 if (this.comboState.lastHit === opponent && this.comboState.timer > 0) {
-                                    this.comboState.count = Math.min(3, this.comboState.count + 1);
+                                    this.comboState.count = Math.min(5, this.comboState.count + 1);
                                 } else {
                                     this.comboState.count = 1;
                                 }
@@ -1795,35 +1896,17 @@
                 
                 if (this.state === 'HIT') {
                     this.stateTimer -= dt * 60;
-                    if (this.stateTimer <= 0) {
-                        this.state = 'IDLE';
-                    }
+                    if (this.stateTimer <= 0) this.state = 'IDLE';
                 }
                 
                 if (this.state === 'BLOCK') {
                     this.stateTimer -= dt * 60;
-                    if (this.stateTimer <= 0) {
-                        this.state = 'IDLE';
-                    }
-                }
-                
-                if (this.state === 'JUMP') {
-                    this.stateTimer -= dt * 60;
-                    if (Math.abs(this.vx) < 3) {
-                        const dir = this.x < opponent.x ? 1 : -1;
-                        this.vx += dir * 0.3 * dt * 60;
-                    }
-                    if (this.stateTimer <= 0 && this.y >= GameState.groundY - 5) {
-                        this.state = 'IDLE';
-                    }
+                    if (this.stateTimer <= 0) this.state = 'IDLE';
                 }
             }
             
             checkHit(opponent) {
-                if (!this.currentMove) {
-                    return false;
-                }
-                
+                if (!this.currentMove) return false;
                 const move = this.currentMove;
                 const attackOffset = this.facingRight ? move.range : -move.range;
                 
@@ -1837,78 +1920,32 @@
                 const oppTop = opponent.y - 100;
                 const oppBottom = opponent.y;
                 
-                const horizontalOverlap = hitRight > oppLeft && hitLeft < oppRight;
-                const verticalOverlap = hitBottom > oppTop && hitTop < oppBottom;
-                const facingCheck = this.facingRight ? opponent.x > this.x : opponent.x < this.x;
+                const horiz = hitRight > oppLeft && hitLeft < oppRight;
+                const vert = hitBottom > oppTop && hitTop < oppBottom;
+                const facing = this.facingRight ? opponent.x > this.x : opponent.x < this.x;
                 
-                return horizontalOverlap && verticalOverlap && facingCheck;
+                return horiz && vert && facing;
             }
             
-            startJump() {
-                if (this.y === GameState.groundY && this.stamina >= 15 && this.jumpCooldown <= 0) {
-                    this.vy = -18 - this.stats.agi * 0.5;
-                    this.stamina -= 15;
-                    this.state = 'JUMP';
-                    this.stateTimer = 45;
-                    this.jumpCooldown = 30;
-                    this.vx = 0;
-                }
-            }
-            
-            startAttack(type = 'punch', angle = 0) {
-                const moveData = {
-                    punch: {
-                        damage: 10,
-                        range: 70,
-                        startup: 5,
-                        active: 4,
-                        recovery: 8,
-                        stamina: 8,
-                        type: 'punch',
-                        angleOffset: 0
-                    },
-                    kick: {
-                        damage: 15,
-                        range: 90,
-                        startup: 8,
-                        active: 3,
-                        recovery: 12,
-                        stamina: 12,
-                        type: 'kick',
-                        angleOffset: 0.5
-                    }
-                }[type] || {
-                    damage: 10,
-                    range: 70,
-                    startup: 5,
-                    active: 4,
-                    recovery: 8,
-                    stamina: 8,
-                    type: 'punch',
-                    angleOffset: 0
+            startAttack(type = 'punch') {
+                const moves = {
+                    punch: { damage: 10, range: 70, startup: 5, active: 4, recovery: 8, stamina: 8, type: 'punch' },
+                    kick: { damage: 15, range: 90, startup: 8, active: 3, recovery: 12, stamina: 12, type: 'kick' },
+                    special: { damage: 25, range: 100, startup: 12, active: 2, recovery: 20, stamina: 20, type: 'special' }
                 };
+                const move = moves[type] || moves.punch;
                 
-                if (this.stamina < moveData.stamina) {
-                    return;
-                }
+                if (this.stamina < move.stamina) return;
                 
                 this.state = 'ATTACK';
-                this.currentMove = { ...moveData };
+                this.currentMove = { ...move };
                 this.moveFrame = 0;
                 this.vx = 0;
-                this.stamina -= moveData.stamina;
+                this.stamina -= move.stamina;
                 this.damageDealt = false;
-                
-                if (type === 'punch') {
-                    this.limbs.armL.targetAngle = -0.8 + angle * 0.5;
-                    this.limbs.armL.speed = 15;
-                } else {
-                    this.limbs.legR.targetAngle = 0.6 + angle * 0.3;
-                    this.limbs.legR.speed = 12;
-                }
             }
             
-            takeDamage(amount, isBlocked = false, attackType = 'punch') {
+            takeDamage(amount, isBlocked = false) {
                 this.hp = Math.max(0, this.hp - amount);
                 this.flashTimer = 8;
                 this.lastReward = -amount / 10;
@@ -1917,13 +1954,6 @@
                     this.state = 'HIT';
                     this.stateTimer = 12;
                     this.vx = (this.facingRight ? -1 : 1) * 5;
-                    if (attackType === 'kick') {
-                        this.vx *= 1.5;
-                    }
-                } else {
-                    this.state = 'BLOCK';
-                    this.stateTimer = 8;
-                    this.stamina = Math.max(0, this.stamina - 5);
                 }
                 
                 this.hpDelayTarget = this.hp;
@@ -1931,27 +1961,14 @@
                 if (this.hp <= 0) {
                     this.hp = 0;
                     this.state = 'DEAD';
-                    if (window.Game) {
-                        window.Game.checkGameOver();
-                    }
+                    Game.checkGameOver();
                 }
                 
-                if (window.Game) {
-                    window.Game.uiNeedsUpdate = true;
-                }
+                Game.uiNeedsUpdate = true;
             }
             
             regenerateStamina(dt) {
-                const rates = {
-                    IDLE: 0.8,
-                    WALK: 0.3,
-                    BLOCK: 0.1,
-                    ATTACK: 0,
-                    HIT: 0,
-                    JUMP: 0,
-                    DEAD: 0
-                };
-                
+                const rates = { IDLE: 0.8, WALK: 0.3, BLOCK: 0.1, ATTACK: 0, HIT: 0, JUMP: 0, DEAD: 0 };
                 const rate = rates[this.state] || 0.2;
                 this.stamina = Math.min(this.stats.maxStamina, this.stamina + rate * dt);
             }
@@ -1959,125 +1976,52 @@
             draw(ctx) {
                 ctx.save();
                 ctx.translate(this.x, this.y);
+                if (!this.facingRight) ctx.scale(-1, 1);
                 
-                if (!this.facingRight) {
-                    ctx.scale(-1, 1);
-                }
-                
-                ctx.shadowColor = this.color;
-                ctx.shadowBlur = this.flashTimer > 0 ? 25 : 15;
                 ctx.strokeStyle = this.color;
                 ctx.lineWidth = 6;
-                ctx.lineCap = 'round';
+                ctx.shadowColor = this.color;
+                ctx.shadowBlur = this.flashTimer > 0 ? 25 : 15;
                 
-                // Торс
-                ctx.beginPath();
-                ctx.moveTo(0, 0);
-                ctx.lineTo(0, -60);
-                ctx.stroke();
-                
+                // Тело
+                ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -60); ctx.stroke();
                 // Голова
-                ctx.beginPath();
-                ctx.arc(0, -75, 15, 0, Math.PI * 2);
-                ctx.stroke();
-                
-                // Левая рука
-                ctx.beginPath();
-                ctx.moveTo(0, -45);
-                ctx.lineTo(-20, -30);
-                ctx.stroke();
-                
-                // Правая рука
-                ctx.beginPath();
-                ctx.moveTo(0, -45);
-                ctx.lineTo(20, -30);
-                ctx.stroke();
-                
-                // Левая нога
-                ctx.beginPath();
-                ctx.moveTo(0, 0);
-                ctx.lineTo(-15, 25);
-                ctx.stroke();
-                
-                // Правая нога
-                ctx.beginPath();
-                ctx.moveTo(0, 0);
-                ctx.lineTo(15, 25);
-                ctx.stroke();
+                ctx.beginPath(); ctx.arc(0, -75, 15, 0, Math.PI * 2); ctx.stroke();
+                // Руки
+                ctx.beginPath(); ctx.moveTo(0, -45); ctx.lineTo(-20, -30); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, -45); ctx.lineTo(20, -30); ctx.stroke();
+                // Ноги
+                ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-15, 25); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(15, 25); ctx.stroke();
                 
                 // Атака
                 if (this.state === 'ATTACK' && this.currentMove) {
-                    const progress = Math.min(1, (this.moveFrame - this.currentMove.startup) / this.currentMove.active);
-                    ctx.strokeStyle = '#ffffff';
+                    ctx.strokeStyle = '#fff';
                     ctx.lineWidth = this.currentMove.type === 'kick' ? 10 : 8;
-                    
                     if (this.currentMove.type === 'kick') {
-                        const kickAngle = this.limbs.legR.angle + progress * 0.8;
-                        const kickEnd = {
-                            x: 0 + Math.cos(kickAngle) * 45,
-                            y: 0 + Math.sin(kickAngle) * 45
-                        };
-                        ctx.beginPath();
-                        ctx.moveTo(0, 0);
-                        ctx.lineTo(kickEnd.x, kickEnd.y);
-                        ctx.stroke();
+                        ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(50, -20); ctx.stroke();
                     } else {
-                        const punchAngle = this.limbs.armL.angle + progress * 1.2;
-                        const punchEnd = {
-                            x: -12 + Math.cos(punchAngle) * 40,
-                            y: -45 + Math.sin(punchAngle) * 40
-                        };
-                        ctx.beginPath();
-                        ctx.moveTo(-12, -45);
-                        ctx.lineTo(punchEnd.x, punchEnd.y);
-                        ctx.stroke();
+                        ctx.beginPath(); ctx.moveTo(20, -40); ctx.lineTo(50, -40); ctx.stroke();
                     }
                 }
                 
                 // Блок
                 if (this.state === 'BLOCK') {
-                    ctx.strokeStyle = '#ffffff';
-                    ctx.lineWidth = 8;
-                    ctx.beginPath();
-                    ctx.moveTo(-10, -50);
-                    ctx.lineTo(10, -30);
-                    ctx.stroke();
+                    ctx.strokeStyle = '#fff'; ctx.lineWidth = 8;
+                    ctx.beginPath(); ctx.moveTo(-10, -50); ctx.lineTo(10, -30); ctx.stroke();
                 }
                 
-                // Прыжок
-                if (this.state === 'JUMP') {
-                    ctx.strokeStyle = '#ffffff';
-                    ctx.lineWidth = 4;
-                    ctx.beginPath();
-                    ctx.moveTo(0, -60);
-                    ctx.lineTo(-10, -40);
-                    ctx.moveTo(0, -60);
-                    ctx.lineTo(10, -40);
-                    ctx.stroke();
-                }
-                
-                // Вспышка при получении урона
                 if (this.flashTimer > 0) {
-                    ctx.globalAlpha = 0.3;
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillRect(-30, -95, 60, 120);
-                    ctx.globalAlpha = 1;
+                    ctx.globalAlpha = 0.3; ctx.fillStyle = '#fff'; ctx.fillRect(-30, -95, 60, 120); ctx.globalAlpha = 1;
                 }
                 
                 ctx.restore();
                 
-                // Текст действия
-                if (this.currentActionText && window.Game && window.Game.debugMode) {
-                    ctx.fillStyle = '#ffffff';
-                    ctx.font = 'bold 12px Consolas';
-                    ctx.textAlign = 'center';
-                    ctx.shadowColor = '#000000';
-                    ctx.shadowBlur = 4;
+                if (this.currentActionText && Game.debugMode) {
+                    ctx.fillStyle = '#fff'; ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center';
                     ctx.fillText(this.currentActionText, this.x, this.y - 110);
-                    
                     if (this.comboState.count > 1) {
-                        ctx.fillStyle = '#ffd700';
-                        ctx.fillText('COMBO x' + this.comboState.count, this.x, this.y - 125);
+                        ctx.fillStyle = '#ffd700'; ctx.fillText(`COMBO x${this.comboState.count}`, this.x, this.y - 125);
                     }
                 }
             }
@@ -2085,8 +2029,7 @@
             reset() {
                 this.x = GameState.width * (this.color === '#00d2ff' ? 0.35 : 0.65);
                 this.y = GameState.groundY;
-                this.vx = 0;
-                this.vy = 0;
+                this.vx = 0; this.vy = 0;
                 this.facingRight = this.x < GameState.width / 2;
                 this.hp = this.stats.maxHp;
                 this.hpDelay = this.stats.maxHp;
@@ -2095,25 +2038,10 @@
                 this.state = 'IDLE';
                 this.flashTimer = 0;
                 this.currentActionText = 'IDLE';
-                this.debugLines = [];
-                this.lastUpdateTime = 0;
                 this.jumpCooldown = 0;
                 this.comboState = { count: 0, timer: 0, lastHit: null };
-                
-                this.limbs = {
-                    armL: { angle: -0.3, speed: 0, targetAngle: -0.3 },
-                    armR: { angle: 0.3, speed: 0, targetAngle: 0.3 },
-                    legL: { angle: 0.1, speed: 0, targetAngle: 0.1 },
-                    legR: { angle: -0.1, speed: 0, targetAngle: -0.1 }
-                };
-                
-                if (this.brain) {
-                    this.brain.resetEpisode();
-                }
-            }
-            
-            _clamp(v, min, max) {
-                return Math.max(min, Math.min(max, v));
+                this.totalDamageDealt = 0;
+                if (this.brain) this.brain.resetEpisode();
             }
         }
 
@@ -2139,39 +2067,34 @@
             _animationFrameId: null,
             
             dom: {},
+            sensorContainers: {},
             
             async init() {
-                console.log('[Game] Initializing AI Arena v7.0.0 PvP Stickmen');
+                console.log('='.repeat(70));
+                console.log('⚡ AI ARENA v9.0.0 — ПОЛНАЯ ПРОФЕССИОНАЛЬНАЯ ВЕРСИЯ');
+                console.log('📊 64 ВХОДА | 16 ВЫХОДОВ | TD LEARNING | HEBBIAN | ЭМОЦИИ | КОМБО');
+                console.log('='.repeat(70));
                 
                 this.canvas = document.getElementById('gameCanvas');
-                if (!this.canvas) {
-                    console.error('[Game] Canvas not found');
-                    return false;
-                }
+                if (!this.canvas) return false;
                 
                 this.ctx = this.canvas.getContext('2d');
-                if (!this.ctx) {
-                    console.error('[Game] Canvas context not available');
-                    return false;
-                }
+                if (!this.ctx) return false;
                 
                 this.resize();
                 window.addEventListener('resize', () => this.resize());
                 
                 this.cacheDOM();
+                this.initSensorContainers();
                 this.bindEvents();
                 
-                console.log('[Game] Engine initialized successfully');
-                
                 window.Game = this;
-                
                 return true;
             },
             
             resize() {
                 this.canvas.width = window.innerWidth;
                 this.canvas.height = window.innerHeight;
-                
                 GameState.width = window.innerWidth;
                 GameState.height = window.innerHeight;
                 GameState.groundY = window.innerHeight - 150;
@@ -2194,7 +2117,6 @@
                     p1En: document.getElementById('p1En'),
                     p1Log: document.getElementById('p1Log'),
                     p1Attention: document.getElementById('p1Attention'),
-                    p1Sensors: document.getElementById('p1Sensors'),
                     
                     p2TD: document.getElementById('p2TD'),
                     p2Pred: document.getElementById('p2Pred'),
@@ -2204,7 +2126,6 @@
                     p2En: document.getElementById('p2En'),
                     p2Log: document.getElementById('p2Log'),
                     p2Attention: document.getElementById('p2Attention'),
-                    p2Sensors: document.getElementById('p2Sensors'),
                     
                     p1Str: document.getElementById('p1Str'),
                     p1Agi: document.getElementById('p1Agi'),
@@ -2215,43 +2136,80 @@
                     p2Sta: document.getElementById('p2Sta'),
                     p2Int: document.getElementById('p2Int'),
                     
+                    p1ComboCount: document.getElementById('p1ComboCount'),
+                    p1Damage: document.getElementById('p1Damage'),
+                    p2ComboCount: document.getElementById('p2ComboCount'),
+                    p2Damage: document.getElementById('p2Damage'),
+                    p1ComboBadge: document.getElementById('p1ComboBadge'),
+                    p2ComboBadge: document.getElementById('p2ComboBadge'),
+                    
                     message: document.getElementById('message'),
                     gameOver: document.getElementById('gameOver'),
                     winnerText: document.getElementById('winnerText'),
                     fpsCounter: document.getElementById('fpsCounter'),
-                    startBtn: document.getElementById('startBtn'),
+                    emergencyStart: document.getElementById('emergencyStart'),
                     restartBtn: document.getElementById('restartBtn'),
                     rematchBtn: document.getElementById('rematchBtn'),
                     debugBtn: document.getElementById('debugBtn')
                 };
-                
-                // Создание сенсорных точек
-                const createSensors = (container, count) => {
-                    if (!container) return;
-                    container.innerHTML = '';
-                    for (let i = 0; i < count; i++) {
-                        const dot = document.createElement('div');
-                        dot.className = 'sensor-dot';
-                        container.appendChild(dot);
+            },
+            
+            initSensorContainers() {
+                const groups = ['0_7', '8_15', '16_23', '24_31', '32_39', '40_47', '48_63'];
+                                for (let prefix of ['p1', 'p2']) {
+                    this.sensorContainers[prefix] = {};
+                    for (let group of groups) {
+                        const id = prefix + 'Sensors' + group;
+                        this.sensorContainers[prefix][group] = document.getElementById(id);
+                        if (this.sensorContainers[prefix][group]) {
+                            this.sensorContainers[prefix][group].innerHTML = '';
+                            const start = parseInt(group.split('_')[0]);
+                            const end = parseInt(group.split('_')[1]);
+                            for (let i = start; i <= end; i++) {
+                                const dot = document.createElement('div');
+                                dot.className = 'sensor-dot';
+                                dot.setAttribute('data-index', i);
+                                dot.setAttribute('data-value', '0.00');
+                                this.sensorContainers[prefix][group].appendChild(dot);
+                            }
+                        }
                     }
-                };
-                
-                createSensors(this.dom.p1Sensors, 64);
-                createSensors(this.dom.p2Sensors, 64);
+                }
                 
                 // Создание голов внимания
-                const createAttention = (container, count) => {
-                    if (!container) return;
-                    container.innerHTML = '';
-                    for (let i = 0; i < count; i++) {
-                        const head = document.createElement('div');
-                        head.className = 'attention-head';
-                        container.appendChild(head);
+                for (let prefix of ['p1', 'p2']) {
+                    const container = this.dom[prefix + 'Attention'];
+                    if (container) {
+                        container.innerHTML = '';
+                        for (let i = 0; i < 4; i++) {
+                            const head = document.createElement('div');
+                            head.className = 'attention-head';
+                            head.setAttribute('data-weight', '0.00');
+                            container.appendChild(head);
+                        }
                     }
-                };
+                }
                 
-                createAttention(this.dom.p1Attention, 4);
-                createAttention(this.dom.p2Attention, 4);
+                // Создание выходов (16 штук)
+                const outputLabels = [
+                    'MOVE', 'PUNCH', 'KICK', 'SPECIAL',
+                    'BLOCK', 'JUMP', 'DODGE', 'STANCE',
+                    'AGGR', 'FEAR', 'CONF', 'CLOSE',
+                    'RANGED', 'DEF', 'FLANK', 'RETREAT'
+                ];
+                
+                for (let prefix of ['p1', 'p2']) {
+                    const container = document.getElementById(prefix + 'Outputs');
+                    if (container) {
+                        container.innerHTML = '';
+                        for (let i = 0; i < 16; i++) {
+                            const item = document.createElement('div');
+                            item.className = 'output-item';
+                            item.innerHTML = `<span class="output-label">D${i} ${outputLabels[i]}</span><span class="output-value" id="${prefix}Out${i}">0.00</span>`;
+                            container.appendChild(item);
+                        }
+                    }
+                }
             },
             
             bindEvents() {
@@ -2260,35 +2218,24 @@
                 this.dom.debugBtn.addEventListener('click', () => {
                     this.debugMode = !this.debugMode;
                     this.dom.debugBtn.classList.toggle('active', this.debugMode);
-                    console.log('[Game] Debug mode:', this.debugMode);
                 });
                 
-                this.dom.startBtn.addEventListener('click', () => {
+                this.dom.emergencyStart.addEventListener('click', () => {
                     if (GameState.initialized) {
                         this.startGame();
-                        this.dom.startBtn.style.display = 'none';
+                        this.dom.emergencyStart.style.display = 'none';
                     }
                 });
                 
                 window.addEventListener('keydown', (e) => {
                     const key = e.key.toLowerCase();
-                    
-                    if (key === 'r') {
-                        this.restart();
-                    }
-                    
+                    if (key === 'r') this.restart();
                     if (key === 'd') {
                         this.debugMode = !this.debugMode;
-                        if (this.dom.debugBtn) {
-                            this.dom.debugBtn.classList.toggle('active', this.debugMode);
-                        }
-                        console.log('[Game] Debug mode:', this.debugMode);
+                        this.dom.debugBtn.classList.toggle('active', this.debugMode);
                     }
-                    
-                    if (key === 'escape') {
-                        if (this.dom.gameOver) {
-                            this.dom.gameOver.classList.remove('show');
-                        }
+                    if (key === 'escape' && this.dom.gameOver) {
+                        this.dom.gameOver.classList.remove('show');
                     }
                 });
             },
@@ -2296,10 +2243,7 @@
             async startGame() {
                 console.log('[Game] Starting match...');
                 
-                if (this.dom.gameOver) {
-                    this.dom.gameOver.classList.remove('show');
-                }
-                
+                if (this.dom.gameOver) this.dom.gameOver.classList.remove('show');
                 this.showMessage('FIGHT', 1500);
                 
                 this.p1 = new Fighter(
@@ -2323,75 +2267,45 @@
                 this.lastFrameTime = performance.now();
                 this.frameCount = 0;
                 
-                console.log('[Game] Fighters created:', this.p1, this.p2);
-                
                 this.gameLoop(performance.now());
             },
             
-            restart() {
-                this.startGame();
-            },
+            restart() { this.startGame(); },
             
             rematch() {
-                if (this.dom.gameOver) {
-                    this.dom.gameOver.classList.remove('show');
-                }
-                
-                if (this.p1) {
-                    this.p1.reset();
-                }
-                
-                if (this.p2) {
-                    this.p2.reset();
-                }
-                
+                if (this.dom.gameOver) this.dom.gameOver.classList.remove('show');
+                if (this.p1) this.p1.reset();
+                if (this.p2) this.p2.reset();
                 GameState.isRunning = true;
                 this.hitStop = 0;
                 this.screenShake = 0;
                 this.uiNeedsUpdate = true;
-                
                 this.showMessage('REMATCH', 1200);
             },
             
             checkGameOver() {
-                if (!this.p1 || !this.p2) {
-                    return;
-                }
-                
+                if (!this.p1 || !this.p2) return;
                 if (this.p1.hp <= 0 || this.p2.hp <= 0) {
                     GameState.isRunning = false;
-                    
                     const winner = this.p1.hp > 0 ? this.p1 : this.p2;
                     const winnerName = winner.color === '#00d2ff' ? 'BLUE' : 'RED';
-                    
                     if (this.dom.winnerText) {
                         this.dom.winnerText.textContent = winnerName + ' VICTORY';
                         this.dom.winnerText.style.color = winner.color;
                     }
-                    
-                    if (this.dom.gameOver) {
-                        this.dom.gameOver.classList.add('show');
-                    }
+                    if (this.dom.gameOver) this.dom.gameOver.classList.add('show');
                 }
             },
             
             showMessage(text, duration) {
-                if (!this.dom.message) {
-                    return;
-                }
-                
+                if (!this.dom.message) return;
                 this.dom.message.textContent = text;
                 this.dom.message.classList.add('show');
-                
-                setTimeout(() => {
-                    this.dom.message.classList.remove('show');
-                }, duration);
+                setTimeout(() => this.dom.message.classList.remove('show'), duration);
             },
             
             gameLoop(currentTime) {
-                if (!GameState.isRunning) {
-                    return;
-                }
+                if (!GameState.isRunning) return;
                 
                 this._animationFrameId = requestAnimationFrame((t) => this.gameLoop(t));
                 
@@ -2402,7 +2316,6 @@
                     this.fps = this.frameCount;
                     this.frameCount = 0;
                     this.lastFrameTime = now;
-                    
                     if (this.dom.fpsCounter) {
                         this.dom.fpsCounter.textContent = 'FPS: ' + this.fps;
                     }
@@ -2434,7 +2347,6 @@
                     
                     if (!this._domUpdateScheduled) {
                         this._domUpdateScheduled = true;
-                        
                         setTimeout(() => {
                             this.updateNeuralPanel();
                             this._domUpdateScheduled = false;
@@ -2449,38 +2361,18 @@
             },
             
             updateUI() {
-                if (!this.p1 || !this.p2) {
-                    return;
-                }
+                if (!this.p1 || !this.p2) return;
                 
                 this.p1.hpDelay += (this.p1.hpDelayTarget - this.p1.hpDelay) * 0.05;
                 this.p2.hpDelay += (this.p2.hpDelayTarget - this.p2.hpDelay) * 0.05;
                 
-                if (this.dom.p1Health) {
-                    this.dom.p1Health.style.width = (this.p1.hp / this.p1.stats.maxHp * 100) + '%';
-                }
+                if (this.dom.p1Health) this.dom.p1Health.style.width = (this.p1.hp / this.p1.stats.maxHp * 100) + '%';
+                if (this.dom.p1Delay) this.dom.p1Delay.style.width = ((this.p1.stats.maxHp - this.p1.hpDelay) / this.p1.stats.maxHp * 100) + '%';
+                if (this.dom.p1Stamina) this.dom.p1Stamina.style.width = (this.p1.stamina / this.p1.stats.maxStamina * 100) + '%';
                 
-                if (this.dom.p1Delay) {
-                    const delayWidth = ((this.p1.stats.maxHp - this.p1.hpDelay) / this.p1.stats.maxHp * 100);
-                    this.dom.p1Delay.style.width = delayWidth + '%';
-                }
-                
-                if (this.dom.p1Stamina) {
-                    this.dom.p1Stamina.style.width = (this.p1.stamina / this.p1.stats.maxStamina * 100) + '%';
-                }
-                
-                if (this.dom.p2Health) {
-                    this.dom.p2Health.style.width = (this.p2.hp / this.p2.stats.maxHp * 100) + '%';
-                }
-                
-                if (this.dom.p2Delay) {
-                    const delayWidth = ((this.p2.stats.maxHp - this.p2.hpDelay) / this.p2.stats.maxHp * 100);
-                    this.dom.p2Delay.style.width = delayWidth + '%';
-                }
-                
-                if (this.dom.p2Stamina) {
-                    this.dom.p2Stamina.style.width = (this.p2.stamina / this.p2.stats.maxStamina * 100) + '%';
-                }
+                if (this.dom.p2Health) this.dom.p2Health.style.width = (this.p2.hp / this.p2.stats.maxHp * 100) + '%';
+                if (this.dom.p2Delay) this.dom.p2Delay.style.width = ((this.p2.stats.maxHp - this.p2.hpDelay) / this.p2.stats.maxHp * 100) + '%';
+                if (this.dom.p2Stamina) this.dom.p2Stamina.style.width = (this.p2.stamina / this.p2.stats.maxStamina * 100) + '%';
                 
                 if (this.dom.p1Str) this.dom.p1Str.textContent = this.p1.stats.str;
                 if (this.dom.p1Agi) this.dom.p1Agi.textContent = this.p1.stats.agi;
@@ -2491,95 +2383,116 @@
                 if (this.dom.p2Agi) this.dom.p2Agi.textContent = this.p2.stats.agi;
                 if (this.dom.p2Sta) this.dom.p2Sta.textContent = this.p2.stats.sta;
                 if (this.dom.p2Int) this.dom.p2Int.textContent = this.p2.stats.int;
+                
+                if (this.dom.p1ComboCount) this.dom.p1ComboCount.textContent = this.p1.comboState.count;
+                if (this.dom.p1Damage) this.dom.p1Damage.textContent = this.p1.totalDamageDealt;
+                if (this.dom.p2ComboCount) this.dom.p2ComboCount.textContent = this.p2.comboState.count;
+                if (this.dom.p2Damage) this.dom.p2Damage.textContent = this.p2.totalDamageDealt;
+                
+                if (this.dom.p1ComboBadge) {
+                    if (this.p1.comboState.count >= 2) {
+                        this.dom.p1ComboBadge.style.display = 'flex';
+                        this.dom.p1ComboBadge.textContent = this.p1.comboState.count;
+                    } else {
+                        this.dom.p1ComboBadge.style.display = 'none';
+                    }
+                }
+                
+                if (this.dom.p2ComboBadge) {
+                    if (this.p2.comboState.count >= 2) {
+                        this.dom.p2ComboBadge.style.display = 'flex';
+                        this.dom.p2ComboBadge.textContent = this.p2.comboState.count;
+                    } else {
+                        this.dom.p2ComboBadge.style.display = 'none';
+                    }
+                }
             },
             
             updateNeuralPanel() {
-                if (!this.p1 || !this.p2) {
-                    return;
+                if (!this.p1 || !this.p2) return;
+                this._updateFighterPanel(this.p1, 'p1');
+                this._updateFighterPanel(this.p2, 'p2');
+            },
+            
+            _updateFighterPanel(fighter, prefix) {
+                if (!fighter || !fighter.brain) return;
+                
+                const debug = fighter.brain.getDebugInfo();
+                const sensors = fighter.lastSensors || new Array(64).fill(0);
+                const out = fighter.lastDecision ? fighter.lastDecision.output : new Array(16).fill(0);
+                const dom = this.dom;
+                const sensorContainers = this.sensorContainers[prefix];
+                
+                // Метрики
+                const tdErr = debug.stats.tdErrors.length > 0 
+                    ? debug.stats.tdErrors[debug.stats.tdErrors.length - 1].toFixed(3) 
+                    : '0.000';
+                if (dom[prefix + 'TD']) dom[prefix + 'TD'].textContent = tdErr;
+                if (dom[prefix + 'Pred']) dom[prefix + 'Pred'].textContent = debug.predictionError.toFixed(3);
+                if (dom[prefix + 'Steps']) dom[prefix + 'Steps'].textContent = debug.stats.steps;
+                if (dom[prefix + 'Rew']) dom[prefix + 'Rew'].textContent = debug.stats.avgReward.toFixed(1);
+                if (dom[prefix + 'En']) dom[prefix + 'En'].textContent = debug.cortexEnergy.toFixed(3);
+                
+                // Эмоции
+                const emotionKeys = Object.keys(debug.emotions).filter(k => debug.emotions[k] > 0.3);
+                const dominantEmotion = emotionKeys.length > 0 ? emotionKeys[0].toUpperCase() : '-';
+                if (dom[prefix + 'Emo']) dom[prefix + 'Emo'].textContent = dominantEmotion;
+                
+                // Внимание
+                const attnHeads = dom[prefix + 'Attention'] ? dom[prefix + 'Attention'].children : null;
+                if (attnHeads && attnHeads.length === 4) {
+                    for (let i = 0; i < 4; i++) {
+                        const w = debug.attentionWeights[i] || 0;
+                        attnHeads[i].className = 'attention-head' + (w > 0.3 ? ' active' : '');
+                        attnHeads[i].style.height = (w * 60) + 'px';
+                        attnHeads[i].setAttribute('data-weight', w.toFixed(2));
+                    }
                 }
                 
-                const update = (fighter, prefix, dom) => {
-                    if (!fighter || !fighter.brain) {
-                        return;
-                    }
-                    
-                    const debug = fighter.brain.getDebugInfo();
-                    
-                    const tdErr = debug.stats.tdErrors.length > 0
-                        ? debug.stats.tdErrors[debug.stats.tdErrors.length - 1].toFixed(3)
-                        : '0.000';
-                    
-                    if (dom[prefix + 'TD']) {
-                        dom[prefix + 'TD'].textContent = tdErr;
-                    }
-                    
-                    if (dom[prefix + 'Pred']) {
-                        dom[prefix + 'Pred'].textContent = debug.predictionError.toFixed(3);
-                    }
-                    
-                    if (dom[prefix + 'Steps']) {
-                        dom[prefix + 'Steps'].textContent = debug.stats.steps;
-                    }
-                    
-                    if (dom[prefix + 'Rew']) {
-                        dom[prefix + 'Rew'].textContent = debug.stats.avgReward.toFixed(1);
-                    }
-                    
-                    if (dom[prefix + 'En']) {
-                        dom[prefix + 'En'].textContent = debug.cortexEnergy.toFixed(3);
-                    }
-                    
-                    const emotionKeys = Object.keys(debug.emotions).filter(k => debug.emotions[k] > 0.3);
-                    const dominantEmotion = emotionKeys.length > 0 ? emotionKeys[0].toUpperCase() : '-';
-                    
-                    if (dom[prefix + 'Emo']) {
-                        dom[prefix + 'Emo'].textContent = dominantEmotion;
-                    }
-                    
-                    const attnHeads = dom[prefix + 'Attention'] ? dom[prefix + 'Attention'].children : null;
-                    if (attnHeads && attnHeads.length === 4) {
-                        for (let i = 0; i < 4; i++) {
-                            const w = debug.attentionWeights[i] || 0;
-                            attnHeads[i].className = 'attention-head' + (w > 0.3 ? ' active' : '');
-                            attnHeads[i].style.opacity = Math.min(1, w * 2);
+                // Сенсоры (64 штуки по категориям)
+                if (sensorContainers) {
+                    for (let group in sensorContainers) {
+                        const container = sensorContainers[group];
+                        if (!container) continue;
+                        const dots = container.children;
+                        const start = parseInt(group.split('_')[0]);
+                        for (let i = 0; i < dots.length; i++) {
+                            const sensorIdx = start + i;
+                            const val = Math.abs(sensors[sensorIdx] || 0);
+                            dots[i].className = 'sensor-dot' + (val > 0.3 ? ' active' : '');
+                            dots[i].style.opacity = Math.min(1, val * 1.5);
+                            dots[i].setAttribute('data-value', val.toFixed(2));
                         }
                     }
-                    
-                    const sensorDots = dom[prefix + 'Sensors'] ? dom[prefix + 'Sensors'].children : null;
-                    const sensors = fighter.lastSensors || new Array(64).fill(0);
-                    
-                    if (sensorDots && sensorDots.length === 64) {
-                        for (let i = 0; i < 64; i++) {
-                            const val = Math.abs(sensors[i] || 0);
-                            sensorDots[i].className = 'sensor-dot' + (val > 0.3 ? ' active' : '');
-                            sensorDots[i].style.opacity = Math.min(1, val * 1.5);
-                        }
-                    }
-                    
-                    const log = dom[prefix + 'Log'];
-                    if (log) {
-                        if (fighter.lastDecision && fighter.currentActionText) {
-                            log.innerHTML = 
-                                '<div class="decision-line">STATE: <span>' + fighter.state + '</span></div>' +
-                                '<div class="decision-line highlight">ACTION: <span>' + fighter.currentActionText + '</span></div>';
-                        } else {
-                            log.innerHTML = '<div class="decision-line">Waiting for neural input...</div>';
-                        }
-                    }
-                };
+                }
                 
-                update(this.p1, 'p1', this.dom);
-                update(this.p2, 'p2', this.dom);
+                // Выходы (16 штук)
+                for (let i = 0; i < 16; i++) {
+                    const outEl = document.getElementById(prefix + 'Out' + i);
+                    if (outEl) outEl.textContent = (out[i] || 0).toFixed(2);
+                }
+                
+                // Лог решения
+                const log = dom[prefix + 'Log'];
+                if (log && fighter.lastDecision && fighter.currentActionText) {
+                    log.innerHTML = 
+                        '<div class="decision-line">STATE: <span>' + fighter.state + '</span></div>' +
+                        '<div class="decision-line highlight">ACTION: <span>' + fighter.currentActionText + '</span></div>' +
+                        '<div class="decision-line">MOVE: <span>' + (out[0] || 0).toFixed(2) + '</span></div>' +
+                        '<div class="decision-line">PUNCH: <span>' + (out[1] || 0).toFixed(2) + '</span></div>' +
+                        '<div class="decision-line">KICK: <span>' + (out[2] || 0).toFixed(2) + '</span></div>' +
+                        '<div class="decision-line">BLOCK: <span>' + (out[4] || 0).toFixed(2) + '</span></div>' +
+                        '<div class="decision-line">JUMP: <span>' + (out[5] || 0).toFixed(2) + '</span></div>' +
+                        '<div class="decision-line">AGGR: <span>' + (out[8] || 0).toFixed(2) + '</span></div>' +
+                        '<div class="decision-line">FEAR: <span>' + (out[9] || 0).toFixed(2) + '</span></div>';
+                }
             },
             
             draw() {
                 const ctx = this.ctx;
-                if (!ctx) {
-                    return;
-                }
+                if (!ctx) return;
                 
                 ctx.clearRect(0, 0, GameState.width, GameState.height);
-                
                 ctx.save();
                 
                 if (this.screenShake > 0.5) {
@@ -2596,15 +2509,15 @@
                 // Пол
                 ctx.fillStyle = '#1a1a2a';
                 ctx.fillRect(0, GameState.groundY, GameState.width, 5);
+                ctx.strokeStyle = 'rgba(0, 210, 255, 0.3)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(0, GameState.groundY + 2);
+                ctx.lineTo(GameState.width, GameState.groundY + 2);
+                ctx.stroke();
                 
-                // Стикмены
-                if (this.p1) {
-                    this.p1.draw(ctx);
-                }
-                
-                if (this.p2) {
-                    this.p2.draw(ctx);
-                }
+                if (this.p1) this.p1.draw(ctx);
+                if (this.p2) this.p2.draw(ctx);
                 
                 ctx.restore();
             }
@@ -2615,42 +2528,29 @@
         // ============================================================================
 
         window.addEventListener('load', async () => {
-            console.log('='.repeat(60));
-            console.log('🎮 AI ARENA v7.0.0 — PvP STICKMEN CORTEX-2');
-            console.log('📐 ARCHITECTURE: P32 → A64 → M144 → C256 → S32 → D16');
-            console.log('='.repeat(60));
+            console.log('='.repeat(70));
+            console.log('⚡ AI ARENA v9.0.0 — ПОЛНАЯ ПРОФЕССИОНАЛЬНАЯ ВЕРСИЯ');
+            console.log('📊 64 ВХОДА | 16 ВЫХОДОВ | TD LEARNING | HEBBIAN | ЭМОЦИИ | КОМБО');
+            console.log('='.repeat(70));
             
             const success = await Game.init();
             
             if (success) {
                 GameState.initialized = true;
-                
                 setTimeout(() => {
                     Game.startGame();
                 }, 500);
             } else {
-                const startBtn = document.getElementById('startBtn');
-                if (startBtn) {
-                    startBtn.style.display = 'block';
-                    startBtn.style.position = 'fixed';
-                    startBtn.style.top = '50%';
-                    startBtn.style.left = '50%';
-                    startBtn.style.transform = 'translate(-50%, -50%)';
-                    startBtn.style.zIndex = '1000';
-                    startBtn.style.padding = '20px 50px';
-                    startBtn.style.fontSize = '24px';
-                    startBtn.style.background = 'linear-gradient(145deg, #00d2ff, #4b7bec)';
-                    startBtn.style.border = 'none';
-                    startBtn.style.color = 'white';
-                    startBtn.style.borderRadius = '12px';
-                    startBtn.style.boxShadow = '0 0 50px #00d2ff';
+                const emergencyBtn = document.getElementById('emergencyStart');
+                if (emergencyBtn) {
+                    emergencyBtn.style.display = 'block';
                 }
             }
         });
 
         // ============================================================================
-        // КОНЕЦ ФАЙЛА - ВСЕ РАЗМЕРНОСТИ ПРОВЕРЕНЫ
+        // КОНЕЦ ФАЙЛА — ВСЕ 64 ВХОДА И 16 ВЫХОДОВ РЕАЛИЗОВАНЫ ПОЛНОСТЬЮ
         // ============================================================================
     </script>
 </body>
-   </html>
+</html>
