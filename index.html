@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self'; font-src 'self';">
-    <meta name="description" content="AI Fighter v6.2.0 — CORTEX-2 v2.4 | СТАБИЛЬНАЯ ВЕРСИЯ (исправлено накопление ошибки)">
+    <meta name="description" content="AI Fighter v6.1.0 — CORTEX-2 v2.3 | ИСПРАВЛЕНО: память, гейты, сенсоры">
     <meta name="theme-color" content="#0a0a15">
     <meta name="robots" content="noindex">
-    <title>🎮 AI FIGHTER v6.2.0 | CORTEX-2 v2.4 STABLE</title>
+    <title>🎮 AI FIGHTER v6.1.0 | CORTEX-2 v2.3 FIXED</title>
     <style>
         :root {
             --bg: #0a0a15; --bg-gradient-start: #0a0a15; --bg-gradient-end: #1a1a2e;
@@ -142,7 +142,7 @@
 <a href="#gameCanvas" class="skip-link">Перейти к симуляции</a>
 <div class="container">
     <header class="header">
-        <h1>🎮 AI FIGHTER <span class="version-badge">v6.2.0 | CORTEX-2 v2.4 STABLE</span></h1>
+        <h1>🎮 AI FIGHTER <span class="version-badge">v6.1.0 | CORTEX-2 v2.3 FIXED</span></h1>
         <div class="fps-counter" id="fpsCounter">FPS: 0</div>
     </header>
     <canvas id="gameCanvas"></canvas>
@@ -163,7 +163,7 @@
             </div>
         </section>
         <section class="panel">
-            <h2 class="panel-title">🧠 CORTEX-2 v2.4 ПАРАМЕТРЫ</h2>
+            <h2 class="panel-title">🧠 CORTEX-2 v2.3 ПАРАМЕТРЫ</h2>
             <div class="control-group">
                 <label class="control-label"><span>Learning Rate (α)</span><span id="lrValue">0.015</span></label>
                 <input type="range" id="learningRate" min="0.001" max="0.05" step="0.001" value="0.015">
@@ -325,7 +325,7 @@
 'use strict';
 
 // ============================================================================
-// SECTION 1 — CONFIG & CONSTANTS (v2.4 — СТАБИЛЬНАЯ ВЕРСИЯ)
+// SECTION 1 — CONFIG & CONSTANTS (v2.3 — ПОЛНОСТЬЮ ИСПРАВЛЕНО)
 // ============================================================================
 const CONFIG = Object.freeze({
     CORTEX: Object.freeze({
@@ -335,12 +335,10 @@ const CONFIG = Object.freeze({
         M_PERM_START: 48, M_PERM_END: 96,
         M_PRED_START: 96, M_PRED_END: 144,
         M_WORK: 48, M_PERM: 48, M_PRED: 48,
-        C_STATE_OFFSET: 224,
-        C_PRED_OFFSET: 192,
-        C_ATTENTION_OFFSET: 0,
-        // FIX: Минимальные значения для защиты от денормализации
-        EPSILON: 1e-6,
-        MAX_PRED_ERROR: 0.95
+        // FIX-1.3: Добавлены константы для смещений в C
+        C_STATE_OFFSET: 224,      // последние 32 для состояния
+        C_PRED_OFFSET: 192,       // 64 для предсказания
+        C_ATTENTION_OFFSET: 0     // первые 192 для внимания
     }),
     OUTPUT: Object.freeze({
         MOVE_LEFT: 0, MOVE_RIGHT: 1, JUMP: 2, CROUCH: 3,
@@ -390,122 +388,58 @@ const CONFIG = Object.freeze({
         BOUNDARY_LEFT: 50, BOUNDARY_RIGHT: 950,
         WALL_COUNT: 8, WALL_RADIUS: 14, WALL_MIN_DIST: 100
     }),
-    seed: 'FIGHTER_V620_' + Date.now(),
-    version: '6.2.0-CORTEX2-v2.4-STABLE'
+    seed: 'FIGHTER_V610_' + Date.now(),
+    version: '6.1.0-CORTEX2-v2.3-FIXED'
 });
 
 // ============================================================================
-// SECTION 2 — deriveArchSizes
+// SECTION 2 — deriveArchSizes (ЕДИНСТВЕННЫЙ ИСТОЧНИК РАЗМЕРОВ)
 // ============================================================================
 function deriveArchSizes(DIM) {
     return Object.freeze({
-        P_INPUT:      DIM.DIM_SENSOR + DIM.DIM_C + DIM.DIM_S + DIM.M_PERM,
-        A_INPUT:      DIM.DIM_P + DIM.M_WORK + 64 + DIM.DIM_D,
-        M_WORK_INPUT: DIM.DIM_P + DIM.DIM_A + 64,
-        M_PERM_INPUT: DIM.DIM_C + DIM.M_PERM,
-        M_PRED_INPUT: DIM.DIM_A + 64 + DIM.M_WORK + DIM.DIM_D,
-        C_INPUT:      DIM.DIM_P + DIM.DIM_A + DIM.DIM_M + DIM.DIM_S + DIM.DIM_D + 1,
-        S_INPUT:      DIM.DIM_P + DIM.M_PERM + 32 + DIM.DIM_D,
-        D_INPUT:      DIM.DIM_C + DIM.DIM_S + DIM.M_PRED,
+        P_INPUT:      DIM.DIM_SENSOR + DIM.DIM_C + DIM.DIM_S + DIM.M_PERM,   // 64+256+32+48=400
+        A_INPUT:      DIM.DIM_P + DIM.M_WORK + 64 + DIM.DIM_D,                // 32+48+64+16=160
+        M_WORK_INPUT: DIM.DIM_P + DIM.DIM_A + 64,                             // 32+64+64=160
+        M_PERM_INPUT: DIM.DIM_C + DIM.M_PERM,                                  // 256+48=304
+        M_PRED_INPUT: DIM.DIM_A + 64 + DIM.M_WORK + DIM.DIM_D,                // 64+64+48+16=192
+        C_INPUT:      DIM.DIM_P + DIM.DIM_A + DIM.DIM_M + DIM.DIM_S + DIM.DIM_D + 1, // 289
+        S_INPUT:      DIM.DIM_P + DIM.M_PERM + 32 + DIM.DIM_D,                // 32+48+32+16=128
+        D_INPUT:      DIM.DIM_C + DIM.DIM_S + DIM.M_PRED,                     // 256+32+48=336
         C_PRED_OFFSET: 192,
         C_STATE_OFFSET: 224,
-        NUM_GATES: 48,
+        NUM_GATES: 48,          // FIX-1.1: 48 гейтов для 48 элементов памяти
         GATE_DIM: 32
     });
 }
 
 // ============================================================================
-// SECTION 3 — UTILS (С ЗАЩИТОЙ ОТ ДЕНОРМАЛИЗАЦИИ)
+// SECTION 3 — UTILS (БЕЗОПАСНАЯ МАТЕМАТИКА)
 // ============================================================================
 const Utils = Object.freeze({
-    EPS: 1e-6,
-    
     clamp: (v, min, max) => Math.max(min, Math.min(max, v)),
-    
-    lerp: (a, b, t) => {
-        const aa = Utils.safeFinite(a);
-        const bb = Utils.safeFinite(b);
-        const tt = Utils.clamp(Utils.safeFinite(t), 0, 1);
-        return aa + (bb - aa) * tt;
-    },
-    
+    lerp: (a, b, t) => a + (b - a) * Math.max(0, Math.min(1, t)),
     dist: (a, b) => Math.hypot((a?.x??0)-(b?.x??0), (a?.y??0)-(b?.y??0)),
-    
-    normalize: (x, y) => {
-        const l = Math.hypot(x,y);
-        return l > Utils.EPS ? {x:x/l, y:y/l} : {x:0, y:0};
-    },
-    
-    safeFinite: (v, fallback = 0) => {
-        return (typeof v === 'number' && isFinite(v)) ? v : fallback;
-    },
-    
-    safePositive: (v, fallback = Utils.EPS) => {
-        if (typeof v !== 'number' || !isFinite(v)) return fallback;
-        return v < Utils.EPS ? Utils.EPS : v;
-    },
-    
-    tanh: (x) => {
-        const xx = Utils.safeFinite(x);
-        if (Math.abs(xx) < Utils.EPS) return 0;
-        if (xx > 20) return 1;
-        if (xx < -20) return -1;
-        try {
-            const e = Math.exp(2 * xx);
-            if (!isFinite(e)) return xx > 0 ? 1 : -1;
-            return (e - 1) / (e + 1);
-        } catch (e) {
-            return 0;
-        }
-    },
-    
-    sigmoid: (x) => {
-        const xx = Utils.safeFinite(x);
-        if (xx > 20) return 1;
-        if (xx < -20) return 0;
-        return 1 / (1 + Math.exp(-xx));
-    },
-    
-    leakyRelu: (x, a=0.01) => {
-        const xx = Utils.safeFinite(x);
-        return xx > 0 ? xx : a * xx;
-    },
-    
-    normalizeAngle: (a) => {
-        let aa = Utils.safeFinite(a);
-        while (aa > Math.PI) aa -= Math.PI * 2;
-        while (aa < -Math.PI) aa += Math.PI * 2;
-        return aa;
-    },
-    
-    rand: (min, max) => Math.random() * (max - min) + min,
-    randInt: (min, max) => Math.floor(Math.random() * (max - min + 1)) + min,
-    
-    argmax: (arr) => {
-        if (!arr || !arr.length) return -1;
-        let mi = 0;
-        for (let i=1; i<arr.length; i++) {
-            if (Utils.safeFinite(arr[i]) > Utils.safeFinite(arr[mi])) mi = i;
-        }
-        return mi;
-    },
+    normalize: (x, y) => { const l = Math.hypot(x,y); return l>1e-10 ? {x:x/l,y:y/l} : {x:0,y:0}; },
+    tanh: (x) => { if(x>20) return 1; if(x<-20) return -1; const e=Math.exp(2*x); return (e-1)/(e+1); },
+    sigmoid: (x) => { if(x>20) return 1; if(x<-20) return 0; return 1/(1+Math.exp(-x)); },
+    leakyRelu: (x, a=0.01) => x>0 ? x : a*x,
+    safeNumber: (v, fb=0) => (typeof v==='number' && isFinite(v)) ? v : fb,
+    normalizeAngle: (a) => { while(a>Math.PI) a-=Math.PI*2; while(a<-Math.PI) a+=Math.PI*2; return a; },
+    rand: (min,max) => Math.random()*(max-min)+min,
+    randInt: (min,max) => Math.floor(Math.random()*(max-min+1))+min,
+    argmax: (arr) => { if(!arr||!arr.length) return -1; let mi=0; for(let i=1;i<arr.length;i++) if(arr[i]>arr[mi]) mi=i; return mi; },
     
     softmax: (arr, temp=1) => {
         if (!arr || arr.length === 0) return [];
-        const a = arr.map(v => Utils.safeFinite(v));
+        const a = Array.from(arr);
         const max = a.reduce((m, v) => v > m ? v : m, -Infinity);
-        const exps = a.map(v => Math.exp(Math.min((v - max) / Math.max(temp, Utils.EPS), 700)));
-        const sum = exps.reduce((s, x) => s + x, 0) || Utils.EPS;
+        const exps = a.map(v => Math.exp(Math.min((v - max) / temp, 700)));
+        const sum = exps.reduce((s, x) => s + x, 0) || 1e-10;
         return exps.map(e => e / sum);
     },
 
-    tdError: (reward, value, nextValue, gamma=0.99) => {
-        const r = Utils.safeFinite(reward, 0);
-        const v = Utils.safeFinite(value, 0);
-        const nv = Utils.safeFinite(nextValue, 0);
-        const g = Utils.clamp(Utils.safeFinite(gamma), 0.9, 0.999);
-        return r + g * nv - v;
-    },
+    tdError: (reward, value, nextValue, gamma=0.99) =>
+        Utils.safeNumber(reward,0) + gamma*Utils.safeNumber(nextValue,0) - Utils.safeNumber(value,0),
 
     deepClone: (obj) => {
         if (obj === null || typeof obj !== 'object') return obj;
@@ -518,47 +452,33 @@ const Utils = Object.freeze({
         let h = String(seed||'default').split('').reduce((a,c,idx) =>
             ((a*31+c.charCodeAt(0))^(idx*17+i*7919+j*104729))%2147483647,
             String(seed||'default').length) || 12345;
-        h = (h*2654435761)>>>0;
-        return h / 4294967296;
+        h = (h*2654435761)>>>0; return h/4294967296;
     },
 
     matrixMultiply: (vec, mat, activation='tanh') => {
-        if (!vec?.length || !mat?.length || !mat[0]?.length) return new Float32Array(0);
+        if (!vec?.length||!mat?.length||!mat[0]?.length) return new Float32Array(0);
         const out = new Float32Array(mat[0].length);
-        for (let i=0; i<mat[0].length; i++) {
-            let s = 0;
-            for (let j=0; j<vec.length; j++) {
-                s += Utils.safeFinite(vec[j], 0) * Utils.safeFinite(mat[j]?.[i], 0);
-            }
-            switch(activation) {
-                case 'tanh': out[i] = Utils.tanh(s); break;
-                case 'relu': out[i] = Utils.leakyRelu(s); break;
-                default: out[i] = s;
-            }
+        for (let i=0;i<mat[0].length; i++) {
+            let s=0; for(let j=0;j<vec.length;j++) s+=Utils.safeNumber(vec[j],0)*Utils.safeNumber(mat[j]?.[i],0);
+            switch(activation){ case 'tanh': out[i]=Utils.tanh(s); break; case 'relu': out[i]=Utils.leakyRelu(s); break; default: out[i]=s; }
         }
         return out;
     },
 
     linearMultiply: (vec, mat) => {
-        if (!vec?.length || !mat?.length || !mat[0]?.length) return new Float32Array(0);
+        if (!vec?.length||!mat?.length||!mat[0]?.length) return new Float32Array(0);
         const out = new Float32Array(mat[0].length);
-        for (let i=0; i<mat[0].length; i++) {
-            for (let j=0; j<vec.length; j++) {
-                out[i] += Utils.safeFinite(vec[j], 0) * Utils.safeFinite(mat[j]?.[i], 0);
-            }
-        }
+        for (let i=0;i<mat[0].length;i++) for(let j=0;j<vec.length;j++) out[i]+=Utils.safeNumber(vec[j],0)*Utils.safeNumber(mat[j]?.[i],0);
         return out;
     },
 
     projectToCortexSensors: (rawInputs, config) => {
         const out = new Float32Array(config.DIM_SENSOR);
-        const src = rawInputs || [];
+        const src = rawInputs||[];
         const len = Math.min(src.length, config.DIM_SENSOR);
-        for (let i=0; i<len; i++) out[i] = Utils.clamp(Utils.safeFinite(src[i], 0), -1, 1);
-        const seed = config?.seed || CONFIG.seed;
-        for (let i=len; i<config.DIM_SENSOR; i++) {
-            out[i] = (Utils.hashSeed(seed, i, 0xDEADBEEF) * 2 - 1) * 0.05;
-        }
+        for (let i=0;i<len;i++) out[i]=Utils.clamp(Utils.safeNumber(src[i],0),-1,1);
+        const seed = config?.seed||CONFIG.seed;
+        for (let i=len;i<config.DIM_SENSOR;i++) out[i]=(Utils.hashSeed(seed,i,0xDEADBEEF)*2-1)*0.05;
         return out;
     },
 
@@ -567,35 +487,24 @@ const Utils = Object.freeze({
         let v = new Float32Array(W[0].length).fill(1);
         for (let iter=0; iter<5; iter++) {
             const v_new = new Float32Array(W.length);
-            for (let i=0; i<W.length; i++) {
-                for (let j=0; j<W[0].length; j++) {
-                    v_new[i] += W[i][j] * v[j];
-                }
-            }
-            const norm = Math.sqrt(v_new.reduce((s,x) => s + x*x, 0));
-            if (norm < Utils.EPS) break;
-            for (let i=0; i<v_new.length; i++) v_new[i] /= norm;
+            for (let i=0; i<W.length; i++)
+                for (let j=0; j<W[0].length; j++) v_new[i] += W[i][j]*v[j];
+            const norm = Math.sqrt(v_new.reduce((s,x)=>s+x*x,0));
+            if (norm < 1e-10) break;
+            for (let i=0;i<v_new.length;i++) v_new[i]/=norm;
             v = v_new;
         }
         const Wv = new Float32Array(W.length);
-        for (let i=0; i<W.length; i++) {
-            for (let j=0; j<W[0].length; j++) {
-                Wv[i] += W[i][j] * v[j];
-            }
-        }
-        const estimatedRho = Math.sqrt(Wv.reduce((s,x) => s + x*x, 0));
-        const factor = targetRho / (estimatedRho + Utils.EPS);
-        for (let i=0; i<W.length; i++) {
-            for (let j=0; j<W[0].length; j++) {
-                W[i][j] *= factor;
-            }
-        }
+        for (let i=0;i<W.length;i++) for(let j=0;j<W[0].length;j++) Wv[i]+=W[i][j]*v[j];
+        const estimatedRho = Math.sqrt(Wv.reduce((s,x)=>s+x*x,0));
+        const factor = targetRho/(estimatedRho+1e-8);
+        for (let i=0;i<W.length;i++) for(let j=0;j<W[0].length;j++) W[i][j]*=factor;
         return W;
     }
 });
 
 // ============================================================================
-// SECTION 4 — SeededRNG
+// SECTION 4 — SeededRNG (ДЕТЕРМИНИРОВАННЫЙ)
 // ============================================================================
 class SeededRNG {
     constructor(seed) {
@@ -615,24 +524,22 @@ class SeededRNG {
         return this._state / 4294967296;
     }
     gaussian(mean=0, std=1) {
-        const u1 = Math.max(this.next(), Utils.EPS);
+        const u1 = Math.max(this.next(), 1e-10);
         const u2 = this.next();
-        return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2) * std + mean;
+        return Math.sqrt(-2*Math.log(u1)) * Math.cos(2*Math.PI*u2) * std + mean;
     }
     deriveWeights(rows, cols, scale) {
         const mat = [];
-        for (let i=0; i<rows; i++) {
+        for (let i=0;i<rows;i++) {
             const row = new Float32Array(cols);
-            for (let j=0; j<cols; j++) {
-                row[j] = (this.next() * 2 - 1) * scale;
-            }
+            for (let j=0;j<cols;j++) row[j] = (this.next()*2-1)*scale;
             mat.push(row);
         }
         return mat;
     }
     deriveVector(length, scale) {
         const v = new Float32Array(length);
-        for (let i=0; i<length; i++) v[i] = (this.next() * 2 - 1) * scale;
+        for (let i=0;i<length;i++) v[i]=(this.next()*2-1)*scale;
         return v;
     }
     reset() { this._state = this._baseSeed; }
@@ -640,7 +547,7 @@ class SeededRNG {
 }
 
 // ============================================================================
-// SECTION 5 — Cortex2Brain v2.4 (ПОЛНОСТЬЮ СТАБИЛЬНАЯ ВЕРСИЯ)
+// SECTION 5 — Cortex2Brain v2.3 (ПОЛНОСТЬЮ ИСПРАВЛЕНО)
 // ============================================================================
 class Cortex2Brain {
     constructor(config={}) {
@@ -689,21 +596,19 @@ class Cortex2Brain {
         this.W_V = this._rng.deriveVector(this.DIM.DIM_C, 0.1);
         this.b_V = 0;
 
-        // 48 гейтов для 48 элементов памяти
+        // FIX-1.1: 48 гейтов для 48 элементов памяти
         this.permGate = [];
         for (let g=0; g<this.ARCH.NUM_GATES; g++) {
             const gate = new Float32Array(this.ARCH.GATE_DIM);
-            for (let i=0; i<this.ARCH.GATE_DIM; i++) {
-                gate[i] = (this._rng.next() * 2 - 1) * 0.1;
-            }
+            for (let i=0;i<this.ARCH.GATE_DIM;i++) gate[i] = (this._rng.next()*2-1)*0.1;
             this.permGate.push(gate);
         }
 
-        // Веса для выбора режима
+        // Веса для выбора режима (статические)
         this.W_mode = [];
         for (let j=0; j<CONFIG.MODES.length; j++) {
             const row = new Float32Array(32);
-            for (let i=0; i<32; i++) row[i] = (this._rng.next() * 2 - 1) * 0.1;
+            for (let i=0;i<32;i++) row[i] = (this._rng.next()*2-1)*0.1;
             this.W_mode.push(row);
         }
 
@@ -780,35 +685,33 @@ class Cortex2Brain {
         this.health = 100;
         this.stats = { maxHealth:100 };
         this._lastKiller = null;
-        this.predictedPos60 = {x:0, y:0};
+        this.predictedPos60 = {x:0,y:0};
         this.predictionError60 = 0;
         this.predictedTrajectory = {angle:0, confidence:0};
         this.mode = 'MOBILE';
-        
-        // Инициализация predictionErrors нейтральными значениями
-        for (let i=0; i<this.DIM.M_PRED; i++) {
-            this.predictionErrors[i] = 0.5;
-        }
     }
 
     // ---- LAYER BUILDERS ----
+
     _buildP(x_t, C_prev, S_prev, M_perm_prev) {
         const input = new Float32Array(this.ARCH.P_INPUT);
         let idx = 0;
-        for (let i=0; i<this.DIM.DIM_SENSOR; i++) input[idx++] = Utils.safeFinite(x_t[i], 0);
-        for (let i=0; i<this.DIM.DIM_C; i++) input[idx++] = Utils.safeFinite(C_prev[i], 0);
-        for (let i=0; i<this.DIM.DIM_S; i++) input[idx++] = Utils.safeFinite(S_prev[i], 0);
+        for (let i=0; i<this.DIM.DIM_SENSOR; i++) input[idx++] = x_t[i];
+        for (let i=0; i<this.DIM.DIM_C; i++) input[idx++] = C_prev[i];
+        for (let i=0; i<this.DIM.DIM_S; i++) input[idx++] = S_prev[i];
 
+        // FIX-1.1: 48 ключей из сенсоров и состояния
         const key = new Float32Array(this.ARCH.GATE_DIM);
-        for (let j=0; j<Math.min(16, this.ARCH.GATE_DIM); j++) key[j] = Utils.safeFinite(x_t[j], 0);
-        for (let j=0; j<Math.min(16, this.ARCH.GATE_DIM-16); j++) key[16+j] = Utils.safeFinite(S_prev[j], 0);
+        for (let j=0; j<Math.min(16, this.ARCH.GATE_DIM); j++) key[j] = x_t[j];
+        for (let j=0; j<Math.min(16, this.ARCH.GATE_DIM-16); j++) key[16+j] = S_prev[j];
 
+        // 48 гейтов для 48 элементов памяти
         for (let i=0; i<this.DIM.M_PERM; i++) {
             let relevance = 0;
             for (let j=0; j<this.ARCH.GATE_DIM; j++) {
-                relevance += key[j] * Utils.safeFinite(this.permGate[i][j], 0);
+                relevance += key[j] * this.permGate[i][j];
             }
-            input[idx++] = Utils.safeFinite(M_perm_prev[i], 0) * Utils.sigmoid(relevance);
+            input[idx++] = M_perm_prev[i] * Utils.sigmoid(relevance);
         }
         this._lastP_input.set(input);
         return input;
@@ -817,56 +720,56 @@ class Cortex2Brain {
     _buildA(P_t, M_work, C_prev, D_prev, headIdx) {
         const input = new Float32Array(this.ARCH.A_INPUT);
         let idx = 0;
-        for (let i=0; i<this.DIM.DIM_P; i++) input[idx++] = Utils.safeFinite(P_t[i], 0);
-        for (let i=0; i<this.DIM.M_WORK; i++) input[idx++] = Utils.safeFinite(M_work[i], 0);
+        for (let i=0; i<this.DIM.DIM_P; i++) input[idx++] = P_t[i];
+        for (let i=0; i<this.DIM.M_WORK; i++) input[idx++] = M_work[i];
         const cStart = headIdx * 64;
         for (let i=0; i<64; i++) {
             const ci = cStart + i;
-            input[idx++] = (ci < this.DIM.DIM_C) ? Utils.safeFinite(C_prev[ci], 0) : 0;
+            input[idx++] = (ci < this.DIM.DIM_C) ? C_prev[ci] : 0;
         }
-        for (let i=0; i<this.DIM.DIM_D; i++) input[idx++] = Utils.safeFinite(D_prev[i], 0);
+        for (let i=0; i<this.DIM.DIM_D; i++) input[idx++] = D_prev[i];
         return input;
     }
 
     _buildMWork(P_t, A_t, C_prev) {
         const input = new Float32Array(this.ARCH.M_WORK_INPUT);
         let idx = 0;
-        for (let i=0; i<this.DIM.DIM_P; i++) input[idx++] = Utils.safeFinite(P_t[i], 0);
-        for (let i=0; i<this.DIM.DIM_A; i++) input[idx++] = Utils.safeFinite(A_t[i], 0);
-        for (let i=0; i<64; i++) input[idx++] = (i < this.DIM.DIM_C) ? Utils.safeFinite(C_prev[i], 0) : 0;
+        for (let i=0; i<this.DIM.DIM_P; i++) input[idx++] = P_t[i];
+        for (let i=0; i<this.DIM.DIM_A; i++) input[idx++] = A_t[i];
+        for (let i=0; i<64; i++) input[idx++] = (i < this.DIM.DIM_C) ? C_prev[i] : 0;
         return input;
     }
 
     _buildMPerm(C_prev, M_perm_prev) {
         const input = new Float32Array(this.ARCH.M_PERM_INPUT);
         let idx = 0;
-        for (let i=0; i<this.DIM.DIM_C; i++) input[idx++] = Utils.safeFinite(C_prev[i], 0);
-        for (let i=0; i<this.DIM.M_PERM; i++) input[idx++] = Utils.safeFinite(M_perm_prev[i], 0);
+        for (let i=0; i<this.DIM.DIM_C; i++) input[idx++] = C_prev[i];
+        for (let i=0; i<this.DIM.M_PERM; i++) input[idx++] = M_perm_prev[i];
         return input;
     }
 
     _buildMPred(A_t, C_prev, M_work, D_prev) {
         const input = new Float32Array(this.ARCH.M_PRED_INPUT);
         let idx = 0;
-        for (let i=0; i<this.DIM.DIM_A; i++) input[idx++] = Utils.safeFinite(A_t[i], 0);
+        for (let i=0; i<this.DIM.DIM_A; i++) input[idx++] = A_t[i];
         for (let i=0; i<64; i++) {
             const ci = this.ARCH.C_PRED_OFFSET + i;
-            input[idx++] = (ci < this.DIM.DIM_C) ? Utils.safeFinite(C_prev[ci], 0) : 0;
+            input[idx++] = (ci < this.DIM.DIM_C) ? C_prev[ci] : 0;
         }
-        for (let i=0; i<this.DIM.M_WORK; i++) input[idx++] = Utils.safeFinite(M_work[i], 0);
-        for (let i=0; i<this.DIM.DIM_D; i++) input[idx++] = Utils.safeFinite(D_prev[i], 0);
+        for (let i=0; i<this.DIM.M_WORK; i++) input[idx++] = M_work[i];
+        for (let i=0; i<this.DIM.DIM_D; i++) input[idx++] = D_prev[i];
         return input;
     }
 
     _buildC(P_t, A_t, M_t, S_prev, D_prev, r_t) {
         const input = new Float32Array(this.ARCH.C_INPUT);
         let idx = 0;
-        for (let i=0; i<this.DIM.DIM_P; i++) input[idx++] = Utils.safeFinite(P_t[i], 0);
-        for (let i=0; i<this.DIM.DIM_A; i++) input[idx++] = Utils.safeFinite(A_t[i], 0);
-        for (let i=0; i<this.DIM.DIM_M; i++) input[idx++] = Utils.safeFinite(M_t[i], 0);
-        for (let i=0; i<this.DIM.DIM_S; i++) input[idx++] = Utils.safeFinite(S_prev[i], 0);
-        for (let i=0; i<this.DIM.DIM_D; i++) input[idx++] = Utils.safeFinite(D_prev[i], 0);
-        input[idx] = Utils.clamp(Utils.safeFinite(r_t, 0) / 50.0, -2, 2);
+        for (let i=0; i<this.DIM.DIM_P; i++) input[idx++] = P_t[i];
+        for (let i=0; i<this.DIM.DIM_A; i++) input[idx++] = A_t[i];
+        for (let i=0; i<this.DIM.DIM_M; i++) input[idx++] = M_t[i];
+        for (let i=0; i<this.DIM.DIM_S; i++) input[idx++] = S_prev[i];
+        for (let i=0; i<this.DIM.DIM_D; i++) input[idx++] = D_prev[i];
+        input[idx] = Utils.clamp(r_t/50.0, -2, 2);
         this._lastC_input.set(input);
         return input;
     }
@@ -874,31 +777,29 @@ class Cortex2Brain {
     _buildS(P_t, M_perm, C_prev, D_prev) {
         const input = new Float32Array(this.ARCH.S_INPUT);
         let idx = 0;
-        for (let i=0; i<this.DIM.DIM_P; i++) input[idx++] = Utils.safeFinite(P_t[i], 0);
-        for (let i=0; i<this.DIM.M_PERM; i++) input[idx++] = Utils.safeFinite(M_perm[i], 0);
+        for (let i=0; i<this.DIM.DIM_P; i++) input[idx++] = P_t[i];
+        for (let i=0; i<this.DIM.M_PERM; i++) input[idx++] = M_perm[i];
         for (let i=0; i<32; i++) {
             const ci = this.ARCH.C_STATE_OFFSET + i;
-            input[idx++] = (ci < this.DIM.DIM_C) ? Utils.safeFinite(C_prev[ci], 0) : 0;
+            input[idx++] = (ci < this.DIM.DIM_C) ? C_prev[ci] : 0;
         }
-        for (let i=0; i<this.DIM.DIM_D; i++) input[idx++] = Utils.safeFinite(D_prev[i], 0);
+        for (let i=0; i<this.DIM.DIM_D; i++) input[idx++] = D_prev[i];
         return input;
     }
 
     _buildD(C_t, S_t, M_pred) {
         const input = new Float32Array(this.ARCH.D_INPUT);
         let idx = 0;
-        for (let i=0; i<this.DIM.DIM_C; i++) input[idx++] = Utils.safeFinite(C_t[i], 0);
-        for (let i=0; i<this.DIM.DIM_S; i++) input[idx++] = Utils.safeFinite(S_t[i], 0);
-        for (let i=0; i<this.DIM.M_PRED; i++) input[idx++] = Utils.safeFinite(M_pred[i], 0);
+        for (let i=0; i<this.DIM.DIM_C; i++) input[idx++] = C_t[i];
+        for (let i=0; i<this.DIM.DIM_S; i++) input[idx++] = S_t[i];
+        for (let i=0; i<this.DIM.M_PRED; i++) input[idx++] = M_pred[i];
         return input;
     }
 
     _mmAct(vec, W, out) {
         for (let j=0; j<W[0].length; j++) {
             let s = 0;
-            for (let i=0; i<vec.length; i++) {
-                s += Utils.safeFinite(vec[i], 0) * Utils.safeFinite(W[i]?.[j], 0);
-            }
+            for (let i=0; i<vec.length; i++) s += vec[i] * Utils.safeNumber(W[i]?.[j], 0);
             out[j] = s;
         }
     }
@@ -909,69 +810,36 @@ class Cortex2Brain {
             if (!Array.isArray(rawInputs) || rawInputs.length !== this.DIM.DIM_SENSOR) {
                 rawInputs = new Array(this.DIM.DIM_SENSOR).fill(0);
             }
-            const x_t = Utils.projectToCortexSensors(rawInputs, {
-                DIM_SENSOR: this.DIM.DIM_SENSOR,
-                seed: this.seed
-            });
-            const r_t = Utils.safeFinite(reward, 0);
-            this._lastInputs = { x_t: Array.from(x_t), r_t };
+            const x_t = Utils.projectToCortexSensors(rawInputs, {DIM_SENSOR:this.DIM.DIM_SENSOR, seed:this.seed});
+            const r_t = Utils.safeNumber(reward, 0);
+            this._lastInputs = {x_t:Array.from(x_t), r_t};
             this.cumulativeReward = Utils.lerp(this.cumulativeReward, r_t, 0.1);
 
-            const P_input = this._buildP(
-                x_t,
-                this.C_prev,
-                this.S_prev,
-                this.M_prev.slice(this.DIM.M_PERM_START, this.DIM.M_PERM_END)
-            );
-
+            const P_input = this._buildP(x_t, this.C_prev, this.S_prev,
+                                         this.M_prev.slice(this.DIM.M_PERM_START, this.DIM.M_PERM_END));
             const A_inputs = [];
             for (let h=0; h<this.DIM.NUM_HEADS; h++) {
-                A_inputs.push(this._buildA(
-                    this.P_prev,
+                A_inputs.push(this._buildA(this.P_prev,
                     this.M_prev.slice(this.DIM.M_WORK_START, this.DIM.M_WORK_END),
-                    this.C_prev,
-                    this.D_prev,
-                    h
-                ));
+                    this.C_prev, this.D_prev, h));
             }
-
             const M_work_input = this._buildMWork(this.P_prev, this.A_prev, this.C_prev);
-            const M_perm_input = this._buildMPerm(
-                this.C_prev,
-                this.M_prev.slice(this.DIM.M_PERM_START, this.DIM.M_PERM_END)
-            );
-            const M_pred_input = this._buildMPred(
-                this.A_prev,
-                this.C_prev,
-                this.M_prev.slice(this.DIM.M_WORK_START, this.DIM.M_WORK_END),
-                this.D_prev
-            );
-            const C_input = this._buildC(
-                this.P_prev,
-                this.A_prev,
-                this.M_prev,
-                this.S_prev,
-                this.D_prev,
-                r_t
-            );
-            const S_input = this._buildS(
-                this.P_prev,
+            const M_perm_input = this._buildMPerm(this.C_prev,
+                this.M_prev.slice(this.DIM.M_PERM_START, this.DIM.M_PERM_END));
+            const M_pred_input = this._buildMPred(this.A_prev, this.C_prev,
+                this.M_prev.slice(this.DIM.M_WORK_START, this.DIM.M_WORK_END), this.D_prev);
+            const C_input = this._buildC(this.P_prev, this.A_prev, this.M_prev,
+                                          this.S_prev, this.D_prev, r_t);
+            const S_input = this._buildS(this.P_prev,
                 this.M_prev.slice(this.DIM.M_PERM_START, this.DIM.M_PERM_END),
-                this.C_prev,
-                this.D_prev
-            );
-            const D_input = this._buildD(
-                this.C_prev,
-                this.S_prev,
-                this.M_prev.slice(this.DIM.M_PRED_START, this.DIM.M_PRED_END)
-            );
+                this.C_prev, this.D_prev);
+            const D_input = this._buildD(this.C_prev, this.S_prev,
+                this.M_prev.slice(this.DIM.M_PRED_START, this.DIM.M_PRED_END));
 
             // P layer
             const P_new = new Float32Array(this.DIM.DIM_P);
             this._mmAct(P_input, this.W_P, P_new);
-            for (let i=0; i<this.DIM.DIM_P; i++) {
-                P_new[i] = Utils.leakyRelu(P_new[i] + Utils.safeFinite(this.b_P[i], 0));
-            }
+            for (let i=0; i<this.DIM.DIM_P; i++) P_new[i] = Utils.leakyRelu(P_new[i] + this.b_P[i]);
 
             // A layer
             const gateProbs = Utils.softmax(Array.from(this.W_gate), 1.0);
@@ -979,32 +847,24 @@ class Cortex2Brain {
             for (let h=0; h<this.DIM.NUM_HEADS; h++) {
                 const headOut = new Float32Array(this.DIM.HEAD_DIM);
                 this._mmAct(A_inputs[h], this.W_A[h], headOut);
-                const gw = Utils.safeFinite(gateProbs[h], 0);
+                const gw = gateProbs[h];
                 for (let i=0; i<this.DIM.HEAD_DIM; i++) {
-                    A_new[h * this.DIM.HEAD_DIM + i] = Utils.leakyRelu(
-                        headOut[i] + Utils.safeFinite(this.b_A[h][i], 0)
-                    ) * gw;
+                    A_new[h*this.DIM.HEAD_DIM + i] = Utils.leakyRelu(headOut[i] + this.b_A[h][i]) * gw;
                 }
             }
 
             // M layers
             const M_work_new = new Float32Array(this.DIM.M_WORK);
             this._mmAct(M_work_input, this.W_M_work, M_work_new);
-            for (let i=0; i<this.DIM.M_WORK; i++) {
-                M_work_new[i] = Utils.leakyRelu(M_work_new[i] + Utils.safeFinite(this.b_M_work[i], 0));
-            }
+            for (let i=0; i<this.DIM.M_WORK; i++) M_work_new[i] = Utils.leakyRelu(M_work_new[i] + this.b_M_work[i]);
 
             const M_perm_new = new Float32Array(this.DIM.M_PERM);
             this._mmAct(M_perm_input, this.W_M_perm, M_perm_new);
-            for (let i=0; i<this.DIM.M_PERM; i++) {
-                M_perm_new[i] = Utils.leakyRelu(M_perm_new[i] + Utils.safeFinite(this.b_M_perm[i], 0));
-            }
+            for (let i=0; i<this.DIM.M_PERM; i++) M_perm_new[i] = Utils.leakyRelu(M_perm_new[i] + this.b_M_perm[i]);
 
             const M_pred_new = new Float32Array(this.DIM.M_PRED);
             this._mmAct(M_pred_input, this.W_M_pred, M_pred_new);
-            for (let i=0; i<this.DIM.M_PRED; i++) {
-                M_pred_new[i] = Utils.leakyRelu(M_pred_new[i] + Utils.safeFinite(this.b_M_pred[i], 0));
-            }
+            for (let i=0; i<this.DIM.M_PRED; i++) M_pred_new[i] = Utils.leakyRelu(M_pred_new[i] + this.b_M_pred[i]);
 
             const M_new = new Float32Array(this.DIM.DIM_M);
             for (let i=0; i<this.DIM.M_WORK; i++) M_new[i] = M_work_new[i];
@@ -1014,23 +874,17 @@ class Cortex2Brain {
             // C layer
             const C_new = new Float32Array(this.DIM.DIM_C);
             this._mmAct(C_input, this.W_C, C_new);
-            for (let i=0; i<this.DIM.DIM_C; i++) {
-                C_new[i] = Utils.leakyRelu(C_new[i] + Utils.safeFinite(this.b_C[i], 0));
-            }
+            for (let i=0; i<this.DIM.DIM_C; i++) C_new[i] = Utils.leakyRelu(C_new[i] + this.b_C[i]);
 
             // S layer
             const S_new = new Float32Array(this.DIM.DIM_S);
             this._mmAct(S_input, this.W_S, S_new);
-            for (let i=0; i<this.DIM.DIM_S; i++) {
-                S_new[i] = Utils.leakyRelu(S_new[i] + Utils.safeFinite(this.b_S[i], 0));
-            }
+            for (let i=0; i<this.DIM.DIM_S; i++) S_new[i] = Utils.leakyRelu(S_new[i] + this.b_S[i]);
 
             // D layer
             const D_new = new Float32Array(this.DIM.DIM_D);
             this._mmAct(D_input, this.W_D, D_new);
-            for (let i=0; i<this.DIM.DIM_D; i++) {
-                D_new[i] = Utils.tanh(D_new[i] + Utils.safeFinite(this.b_D[i], 0));
-            }
+            for (let i=0; i<this.DIM.DIM_D; i++) D_new[i] = Utils.tanh(D_new[i] + this.b_D[i]);
 
             // Rotate state
             this.P_prev.set(this.P); this.A_prev.set(this.A); this.M_prev.set(this.M);
@@ -1049,15 +903,11 @@ class Cortex2Brain {
             const modeScores = new Float32Array(CONFIG.MODES.length);
             for (let j=0; j<CONFIG.MODES.length; j++) {
                 let s = 0;
-                for (let i=0; i<32; i++) {
-                    s += Utils.safeFinite(this.C[i], 0) * Utils.safeFinite(this.W_mode[j][i], 0);
-                }
+                for (let i=0; i<32; i++) s += this.C[i] * this.W_mode[j][i];
                 modeScores[j] = Utils.sigmoid(s);
             }
             let best = 0;
-            for (let j=1; j<modeScores.length; j++) {
-                if (modeScores[j] > modeScores[best]) best = j;
-            }
+            for (let j=1; j<modeScores.length; j++) if (modeScores[j] > modeScores[best]) best = j;
             this.mode = CONFIG.MODES[best];
             this._reflexThisFrame = Array.from(this.S).some(v => v > 0.9);
 
@@ -1079,169 +929,85 @@ class Cortex2Brain {
         }
     }
 
-    // ---- PREDICTION (СТАБИЛЬНАЯ ВЕРСИЯ) ----
-    _updatePrediction(M_pred, x_t) {
-        // Защита входных данных
-        if (!M_pred || !x_t) return;
-        
-        // Безопасное умножение
-        let x_pred;
-        try {
-            x_pred = Utils.linearMultiply(M_pred, this.W_pred);
-        } catch (e) {
-            x_pred = new Float32Array(this.DIM.DIM_SENSOR).fill(0);
-        }
-        
-        // Добавление bias с проверкой
-        for (let i=0; i<this.DIM.DIM_SENSOR; i++) {
-            const val = (i < x_pred.length ? x_pred[i] : 0) + Utils.safeFinite(this.b_pred[i], 0);
-            x_pred[i] = isFinite(val) ? val : 0;
+    // ---- LEARNING ----
+    tdLearn(p_input, outputs, reward, value, nextValue) {
+        const cv = Utils.safeNumber(value, this._estimateValue());
+        const nv = Utils.safeNumber(nextValue, this._estimateValue());
+        let tdErr = Utils.tdError(reward, cv, nv, this.gamma);
+
+        const avgPred = this._computeAvgPredError();
+        if (avgPred > 0.5) tdErr *= 1.5;
+        else if (avgPred < 0.2) tdErr *= 0.8;
+
+        this._stats.tdErrorHistory.push(Math.abs(tdErr));
+        if (this._stats.tdErrorHistory.length > 100) this._stats.tdErrorHistory.shift();
+
+        this._updateValueHead(tdErr);
+        this._updateEligibilityTraces(tdErr);
+        this._applyTDError(tdErr);
+
+        if (reward > 3) this._consolidateMemories(reward);
+        if (reward > 1) {
+            const mag = Utils.clamp(Math.abs(reward)/5.0, 0, 1);
+            const corr = Math.sign(reward) * (0.5 + 0.5*mag);
+            this._hebbianUpdate(this.P_prev, this.A_prev, corr, 'P→A');
+            this._hebbianUpdate(this.A_prev, this.C_prev, corr, 'A→C');
+            this._hebbianUpdate(this.C_prev, this.D_prev, corr, 'C→D');
         }
 
-        // FIX: Обновление ошибки с защитой от накопления
-        for (let i=0; i<this.DIM.M_PRED; i++) {
-            const predicted = (i < x_pred.length) ? Utils.safeFinite(x_pred[i], 0) : 0;
-            const actual = (i < x_t.length) ? Utils.safeFinite(x_t[i], 0) : 0;
-            
-            // Проверка на NaN/Infinity
-            if (!isFinite(predicted) || !isFinite(actual)) {
-                this.predictionErrors[i] = 0.5;
-                continue;
-            }
-            
-            const err = Math.abs(predicted - actual);
-            // Защита от слишком маленьких значений
-            const safeErr = Math.max(err, Utils.EPS);
-            
-            const old = Utils.safePositive(this.predictionErrors[i], 0.5);
-            
-            // lerp с ограничением
-            let newErr = old + (safeErr - old) * 0.1;
-            // FIX: Ограничиваем сверху и снизу
-            newErr = Utils.clamp(newErr, Utils.EPS, this.DIM.MAX_PRED_ERROR || 0.95);
-            this.predictionErrors[i] = newErr;
-        }
+        this._stats.totalSteps++;
+        this._stats.avgReward = Utils.lerp(this._stats.avgReward, reward, 0.01);
 
-        // Предсказание позиции с защитой
-        const enemyVx = Utils.safeFinite(x_t[6], 0);
-        const enemyVy = Utils.safeFinite(x_t[7], 0);
-        const startX = Utils.safeFinite(x_t[0], 0);
-        const startY = Utils.safeFinite(x_t[1], 0);
-        
-        this.predictedPos60 = {
-            x: startX + enemyVx * 60,
-            y: startY + enemyVy * 60
+        return {
+            tdError: tdErr,
+            avgTDError: this._stats.tdErrorHistory.reduce((a,b)=>a+b,0)/Math.max(1,this._stats.tdErrorHistory.length),
+            avgPredictionError: this._computeAvgPredError()
         };
-
-        // Ошибка предсказания с защитой
-        const actualX = (this._lastInputs?.x_t && isFinite(this._lastInputs.x_t[0]))
-            ? Utils.safeFinite(this._lastInputs.x_t[0], startX) : startX;
-        const actualY = (this._lastInputs?.x_t && isFinite(this._lastInputs.x_t[1]))
-            ? Utils.safeFinite(this._lastInputs.x_t[1], startY) : startY;
-        
-        const errX = Math.abs(this.predictedPos60.x - actualX);
-        const errY = Math.abs(this.predictedPos60.y - actualY);
-        this.predictionError60 = (isFinite(errX) && isFinite(errY)) ? errX + errY : 0;
-
-        // Траектория с защитой
-        const predAngle = Math.atan2(
-            this.predictedPos60.y - actualY,
-            this.predictedPos60.x - actualX
-        );
-        const confidence = 1 - Utils.clamp(
-            isFinite(this.predictionError60) ? this.predictionError60 / 100 : 0,
-            0, 1
-        );
-        this.predictedTrajectory = {
-            angle: isFinite(predAngle) ? predAngle : 0,
-            confidence: confidence
-        };
-    }
-
-    _computeAvgPredError() {
-        let sum = 0;
-        let count = 0;
-        for (let i=0; i<this.DIM.M_PRED; i++) {
-            const val = Utils.safeFinite(this.predictionErrors[i], 0.5);
-            if (val < Utils.EPS) continue; // Игнорируем слишком маленькие
-            sum += val;
-            count++;
-        }
-        if (count === 0) return 0.5;
-        return sum / count;
     }
 
     _estimateValue() {
-        let s = Utils.safeFinite(this.b_V, 0);
-        for (let i=0; i<this.DIM.DIM_C; i++) {
-            const c = Utils.safeFinite(this.C[i], 0);
-            const w = Utils.safeFinite(this.W_V[i], 0);
-            // Игнорируем слишком маленькие значения
-            if (Math.abs(c) < Utils.EPS || Math.abs(w) < Utils.EPS) continue;
-            s += c * w;
-        }
-        if (Math.abs(s) < Utils.EPS) s = 0;
+        let s = this.b_V;
+        for (let i=0; i<this.DIM.DIM_C; i++) s += this.C[i] * this.W_V[i];
         return Utils.tanh(s);
     }
 
     _updateValueHead(tdErr) {
         const a = this.lr * 0.5;
-        const err = Utils.safeFinite(tdErr, 0);
         for (let i=0; i<this.DIM.DIM_C; i++) {
-            const c = Utils.safeFinite(this.C[i], 0);
-            if (Math.abs(c) < Utils.EPS) continue;
-            this.W_V[i] = Utils.clamp(
-                Utils.safeFinite(this.W_V[i], 0) + a * err * c, -2, 2
-            );
+            this.W_V[i] = Utils.clamp(this.W_V[i] + a*tdErr*this.C[i], -2, 2);
         }
-        this.b_V = Utils.clamp(Utils.safeFinite(this.b_V, 0) + a * err, -1, 1);
+        this.b_V = Utils.clamp(this.b_V + a*tdErr, -1, 1);
     }
 
     _updateEligibilityTraces(tdErr) {
         const decay = this.gamma * this.lambda;
         for (let i=0; i<this.ARCH.P_INPUT; i++) {
-            const pIn = Utils.safeFinite(this._lastP_input[i], 0);
-            if (Math.abs(pIn) < Utils.EPS) continue;
             for (let j=0; j<this.DIM.DIM_P; j++) {
-                const idx = i * this.DIM.DIM_P + j;
-                const pVal = Utils.safeFinite(this.P[j], 0);
-                if (Math.abs(pVal) < Utils.EPS) continue;
+                const idx = i*this.DIM.DIM_P + j;
                 this.trace_P[idx] = Utils.clamp(
-                    decay * Utils.safeFinite(this.trace_P[idx], 0) + pIn * pVal, -10, 10
-                );
+                    decay*this.trace_P[idx] + this._lastP_input[i]*this.P[j], -10, 10);
             }
         }
         for (let i=0; i<this.ARCH.C_INPUT; i++) {
-            const cIn = Utils.safeFinite(this._lastC_input[i], 0);
-            if (Math.abs(cIn) < Utils.EPS) continue;
             for (let j=0; j<this.DIM.DIM_C; j++) {
-                const idx = i * this.DIM.DIM_C + j;
-                const cVal = Utils.safeFinite(this.C[j], 0);
-                if (Math.abs(cVal) < Utils.EPS) continue;
+                const idx = i*this.DIM.DIM_C + j;
                 this.trace_C[idx] = Utils.clamp(
-                    decay * Utils.safeFinite(this.trace_C[idx], 0) + cIn * cVal, -10, 10
-                );
+                    decay*this.trace_C[idx] + this._lastC_input[i]*this.C[j], -10, 10);
             }
         }
     }
 
     _applyTDError(tdErr) {
-        const alpha = this.lr * Math.sign(Utils.safeFinite(tdErr, 0)) * 0.1;
+        const alpha = this.lr * Math.sign(tdErr) * 0.1;
         const MAX_G = 0.3;
-        const subsystems = [{start:64, end:128, lr:0.01}, {start:128, end:192, lr:0.03}];
+        const subsystems = [{start:64,end:128,lr:0.01},{start:128,end:192,lr:0.03}];
         for (const sub of subsystems) {
             const sa = alpha * sub.lr;
             for (let i=sub.start; i<sub.end; i++) {
                 for (let j=0; j<this.ARCH.C_INPUT; j++) {
                     if (this.W_C[j] && this.W_C[j][i] !== undefined) {
-                        const trace = Utils.safeFinite(
-                            this.trace_C[j * this.DIM.DIM_C + i], 0
-                        );
-                        if (Math.abs(trace) < Utils.EPS) continue;
-                        const delta = Utils.clamp(sa * trace, -MAX_G, MAX_G);
-                        this.W_C[j][i] = Utils.clamp(
-                            Utils.safeFinite(this.W_C[j][i], 0) + delta, -2, 2
-                        );
+                        const delta = Utils.clamp(sa * this.trace_C[j*this.DIM.DIM_C + i], -MAX_G, MAX_G);
+                        this.W_C[j][i] = Utils.clamp(this.W_C[j][i] + delta, -2, 2);
                     }
                 }
             }
@@ -1250,38 +1016,26 @@ class Cortex2Brain {
 
     _hebbianUpdate(pre, post, correlation, label) {
         if (!pre?.length || !post?.length) return;
-        const eta = this.hebbianRate * Utils.safeFinite(correlation, 0) * 0.5;
+        const eta = this.hebbianRate * correlation * 0.5;
         const step = Math.max(1, Math.floor(pre.length / 50));
         for (let i=0; i<post.length; i+=step) {
-            const pst = Utils.safeFinite(post[i], 0);
-            if (Math.abs(pst) < Utils.EPS) continue;
             for (let j=0; j<pre.length; j+=step) {
-                const preVal = Utils.safeFinite(pre[j], 0);
-                if (Math.abs(preVal) < Utils.EPS) continue;
-                const delta = eta * preVal * pst;
-                if (Math.abs(delta) < Utils.EPS) continue;
-                
+                const delta = eta * pre[j] * post[i];
                 if (label === 'P→A' && i < this.DIM.DIM_A) {
                     const hi = Math.floor(i / this.DIM.HEAD_DIM);
                     const li = i % this.DIM.HEAD_DIM;
                     if (hi < this.DIM.NUM_HEADS && j < this.W_A[hi].length &&
                         li < this.W_A[hi][j].length) {
-                        this.W_A[hi][j][li] = Utils.clamp(
-                            Utils.safeFinite(this.W_A[hi][j][li], 0) + delta, -2, 2
-                        );
+                        this.W_A[hi][j][li] = Utils.clamp(this.W_A[hi][j][li] + delta, -2, 2);
                     }
                 } else if (label === 'A→C' && i < this.DIM.DIM_C) {
                     const wr = 32 + j;
                     if (wr < this.ARCH.C_INPUT && this.W_C[wr] && this.W_C[wr][i] !== undefined) {
-                        this.W_C[wr][i] = Utils.clamp(
-                            Utils.safeFinite(this.W_C[wr][i], 0) + delta, -2, 2
-                        );
+                        this.W_C[wr][i] = Utils.clamp(this.W_C[wr][i] + delta, -2, 2);
                     }
                 } else if (label === 'C→D' && i < this.DIM.DIM_D) {
                     if (j < this.ARCH.D_INPUT && this.W_D[j] && this.W_D[j][i] !== undefined) {
-                        this.W_D[j][i] = Utils.clamp(
-                            Utils.safeFinite(this.W_D[j][i], 0) + delta, -2, 2
-                        );
+                        this.W_D[j][i] = Utils.clamp(this.W_D[j][i] + delta, -2, 2);
                     }
                 }
             }
@@ -1290,14 +1044,12 @@ class Cortex2Brain {
 
     _consolidateMemories(reward) {
         let newEvents = 0;
-        const r = Utils.safeFinite(reward, 0);
         for (let i=0; i<this.DIM.M_PRED; i++) {
-            const err = Utils.safeFinite(this.predictionErrors[i], 0.5);
-            if (err > 0.25) {
+            if (this.predictionErrors[i] > 0.25) {
                 this.consolidationBuffer.push({
                     idx: i,
-                    value: Utils.safeFinite(this.M[this.DIM.M_WORK + this.DIM.M_PERM + i], 0),
-                    priority: err * r
+                    value: this.M[this.DIM.M_WORK + this.DIM.M_PERM + i],
+                    priority: this.predictionErrors[i] * reward
                 });
                 newEvents++;
             }
@@ -1305,44 +1057,73 @@ class Cortex2Brain {
         this._stats.consolidationEvents += newEvents;
 
         if (this.consolidationBuffer.length > 0 && this._rng.next() < 0.1) {
-            const total = this.consolidationBuffer.reduce((s, x) => s + (x.priority || 0), 0);
-            if (total <= Utils.EPS) return;
+            const total = this.consolidationBuffer.reduce((s,x) => s + x.priority, 0);
+            if (total <= 0) return;
             let rand = this._rng.next() * total;
             let sel = this.consolidationBuffer[0];
             for (const item of this.consolidationBuffer) {
-                rand -= (item.priority || 0);
+                rand -= item.priority;
                 if (rand <= 0) { sel = item; break; }
             }
-            const idx = this.DIM.M_WORK + sel.idx;
-            this.M[idx] = Utils.lerp(
-                Utils.safeFinite(this.M[idx], 0),
-                Utils.safeFinite(sel.value, 0),
-                0.2
-            );
-            const arrIdx = this.consolidationBuffer.indexOf(sel);
-            if (arrIdx >= 0) this.consolidationBuffer.splice(arrIdx, 1);
+            this.M[this.DIM.M_WORK + sel.idx] = Utils.lerp(
+                this.M[this.DIM.M_WORK + sel.idx], sel.value, 0.2);
+            const idx = this.consolidationBuffer.indexOf(sel);
+            if (idx >= 0) this.consolidationBuffer.splice(idx, 1);
         }
 
         if (this.consolidationBuffer.length > this.maxBuffer) {
-            this.consolidationBuffer.sort((a, b) => (b.priority || 0) - (a.priority || 0));
+            this.consolidationBuffer.sort((a,b) => b.priority - a.priority);
             this.consolidationBuffer.length = this.maxBuffer;
         }
     }
 
-    _computeAttentionHeadNorms() {
-        return Array.from({length: this.DIM.NUM_HEADS}, (_, h) => {
-            let s = 0;
-            for (let i=0; i<this.DIM.HEAD_DIM; i++) {
-                s += Math.abs(Utils.safeFinite(this.A[h * this.DIM.HEAD_DIM + i], 0));
+    // ---- PREDICTION ----
+    _updatePrediction(M_pred, x_t) {
+        const x_pred = Utils.linearMultiply(M_pred, this.W_pred);
+        for (let i=0; i<this.DIM.DIM_SENSOR; i++) x_pred[i] += this.b_pred[i];
+
+        for (let i=0; i<this.DIM.M_PRED; i++) {
+            const err = Math.abs(x_pred[i] - x_t[i]);
+            this.predictionErrors[i] = Utils.lerp(this.predictionErrors[i], err, 0.1);
+        }
+
+        const enemyVx = x_t[6] || 0, enemyVy = x_t[7] || 0;
+        this.predictedPos60 = { x: x_t[0] + enemyVx * 60, y: x_t[1] + enemyVy * 60 };
+        const actualX = this._lastInputs?.x_t[0] ?? x_t[0];
+        const actualY = this._lastInputs?.x_t[1] ?? x_t[1];
+        this.predictionError60 = Math.abs(this.predictedPos60.x - actualX) +
+                                 Math.abs(this.predictedPos60.y - actualY);
+        const predAngle = Math.atan2(this.predictedPos60.y - actualY, this.predictedPos60.x - actualX);
+        const confidence = 1 - Utils.clamp(this.predictionError60 / 100, 0, 1);
+        this.predictedTrajectory = { angle: predAngle, confidence };
+
+        if (this.lr > 0) {
+            const lr = this.lr * 0.1;
+            for (let i=0; i<this.DIM.M_PRED; i++) {
+                for (let j=0; j<this.DIM.DIM_SENSOR; j++) {
+                    this.W_pred[i][j] = Utils.clamp(
+                        this.W_pred[i][j] + lr * (x_t[j] - x_pred[j]) * M_pred[i], -2, 2);
+                }
             }
+        }
+    }
+
+    _computeAvgPredError() {
+    let s=0; for(let i=0;i<48;i++) s+=this.predictionErrors[i]; return s/48;
+    }
+
+    _computeAttentionHeadNorms() {
+        return Array.from({length:this.DIM.NUM_HEADS}, (_,h) => {
+            let s = 0;
+            for (let i=0; i<this.DIM.HEAD_DIM; i++) s += Math.abs(this.A[h*this.DIM.HEAD_DIM + i]);
             return s / this.DIM.HEAD_DIM;
         });
     }
 
-    // ---- EMOTIONS (с защитой) ----
+    // ---- EMOTIONS ----
     _updateEmotions(r_t, x_t, combatEvents=null) {
         this.step++;
-        this.emotionHistory.push({...this.emotions, step: this.step});
+        this.emotionHistory.push({...this.emotions, step:this.step});
         if (this.emotionHistory.length > this.maxHistory) this.emotionHistory.shift();
 
         if (combatEvents) this._processCombatEvents(combatEvents);
@@ -1350,62 +1131,39 @@ class Cortex2Brain {
         if (this.emotionalState.current) {
             const state = this.emotionalState.current;
             const cfg = this.emotionConfig[state.name];
-            if (cfg) {
-                state.remainingFrames = Math.max(0, (state.remainingFrames || 0) - 1);
-                state.satisfaction = Utils.lerp(
-                    Utils.safeFinite(state.satisfaction, 0),
-                    Utils.safeFinite(this.emotionalState.satisfaction, 0),
-                    0.1
-                );
-                if (this._canExitEmotion(state)) this._exitEmotion(state);
-                if (this._shouldExtendEmotion(state)) {
-                    state.remainingFrames = Math.min(
-                        Utils.safeFinite(state.remainingFrames, 0) + 30,
-                        (cfg.baseDuration || 180) * 3
-                    );
-                }
-                const tr = this._checkEmotionTransition(state);
-                if (tr) this._enterEmotion(tr.name, tr.intensity);
-            }
+            state.remainingFrames--;
+            state.satisfaction = Utils.lerp(state.satisfaction, this.emotionalState.satisfaction, 0.1);
+            if (this._canExitEmotion(state)) this._exitEmotion(state);
+            if (this._shouldExtendEmotion(state))
+                state.remainingFrames = Math.min(state.remainingFrames + 30, cfg.baseDuration * 3);
+            const tr = this._checkEmotionTransition(state);
+            if (tr) this._enterEmotion(tr.name, tr.intensity);
         } else {
             const dom = this._getDominantEmotion();
             if (dom.intensity > 0.7) this._enterEmotion(dom.name, dom.intensity);
         }
 
-        const rr = Utils.safeFinite(r_t, 0);
-        if (rr < 0.1) {
-            this.emotions.frustration = Math.min(1, Utils.safeFinite(this.emotions.frustration, 0) + 0.03);
-        } else {
-            this.emotions.frustration *= 0.92;
-        }
+        if (r_t < 0.1) this.emotions.frustration = Math.min(1, this.emotions.frustration + 0.03);
+        else this.emotions.frustration *= 0.92;
 
         const nr = Utils.clamp((this.cumulativeReward + 100) / 200, 0, 1);
-        if (nr < 0.3) {
-            this.emotions.desperation = Math.min(1, Utils.safeFinite(this.emotions.desperation, 0) + 0.05);
-        } else {
-            this.emotions.desperation *= 0.85;
-        }
+        if (nr < 0.3) this.emotions.desperation = Math.min(1, this.emotions.desperation + 0.05);
+        else this.emotions.desperation *= 0.85;
 
-        if (rr > 1) {
-            this.emotions.confidence = Math.min(1, Utils.safeFinite(this.emotions.confidence, 0) + 0.05);
-        } else {
-            this.emotions.confidence *= 0.95;
-        }
+        if (r_t > 1) this.emotions.confidence = Math.min(1, this.emotions.confidence + 0.05);
+        else this.emotions.confidence *= 0.95;
 
-        if (rr < -0.5) {
-            this.emotions.fear = Math.min(1, Utils.safeFinite(this.emotions.fear, 0) + 0.1);
-        } else {
-            this.emotions.fear *= 0.85;
-        }
+        if (r_t < -0.5) this.emotions.fear = Math.min(1, this.emotions.fear + 0.1);
+        else this.emotions.fear *= 0.85;
 
         this.emotions.surprise = this._computeAvgPredError();
-        this.emotions.caution = 1 - Utils.safeFinite(x_t[12] ?? 0.5, 0.5);
-        this.emotions.threat = 1 - Utils.safeFinite(x_t[2] ?? 0.5, 0.5);
+        this.emotions.caution = 1 - (x_t[12] ?? 0.5);
+        this.emotions.threat = 1 - (x_t[2] ?? 0.5);
 
         const rf = Math.min(10, this.emotionHistory.length);
         if (rf > 0) {
             const rec = this.emotionHistory.slice(-rf);
-            const avg = k => rec.reduce((s, e) => s + Utils.safeFinite(e[k], 0), 0) / rf;
+            const avg = k => rec.reduce((s,e) => s + e[k], 0) / rf;
             this.emotionalState.momentum.fear = avg('fear');
             this.emotionalState.momentum.aggression = avg('aggression');
             this.emotionalState.momentum.frustration = avg('frustration');
@@ -1414,47 +1172,42 @@ class Cortex2Brain {
             this.emotionalState.momentum.vengeance = avg('vengeance');
         }
 
-        const fb = (1 - Utils.safeFinite(this.emotions.desperation, 0)) *
-                   Utils.safeFinite(this.emotionalState.momentum.fear, 0);
+        const fb = (1 - this.emotions.desperation) * this.emotionalState.momentum.fear;
         this.emotions.aggression =
-            Utils.safeFinite(this.emotionalState.momentum.frustration, 0) * 0.6 +
-            Utils.safeFinite(this.emotionalState.momentum.desperation, 0) * 0.8 +
-            Utils.safeFinite(this.emotionalState.momentum.vengeance, 0) * 0.9 -
-            fb * 0.4;
+            this.emotionalState.momentum.frustration * 0.6 +
+            this.emotionalState.momentum.desperation * 0.8 +
+            this.emotionalState.momentum.vengeance * 0.9 - fb * 0.4;
 
-        this.S[0] = Utils.safeFinite(this.emotions.threat, 0);
-        this.S[1] = Utils.safeFinite(this.emotions.frustration, 0);
-        this.S[2] = Utils.safeFinite(this.emotions.confidence, 0);
-        this.S[3] = Utils.safeFinite(this.emotions.aggression, 0);
-        this.S[4] = Utils.safeFinite(this.emotions.fear, 0);
-        this.S[5] = Utils.safeFinite(this.emotions.surprise, 0);
-        this.S[6] = Utils.safeFinite(this.emotions.caution, 0);
-        this.S[7] = Utils.safeFinite(this.emotions.desperation, 0);
-        this.S[8] = Utils.safeFinite(this.emotions.vengeance, 0);
+        this.S[0] = this.emotions.threat;
+        this.S[1] = this.emotions.frustration;
+        this.S[2] = this.emotions.confidence;
+        this.S[3] = this.emotions.aggression;
+        this.S[4] = this.emotions.fear;
+        this.S[5] = this.emotions.surprise;
+        this.S[6] = this.emotions.caution;
+        this.S[7] = this.emotions.desperation;
+        this.S[8] = this.emotions.vengeance;
 
-        for (const key of Object.keys(this.emotions)) {
-            this.emotions[key] = Utils.safeFinite(this.emotions[key], 0) * this.emotionDecay;
-        }
-        this._lastReward = rr;
+        for (const k of Object.keys(this.emotions)) this.emotions[k] *= this.emotionDecay;
+        this._lastReward = r_t;
     }
 
     _getDominantEmotion() {
         const candidates = [
-            { name: 'vengeance', value: Utils.safeFinite(this.emotions.vengeance, 0) },
-            { name: 'desperation', value: Utils.safeFinite(this.emotions.desperation, 0) },
-            { name: 'fear', value: Utils.safeFinite(this.emotions.fear, 0) },
-            { name: 'aggression', value: Utils.safeFinite(this.emotions.aggression, 0) },
-            { name: 'frustration', value: Utils.safeFinite(this.emotions.frustration, 0) },
-            { name: 'confidence', value: Utils.safeFinite(this.emotions.confidence, 0) }
+            { name:'vengeance', value:this.emotions.vengeance },
+            { name:'desperation', value:this.emotions.desperation },
+            { name:'fear', value:this.emotions.fear },
+            { name:'aggression', value:this.emotions.aggression },
+            { name:'frustration', value:this.emotions.frustration },
+            { name:'confidence', value:this.emotions.confidence }
         ];
-        candidates.sort((a, b) => b.value - a.value);
-        return { name: candidates[0].name, intensity: candidates[0].value };
+        candidates.sort((a,b) => b.value - a.value);
+        return { name:candidates[0].name, intensity:candidates[0].value };
     }
 
     _enterEmotion(name, intensity) {
         const cfg = this.emotionConfig[name];
         if (!cfg) return;
-        const inten = Utils.safeFinite(intensity, 0.5);
         if (this.emotionalState.current) {
             this.emotionalState.history.push({
                 ...this.emotionalState.current,
@@ -1464,152 +1217,107 @@ class Cortex2Brain {
             if (this.emotionalState.history.length > 5) this.emotionalState.history.shift();
         }
         this.emotionalState.current = {
-            name: name,
-            intensity: inten,
-            initialIntensity: inten,
+            name, intensity, initialIntensity: intensity,
             baseDuration: cfg.baseDuration,
-            remainingFrames: Math.floor(cfg.baseDuration * inten * (cfg.intensityMultiplier || 1.0)),
-            satisfaction: Utils.safeFinite(this.emotionalState.satisfaction, 0),
+            remainingFrames: Math.floor(cfg.baseDuration * intensity * cfg.intensityMultiplier),
+            satisfaction: this.emotionalState.satisfaction,
             startStep: this.step
         };
     }
 
-    _exitEmotion(state, reason = 'completed') {
-        if (!state) return;
-        this.emotionalState.history.push({ ...state, endStep: this.step, reason });
+    _exitEmotion(state, reason='completed') {
+        this.emotionalState.history.push({...state, endStep:this.step, reason});
         if (this.emotionalState.history.length > 5) this.emotionalState.history.shift();
         this.emotionMemory.lastEmotion = {
             name: state.name,
-            intensity: Utils.safeFinite(state.intensity, 0),
-            satisfaction: Utils.safeFinite(state.satisfaction, 0),
+            intensity: state.intensity,
+            satisfaction: state.satisfaction,
             completed: reason === 'completed' || reason === 'satisfied'
         };
         if (reason === 'transition' || reason === 'interrupted') {
             this.emotionMemory.unresolved = Utils.clamp(
-                Utils.safeFinite(this.emotionMemory.unresolved, 0) +
-                Utils.safeFinite(state.intensity, 0) * 0.5, 0, 1
-            );
+                this.emotionMemory.unresolved + state.intensity * 0.5, 0, 1);
         }
         this.emotionalState.current = null;
     }
 
     _canExitEmotion(s) {
-        if (!s) return true;
-        const rem = Utils.safeFinite(s.remainingFrames, 0);
-        const base = Utils.safeFinite(s.baseDuration, 180);
-        const sat = Utils.safeFinite(s.satisfaction, 0);
-        const int = Utils.safeFinite(s.intensity, 0);
-        if (rem < base * 0.3) return false;
-        return sat > 0.6 || int < 0.3;
+        return s.remainingFrames < s.baseDuration * 0.3 ? false :
+               (s.satisfaction > 0.6 || s.intensity < 0.3);
     }
 
     _shouldExtendEmotion(s) {
-        if (!s) return false;
-        const int = Utils.safeFinite(s.intensity, 0);
-        const init = Utils.safeFinite(s.initialIntensity, 0);
-        const sat = Utils.safeFinite(s.satisfaction, 0);
-        return int > init + 0.2 || sat < -0.3;
+        return s.intensity > s.initialIntensity + 0.2 || s.satisfaction < -0.3;
     }
 
     _checkEmotionTransition(s) {
-        if (!s) return null;
         const c = s.name;
-        if (c === 'fear' && Utils.safeFinite(this.emotions.desperation, 0) > 0.7) {
-            return { name: 'desperation', intensity: Utils.safeFinite(this.emotions.desperation, 0) };
-        }
-        if (c === 'frustration' && Utils.safeFinite(this.emotions.aggression, 0) > 0.6) {
-            return { name: 'aggression', intensity: Utils.safeFinite(this.emotions.aggression, 0) };
-        }
-        if (c === 'aggression' && Utils.safeFinite(s.satisfaction, 0) < -0.5) {
-            return { name: 'frustration', intensity: Utils.safeFinite(this.emotions.frustration, 0) };
-        }
-        if (c === 'desperation' && Utils.safeFinite(s.intensity, 0) < 0.4) {
-            return { name: 'fear', intensity: Utils.safeFinite(this.emotions.fear, 0) };
-        }
-        if (c === 'vengeance' && Utils.safeFinite(s.satisfaction, 0) > 0.5) {
-            return { name: 'confidence', intensity: Utils.safeFinite(this.emotions.confidence, 0) };
-        }
+        if (c === 'fear' && this.emotions.desperation > 0.7)
+            return { name:'desperation', intensity:this.emotions.desperation };
+        if (c === 'frustration' && this.emotions.aggression > 0.6)
+            return { name:'aggression', intensity:this.emotions.aggression };
+        if (c === 'aggression' && s.satisfaction < -0.5)
+            return { name:'frustration', intensity:this.emotions.frustration };
+        if (c === 'desperation' && s.intensity < 0.4)
+            return { name:'fear', intensity:this.emotions.fear };
+        if (c === 'vengeance' && s.satisfaction > 0.5)
+            return { name:'confidence', intensity:this.emotions.confidence };
         return null;
     }
 
     _processCombatEvents(events) {
-        if (!events) return;
         for (const ev of events) {
             switch (ev.type) {
                 case 'hit_dealt':
                     this.emotionalState.satisfaction = Utils.clamp(
-                        Utils.safeFinite(this.emotionalState.satisfaction, 0) + 0.15, -1, 1
-                    );
+                        this.emotionalState.satisfaction + 0.15, -1, 1);
                     if (this.emotionalState.current?.name === 'aggression' ||
                         this.emotionalState.current?.name === 'vengeance') {
                         this.emotionalState.current.intensity = Math.min(
-                            1, Utils.safeFinite(this.emotionalState.current.intensity, 0) + 0.05
-                        );
+                            1, this.emotionalState.current.intensity + 0.05);
                     }
+                    // FIX-1.6: новые эмоции
                     if (this.emotions.pride !== undefined) {
-                        this.emotions.pride = Math.min(
-                            1, Utils.safeFinite(this.emotions.pride, 0) + 0.1
-                        );
+                        this.emotions.pride = Math.min(1, this.emotions.pride + 0.1);
                     }
                     break;
                 case 'hit_missed':
-                    this.emotions.frustration = Math.min(
-                        1, Utils.safeFinite(this.emotions.frustration, 0) + 0.1
-                    );
+                    this.emotions.frustration = Math.min(1, this.emotions.frustration + 0.1);
                     this.emotionalState.satisfaction = Utils.clamp(
-                        Utils.safeFinite(this.emotionalState.satisfaction, 0) - 0.1, -1, 1
-                    );
+                        this.emotionalState.satisfaction - 0.1, -1, 1);
                     if (this.emotions.boredom !== undefined) {
-                        this.emotions.boredom = Math.min(
-                            1, Utils.safeFinite(this.emotions.boredom, 0) + 0.05
-                        );
+                        this.emotions.boredom = Math.min(1, this.emotions.boredom + 0.05);
                     }
                     break;
                 case 'damage_received':
-                    this.emotions.fear = Math.min(
-                        1, Utils.safeFinite(this.emotions.fear, 0) + (ev.damage || 1) * 0.02
-                    );
+                    this.emotions.fear = Math.min(1, this.emotions.fear + (ev.damage || 1) * 0.02);
                     this.emotionalState.satisfaction = Utils.clamp(
-                        Utils.safeFinite(this.emotionalState.satisfaction, 0) - 0.2, -1, 1
-                    );
+                        this.emotionalState.satisfaction - 0.2, -1, 1);
                     if (this.health / this.stats.maxHealth < 0.3) {
-                        this.emotions.desperation = Math.min(
-                            1, Utils.safeFinite(this.emotions.desperation, 0) + 0.15
-                        );
+                        this.emotions.desperation = Math.min(1, this.emotions.desperation + 0.15);
                     }
                     if (this.emotions.shame !== undefined) {
-                        this.emotions.shame = Math.min(
-                            1, Utils.safeFinite(this.emotions.shame, 0) + 0.05
-                        );
+                        this.emotions.shame = Math.min(1, this.emotions.shame + 0.05);
                     }
                     break;
                 case 'enemy_defeated':
-                    this.emotions.confidence = Math.min(
-                        1, Utils.safeFinite(this.emotions.confidence, 0) + 0.3
-                    );
+                    this.emotions.confidence = Math.min(1, this.emotions.confidence + 0.3);
                     this.emotionalState.satisfaction = Utils.clamp(
-                        Utils.safeFinite(this.emotionalState.satisfaction, 0) + 0.5, -1, 1
-                    );
+                        this.emotionalState.satisfaction + 0.5, -1, 1);
                     if (this.emotionalState.current?.name === 'aggression' ||
                         this.emotionalState.current?.name === 'vengeance') {
                         this._exitEmotion(this.emotionalState.current, 'satisfied');
                     }
                     if (this.emotions.pride !== undefined) {
-                        this.emotions.pride = Math.min(
-                            1, Utils.safeFinite(this.emotions.pride, 0) + 0.2
-                        );
+                        this.emotions.pride = Math.min(1, this.emotions.pride + 0.2);
                     }
                     break;
                 case 'killed_by':
                     if (ev.killer) {
                         this.emotionMemory.killer = ev.killer;
                         const gr = this.emotionMemory.grudge.get(ev.killer) || 0;
-                        this.emotionMemory.grudge.set(
-                            ev.killer, Utils.clamp(Utils.safeFinite(gr, 0) + 0.5, -1, 1)
-                        );
-                        this.emotions.vengeance = Math.min(
-                            1, Utils.safeFinite(this.emotions.vengeance, 0) + 0.6
-                        );
+                        this.emotionMemory.grudge.set(ev.killer, Utils.clamp(gr + 0.5, -1, 1));
+                        this.emotions.vengeance = Math.min(1, this.emotions.vengeance + 0.6);
                     }
                     break;
             }
@@ -1618,87 +1326,55 @@ class Cortex2Brain {
 
     _checkReflexPath(x_t, S_new, D_new) {
         const em = this.emotionInfluence;
-        if (Utils.safeFinite(S_new[8], 0) > 0.6) {
+        if (S_new[8] > 0.6) {
             this._stats.reflexTriggers++;
-            D_new[6] = Utils.lerp(
-                Utils.safeFinite(D_new[6], 0), Math.min(1, Utils.safeFinite(D_new[6], 0) + 0.4), em
-            );
-            D_new[4] = Utils.lerp(
-                Utils.safeFinite(D_new[4], 0), Math.min(1, Utils.safeFinite(D_new[4], 0) + 0.3), em
-            );
+            D_new[6] = Utils.lerp(D_new[6], Math.min(1, D_new[6] + 0.4), em);
+            D_new[4] = Utils.lerp(D_new[4], Math.min(1, D_new[4] + 0.3), em);
         }
-        if (Utils.safeFinite(S_new[7], 0) > 0.6) {
+        if (S_new[7] > 0.6) {
             this._stats.reflexTriggers++;
-            D_new[6] = Utils.lerp(
-                Utils.safeFinite(D_new[6], 0), Math.min(1, Utils.safeFinite(D_new[6], 0) + 0.35), em
-            );
-            D_new[4] = Utils.lerp(
-                Utils.safeFinite(D_new[4], 0), Math.min(1, Utils.safeFinite(D_new[4], 0) + 0.3), em
-            );
+            D_new[6] = Utils.lerp(D_new[6], Math.min(1, D_new[6] + 0.35), em);
+            D_new[4] = Utils.lerp(D_new[4], Math.min(1, D_new[4] + 0.3), em);
         }
-        if (Utils.safeFinite(S_new[4], 0) > 0.7) {
+        if (S_new[4] > 0.7) {
             this._stats.reflexTriggers++;
-            D_new[10] = Utils.lerp(
-                Utils.safeFinite(D_new[10], 0), Math.min(1, Utils.safeFinite(D_new[10], 0) + 0.35), em
-            );
-            D_new[4] = Utils.lerp(
-                Utils.safeFinite(D_new[4], 0), Math.max(0, Utils.safeFinite(D_new[4], 0) - 0.2), em
-            );
+            D_new[10] = Utils.lerp(D_new[10], Math.min(1, D_new[10] + 0.35), em);
+            D_new[4] = Utils.lerp(D_new[4], Math.max(0, D_new[4] - 0.2), em);
         }
-        if (Utils.safeFinite(S_new[1], 0) > 0.7) {
+        if (S_new[1] > 0.7) {
             this._stats.reflexTriggers++;
-            D_new[6] = Utils.lerp(
-                Utils.safeFinite(D_new[6], 0), Math.min(1, Utils.safeFinite(D_new[6], 0) + 0.3), em
-            );
-            D_new[4] = Utils.lerp(
-                Utils.safeFinite(D_new[4], 0), Math.min(1, Utils.safeFinite(D_new[4], 0) + 0.25), em
-            );
+            D_new[6] = Utils.lerp(D_new[6], Math.min(1, D_new[6] + 0.3), em);
+            D_new[4] = Utils.lerp(D_new[4], Math.min(1, D_new[4] + 0.25), em);
         }
-        if (Utils.safeFinite(S_new[2], 0) > 0.6) {
-            D_new[11] = Utils.lerp(
-                Utils.safeFinite(D_new[11], 0), Math.min(1, Utils.safeFinite(D_new[11], 0) + 0.25), em
-            );
+        if (S_new[2] > 0.6) {
+            D_new[11] = Utils.lerp(D_new[11], Math.min(1, D_new[11] + 0.25), em);
         }
     }
 
     _resolveCommandConflicts(D_new, emotions) {
         const inf = this.emotionInfluence;
-        if (Utils.safeFinite(emotions.vengeance, 0) > 0.5 ||
-            Utils.safeFinite(emotions.desperation, 0) > 0.5) {
-            D_new[4] = Utils.lerp(
-                Utils.safeFinite(D_new[4], 0), Math.min(1, Utils.safeFinite(D_new[4], 0) + 0.3), inf
-            );
+        if (emotions.vengeance > 0.5 || emotions.desperation > 0.5) {
+            D_new[4] = Utils.lerp(D_new[4], Math.min(1, D_new[4] + 0.3), inf);
         }
-        if (Utils.safeFinite(emotions.fear, 0) > 0.7) {
-            D_new[6] = Utils.lerp(
-                Utils.safeFinite(D_new[6], 0), Math.min(1, Utils.safeFinite(D_new[6], 0) + 0.5), inf
-            );
-            D_new[4] = Math.max(0, Utils.safeFinite(D_new[4], 0) - 0.2);
+        if (emotions.fear > 0.7) {
+            D_new[6] = Utils.lerp(D_new[6], Math.min(1, D_new[6] + 0.5), inf);
+            D_new[4] = Math.max(0, D_new[4] - 0.2);
         }
-        if (Utils.safeFinite(emotions.aggression, 0) > 0.6) {
-            D_new[6] = Utils.lerp(
-                Utils.safeFinite(D_new[6], 0), Math.min(1, Utils.safeFinite(D_new[6], 0) + 0.3), inf
-            );
+        if (emotions.aggression > 0.6) {
+            D_new[6] = Utils.lerp(D_new[6], Math.min(1, D_new[6] + 0.3), inf);
         }
     }
 
     selectAction(temp=0.15) {
-        const D = this.D;
-        const OUT = CONFIG.OUTPUT;
+        const D = this.D, OUT = CONFIG.OUTPUT;
         const actions = {
-            left:   Utils.safeFinite(D[OUT.MOVE_LEFT], 0),
-            right:  Utils.safeFinite(D[OUT.MOVE_RIGHT], 0),
-            jump:   Utils.safeFinite(D[OUT.JUMP], 0),
-            crouch: Utils.safeFinite(D[OUT.CROUCH], 0),
-            punchL: Utils.safeFinite(D[OUT.PUNCH_LIGHT], 0),
-            punchH: Utils.safeFinite(D[OUT.PUNCH_HEAVY], 0),
-            kickL:  Utils.safeFinite(D[OUT.KICK_LIGHT], 0),
-            kickH:  Utils.safeFinite(D[OUT.KICK_HEAVY], 0),
-            block:  Utils.safeFinite(D[OUT.BLOCK], 0),
-            grab:   Utils.safeFinite(D[OUT.GRAB], 0),
-            special: Utils.safeFinite(D[OUT.SPECIAL], 0)
+            left:   D[OUT.MOVE_LEFT],   right:   D[OUT.MOVE_RIGHT],
+            jump:   D[OUT.JUMP],        crouch:  D[OUT.CROUCH],
+            punchL: D[OUT.PUNCH_LIGHT], punchH:  D[OUT.PUNCH_HEAVY],
+            kickL:  D[OUT.KICK_LIGHT],  kickH:   D[OUT.KICK_HEAVY],
+            block:  D[OUT.BLOCK],       grab:    D[OUT.GRAB],
+            special: D[OUT.SPECIAL]
         };
-        
         const modeMod = {
             AGGRESSIVE: { punchL:0.3, punchH:0.2, kickL:0.2, kickH:0.3, block:-0.2 },
             DEFENSIVE:  { punchL:-0.2, punchH:-0.3, kickL:-0.1, kickH:-0.2, block:0.4 },
@@ -1707,32 +1383,24 @@ class Cortex2Brain {
             RETREAT:    { block:0.2, jump:0.2, punchL:-0.3 }
         };
         const mod = modeMod[this.mode] || {};
-        for (const k in mod) {
-            if (actions[k] !== undefined) {
-                actions[k] = Utils.clamp(actions[k] + mod[k], -1, 1);
-            }
-        }
-        
-        if (Utils.safeFinite(this.emotions.fear, 0) > 0.6) {
+        for (const k in mod) if (actions[k] !== undefined) actions[k] = Utils.clamp(actions[k] + mod[k], -1, 1);
+        if (this.emotions.fear > 0.6) {
             actions.block = Utils.clamp(actions.block + 0.3, -1, 1);
             actions.punchL *= 0.7;
         }
-        if (Utils.safeFinite(this.emotions.aggression, 0) > 0.6) {
+        if (this.emotions.aggression > 0.6) {
             actions.punchH = Utils.clamp(actions.punchH + 0.2, -1, 1);
             actions.kickH = Utils.clamp(actions.kickH + 0.2, -1, 1);
         }
 
         const entries = Object.entries(actions).filter(e => Math.abs(e[1]) > 0.01);
-        if (!entries.length) return { action: 'IDLE', probs: {}, actions };
-        
-        const safeTemp = Math.max(temp, Utils.EPS);
-        const scaled = entries.map(e => [e[0], Math.exp(e[1] / safeTemp)]);
-        const sum = scaled.reduce((a, e) => a + e[1], 0) || Utils.EPS;
+        if (!entries.length) return { action:'IDLE', probs:{}, actions };
+        const scaled = entries.map(e => [e[0], Math.exp(e[1] / temp)]);
+        const sum = scaled.reduce((a,e) => a + e[1], 0);
         const probs = {};
-        for (const [k, v] of scaled) probs[k] = v / sum;
-        
+        for (const [k,v] of scaled) probs[k] = v / sum;
         let r = Math.random(), cum = 0, selected = 'IDLE';
-        for (const [k, p] of Object.entries(probs)) {
+        for (const [k,p] of Object.entries(probs)) {
             cum += p;
             if (r < cum) { selected = k; break; }
         }
@@ -1741,7 +1409,7 @@ class Cortex2Brain {
 
     interpret() {
         const threat = this.S[0] > 0.5 ? 'HIGH' : this.S[0] > 0.2 ? 'MED' : 'LOW';
-        const cortexEng = Array.from(this.C).reduce((s, v) => s + Math.abs(v), 0) / this.DIM.DIM_C;
+        const cortexEng = Array.from(this.C).reduce((s,v) => s + Math.abs(v), 0) / this.DIM.DIM_C;
         const reflexAct = Array.from(this.S).some(v => v > 0.8);
         const memConf = (1 - this._computeAvgPredError()).toFixed(2);
         return {
@@ -1749,8 +1417,8 @@ class Cortex2Brain {
             memoryConf: memConf,
             reflexActive: reflexAct,
             cortexEnergy: cortexEng.toFixed(3),
-            emotions: { ...this.emotions },
-            emotionalState: this.emotionalState.current ? { ...this.emotionalState.current } : null
+            emotions: {...this.emotions},
+            emotionalState: this.emotionalState.current ? {...this.emotionalState.current} : null
         };
     }
 
@@ -1760,14 +1428,8 @@ class Cortex2Brain {
         this.P_prev.fill(0); this.A_prev.fill(0); this.M_prev.fill(0);
         this.C_prev.fill(0); this.S_prev.fill(0); this.D_prev.fill(0);
         this._lastP_input.fill(0); this._lastC_input.fill(0);
-        
-        for (let i=0; i<this.DIM.M_PRED; i++) {
-            this.predictionErrors[i] = 0.5;
-        }
-        
-        this.step = 0;
-        this.cumulativeReward = 0;
-        this.health = 100;
+        this.predictionErrors.fill(0);
+        this.step = 0; this.cumulativeReward = 0; this.health = 100;
         this.emotions = {
             threat:0, frustration:0, confidence:0, aggression:0, fear:0,
             surprise:0, caution:0, desperation:0, vengeance:0,
@@ -1781,7 +1443,7 @@ class Cortex2Brain {
         };
         this.emotionMemory = { trauma:0, grudge:new Map(), lastEmotion:null,
                                unresolved:0, killer:null };
-        this.predictedPos60 = {x:0, y:0};
+        this.predictedPos60 = {x:0,y:0};
         this.predictionError60 = 0;
         this.predictedTrajectory = {angle:0, confidence:0};
         this.consolidationBuffer = [];
@@ -1789,7 +1451,7 @@ class Cortex2Brain {
 
     toJSON() {
         return {
-            type: 'Cortex2Brain', version: '2.4-STABLE',
+            type: 'Cortex2Brain', version: '2.3-FIGHTER',
             config: {
                 seed: this.seed, lr: this.lr, gamma: this.gamma,
                 lambda: this.lambda, hebbianRate: this.hebbianRate
@@ -1819,8 +1481,8 @@ class Cortex2Brain {
                 D_prev: Array.from(this.D_prev),
                 predictionErrors: Array.from(this.predictionErrors)
             },
-            stats: { ...this._stats },
-            emotions: { ...this.emotions },
+            stats: {...this._stats},
+            emotions: {...this.emotions},
             emotionMemory: {
                 trauma: this.emotionMemory.trauma,
                 grudge: Array.from(this.emotionMemory.grudge.entries()),
@@ -1870,8 +1532,8 @@ class Cortex2Brain {
                 brain.C_prev.set(s.C_prev); brain.S_prev.set(s.S_prev); brain.D_prev.set(s.D_prev);
                 if (s.predictionErrors) brain.predictionErrors.set(s.predictionErrors);
             }
-            if (data.stats) brain._stats = { ...brain._stats, ...data.stats };
-            if (data.emotions) brain.emotions = { ...data.emotions };
+            if (data.stats) brain._stats = {...brain._stats, ...data.stats};
+            if (data.emotions) brain.emotions = {...data.emotions};
             if (data.emotionMemory) {
                 brain.emotionMemory.trauma = data.emotionMemory.trauma || 0;
                 brain.emotionMemory.grudge = new Map(data.emotionMemory.grudge || []);
@@ -1886,8 +1548,8 @@ class Cortex2Brain {
         return brain;
     }
 
-    getStats() { return { ...this._stats }; }
-    getEmotions() { return { ...this.emotions }; }
+    getStats() { return {...this._stats}; }
+    getEmotions() { return {...this.emotions}; }
 }
 
 // ============================================================================
@@ -1959,6 +1621,7 @@ class Fighter {
         this.attackRange = w.range;
     }
 
+    // FIX-2.1: getSensors — ИСПРАВЛЕНА СИНТАКСИЧЕСКАЯ ОШИБКА
     getSensors(opp, arenaW, arenaH) {
         arenaW = arenaW ?? CONFIG.ARENA.WIDTH;
         arenaH = arenaH ?? CONFIG.ARENA.HEIGHT;
@@ -2008,32 +1671,26 @@ class Fighter {
         s[38] = 0.5;
         s[39] = 0.5;
         s[40] = 1 - Math.min(1, dist / 200);
-        s[41] = opp.hp < this.hp ? 1 : 0;
+        s[41] = opp.hp < this.hp ? 1 : 0;      // FIX-2.1: одна проверка, не 41 раз!
         s[42] = this.stamina < 30 ? 1 : 0;
         s[43] = opp.stamina < 30 ? 1 : 0;
-        s[44] = Utils.safeFinite(this.brain.emotions.aggression, 0);
-        s[45] = Utils.safeFinite(this.brain.emotions.fear, 0);
-        s[46] = Utils.safeFinite(this.brain.emotions.confidence, 0);
+        s[44] = this.brain.emotions.aggression;
+        s[45] = this.brain.emotions.fear;
+        s[46] = this.brain.emotions.confidence;
         s[47] = CONFIG.MODES.indexOf(this.brain.mode) / 4;
 
         const ctx = this.brain.C.slice(0, 32);
-        for (let i=0; i<16; i++) {
-            s[48 + i] = this._gateSkill(i, ctx);
-        }
+        for (let i = 0; i < 16; i++) s[48 + i] = this._gateSkill(i, ctx);
 
-        for (let i=0; i<64; i++) {
-            if (!isFinite(s[i])) s[i] = 0;
-        }
+        for (let i = 0; i < 64; i++) if (!isFinite(s[i])) s[i] = 0;
         return s;
     }
 
     _gateSkill(sid, ctx) {
         if (sid < 0 || sid >= 16) return 0;
-        let sum = 0;
-        for (let i=0; i<32 && i<ctx.length; i++) {
-            sum += Utils.safeFinite(ctx[i], 0) * Utils.safeFinite(this.brain.permGate[sid][i], 0);
-        }
-        return Utils.sigmoid(sum);
+        let s = 0;
+        for (let i = 0; i < 32 && i < ctx.length; i++) s += ctx[i] * this.brain.permGate[sid][i];
+        return Utils.sigmoid(s);
     }
 
     calculateDirectionalDamageMultiplier(attacker) {
@@ -2052,44 +1709,30 @@ class Fighter {
         }
         const sensors = this.getSensors(opp, arenaW, arenaH);
         this.lastSensors = sensors;
-        const result = this.brain.forward(
-            sensors,
-            this.lastReward * 0.01,
-            this._combatEvents.length > 0 ? [...this._combatEvents] : null
-        );
+        const result = this.brain.forward(sensors, this.lastReward * 0.01,
+            this._combatEvents.length > 0 ? [...this._combatEvents] : null);
         this._combatEvents = [];
         const policy = this.brain.selectAction(CONFIG.LEARNING.temperature);
         return { action: policy.action, sensors, brainResult: result, policy };
     }
 
     executeAction(decision, opp) {
-        const act = decision.action;
-        const OUT = CONFIG.OUTPUT;
-        const D = this.brain.D;
+        const act = decision.action, OUT = CONFIG.OUTPUT, D = this.brain.D;
         const speed = CONFIG.PHYSICS.MOVE_SPEED;
 
-        if ((act === 'left' || (D[OUT.MOVE_LEFT] > 0.5)) &&
+        if ((act === 'left' || D[OUT.MOVE_LEFT] > 0.5) &&
             (this.state === 'IDLE' || this.state === 'WALK')) {
-            this.vx = -speed;
-            this.state = 'WALK';
-            this.stateTimer = 10;
-            this.limbs.legL.targetAngle = -0.5;
-            this.limbs.legR.targetAngle = 0.5;
-        } else if ((act === 'right' || (D[OUT.MOVE_RIGHT] > 0.5)) &&
+            this.vx = -speed; this.state = 'WALK'; this.stateTimer = 10;
+            this.limbs.legL.targetAngle = -0.5; this.limbs.legR.targetAngle = 0.5;
+        } else if ((act === 'right' || D[OUT.MOVE_RIGHT] > 0.5) &&
                    (this.state === 'IDLE' || this.state === 'WALK')) {
-            this.vx = speed;
-            this.state = 'WALK';
-            this.stateTimer = 10;
-            this.limbs.legL.targetAngle = 0.5;
-            this.limbs.legR.targetAngle = -0.5;
+            this.vx = speed; this.state = 'WALK'; this.stateTimer = 10;
+            this.limbs.legL.targetAngle = 0.5; this.limbs.legR.targetAngle = -0.5;
         }
 
         if ((act === 'jump' || D[OUT.JUMP] > 0.5) && this.state === 'IDLE' && this.stamina >= 15) {
-            this.vy = CONFIG.PHYSICS.JUMP_FORCE;
-            this.stamina -= 15;
-            this.state = 'JUMP';
-            this.limbs.legL.targetAngle = -0.3;
-            this.limbs.legR.targetAngle = -0.3;
+            this.vy = CONFIG.PHYSICS.JUMP_FORCE; this.stamina -= 15; this.state = 'JUMP';
+            this.limbs.legL.targetAngle = -0.3; this.limbs.legR.targetAngle = -0.3;
         }
 
         if (act === 'crouch' || D[OUT.CROUCH] > 0.5) {
@@ -2267,11 +1910,13 @@ class Fighter {
         }
     }
 
+    // FIX-2.2: draw — УБРАНО ДУБЛИРОВАНИЕ, ОДИН МЕТОД
     draw(ctx) {
         if (!isFinite(this.x) || !isFinite(this.y)) return;
 
+        // Trail
         if (this.trail.length > 1) {
-            for (let i=1; i<this.trail.length; i++) {
+            for (let i = 1; i < this.trail.length; i++) {
                 const t = this.trail[i];
                 if (!isFinite(t.x) || !isFinite(t.y)) continue;
                 const alpha = Math.floor((1 - t.age / 60) * 30).toString(16).padStart(2, '0');
@@ -2293,9 +1938,11 @@ class Fighter {
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
 
+        // Head
         ctx.beginPath(); ctx.arc(0, -70, 12, 0, Math.PI * 2); ctx.stroke();
+        // Body
         ctx.beginPath(); ctx.moveTo(0, -58); ctx.lineTo(0, -20); ctx.stroke();
-
+        // Arms
         ctx.beginPath(); ctx.moveTo(0, -50);
         ctx.lineTo(this.limbs.armL.x + Math.sin(this.limbs.armL.angle) * 20,
                    this.limbs.armL.y + Math.cos(this.limbs.armL.angle) * 20);
@@ -2304,7 +1951,7 @@ class Fighter {
         ctx.lineTo(this.limbs.armR.x + Math.sin(this.limbs.armR.angle) * 20,
                    this.limbs.armR.y + Math.cos(this.limbs.armR.angle) * 20);
         ctx.stroke();
-
+        // Legs
         ctx.beginPath(); ctx.moveTo(0, -20);
         ctx.lineTo(this.limbs.legL.x + Math.sin(this.limbs.legL.angle) * 25,
                    this.limbs.legL.y + Math.cos(this.limbs.legL.angle) * 25);
@@ -2314,6 +1961,7 @@ class Fighter {
                    this.limbs.legR.y + Math.cos(this.limbs.legR.angle) * 25);
         ctx.stroke();
 
+        // Attack effect
         if (this.state === 'ATTACK' && this.currentMove &&
             this.moveFrame >= this.currentMove.startup &&
             this.moveFrame < this.currentMove.startup + this.currentMove.active) {
@@ -2329,22 +1977,24 @@ class Fighter {
             ctx.fill();
         }
 
+        // Hit flash
         if (this.hitStun > 0) {
             ctx.fillStyle = 'rgba(255,100,100,0.4)';
             ctx.beginPath(); ctx.arc(0, -40, 40, 0, Math.PI * 2); ctx.fill();
         }
         ctx.restore();
 
+        // HP bar
         ctx.fillStyle = '#1a1a2a';
         ctx.fillRect(this.x - 25, this.y - 95, 50, 6);
         ctx.fillStyle = this.hp > this.maxHp * 0.5 ? '#00ff9d' : '#ff5577';
         ctx.fillRect(this.x - 25, this.y - 95, 50 * (this.hp / this.maxHp), 6);
-
+        // Stamina bar
         ctx.fillStyle = '#1a1a2a';
         ctx.fillRect(this.x - 25, this.y - 85, 50, 4);
         ctx.fillStyle = '#ffdd44';
         ctx.fillRect(this.x - 25, this.y - 85, 50 * (this.stamina / this.maxStamina), 4);
-
+        // Mode label
         ctx.fillStyle = this.color + 'cc';
         ctx.font = 'bold 9px monospace';
         ctx.textAlign = 'center';
@@ -2389,10 +2039,8 @@ class Fighter {
 
     static fromJSON(data, color) {
         const isP1 = data.id === 'P1';
-        const f = new Fighter(
-            300, CONFIG.ARENA.GROUND_Y, color, isP1,
-            data.id + '_' + Date.now(), data.weaponType || 'sword'
-        );
+        const f = new Fighter(300, CONFIG.ARENA.GROUND_Y, color, isP1,
+                              data.id + '_' + Date.now(), data.weaponType || 'sword');
         f.brain = Cortex2Brain.fromJSON(data.brain);
         f.hp = data.hp ?? 100;
         f.wins = data.wins ?? 0;
@@ -2403,7 +2051,7 @@ class Fighter {
 }
 
 // ============================================================================
-// SECTION 7 — Arena / Game Engine
+// SECTION 7 — Arena / Game Engine (ИСПРАВЛЕНО)
 // ============================================================================
 class Arena {
     constructor() {
@@ -2433,16 +2081,17 @@ class Arena {
 
         this.bindEvents();
         this.initUI();
-        this.log('🎮 AI FIGHTER v6.2.0 | CORTEX-2 v2.4 STABLE', 'success');
-        this.log('🔧 Исправлено: накопление ошибки, защита от NaN, стабильные предсказания', 'info');
+        this.log('🎮 AI FIGHTER v6.1.0 | CORTEX-2 v2.3 FIXED', 'success');
+        this.log('🔧 Исправлено: 48 гейтов, эмоции, сенсоры, draw', 'info');
     }
 
+    // FIX-3.1: генерация стен с проверкой на пересечения
     _generateWalls() {
         const walls = [];
         const attempts = 100;
-        for (let i=0; i<CONFIG.ARENA.WALL_COUNT; i++) {
+        for (let i = 0; i < CONFIG.ARENA.WALL_COUNT; i++) {
             let placed = false;
-            for (let attempt=0; attempt<attempts && !placed; attempt++) {
+            for (let attempt = 0; attempt < attempts && !placed; attempt++) {
                 const x = 80 + Math.random() * 840;
                 const y = 120 + Math.random() * 300;
                 let valid = true;
@@ -2460,7 +2109,9 @@ class Arena {
                 }
             }
             if (!placed) {
-                walls.push({ x: 80 + Math.random() * 840, y: 120 + Math.random() * 300 });
+                const x = 80 + Math.random() * 840;
+                const y = 120 + Math.random() * 300;
+                walls.push({ x, y });
             }
         }
         return walls;
@@ -2545,7 +2196,7 @@ class Arena {
         const p2Out = document.getElementById('p2Outputs');
         p1Out.innerHTML = '';
         p2Out.innerHTML = '';
-        for (let i=0; i<16; i++) {
+        for (let i = 0; i < 16; i++) {
             p1Out.innerHTML += `<div class="stat"><span class="stat-label">D${i} ${labels[i]}</span><span class="stat-value" id="p1Out${i}">0.00</span></div>`;
             p2Out.innerHTML += `<div class="stat"><span class="stat-label">D${i} ${labels[i]}</span><span class="stat-value" id="p2Out${i}">0.00</span></div>`;
         }
@@ -2598,18 +2249,14 @@ class Arena {
 
             if (d1.sensors?.length === 64) {
                 const nv = this.p1.brain._estimateValue();
-                this.p1.brain.tdLearn(
-                    d1.sensors, Array.from(this.p1.brain.D),
-                    Utils.clamp(this.p1.lastReward / 10, -1, 1), 0, nv
-                );
+                this.p1.brain.tdLearn(d1.sensors, Array.from(this.p1.brain.D),
+                    Utils.clamp(this.p1.lastReward / 10, -1, 1), 0, nv);
                 this.p1.lastReward = 0;
             }
             if (d2.sensors?.length === 64) {
                 const nv = this.p2.brain._estimateValue();
-                this.p2.brain.tdLearn(
-                    d2.sensors, Array.from(this.p2.brain.D),
-                    Utils.clamp(this.p2.lastReward / 10, -1, 1), 0, nv
-                );
+                this.p2.brain.tdLearn(d2.sensors, Array.from(this.p2.brain.D),
+                    Utils.clamp(this.p2.lastReward / 10, -1, 1), 0, nv);
                 this.p2.lastReward = 0;
             }
 
@@ -2629,6 +2276,7 @@ class Arena {
         }
     }
 
+    // FIX-3.2: проверка на alive
     checkHits(attacker, defender) {
         if (!defender.alive) return;
         if (attacker.state !== 'ATTACK' || !attacker.currentMove || !attacker.attackBox) return;
@@ -2696,12 +2344,13 @@ class Arena {
         requestAnimationFrame(() => { document.body.style.animation = ''; });
     }
 
+    // FIX-3.3: сброс наград при endRound
     endRound(winner) {
         this.running = false;
         this.round++;
         if (winner === 'P1') {
             this.p1.wins++; this.p1Wins++;
-            this.p1.lastReward = 0;
+            this.p1.lastReward = 0;   // сброс наград
             this.p2.lastReward = 0;
             this.log(`🏆 Round ${this.round}: BLUE wins!`, 'success');
         } else if (winner === 'P2') {
@@ -2765,6 +2414,7 @@ class Arena {
         ctx.fillText(`Round ${this.round} | ${Math.max(0, Math.ceil(this.roundTimer))}s`, w / 2, 38);
     }
 
+    // FIX-3.4: updateUI с проверкой всех элементов
     updateUI() {
         const sf = (id, v) => {
             const el = document.getElementById(id);
@@ -2837,7 +2487,7 @@ class Arena {
         memBar('p2MemPerm', this.p2.brain.M, 48, 96);
         memBar('p2MemPred', this.p2.brain.M, 96, 144);
 
-        for (let i=0; i<16; i++) {
+        for (let i = 0; i < 16; i++) {
             sf('p1Out' + i, this.p1.brain.D[i] || 0);
             sf('p2Out' + i, this.p2.brain.D[i] || 0);
         }
@@ -2876,12 +2526,12 @@ class Arena {
             p1: this.p1.toJSON(),
             p2: this.p2.toJSON()
         };
-        localStorage.setItem('aiFighterV620', JSON.stringify(data));
+        localStorage.setItem('aiFighterV610', JSON.stringify(data));
         this.log('💾 Saved', 'success');
     }
 
     load() {
-        const raw = localStorage.getItem('aiFighterV620');
+        const raw = localStorage.getItem('aiFighterV610');
         if (!raw) { this.log('❌ No save found', 'error'); return; }
         try {
             const data = JSON.parse(raw);
@@ -2907,7 +2557,7 @@ class Arena {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'fighter-v620-' + Date.now() + '.json';
+        a.download = 'fighter-v610-' + Date.now() + '.json';
         a.click();
         URL.revokeObjectURL(url);
         this.log('📤 Exported', 'success');
@@ -2937,12 +2587,16 @@ class Arena {
 // ============================================================================
 window.addEventListener('DOMContentLoaded', () => {
     window.arena = new Arena();
-    console.log('✅ AI FIGHTER v6.2.0 | CORTEX-2 v2.4 STABLE');
-    console.log('🔧 Основные исправления:');
-    console.log('  • Prediction Error теперь ограничена 0.95 и не накапливается');
-    console.log('  • Добавлена защита от денормализации (EPS = 1e-6)');
-    console.log('  • Все математические операции проверяют на NaN/Infinity');
-    console.log('  • Стабильная работа без зависаний');
+    console.log('✅ AI FIGHTER v6.1.0 | CORTEX-2 v2.3 | ВСЕ ИСПРАВЛЕНИЯ ПРИМЕНЕНЫ');
+    console.log('FIX-1.1: 48 гейтов для 48 элементов памяти');
+    console.log('FIX-1.3: Константы C_PRED_OFFSET и C_STATE_OFFSET');
+    console.log('FIX-1.5: permGate теперь 48×32');
+    console.log('FIX-1.6: Обработка всех 15 эмоций');
+    console.log('FIX-2.1: Сенсоры исправлены (одна строка)');
+    console.log('FIX-2.2: draw без дублирования');
+    console.log('FIX-3.1: Генерация стен с проверкой');
+    console.log('FIX-3.2: Проверка на alive в checkHits');
+    console.log('FIX-3.3: Сброс наград при endRound');
 });
 </script>
 </body>
