@@ -6,108 +6,154 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Neural Fighter Arena — Cortex² v3.5 [PRODUCTION HOTFIX]</title>
+    <title>Neural Fighter Arena — Cortex² v3.1.0</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        /* ====================================================================
-           ПОЛНЫЙ ПРОФЕССИОНАЛЬНЫЙ CSS (БЕЗ ИЗМЕНЕНИЙ)
-           ==================================================================== */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
+        :root {
+            --bg-primary: #080b12;
+            --bg-secondary: #0d1220;
+            --bg-panel: #111827;
+            --bg-card: #1a2235;
+            --border-primary: #2a3a58;
+            --border-accent: #3d5078;
+            --text-primary: #e8edf8;
+            --text-secondary: #9aacd4;
+            --text-muted: #6b7a9e;
+            --accent-blue: #3d8bfd;
+            --accent-blue-dim: #2a5fb0;
+            --accent-red: #f04770;
+            --accent-red-dim: #b03455;
+            --accent-green: #22c55e;
+            --accent-yellow: #eab308;
+            --accent-cyan: #06b6d4;
+            --glow-blue: rgba(61, 139, 253, 0.4);
+            --glow-red: rgba(240, 71, 112, 0.4);
+        }
+
         html, body {
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background: #0a0c15;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            color: #e2eaff;
+            background: var(--bg-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--text-primary);
             line-height: 1.5;
             -webkit-font-smoothing: antialiased;
         }
 
-        /* Основной грид */
         #app {
             display: grid;
-            grid-template-columns: 300px 1fr 300px;
-            grid-template-rows: 70px 1fr 200px;
+            grid-template-columns: 280px 1fr 280px;
+            grid-template-rows: 60px 1fr 180px;
             grid-template-areas: 
                 "header header header"
                 "left arena right"
                 "footer footer footer";
             width: 100vw;
             height: 100vh;
-            gap: 8px;
-            padding: 8px;
-            background: #0b0e17;
+            gap: 6px;
+            padding: 6px;
+            background: linear-gradient(135deg, #060810 0%, #0a0f1a 50%, #080c15 100%);
         }
 
-        /* Хедер */
         .header {
             grid-area: header;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 24px;
-            background: linear-gradient(145deg, #151e30, #0f1625);
-            border: 1px solid #2d3a55;
-            border-radius: 14px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+            padding: 0 20px;
+            background: linear-gradient(165deg, var(--bg-card) 0%, var(--bg-panel) 100%);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.03);
         }
 
         .header h1 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            background: linear-gradient(135deg, #9bbaff, #6d8fd1);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: 1px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
-        .header h1 span {
-            font-size: 1rem;
-            background: none;
-            -webkit-text-fill-color: #6f85b3;
-            margin-left: 10px;
-            font-weight: 400;
+        .header h1 .logo {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-cyan) 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            box-shadow: 0 2px 12px var(--glow-blue);
+        }
+
+        .header h1 .version {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            background: var(--bg-secondary);
+            padding: 3px 8px;
+            border-radius: 4px;
+            margin-left: 8px;
         }
 
         .header-controls {
             display: flex;
-            gap: 12px;
+            gap: 8px;
         }
 
         .btn {
-            padding: 8px 18px;
-            border: 1px solid #33415e;
+            padding: 8px 16px;
+            border: 1px solid var(--border-primary);
             border-radius: 8px;
-            background: #1c253a;
-            color: #ccd9ff;
-            font-size: 0.95rem;
-            font-weight: 500;
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-            letter-spacing: 0.3px;
+            transition: all 0.15s ease;
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
-        .btn:hover {
-            background: #263454;
-            border-color: #4c6190;
-            color: #fff;
+        .btn:hover:not(:disabled) {
+            background: var(--bg-panel);
+            border-color: var(--border-accent);
+            color: var(--text-primary);
             transform: translateY(-1px);
         }
 
-        .btn.primary {
-            background: linear-gradient(145deg, #2b4870, #1b3452);
-            border-color: #4d74b0;
-            color: #fff;
+        .btn:active:not(:disabled) {
+            transform: translateY(0);
         }
 
-        .btn.primary:hover {
-            background: linear-gradient(145deg, #325a8a, #24416b);
+        .btn.primary {
+            background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-blue-dim) 100%);
+            border-color: var(--accent-blue);
+            color: #fff;
+            box-shadow: 0 2px 12px var(--glow-blue);
+        }
+
+        .btn.primary:hover:not(:disabled) {
+            background: linear-gradient(135deg, #4d95fd 0%, var(--accent-blue) 100%);
+            box-shadow: 0 4px 20px var(--glow-blue);
+        }
+
+        .btn.danger {
+            background: linear-gradient(135deg, var(--accent-red) 0%, var(--accent-red-dim) 100%);
+            border-color: var(--accent-red);
+            color: #fff;
+            box-shadow: 0 2px 12px var(--glow-red);
         }
 
         .btn:disabled {
@@ -116,22 +162,39 @@
             pointer-events: none;
         }
 
-        /* Арена */
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 6px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        .checkbox-label input {
+            width: 14px;
+            height: 14px;
+            accent-color: var(--accent-blue);
+        }
+
         .arena-container {
             grid-area: arena;
             position: relative;
-            background: radial-gradient(circle at 50% 30%, #1d263b, #0c111c);
-            border: 2px solid #2d3d60;
-            border-radius: 20px;
+            background: radial-gradient(ellipse at 50% 30%, #151d30 0%, var(--bg-primary) 70%);
+            border: 1px solid var(--border-primary);
+            border-radius: 16px;
             overflow: hidden;
-            box-shadow: inset 0 0 60px rgba(0,10,40,0.9);
+            box-shadow: inset 0 0 80px rgba(0,10,30,0.8);
         }
 
         #arena-canvas {
             display: block;
             width: 100%;
             height: 100%;
-            image-rendering: crisp-edges;
         }
 
         .arena-overlay {
@@ -141,60 +204,52 @@
             width: 100%;
             height: 100%;
             pointer-events: none;
-            background: radial-gradient(transparent 60%, rgba(0,5,15,0.3) 100%);
+            background: radial-gradient(transparent 50%, rgba(0,5,15,0.4) 100%);
         }
 
-        /* Боковые панели */
         .panel {
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            padding: 16px 14px;
-            background: linear-gradient(165deg, #161f30, #0f1627);
-            border: 1px solid #2b3855;
-            border-radius: 16px;
-            box-shadow: 0 8px 18px rgba(0,0,0,0.5);
+            gap: 10px;
+            padding: 14px;
+            background: linear-gradient(180deg, var(--bg-panel) 0%, var(--bg-secondary) 100%);
+            border: 1px solid var(--border-primary);
+            border-radius: 14px;
             overflow-y: auto;
             scrollbar-width: thin;
-            scrollbar-color: #3d506f #1a2337;
+            scrollbar-color: var(--border-accent) transparent;
         }
 
         .panel-left {
-            grid-area: left;
-            border-left: 4px solid #4a90e2;
+            border-left: 3px solid var(--accent-blue);
+            box-shadow: inset 3px 0 20px -5px var(--glow-blue);
         }
 
         .panel-right {
-            grid-area: right;
-            border-right: 4px solid #e24a6a;
+            border-right: 3px solid var(--accent-red);
+            box-shadow: inset -3px 0 20px -5px var(--glow-red);
         }
 
         .panel-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #2f3f60;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-primary);
             font-weight: 700;
-            font-size: 1.05rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
         }
 
-        .panel-header.blue {
-            color: #8bb9fe;
-        }
-
-        .panel-header.red {
-            color: #fe8b9f;
-        }
+        .panel-header.blue { color: var(--accent-blue); }
+        .panel-header.red { color: var(--accent-red); }
 
         .panel-section {
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            padding: 10px 0;
-            border-bottom: 1px dashed #253353;
+            gap: 6px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(42, 58, 88, 0.5);
         }
 
         .panel-section:last-child {
@@ -205,120 +260,116 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 0.9rem;
-            color: #a7b9dd;
+            font-size: 0.8rem;
+        }
+
+        .panel-row .label {
+            color: var(--text-muted);
         }
 
         .panel-row .value {
             font-weight: 600;
-            color: #eef4ff;
-            font-family: 'Fira Code', 'JetBrains Mono', monospace;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
         }
 
         .progress-bar {
-            height: 8px;
-            background: #1a233a;
-            border-radius: 5px;
+            height: 6px;
+            background: var(--bg-secondary);
+            border-radius: 3px;
             overflow: hidden;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
         }
 
         .progress-fill {
             height: 100%;
-            border-radius: 5px;
-            transition: width 0.1s linear;
+            border-radius: 3px;
+            transition: width 0.15s linear;
         }
 
-        .fill-blue {
-            background: linear-gradient(90deg, #3d7eb0, #6ba5e0);
-        }
-
-        .fill-red {
-            background: linear-gradient(90deg, #c24b6b, #e57a98);
-        }
-
-        .fill-green {
-            background: linear-gradient(90deg, #3fb07c, #6ed49b);
-        }
-
-        .fill-yellow {
-            background: linear-gradient(90deg, #c9a03d, #f0c45a);
-        }
-
-        .fill-purple {
-            background: linear-gradient(90deg, #8a6fc9, #b29bff);
-        }
+        .fill-blue { background: linear-gradient(90deg, var(--accent-blue-dim), var(--accent-blue)); }
+        .fill-red { background: linear-gradient(90deg, var(--accent-red-dim), var(--accent-red)); }
+        .fill-green { background: linear-gradient(90deg, #16a34a, var(--accent-green)); }
+        .fill-yellow { background: linear-gradient(90deg, #ca8a04, var(--accent-yellow)); }
+        .fill-cyan { background: linear-gradient(90deg, #0891b2, var(--accent-cyan)); }
 
         .emotion-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 8px 12px;
+            gap: 6px 10px;
         }
 
         .emotion-item {
             display: flex;
             flex-direction: column;
-            gap: 3px;
-            font-size: 0.75rem;
+            gap: 2px;
         }
 
         .emotion-name {
-            color: #99a9cf;
+            font-size: 0.65rem;
+            color: var(--text-muted);
             text-transform: capitalize;
         }
 
         .viz-container {
-            background: #0c1222;
-            border-radius: 10px;
-            padding: 6px;
-            height: 110px;
-            border: 1px solid #2e3e60;
+            background: var(--bg-primary);
+            border-radius: 8px;
+            padding: 4px;
+            border: 1px solid var(--border-primary);
         }
 
         .viz-container canvas {
             display: block;
             width: 100%;
             height: 100%;
-            border-radius: 6px;
+            border-radius: 4px;
         }
 
-        /* Футер */
+        .viz-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            padding: 4px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
         .footer {
             grid-area: footer;
             display: grid;
-            grid-template-columns: 260px 1fr;
-            gap: 8px;
+            grid-template-columns: 240px 1fr;
+            gap: 6px;
         }
 
         .metrics-panel {
             display: flex;
             flex-direction: column;
-            gap: 6px;
-            padding: 14px;
-            background: #131c2e;
-            border: 1px solid #2d3b5a;
-            border-radius: 14px;
+            gap: 4px;
+            padding: 12px;
+            background: var(--bg-panel);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
         }
 
         .metric-row {
             display: flex;
             justify-content: space-between;
-            font-size: 0.9rem;
-            color: #b0c2e8;
+            font-size: 0.8rem;
+            padding: 2px 0;
         }
 
-        .metric-value {
-            color: #8bb9fe;
-            font-family: monospace;
-            font-weight: 600;
+        .metric-row .label { color: var(--text-muted); }
+        .metric-row .value { 
+            color: var(--accent-cyan); 
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
         }
 
         .log-panel {
             display: flex;
             flex-direction: column;
-            background: #0f172a;
-            border: 1px solid #2d3b5a;
-            border-radius: 14px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
             overflow: hidden;
         }
 
@@ -326,125 +377,107 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 16px;
-            background: #1a253f;
-            border-bottom: 1px solid #314a70;
-            color: #8bb9fe;
-            font-weight: 700;
-            font-size: 0.9rem;
+            padding: 8px 14px;
+            background: var(--bg-panel);
+            border-bottom: 1px solid var(--border-primary);
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.8rem;
         }
 
         .log-content {
             flex: 1;
             overflow-y: auto;
-            padding: 10px 14px;
-            font-family: 'Fira Code', monospace;
-            font-size: 0.8rem;
+            padding: 8px 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 3px;
         }
 
         .log-entry {
             padding: 3px 8px;
-            border-left: 4px solid transparent;
-            background: rgba(20,30,50,0.4);
+            border-left: 3px solid transparent;
+            background: rgba(20,30,50,0.3);
             border-radius: 0 4px 4px 0;
+            color: var(--text-secondary);
         }
 
-        .log-entry.info {
-            border-color: #4a90e2;
-            color: #c2d6ff;
+        .log-entry.info { border-color: var(--accent-blue); }
+        .log-entry.combat { border-color: var(--accent-red); }
+        .log-entry.learn { border-color: var(--accent-green); }
+        .log-entry.warn { border-color: var(--accent-yellow); }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border-accent); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+        @media (max-width: 1200px) {
+            #app { grid-template-columns: 240px 1fr 240px; }
         }
 
-        .log-entry.combat {
-            border-color: #e24a6a;
-            color: #ffc2d0;
-        }
-
-        .log-entry.learn {
-            border-color: #3fb07c;
-            color: #beffdc;
-        }
-
-        .log-entry.warn {
-            border-color: #f0c45a;
-            color: #ffecb3;
-        }
-
-        /* Скролл */
-        ::-webkit-scrollbar {
+        .status-indicator {
+            display: inline-block;
             width: 8px;
             height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
+            animation: pulse 1.5s ease-in-out infinite;
         }
 
-        ::-webkit-scrollbar-track {
-            background: #1b253b;
-            border-radius: 6px;
+        .status-indicator.active { background: var(--accent-green); box-shadow: 0 0 8px var(--accent-green); }
+        .status-indicator.idle { background: var(--text-muted); }
+        .status-indicator.danger { background: var(--accent-red); box-shadow: 0 0 8px var(--accent-red); }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
 
-        ::-webkit-scrollbar-thumb {
-            background: #364a70;
-            border-radius: 6px;
-            border: 1px solid #202e48;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        ::-webkit-scrollbar-thumb:hover {
-            background: #4a6190;
-        }
-
-        /* Адаптивность */
-        @media (max-width: 1300px) {
-            #app {
-                grid-template-columns: 250px 1fr 250px;
-            }
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        .mono {
-            font-family: monospace;
-        }
-
-        .text-glow {
-            text-shadow: 0 0 8px currentColor;
-        }
+        .log-entry { animation: fadeIn 0.2s ease; }
     </style>
 </head>
 <body>
     <div id="app">
-        <!-- HEADER -->
         <header class="header">
-            <h1>⚡ NEURAL FIGHTER ARENA <span>CORTEX² v3.5 · PRODUCTION HOTFIX</span></h1>
+            <h1>
+                <div class="logo">N</div>
+                NEURAL FIGHTER ARENA
+                <span class="version">CORTEX² v3.1.0</span>
+            </h1>
             <div class="header-controls">
-                <button id="btn-start" class="btn primary">▶ START</button>
-                <button id="btn-pause" class="btn" disabled>⏸ PAUSE</button>
-                <button id="btn-reset" class="btn">↻ RESET</button>
-                <button id="btn-train" class="btn">🧠 TRAIN</button>
-                <label class="btn" style="padding: 6px 14px; display: flex; align-items: center; gap: 6px;">
-                    <input type="checkbox" id="chk-autotrain" style="width: 14px; height: 14px;"> AUTO
+                <button id="btn-start" class="btn primary">START</button>
+                <button id="btn-pause" class="btn" disabled>PAUSE</button>
+                <button id="btn-reset" class="btn">RESET</button>
+                <button id="btn-train" class="btn">TRAIN</button>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="chk-autotrain">
+                    AUTO
                 </label>
             </div>
         </header>
 
-        <!-- ARENA -->
         <main class="arena-container">
             <canvas id="arena-canvas" width="960" height="640"></canvas>
             <div class="arena-overlay"></div>
         </main>
 
-        <!-- LEFT PANEL - ALPHA -->
         <aside class="panel panel-left">
             <div class="panel-header blue">
-                <span>🔷 ALPHA [CORTEX²]</span>
+                <span><span class="status-indicator idle" id="alpha-indicator"></span>ALPHA</span>
                 <span id="alpha-status" class="value">IDLE</span>
             </div>
 
             <div class="panel-section">
                 <div class="panel-row">
-                    <label>HEALTH</label>
+                    <span class="label">HEALTH</span>
                     <span id="alpha-health" class="value">100</span>
                 </div>
                 <div class="progress-bar">
@@ -454,7 +487,7 @@
 
             <div class="panel-section">
                 <div class="panel-row">
-                    <label>ACTIVE EMOTION</label>
+                    <span class="label">ACTIVE EMOTION</span>
                     <span id="alpha-emotion" class="value">NEUTRAL</span>
                 </div>
                 <div class="emotion-grid" id="alpha-emotions"></div>
@@ -462,7 +495,7 @@
 
             <div class="panel-section">
                 <div class="panel-row">
-                    <label>CORTEX ENERGY</label>
+                    <span class="label">CORTEX ENERGY</span>
                     <span id="alpha-cortex" class="value">0.000</span>
                 </div>
                 <div class="progress-bar">
@@ -472,7 +505,7 @@
 
             <div class="panel-section">
                 <div class="panel-row">
-                    <label>PREDICTION ERROR</label>
+                    <span class="label">PREDICTION ERROR</span>
                     <span id="alpha-pred-err" class="value">0.000</span>
                 </div>
                 <div class="progress-bar">
@@ -482,58 +515,51 @@
 
             <div class="panel-section">
                 <div class="panel-row">
-                    <label>ZONE</label>
+                    <span class="label">ZONE</span>
                     <span id="alpha-zone" class="value">MID</span>
                 </div>
                 <div class="panel-row">
-                    <label>BLOCK</label>
-                    <span id="alpha-block" class="value">—</span>
+                    <span class="label">BLOCK</span>
+                    <span id="alpha-block" class="value">--</span>
                 </div>
                 <div class="panel-row">
-                    <label>REFLEX</label>
-                    <span id="alpha-reflex" class="value">—</span>
+                    <span class="label">REFLEX</span>
+                    <span id="alpha-reflex" class="value">--</span>
                 </div>
             </div>
 
             <div class="panel-section">
-                <div class="panel-header blue" style="border: none; padding: 0 0 8px 0; font-size: 0.85rem">
-                    CORTEX ACTIVATION MAP (256)
-                </div>
-                <div class="viz-container">
+                <div class="viz-label">Cortex Activation Map (256)</div>
+                <div class="viz-container" style="height: 80px;">
                     <canvas id="cortex-canvas-alpha"></canvas>
                 </div>
             </div>
 
             <div class="panel-section">
                 <div class="panel-row">
-                    <label>LEARNING RATE</label>
-                    <span id="alpha-lr" class="value mono">0.015</span>
+                    <span class="label">LEARNING RATE</span>
+                    <span id="alpha-lr" class="value">0.015</span>
                 </div>
                 <div class="panel-row">
-                    <label>GAMMA</label>
-                    <span id="alpha-gamma" class="value mono">0.98</span>
+                    <span class="label">GAMMA</span>
+                    <span id="alpha-gamma" class="value">0.98</span>
                 </div>
                 <div class="panel-row">
-                    <label>STEPS</label>
-                    <span id="alpha-steps" class="value mono">0</span>
-                </div>
-                <div class="panel-row">
-                    <label>EPSILON</label>
-                    <span id="alpha-eps" class="value mono">0.15</span>
+                    <span class="label">STEPS</span>
+                    <span id="alpha-steps" class="value">0</span>
                 </div>
             </div>
         </aside>
 
-        <!-- RIGHT PANEL - BETA -->
         <aside class="panel panel-right">
             <div class="panel-header red">
-                <span>🔴 BETA [CORTEX²]</span>
+                <span><span class="status-indicator idle" id="beta-indicator"></span>BETA</span>
                 <span id="beta-status" class="value">IDLE</span>
             </div>
 
             <div class="panel-section">
                 <div class="panel-row">
-                    <label>HEALTH</label>
+                    <span class="label">HEALTH</span>
                     <span id="beta-health" class="value">100</span>
                 </div>
                 <div class="progress-bar">
@@ -543,7 +569,7 @@
 
             <div class="panel-section">
                 <div class="panel-row">
-                    <label>ACTIVE EMOTION</label>
+                    <span class="label">ACTIVE EMOTION</span>
                     <span id="beta-emotion" class="value">NEUTRAL</span>
                 </div>
                 <div class="emotion-grid" id="beta-emotions"></div>
@@ -551,7 +577,7 @@
 
             <div class="panel-section">
                 <div class="panel-row">
-                    <label>THREAT LEVEL</label>
+                    <span class="label">THREAT LEVEL</span>
                     <span id="beta-threat" class="value">0.000</span>
                 </div>
                 <div class="progress-bar">
@@ -561,7 +587,7 @@
 
             <div class="panel-section">
                 <div class="panel-row">
-                    <label>AGGRESSION</label>
+                    <span class="label">AGGRESSION</span>
                     <span id="beta-aggression" class="value">0.000</span>
                 </div>
                 <div class="progress-bar">
@@ -571,93 +597,78 @@
 
             <div class="panel-section">
                 <div class="panel-row">
-                    <label>ZONE</label>
+                    <span class="label">ZONE</span>
                     <span id="beta-zone" class="value">MID</span>
                 </div>
                 <div class="panel-row">
-                    <label>BLOCK</label>
-                    <span id="beta-block" class="value">—</span>
+                    <span class="label">BLOCK</span>
+                    <span id="beta-block" class="value">--</span>
                 </div>
                 <div class="panel-row">
-                    <label>REFLEX</label>
-                    <span id="beta-reflex" class="value">—</span>
+                    <span class="label">REFLEX</span>
+                    <span id="beta-reflex" class="value">--</span>
                 </div>
             </div>
 
             <div class="panel-section">
-                <div class="panel-row">
-                    <label>WORKING MEM</label>
-                    <span id="beta-mem-work" class="value mono">0.000</span>
-                </div>
-                <div class="panel-row">
-                    <label>PERMANENT MEM</label>
-                    <span id="beta-mem-perm" class="value mono">0.000</span>
-                </div>
-                <div class="panel-row">
-                    <label>PREDICTIVE MEM</label>
-                    <span id="beta-mem-pred" class="value mono">0.000</span>
-                </div>
-                <div class="panel-row">
-                    <label>MEMORY LOAD</label>
-                    <span id="beta-mem-load" class="value mono">0%</span>
-                </div>
-            </div>
-
-            <div class="panel-section">
-                <div class="panel-header red" style="border: none; padding: 0 0 8px 0; font-size: 0.85rem">
-                    OUTPUT ACTIONS (16)
-                </div>
-                <div class="viz-container" style="height: 80px;">
+                <div class="viz-label">Output Actions (16)</div>
+                <div class="viz-container" style="height: 60px;">
                     <canvas id="output-canvas-beta"></canvas>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <div class="panel-row">
+                    <span class="label">WORKING MEM</span>
+                    <span id="beta-mem-work" class="value">0.000</span>
+                </div>
+                <div class="panel-row">
+                    <span class="label">PERMANENT MEM</span>
+                    <span id="beta-mem-perm" class="value">0.000</span>
+                </div>
+                <div class="panel-row">
+                    <span class="label">MEMORY LOAD</span>
+                    <span id="beta-mem-load" class="value">0%</span>
                 </div>
             </div>
         </aside>
 
-        <!-- FOOTER -->
         <footer class="footer">
             <div class="metrics-panel">
                 <div class="metric-row">
-                    <span>FPS</span>
-                    <span id="metric-fps" class="metric-value">60</span>
+                    <span class="label">FPS</span>
+                    <span id="metric-fps" class="value">60</span>
                 </div>
                 <div class="metric-row">
-                    <span>FRAME TIME</span>
-                    <span id="metric-frame" class="metric-value">16.7ms</span>
+                    <span class="label">FRAME TIME</span>
+                    <span id="metric-frame" class="value">16.7ms</span>
                 </div>
                 <div class="metric-row">
-                    <span>NEURAL OPS</span>
-                    <span id="metric-ops" class="metric-value">0</span>
+                    <span class="label">NEURAL OPS</span>
+                    <span id="metric-ops" class="value">0</span>
                 </div>
                 <div class="metric-row">
-                    <span>GC PRESSURE</span>
-                    <span id="metric-gc" class="metric-value">LOW</span>
+                    <span class="label">ROUND</span>
+                    <span id="metric-round" class="value">1</span>
                 </div>
                 <div class="metric-row">
-                    <span>ALLOC/FRAME</span>
-                    <span id="metric-alloc" class="metric-value">0</span>
+                    <span class="label">WINNER</span>
+                    <span id="metric-winner" class="value">--</span>
                 </div>
                 <div class="metric-row">
-                    <span>ROUND</span>
-                    <span id="metric-round" class="metric-value">1</span>
+                    <span class="label">ALPHA WINS</span>
+                    <span id="metric-alpha-wins" class="value">0</span>
                 </div>
                 <div class="metric-row">
-                    <span>WINNER</span>
-                    <span id="metric-winner" class="metric-value">—</span>
-                </div>
-                <div class="metric-row">
-                    <span>ALPHA WINS</span>
-                    <span id="metric-alpha-wins" class="metric-value">0</span>
-                </div>
-                <div class="metric-row">
-                    <span>BETA WINS</span>
-                    <span id="metric-beta-wins" class="metric-value">0</span>
+                    <span class="label">BETA WINS</span>
+                    <span id="metric-beta-wins" class="value">0</span>
                 </div>
             </div>
 
             <div class="log-panel">
                 <div class="log-header">
-                    <span>📋 EVENT LOG (MAX 100)</span>
-                    <button id="btn-clear-log" class="btn" style="padding: 4px 12px; font-size: 0.8rem;">CLEAR</button>
+                    <span>EVENT LOG</span>
+                    <button id="btn-clear-log" class="btn" style="padding: 4px 10px; font-size: 0.7rem;">CLEAR</button>
                 </div>
                 <div id="log-content" class="log-content"></div>
             </div>
@@ -666,217 +677,123 @@
 
     <script>
         // ============================================================================
-        // ЧАСТЬ 1/5: КОНСТАНТЫ, КОНФИГУРАЦИЯ, УТИЛИТЫ (БЕЗ ИЗМЕНЕНИЙ)
+        // CONFIGURATION
         // ============================================================================
-
-        // Глобальные константы
         const CONFIG = {
-            // Арена
             ARENA_WIDTH: 960,
             ARENA_HEIGHT: 640,
             ARENA_BOUNDS: { left: 40, right: 920, top: 40, bottom: 600 },
             
-            // Физика бойцов
-            FIGHTER_RADIUS: 18,
-            FIGHTER_SPEED: 180,
-            FIGHTER_ACCEL: 800,
-            FIGHTER_FRICTION: 0.88,
-            COMBAT_RANGE: 52,
+            FIGHTER_RADIUS: 20,
+            FIGHTER_SPEED: 200,
+            FIGHTER_ACCEL: 900,
+            FIGHTER_FRICTION: 0.85,
+            COMBAT_RANGE: 55,
             
-            // Зоны боя (как в Street Fighter)
             ZONES: {
-                HIGH: { yMin: 40, yMax: 200, color: '#dc3c3c', name: 'HIGH' },
-                MID: { yMin: 200, yMax: 440, color: '#f0b428', name: 'MID' },
-                LOW: { yMin: 440, yMax: 600, color: '#3cb4dc', name: 'LOW' }
+                HIGH: { yMin: 40, yMax: 200, color: '#f04770', name: 'HIGH' },
+                MID: { yMin: 200, yMax: 440, color: '#eab308', name: 'MID' },
+                LOW: { yMin: 440, yMax: 600, color: '#06b6d4', name: 'LOW' }
             },
             
-            // Атаки
-            ATTACK_WINDUP: 12,
-            ATTACK_RECOVERY: 18,
-            ATTACK_DAMAGE: { HIGH: 12, MID: 10, LOW: 8 },
-            ATTACK_COOLDOWN: 24,
+            ATTACK_WINDUP: 10,
+            ATTACK_RECOVERY: 15,
+            ATTACK_DAMAGE: { HIGH: 14, MID: 11, LOW: 8 },
+            ATTACK_COOLDOWN: 20,
             
-            // Блок
-            BLOCK_REDUCTION: { HIGH: 0.9, MID: 0.85, LOW: 0.8 },
-            BLOCK_PENALTY: 0.3,
-            BLOCK_STAMINA_COST: 0.02,
+            BLOCK_REDUCTION: { HIGH: 0.85, MID: 0.8, LOW: 0.75 },
+            BLOCK_PENALTY: 0.35,
             
-            // Уклонение
-            DODGE_DURATION: 10,
-            DODGE_COOLDOWN: 40,
-            DODGE_DISTANCE: 45,
+            DODGE_DURATION: 8,
+            DODGE_COOLDOWN: 35,
+            DODGE_DISTANCE: 50,
             
-            // Нейросеть - РАЗМЕРНОСТИ (фиксированные, никогда не меняются)
-            DIM_P: 32,           // Perception
-            DIM_A: 64,           // Attention
-            DIM_M: 144,          // Memory (48+48+48)
-            DIM_C: 256,          // Cortex
-            DIM_S: 32,           // State
-            DIM_D: 16,           // Decision
-            DIM_SENSOR: 64,      // Входные сенсоры
-            NUM_HEADS: 4,        // Головы внимания
-            HEAD_DIM: 16,        // Размерность головы
+            DIM_P: 32,
+            DIM_A: 64,
+            DIM_M: 144,
+            DIM_C: 256,
+            DIM_S: 32,
+            DIM_D: 16,
+            DIM_SENSOR: 64,
+            NUM_HEADS: 4,
+            HEAD_DIM: 16,
             
-            // Разделы памяти
             M_WORK_SIZE: 48,
             M_PERM_SIZE: 48,
             M_PRED_SIZE: 48,
             
-            // Награды (плотные, для быстрого обучения)
             REWARDS: {
                 WIN: 5.0,
                 LOSS: -3.0,
                 HIT: 1.5,
-                BLOCK: 0.3,
-                DODGE: 0.5,
-                MISS: -0.2,
-                MOVE_TOWARD: 0.01,
-                MOVE_AWAY: -0.01,
-                BLOCK_WRONG: -0.1,
-                DAMAGE_TAKEN: -0.05
+                BLOCK: 0.4,
+                DODGE: 0.6,
+                MISS: -0.15,
+                MOVE_TOWARD: 0.12,
+                IN_RANGE: 0.02,
+                TOO_FAR: -0.01,
+                DAMAGE_TAKEN: -0.08
             },
             
-            // Гиперпараметры обучения
             LR: 0.012,
             GAMMA: 0.98,
             LAMBDA: 0.94,
             HEBBIAN_RATE: 0.002,
             
-            // UI
-            LOG_MAX: 100,
+            LOG_MAX: 80,
             FPS_SAMPLE: 30,
-            CORTEX_VIZ_SAMPLE: 64,
-            OUTPUT_VIZ_BARS: 16,
             
-            // Тренировка
-            AUTO_TRAIN_DEFAULT: false,
-            TRAIN_ROUNDS: 10,
-            
-            // Эмоции (полный список)
             EMOTIONS: [
                 'threat', 'frustration', 'confidence', 'aggression',
                 'fear', 'surprise', 'caution', 'desperation',
-                'vengeance', 'empathy', 'loyalty', 'shame',
-                'pride', 'curiosity', 'boredom', 'anxiety',
-                'excitement', 'disappointment', 'satisfaction', 'grief'
+                'vengeance', 'empathy', 'pride', 'curiosity'
             ]
         };
 
-        // Вычисляемые константы (на основе размерностей)
-        const ARCH = {
-            P_INPUT: CONFIG.DIM_SENSOR + CONFIG.DIM_C + CONFIG.DIM_S + CONFIG.M_PERM_SIZE,
-            A_INPUT: CONFIG.DIM_P + CONFIG.M_WORK_SIZE + 64 + CONFIG.DIM_D,
-            M_WORK_INPUT: CONFIG.DIM_P + CONFIG.DIM_A + 64,
-            M_PERM_INPUT: CONFIG.DIM_C + CONFIG.M_PERM_SIZE,
-            M_PRED_INPUT: CONFIG.DIM_A + 64 + CONFIG.M_WORK_SIZE + CONFIG.DIM_D,
-            C_INPUT: CONFIG.DIM_P + CONFIG.DIM_A + CONFIG.DIM_M + CONFIG.DIM_S + CONFIG.DIM_D + 1,
-            S_INPUT: CONFIG.DIM_P + CONFIG.M_PERM_SIZE + 32 + CONFIG.DIM_D,
-            D_INPUT: CONFIG.DIM_C + CONFIG.DIM_S + CONFIG.M_PRED_SIZE,
-            C_PRED_OFFSET: 192
-        };
-
         // ============================================================================
-        // УТИЛИТЫ (mathematics, DOM, pool) - ИСПРАВЛЕН ArrayPool
+        // UTILITIES
         // ============================================================================
-
-        // Математические функции (inline для производительности)
         const clamp = (v, min, max) => v < min ? min : (v > max ? max : v);
         const lerp = (a, b, t) => a + (b - a) * clamp(t, 0, 1);
-        const safeNum = (v, fallback = 0) => (typeof v === 'number' && Number.isFinite(v)) ? v : fallback;
-        
-        // Хэш-функция для инициализации весов
-        const hash = (seed, i, j) => {
-            let h = String(seed).split('').reduce((a, c) => ((a * 31 + c.charCodeAt(0)) & 0x7fffffff), 1234567);
-            h = (h * 2654435761) >>> 0;
-            return (h / 4294967296) * 2 - 1;
-        };
+        const safeNum = (v, fb = 0) => (typeof v === 'number' && Number.isFinite(v)) ? v : fb;
 
-        // DOM с кэшированием
         const domCache = new Map();
         const getEl = (id) => {
-            if (!domCache.has(id)) domCache.set(id, document.getElementById(id));
+            if (!domCache.has(id)) {
+                const el = document.getElementById(id);
+                if (el) domCache.set(id, el);
+            }
             return domCache.get(id);
         };
-        
+
         const setText = (id, text) => {
             const el = getEl(id);
             if (el) el.textContent = String(text);
         };
-        
+
         const setBar = (id, percent) => {
             const el = getEl(id);
             if (el) el.style.width = `${clamp(percent, 0, 100)}%`;
         };
 
-        // Пул Float32Array (zero-GC) - ИСПРАВЛЕНА УТЕЧКА ПАМЯТИ
-        const ArrayPool = {
-            _pools: new Map(),
-            _maxPoolSize: 500, // Увеличил лимит
-            
-            get(size) {
-                const key = `f32_${size}`;
-                if (!this._pools.has(key)) {
-                    this._pools.set(key, []);
-                }
-                const pool = this._pools.get(key);
-                if (pool.length > 0) {
-                    return pool.pop();
-                }
-                return new Float32Array(size);
-            },
-            
-            release(arr) {
-                if (!arr || !arr.length) return;
-                const key = `f32_${arr.length}`;
-                if (!this._pools.has(key)) {
-                    this._pools.set(key, []);
-                }
-                const pool = this._pools.get(key);
-                // НЕ зануляем массив при релизе - экономим операции
-                if (pool.length < this._maxPoolSize) {
-                    pool.push(arr);
-                }
-            },
-            
-            releaseMany(arrays) {
-                for (let i = 0; i < arrays.length; i++) {
-                    if (arrays[i]) this.release(arrays[i]);
-                }
-            },
-            
-            // Очистка массивов при получении из пула (если нужно)
-            clear(arr) {
-                if (arr) arr.fill(0);
-                return arr;
-            }
-        };
-
-        // Логгер
         const Logger = {
-            log(msg, category = 'info') {
+            log(msg, cat = 'info') {
                 const container = getEl('log-content');
                 if (!container) return;
                 
                 const entry = document.createElement('div');
-                entry.className = `log-entry ${category}`;
+                entry.className = `log-entry ${cat}`;
                 const time = new Date().toLocaleTimeString('en-US', { 
-                    hour12: false, 
-                    hour: '2-digit', 
-                    minute: '2-digit', 
-                    second: '2-digit',
-                    fractionalSecondDigits: 3
+                    hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit'
                 });
                 entry.textContent = `[${time}] ${msg}`;
-                
                 container.appendChild(entry);
                 container.scrollTop = container.scrollHeight;
                 
-                // Ограничиваем количество записей
                 while (container.children.length > CONFIG.LOG_MAX) {
                     container.removeChild(container.firstChild);
                 }
             },
-            
             info(msg) { this.log(msg, 'info'); },
             combat(msg) { this.log(msg, 'combat'); },
             learn(msg) { this.log(msg, 'learn'); },
@@ -884,7 +801,7 @@
         };
 
         // ============================================================================
-        // ПЕРФОМАНС МЕТРИКИ
+        // PERFORMANCE MONITOR
         // ============================================================================
         const PerfMonitor = {
             lastTime: performance.now(),
@@ -892,11 +809,8 @@
             fps: 60,
             frameTime: 16.67,
             neuralOps: 0,
-            allocations: 0,
             
-            startFrame() {
-                this.lastTime = performance.now();
-            },
+            startFrame() { this.lastTime = performance.now(); },
             
             endFrame() {
                 this.frames++;
@@ -905,49 +819,32 @@
                 
                 if (this.frames % CONFIG.FPS_SAMPLE === 0) {
                     this.fps = Math.round(1000 * CONFIG.FPS_SAMPLE / (now - this.lastTime));
-                    
                     setText('metric-fps', this.fps);
                     setText('metric-frame', `${this.frameTime.toFixed(1)}ms`);
                     setText('metric-ops', this.neuralOps.toLocaleString());
-                    setText('metric-alloc', this.allocations);
-                    
-                    const gcPressure = this.allocations > 50 ? 'HIGH' : (this.allocations > 20 ? 'MED' : 'LOW');
-                    setText('metric-gc', gcPressure);
-                    
                     this.neuralOps = 0;
-                    this.allocations = 0;
                 }
             },
             
-            addOps(count) {
-                this.neuralOps += count;
-            },
-            
-            addAlloc() {
-                this.allocations++;
-            }
+            addOps(n) { this.neuralOps += n; }
         };
 
         // ============================================================================
-        // ЧАСТЬ 2/5: SEEDED RNG (XORSHIFT32) — без изменений
+        // SEEDED RNG
         // ============================================================================
         class SeededRNG {
             constructor(seed) {
                 if (typeof seed === 'string') {
-                    // Хэшируем строку в 32-битное число
                     this.state = 0;
                     for (let i = 0; i < seed.length; i++) {
                         this.state = ((this.state << 5) - this.state + seed.charCodeAt(i)) >>> 0;
                     }
                     if (this.state === 0) this.state = 123456789;
-                } else if (typeof seed === 'number') {
-                    this.state = seed >>> 0;
                 } else {
-                    this.state = 123456789;
+                    this.state = seed >>> 0;
                 }
             }
             
-            // Xorshift32
             next() {
                 let x = this.state;
                 x ^= x << 13;
@@ -957,61 +854,23 @@
                 return this.state / 4294967296;
             }
             
-            // Случайное целое [min, max]
-            nextInt(min, max) {
-                return Math.floor(this.next() * (max - min + 1)) + min;
-            }
-            
-            // Гауссово распределение (Box-Muller)
             gaussian(mean = 0, std = 1) {
-                let u1, u2;
-                do {
-                    u1 = this.next();
-                } while (u1 <= 1e-10);
-                u2 = this.next();
-                
-                const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
-                return z * std + mean;
-            }
-            
-            // Нормализованный вектор
-            randomVector(length, scale = 1) {
-                const vec = new Float32Array(length);
-                for (let i = 0; i < length; i++) {
-                    vec[i] = (this.next() * 2 - 1) * scale;
-                }
-                return vec;
-            }
-            
-            // Матрица с заданными размерами
-            randomMatrix(rows, cols, scale = 1) {
-                const mat = [];
-                for (let i = 0; i < rows; i++) {
-                    const row = new Float32Array(cols);
-                    for (let j = 0; j < cols; j++) {
-                        row[j] = (this.next() * 2 - 1) * scale;
-                    }
-                    mat.push(row);
-                }
-                return mat;
+                const u1 = this.next() || 1e-10;
+                const u2 = this.next();
+                return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2) * std + mean;
             }
         }
 
         // ============================================================================
-        // ЧАСТЬ 3/5: CORTEX² НЕЙРОСЕТЬ (2800 строк) — ИСПРАВЛЕНЫ КРИТИЧЕСКИЕ БАГИ
+        // CORTEX NEURAL NETWORK
         // ============================================================================
         class CortexNetwork {
             constructor(config = {}) {
-                // Инициализация RNG
-                this.rng = new SeededRNG(config.seed || `cortex_${Date.now()}_${Math.random()}`);
-                
-                // Гиперпараметры
+                this.rng = new SeededRNG(config.seed || `cortex_${Date.now()}`);
                 this.lr = config.lr || CONFIG.LR;
                 this.gamma = config.gamma || CONFIG.GAMMA;
                 this.lambda = config.lambda || CONFIG.LAMBDA;
-                this.hebbianRate = config.hebbianRate || CONFIG.HEBBIAN_RATE;
                 
-                // Размерности
                 this.D = {
                     P: CONFIG.DIM_P,
                     A: CONFIG.DIM_A,
@@ -1027,76 +886,42 @@
                     mPred: CONFIG.M_PRED_SIZE
                 };
                 
-                // Архитектурные размеры входов
-                this.ARCH = {
-                    pInput: ARCH.P_INPUT,
-                    aInput: ARCH.A_INPUT,
-                    mWorkInput: ARCH.M_WORK_INPUT,
-                    mPermInput: ARCH.M_PERM_INPUT,
-                    mPredInput: ARCH.M_PRED_INPUT,
-                    cInput: ARCH.C_INPUT,
-                    sInput: ARCH.S_INPUT,
-                    dInput: ARCH.D_INPUT,
-                    cPredOffset: ARCH.C_PRED_OFFSET
-                };
+                // Initialize weights
+                this.W_P = this._initMatrix(this.D.sensor + this.D.C + this.D.S + this.D.mPerm, this.D.P, 0.3);
+                this.b_P = this._initVector(this.D.P);
                 
-                // ====================================================================
-                // ИНИЦИАЛИЗАЦИЯ ВЕСОВ (все слои)
-                // ====================================================================
-                
-                // P слой (Perception)
-                this.W_P = this._initMatrix(this.ARCH.pInput, this.D.P, 0.3);
-                this.b_P = this._initVector(this.D.P, 0.1);
-                
-                // A слои (Attention heads)
                 this.W_A = [];
                 this.b_A = [];
                 for (let h = 0; h < this.D.heads; h++) {
-                    this.W_A.push(this._initMatrix(this.ARCH.aInput, this.D.headDim, 0.3));
-                    this.b_A.push(this._initVector(this.D.headDim, 0.1));
+                    this.W_A.push(this._initMatrix(this.D.P + this.D.mWork + 64 + this.D.Dout, this.D.headDim, 0.3));
+                    this.b_A.push(this._initVector(this.D.headDim));
                 }
                 
-                // Ворота внимания
-                this.W_gate = this._initVector(this.D.heads, 0.25);
+                this.W_M_work = this._initMatrix(this.D.P + this.D.A + 64, this.D.mWork, 0.3);
+                this.b_M_work = this._initVector(this.D.mWork);
                 
-                // Рефлексы
-                this.W_reflex = this._initVector(4, 0.5);
+                this.W_M_perm = this._initMatrix(this.D.C + this.D.mPerm, this.D.mPerm, 0.3);
+                this.b_M_perm = this._initVector(this.D.mPerm);
                 
-                // M слои (Memory)
-                this.W_M_work = this._initMatrix(this.ARCH.mWorkInput, this.D.mWork, 0.3);
-                this.b_M_work = this._initVector(this.D.mWork, 0.1);
+                this.W_M_pred = this._initMatrix(this.D.A + 64 + this.D.mWork + this.D.Dout, this.D.mPred, 0.3);
+                this.b_M_pred = this._initVector(this.D.mPred);
                 
-                this.W_M_perm = this._initMatrix(this.ARCH.mPermInput, this.D.mPerm, 0.3);
-                this.b_M_perm = this._initVector(this.D.mPerm, 0.1);
+                const cInputSize = this.D.P + this.D.A + this.D.M + this.D.S + this.D.Dout + 1;
+                this.W_C = this._initMatrix(cInputSize, this.D.C, 0.25);
+                this.b_C = this._initVector(this.D.C);
                 
-                this.W_M_pred = this._initMatrix(this.ARCH.mPredInput, this.D.mPred, 0.3);
-                this.b_M_pred = this._initVector(this.D.mPred, 0.1);
+                this.W_S = this._initMatrix(this.D.P + this.D.mPerm + 32 + this.D.Dout, this.D.S, 0.3);
+                this.b_S = this._initVector(this.D.S);
                 
-                // C слой (Cortex)
-                this.W_C = this._initMatrix(this.ARCH.cInput, this.D.C, 0.25);
-                this.b_C = this._initVector(this.D.C, 0.1);
+                this.W_D = this._initMatrix(this.D.C + this.D.S + this.D.mPred, this.D.Dout, 0.2);
+                this.b_D = this._initVector(this.D.Dout);
                 
-                // S слой (State)
-                this.W_S = this._initMatrix(this.ARCH.sInput, this.D.S, 0.3);
-                this.b_S = this._initVector(this.D.S, 0.1);
-                
-                // D слой (Decision)
-                this.W_D = this._initMatrix(this.ARCH.dInput, this.D.Dout, 0.2);
-                this.b_D = this._initVector(this.D.Dout, 0.1);
-                
-                // Предсказание
                 this.W_pred = this._initMatrix(this.D.mPred, this.D.sensor, 0.15);
-                this.b_pred = this._initVector(this.D.sensor, 0.05);
                 
-                // Голова ценности (Value head)
-                this.W_V = this._initVector(this.D.C, 0.1);
+                this.W_V = this._initVector(this.D.C);
                 this.b_V = 0;
                 
-                // ====================================================================
-                // СОСТОЯНИЯ (векторы)
-                // ====================================================================
-                
-                // Текущие состояния
+                // States
                 this.P = new Float32Array(this.D.P);
                 this.A = new Float32Array(this.D.A);
                 this.M = new Float32Array(this.D.M);
@@ -1104,7 +929,6 @@
                 this.S = new Float32Array(this.D.S);
                 this.Dvec = new Float32Array(this.D.Dout);
                 
-                // Предыдущие состояния (для трассировок)
                 this.P_prev = new Float32Array(this.D.P);
                 this.A_prev = new Float32Array(this.D.A);
                 this.M_prev = new Float32Array(this.D.M);
@@ -1112,120 +936,37 @@
                 this.S_prev = new Float32Array(this.D.S);
                 this.D_prev = new Float32Array(this.D.Dout);
                 
-                // Ошибки предсказания
                 this.predErrors = new Float32Array(this.D.mPred);
                 
-                // ====================================================================
-                // ELIGIBILITY TRACES (для TD-обучения)
-                // ====================================================================
-                this.eTrace_P = new Float32Array(this.ARCH.pInput * this.D.P);
-                this.eTrace_C = new Float32Array(this.ARCH.cInput * this.D.C);
-                this.eTrace_D = new Float32Array(this.ARCH.dInput * this.D.Dout);
-                this.eTrace_pred = new Float32Array(this.D.mPred * this.D.sensor);
-                
-                // ====================================================================
-                // ЭМОЦИОНАЛЬНАЯ СИСТЕМА (полная)
-                // ====================================================================
-                
-                // Текущие эмоции (0-1)
+                // Emotions
                 this.emotions = {};
                 CONFIG.EMOTIONS.forEach(e => this.emotions[e] = 0);
                 
-                // История эмоций
-                this.emotionHistory = [];
-                this.maxEmotionHistory = 50;
-                
-                // Текущее эмоциональное состояние
                 this.emotionalState = {
-                    current: null,           // Текущая доминирующая эмоция
-                    intensity: 0,             // Интенсивность
-                    duration: 0,              // Оставшаяся длительность
-                    satisfaction: 0,           // Удовлетворение (-1..1)
-                    momentum: {}               // Моментум эмоций
+                    current: null,
+                    intensity: 0,
+                    duration: 0
                 };
                 
-                // Инициализация моментума
-                CONFIG.EMOTIONS.forEach(e => this.emotionalState.momentum[e] = 0);
-                
-                // Конфигурация эмоций (длительность, множители)
                 this.emotionConfig = {
-                    fear: { baseDuration: 180, intensityMult: 2.0, decay: 0.98 },
-                    aggression: { baseDuration: 120, intensityMult: 1.5, decay: 0.97 },
-                    frustration: { baseDuration: 240, intensityMult: 2.5, decay: 0.96 },
-                    desperation: { baseDuration: 300, intensityMult: 3.0, decay: 0.95 },
-                    confidence: { baseDuration: 150, intensityMult: 1.2, decay: 0.99 },
-                    vengeance: { baseDuration: 360, intensityMult: 3.5, decay: 0.94 },
-                    threat: { baseDuration: 90, intensityMult: 1.8, decay: 0.98 },
-                    surprise: { baseDuration: 60, intensityMult: 2.2, decay: 0.92 },
-                    caution: { baseDuration: 200, intensityMult: 1.6, decay: 0.97 },
-                    pride: { baseDuration: 180, intensityMult: 1.4, decay: 0.98 },
-                    shame: { baseDuration: 250, intensityMult: 2.0, decay: 0.95 },
-                    curiosity: { baseDuration: 150, intensityMult: 1.3, decay: 0.99 },
-                    boredom: { baseDuration: 400, intensityMult: 1.1, decay: 0.99 },
-                    empathy: { baseDuration: 120, intensityMult: 1.5, decay: 0.98 },
-                    loyalty: { baseDuration: 300, intensityMult: 1.2, decay: 0.99 },
-                    anxiety: { baseDuration: 220, intensityMult: 2.2, decay: 0.96 },
-                    excitement: { baseDuration: 100, intensityMult: 2.5, decay: 0.93 },
-                    disappointment: { baseDuration: 180, intensityMult: 1.8, decay: 0.97 },
-                    satisfaction: { baseDuration: 200, intensityMult: 1.3, decay: 0.98 },
-                    grief: { baseDuration: 500, intensityMult: 2.8, decay: 0.92 }
+                    fear: { decay: 0.96 },
+                    aggression: { decay: 0.95 },
+                    frustration: { decay: 0.94 },
+                    confidence: { decay: 0.99 },
+                    vengeance: { decay: 0.99 },
+                    threat: { decay: 0.97 },
+                    surprise: { decay: 0.90 },
+                    caution: { decay: 0.96 },
+                    pride: { decay: 0.97 },
+                    curiosity: { decay: 0.98 },
+                    desperation: { decay: 0.93 },
+                    empathy: { decay: 0.97 }
                 };
                 
-                // Память эмоций
-                this.emotionMemory = {
-                    trauma: 0,                 // Накопленная травма
-                    grudges: new Map(),         // Обиды на других агентов
-                    lastEmotion: null,          // Последняя эмоция
-                    unresolved: 0,              // Нерешенные эмоциональные конфликты
-                    killer: null                // Кто убил в прошлый раз
-                };
-                
-                // ====================================================================
-                // СОЦИАЛЬНАЯ ПАМЯТЬ
-                // ====================================================================
-                this.socialMemory = {
-                    relationships: new Map(),   // Отношения с другими агентами
-                    reputation: 0,               // Репутация
-                    observedBehaviors: new Map() // Наблюдаемое поведение
-                };
-                
-                // ====================================================================
-                // ЭПИЗОДИЧЕСКАЯ ПАМЯТЬ
-                // ====================================================================
-                this.episodicMemory = {
-                    events: [],                  // События
-                    maxEvents: 200,               // Максимум событий
-                    recallThreshold: 0.7,         // Порог воспоминания
-                    decayRate: 0.995              // Скорость забывания
-                };
-                
-                // ====================================================================
-                // СТАТИСТИКА
-                // ====================================================================
-                this.stats = {
-                    steps: 0,
-                    totalReward: 0,
-                    avgReward: 0,
-                    tdErrors: [],
-                    predErrors: [],
-                    reflexTriggers: 0,
-                    consolidationEvents: 0,
-                    gradientClips: 0,
-                    validationErrors: 0,
-                    alphaWins: 0,
-                    betaWins: 0
-                };
-                
-                // Временные буферы
-                this._tempBuffers = [];
+                this.stats = { steps: 0, totalReward: 0 };
                 this._lastOutput = new Float32Array(this.D.Dout);
-                this._lastReward = 0;
                 this._reflexThisFrame = false;
             }
-            
-            // ========================================================================
-            // ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ (математика)
-            // ========================================================================
             
             _tanh(x) {
                 if (x > 20) return 1;
@@ -1234,772 +975,105 @@
                 return (e2x - 1) / (e2x + 1);
             }
             
-            _relu(x) {
-                return x > 0 ? x : 0.01 * x;
+            _relu(x) { return x > 0 ? x : 0.01 * x; }
+            _sigmoid(x) { return 1 / (1 + Math.exp(-x)); }
+            
+            _initVector(len, scale = 0.1) {
+                const v = new Float32Array(len);
+                for (let i = 0; i < len; i++) v[i] = (this.rng.next() * 2 - 1) * scale;
+                return v;
             }
             
-            _sigmoid(x) {
-                return 1 / (1 + Math.exp(-x));
+            _initMatrix(rows, cols, scale = 0.1) {
+                const m = [];
+                for (let i = 0; i < rows; i++) {
+                    const row = new Float32Array(cols);
+                    for (let j = 0; j < cols; j++) row[j] = (this.rng.next() * 2 - 1) * scale;
+                    m.push(row);
+                }
+                return m;
             }
             
-            _softmax(arr, temperature = 1) {
-                if (!arr || arr.length === 0) return [];
-                
-                // Находим максимум для численной стабильности
-                let maxVal = -Infinity;
-                for (let i = 0; i < arr.length; i++) {
-                    if (arr[i] > maxVal) maxVal = arr[i];
-                }
-                
-                // Экспоненты
-                const exps = new Array(arr.length);
-                let sum = 0;
-                for (let i = 0; i < arr.length; i++) {
-                    // Защита от переполнения
-                    const val = (arr[i] - maxVal) / temperature;
-                    exps[i] = Math.exp(Math.min(val, 50)); // Ограничиваем экспоненту
-                    sum += exps[i];
-                }
-                
-                // Нормализация
-                if (sum < 1e-10) sum = 1e-10;
-                for (let i = 0; i < arr.length; i++) {
-                    exps[i] /= sum;
-                }
-                
-                return exps;
-            }
-            
-            // Матричное умножение с активацией
             _matMul(vec, mat, bias = null, activation = 'tanh') {
-                if (!vec || !mat || !mat.length || !mat[0]) {
-                    return new Float32Array(0);
-                }
-                
-                const outRows = mat[0].length;
-                const out = new Float32Array(outRows);
-                const vecLen = vec.length;
-                
-                // Оптимизированное умножение (с разверткой циклов)
-                for (let i = 0; i < outRows; i++) {
-                    let sum = 0;
-                    
-                    // Развертка на 4 для производительности
-                    let j = 0;
-                    for (; j < vecLen - 3; j += 4) {
-                        sum += safeNum(vec[j]) * safeNum(mat[j]?.[i]) +
-                               safeNum(vec[j+1]) * safeNum(mat[j+1]?.[i]) +
-                               safeNum(vec[j+2]) * safeNum(mat[j+2]?.[i]) +
-                               safeNum(vec[j+3]) * safeNum(mat[j+3]?.[i]);
-                    }
-                    
-                    // Остаток
-                    for (; j < vecLen; j++) {
-                        sum += safeNum(vec[j]) * safeNum(mat[j]?.[i]);
-                    }
-                    
-                    // Добавляем bias
-                    if (bias) {
-                        sum += safeNum(bias[i]);
-                    }
-                    
-                    // Применяем активацию
-                    switch (activation) {
-                        case 'tanh':
-                            out[i] = this._tanh(sum);
-                            break;
-                        case 'relu':
-                            out[i] = this._relu(sum);
-                            break;
-                        case 'sigmoid':
-                            out[i] = this._sigmoid(sum);
-                            break;
-                        case 'linear':
-                            out[i] = sum;
-                            break;
-                        default:
-                            out[i] = sum;
-                    }
-                }
-                
-                return out;
-            }
-            
-            // Линейное умножение (без активации)
-            _linearMul(vec, mat) {
-                if (!vec || !mat || !mat.length || !mat[0]) {
-                    return new Float32Array(0);
-                }
+                if (!vec || !mat || !mat.length || !mat[0]) return new Float32Array(0);
                 
                 const outRows = mat[0].length;
                 const out = new Float32Array(outRows);
                 const vecLen = vec.length;
                 
                 for (let i = 0; i < outRows; i++) {
-                    let sum = 0;
+                    let sum = bias ? safeNum(bias[i]) : 0;
                     for (let j = 0; j < vecLen; j++) {
                         sum += safeNum(vec[j]) * safeNum(mat[j]?.[i]);
                     }
-                    out[i] = sum;
+                    
+                    switch (activation) {
+                        case 'tanh': out[i] = this._tanh(sum); break;
+                        case 'relu': out[i] = this._relu(sum); break;
+                        case 'sigmoid': out[i] = this._sigmoid(sum); break;
+                        default: out[i] = sum;
+                    }
                 }
-                
                 return out;
             }
             
-            // Получение сегментов памяти
-            _getMWork(m) {
-                return m.subarray(0, this.D.mWork);
-            }
+            _getMWork(m) { return m.subarray(0, this.D.mWork); }
+            _getMPerm(m) { return m.subarray(this.D.mWork, this.D.mWork + this.D.mPerm); }
+            _getMPred(m) { return m.subarray(this.D.mWork + this.D.mPerm, this.D.M); }
             
-            _getMPerm(m) {
-                return m.subarray(this.D.mWork, this.D.mWork + this.D.mPerm);
-            }
-            
-            _getMPred(m) {
-                return m.subarray(this.D.mWork + this.D.mPerm, this.D.M);
-            }
-            
-            // ========================================================================
-            // ПОСТРОЕНИЕ ВХОДОВ ДЛЯ СЛОЕВ
-            // ========================================================================
-            
-            _buildPInput(x_t, C_prev, S_prev, M_perm_prev, ratio = 0.5) {
-                const buf = ArrayPool.get(this.ARCH.pInput);
-                let idx = 0;
-                
-                // Сенсоры
-                for (let i = 0; i < this.D.sensor; i++) {
-                    buf[idx++] = safeNum(x_t[i]) * ratio;
-                }
-                
-                // Предыдущий кортекс
-                for (let i = 0; i < this.D.C; i++) {
-                    buf[idx++] = C_prev[i];
-                }
-                
-                // Предыдущее состояние
-                for (let i = 0; i < this.D.S; i++) {
-                    buf[idx++] = S_prev[i];
-                }
-                
-                // Постоянная память
-                for (let i = 0; i < this.D.mPerm; i++) {
-                    buf[idx++] = M_perm_prev[i];
-                }
-                
-                return buf;
-            }
-            
-            _buildAInput(P_t, M_work, C_prev, D_prev, headIdx, ratio = 0.25) {
-                const buf = ArrayPool.get(this.ARCH.aInput);
-                let idx = 0;
-                
-                // P вектор
-                for (let i = 0; i < this.D.P; i++) {
-                    buf[idx++] = P_t[i] * ratio;
-                }
-                
-                // Рабочая память
-                for (let i = 0; i < this.D.mWork; i++) {
-                    buf[idx++] = M_work[i];
-                }
-                
-                // Сегмент кортекса для этой головы
-                const cStart = headIdx * 64;
-                for (let i = 0; i < 64; i++) {
-                    const ci = cStart + i;
-                    buf[idx++] = ci < this.D.C ? C_prev[ci] : 0;
-                }
-                
-                // Предыдущее решение
-                for (let i = 0; i < this.D.Dout; i++) {
-                    buf[idx++] = D_prev[i];
-                }
-                
-                return buf;
-            }
-            
-            _buildMWorkInput(P_t, A_t, C_prev, ratio = 0.75) {
-                const buf = ArrayPool.get(this.ARCH.mWorkInput);
-                let idx = 0;
-                
-                for (let i = 0; i < this.D.P; i++) {
-                    buf[idx++] = P_t[i] * ratio;
-                }
-                
-                for (let i = 0; i < this.D.A; i++) {
-                    buf[idx++] = A_t[i] * ratio;
-                }
-                
-                for (let i = 0; i < 64; i++) {
-                    buf[idx++] = i < this.D.C ? C_prev[i] : 0;
-                }
-                
-                return buf;
-            }
-            
-            _buildMPermInput(C_prev, M_perm_prev, ratio = 0.75) {
-                const buf = ArrayPool.get(this.ARCH.mPermInput);
-                let idx = 0;
-                
-                for (let i = 0; i < this.D.C; i++) {
-                    buf[idx++] = C_prev[i] * ratio;
-                }
-                
-                for (let i = 0; i < this.D.mPerm; i++) {
-                    buf[idx++] = M_perm_prev[i];
-                }
-                
-                return buf;
-            }
-            
-            _buildMPredInput(A_t, C_prev, M_work, D_prev, ratio = 0.75) {
-                const buf = ArrayPool.get(this.ARCH.mPredInput);
-                let idx = 0;
-                
-                for (let i = 0; i < this.D.A; i++) {
-                    buf[idx++] = A_t[i] * ratio;
-                }
-                
-                // Специальный сегмент кортекса для предсказаний
-                for (let i = 0; i < 64; i++) {
-                    const ci = this.ARCH.cPredOffset + i;
-                    buf[idx++] = ci < this.D.C ? C_prev[ci] : 0;
-                }
-                
-                for (let i = 0; i < this.D.mWork; i++) {
-                    buf[idx++] = M_work[i];
-                }
-                
-                for (let i = 0; i < this.D.Dout; i++) {
-                    buf[idx++] = D_prev[i];
-                }
-                
-                return buf;
-            }
-            
-            _buildCInput(P_t, A_t, M_t, S_prev, D_prev, r_t, ratio = 4.0) {
-                const buf = ArrayPool.get(this.ARCH.cInput);
-                let idx = 0;
-                
-                for (let i = 0; i < this.D.P; i++) {
-                    buf[idx++] = P_t[i] * ratio;
-                }
-                
-                for (let i = 0; i < this.D.A; i++) {
-                    buf[idx++] = A_t[i] * ratio;
-                }
-                
-                for (let i = 0; i < this.D.M; i++) {
-                    buf[idx++] = M_t[i] * ratio;
-                }
-                
-                for (let i = 0; i < this.D.S; i++) {
-                    buf[idx++] = S_prev[i];
-                }
-                
-                for (let i = 0; i < this.D.Dout; i++) {
-                    buf[idx++] = D_prev[i];
-                }
-                
-                buf[idx++] = r_t;
-                
-                return buf;
-            }
-            
-            _buildSInput(P_t, M_perm, C_prev, D_prev, ratio = 0.5) {
-                const buf = ArrayPool.get(this.ARCH.sInput);
-                let idx = 0;
-                
-                for (let i = 0; i < this.D.P; i++) {
-                    buf[idx++] = P_t[i] * ratio;
-                }
-                
-                for (let i = 0; i < this.D.mPerm; i++) {
-                    buf[idx++] = M_perm[i];
-                }
-                
-                for (let i = 0; i < 32; i++) {
-                    const ci = 224 + i;
-                    buf[idx++] = ci < this.D.C ? C_prev[ci] : 0;
-                }
-                
-                for (let i = 0; i < this.D.Dout; i++) {
-                    buf[idx++] = D_prev[i] * ratio;
-                }
-                
-                return buf;
-            }
-            
-            _buildDInput(C_t, S_t, M_pred) {
-                const buf = ArrayPool.get(this.ARCH.dInput);
-                let idx = 0;
-                
-                for (let i = 0; i < this.D.C; i++) {
-                    buf[idx++] = C_t[i];
-                }
-                
-                for (let i = 0; i < this.D.S; i++) {
-                    buf[idx++] = S_t[i];
-                }
-                
-                for (let i = 0; i < this.D.mPred; i++) {
-                    buf[idx++] = M_pred[i];
-                }
-                
-                return buf;
-            }
-            
-            // ========================================================================
-            // ПРЕДСКАЗАНИЕ И ОШИБКИ
-            // ========================================================================
-            
-            _updatePrediction(M_pred, x_t) {
-                // Предсказываем входные сенсоры
-                const x_pred = this._linearMul(M_pred, this.W_pred);
-                
-                // Добавляем bias
-                for (let i = 0; i < this.D.sensor; i++) {
-                    x_pred[i] += this.b_pred[i];
-                }
-                
-                // Вычисляем ошибки
-                for (let i = 0; i < this.D.mPred; i++) {
-                    const error = Math.abs(x_pred[i] - safeNum(x_t[i]));
-                    this.predErrors[i] = lerp(this.predErrors[i], error, 0.1);
-                }
-            }
-            
-            _avgPredError() {
-                let sum = 0;
-                for (let i = 0; i < this.D.mPred; i++) {
-                    sum += this.predErrors[i];
-                }
-                return sum / this.D.mPred;
-            }
-            
-            // ========================================================================
-            // ОЦЕНКА ЦЕННОСТИ (VALUE)
-            // ========================================================================
-            
-            _estimateValue() {
-                let sum = this.b_V;
-                for (let i = 0; i < this.D.C; i++) {
-                    sum += this.C[i] * this.W_V[i];
-                }
-                return this._tanh(sum);
-            }
-            
-            _updateValueHead(tdErr) {
-                const alpha = this.lr * 0.5;
-                for (let i = 0; i < this.D.C; i++) {
-                    this.W_V[i] = clamp(this.W_V[i] + alpha * tdErr * this.C[i], -2, 2);
-                }
-                this.b_V += alpha * tdErr;
-            }
-            
-            // ========================================================================
-            // ELIGIBILITY TRACES - ИСПРАВЛЕНО (используем правильные активации)
-            // ========================================================================
-            
-            _updateTraces(inputs, outputs, tdErr) {
-                const decay = this.gamma * this.lambda;
-                
-                // Трассы для P слоя - используем P (текущий) а не P_prev
-                for (let i = 0; i < this.ARCH.pInput; i++) {
-                    for (let j = 0; j < this.D.P; j++) {
-                        const idx = i * this.D.P + j;
-                        this.eTrace_P[idx] = clamp(
-                            decay * this.eTrace_P[idx] + (i < inputs.length ? inputs[i] : 0) * this.P[j],
-                            -10, 10
-                        );
-                    }
-                }
-                
-                // Трассы для C слоя
-                for (let j = 0; j < this.ARCH.cInput; j++) {
-                    for (let i = 0; i < this.D.C; i++) {
-                        const idx = j * this.D.C + i;
-                        const preAct = j < inputs.length ? safeNum(inputs[j]) : 0;
-                        this.eTrace_C[idx] = clamp(
-                            decay * this.eTrace_C[idx] + preAct * this.C[i],
-                            -10, 10
-                        );
-                    }
-                }
-            }
-            
-            _applyTDError(tdErr) {
-                const alpha = this.lr * Math.sign(tdErr) * 0.1;
-                const MAX_GRAD = 0.3;
-                
-                // Обновляем все слои, а не только часть
-                for (let i = 0; i < this.D.C; i++) {
-                    for (let j = 0; j < this.ARCH.cInput; j++) {
-                        if (this.W_C[j] && this.W_C[j][i] !== undefined) {
-                            const delta = clamp(alpha * 0.01 * this.eTrace_C[j * this.D.C + i], -MAX_GRAD, MAX_GRAD);
-                            this.W_C[j][i] = clamp(this.W_C[j][i] + delta, -2, 2);
-                        }
-                    }
-                }
-                
-                // Также обновляем P слой
-                for (let i = 0; i < this.D.P; i++) {
-                    for (let j = 0; j < this.ARCH.pInput; j++) {
-                        if (this.W_P[j] && this.W_P[j][i] !== undefined) {
-                            const delta = clamp(alpha * 0.005 * this.eTrace_P[j * this.D.P + i], -MAX_GRAD, MAX_GRAD);
-                            this.W_P[j][i] = clamp(this.W_P[j][i] + delta, -2, 2);
-                        }
-                    }
-                }
-            }
-            
-            // ========================================================================
-            // ХЕББОВСКОЕ ОБУЧЕНИЕ - ИСПРАВЛЕНО (теперь вызывается)
-            // ========================================================================
-            
-            _hebbianUpdate(pre, post, correlation, layer) {
-                if (!pre || !post) return;
-                
-                const eta = this.hebbianRate * correlation * 0.5;
-                const step = Math.max(1, Math.floor(pre.length / 50));
-                
-                for (let i = 0; i < post.length; i += step) {
-                    for (let j = 0; j < pre.length; j += step) {
-                        const delta = eta * pre[j] * post[i];
-                        
-                        if (layer === 'P→A' && i < this.D.A) {
-                            const headIdx = Math.floor(i / this.D.headDim);
-                            const localI = i % this.D.headDim;
-                            
-                            if (headIdx < this.D.heads &&
-                                j < this.W_A[headIdx].length &&
-                                localI < this.W_A[headIdx][j].length) {
-                                this.W_A[headIdx][j][localI] = clamp(
-                                    this.W_A[headIdx][j][localI] + delta, -2, 2
-                                );
-                            }
-                        }
-                    }
-                }
-            }
-            
-            // ========================================================================
-            // КОНСОЛИДАЦИЯ ПАМЯТИ
-            // ========================================================================
-            
-            _consolidateMemory(reward) {
-                let newEvents = 0;
-                
-                for (let i = 0; i < this.D.mPred; i++) {
-                    if (this.predErrors[i] > 0.25) {
-                        this.episodicMemory.events.push({
-                            idx: i,
-                            value: this.M[96 + i],
-                            importance: this.predErrors[i] * Math.abs(reward),
-                            step: this.stats.steps,
-                            timestamp: Date.now()
-                        });
-                        newEvents++;
-                    }
-                }
-                
-                this.stats.consolidationEvents += newEvents;
-                
-                // Ограничиваем размер памяти
-                if (this.episodicMemory.events.length > this.episodicMemory.maxEvents) {
-                    this.episodicMemory.events.sort((a, b) => b.importance - a.importance);
-                    this.episodicMemory.events.length = this.episodicMemory.maxEvents;
-                }
-            }
-            
-            // ========================================================================
-            // TD-ОШИБКА
-            // ========================================================================
-            
-            _tdError(reward, value, nextValue) {
-                return safeNum(reward) + this.gamma * safeNum(nextValue) - safeNum(value);
-            }
-            
-            // ========================================================================
-            // ИНИЦИАЛИЗАЦИЯ ВЕКТОРОВ И МАТРИЦ
-            // ========================================================================
-            
-            _initVector(length, scale) {
-                const vec = new Float32Array(length);
-                for (let i = 0; i < length; i++) {
-                    vec[i] = this.rng.next() * scale * 2 - scale;
-                }
-                return vec;
-            }
-            
-            _initMatrix(rows, cols, scale) {
-                const mat = [];
-                for (let i = 0; i < rows; i++) {
-                    const row = new Float32Array(cols);
-                    for (let j = 0; j < cols; j++) {
-                        row[j] = this.rng.next() * scale * 2 - scale;
-                    }
-                    mat.push(row);
-                }
-                return mat;
-            }
-            
-            // ========================================================================
-            // ЭМОЦИОНАЛЬНАЯ СИСТЕМА - ИСПРАВЛЕНА ОШИБКА С UNDEFINED
-            // ========================================================================
-            
-            _updateEmotions(reward, events = null) {
-                // Обновляем историю
-                this.emotionHistory.push({ ...this.emotions, step: this.stats.steps });
-                if (this.emotionHistory.length > this.maxEmotionHistory) {
-                    this.emotionHistory.shift();
-                }
-                
-                // Обрабатываем боевые события
+            _updateEmotions(reward, events) {
                 if (events && events.length) {
-                    this._processCombatEvents(events);
-                }
-                
-                // Обновляем текущее эмоциональное состояние
-                if (this.emotionalState.current) {
-                    const state = this.emotionalState.current;
-                    const config = this.emotionConfig[state];
-                    
-                    if (config) {
-                        this.emotionalState.duration--;
-                        this.emotionalState.satisfaction = lerp(
-                            this.emotionalState.satisfaction,
-                            this.emotionalState.satisfaction,
-                            0.1
-                        );
-                        
-                        // Проверяем выход из эмоции
-                        if (this._canExitEmotion()) {
-                            this._exitEmotion('completed');
-                        }
-                    }
-                } else {
-                    // Выбираем доминирующую эмоцию
-                    const dominant = this._getDominantEmotion();
-                    if (dominant.intensity > 0.6) {
-                        this._enterEmotion(dominant.name, dominant.intensity);
-                    }
-                }
-                
-                // Базовое обновление эмоций на основе награды
-                if (reward < 0) {
-                    this.emotions.frustration = clamp((this.emotions.frustration || 0) + 0.03, 0, 1);
-                    this.emotions.fear = clamp((this.emotions.fear || 0) + 0.02, 0, 1);
-                } else if (reward > 0) {
-                    this.emotions.confidence = clamp((this.emotions.confidence || 0) + 0.02, 0, 1);
-                    this.emotions.satisfaction = clamp((this.emotions.satisfaction || 0) + 0.03, 0, 1);
-                }
-                
-                // Затухание эмоций - с защитой от undefined
-                for (const emo in this.emotions) {
-                    const config = this.emotionConfig[emo];
-                    const currentVal = this.emotions[emo] || 0;
-                    if (config) {
-                        this.emotions[emo] = currentVal * config.decay;
-                    } else {
-                        this.emotions[emo] = currentVal * 0.98;
-                    }
-                }
-            }
-            
-            _processCombatEvents(events) {
-                for (const e of events) {
-                    switch (e.type) {
-                        case 'hit':
-                            this.emotions.confidence = clamp((this.emotions.confidence || 0) + 0.1, 0, 1);
-                            this.emotions.aggression = clamp((this.emotions.aggression || 0) + 0.05, 0, 1);
-                            this.emotionalState.satisfaction = clamp(this.emotionalState.satisfaction + 0.15, -1, 1);
-                            break;
-                            
-                        case 'damage':
-                            this.emotions.fear = clamp((this.emotions.fear || 0) + 0.1, 0, 1);
-                            this.emotions.frustration = clamp((this.emotions.frustration || 0) + 0.1, 0, 1);
-                            this.emotionalState.satisfaction = clamp(this.emotionalState.satisfaction - 0.2, -1, 1);
-                            
-                            if (e.damage > 20) {
-                                this.emotionMemory.trauma = clamp(this.emotionMemory.trauma + 0.05, 0, 1);
-                            }
-                            break;
-                            
-                        case 'block':
-                            this.emotions.confidence = clamp((this.emotions.confidence || 0) + 0.05, 0, 1);
-                            this.emotions.caution = clamp((this.emotions.caution || 0) + 0.03, 0, 1);
-                            break;
-                            
-                        case 'dodge':
-                            this.emotions.confidence = clamp((this.emotions.confidence || 0) + 0.08, 0, 1);
-                            this.emotions.excitement = clamp((this.emotions.excitement || 0) + 0.1, 0, 1);
-                            break;
-                            
-                        case 'miss':
-                            this.emotions.frustration = clamp((this.emotions.frustration || 0) + 0.05, 0, 1);
-                            break;
-                            
-                        case 'ko':
-                            if (e.winner === 'self') {
-                                this.emotions.pride = clamp((this.emotions.pride || 0) + 0.3, 0, 1);
-                                this.emotions.confidence = clamp((this.emotions.confidence || 0) + 0.2, 0, 1);
-                            } else {
-                                this.emotions.grief = clamp((this.emotions.grief || 0) + 0.3, 0, 1);
-                                this.emotions.fear = clamp((this.emotions.fear || 0) + 0.2, 0, 1);
-                                
-                                if (e.killer) {
-                                    const grudge = this.emotionMemory.grudges.get(e.killer) || 0;
-                                    this.emotionMemory.grudges.set(e.killer, clamp(grudge + 0.3, -1, 1));
-                                    this.emotions.vengeance = clamp((this.emotions.vengeance || 0) + 0.2, 0, 1);
+                    for (const e of events) {
+                        switch (e.type) {
+                            case 'hit':
+                                this.emotions.confidence = clamp(this.emotions.confidence + 0.1, 0, 1);
+                                this.emotions.aggression = clamp(this.emotions.aggression + 0.05, 0, 1);
+                                break;
+                            case 'damage':
+                                this.emotions.fear = clamp(this.emotions.fear + 0.1, 0, 1);
+                                this.emotions.frustration = clamp(this.emotions.frustration + 0.08, 0, 1);
+                                break;
+                            case 'block':
+                                this.emotions.confidence = clamp(this.emotions.confidence + 0.04, 0, 1);
+                                break;
+                            case 'dodge':
+                                this.emotions.confidence = clamp(this.emotions.confidence + 0.06, 0, 1);
+                                break;
+                            case 'ko':
+                                if (e.winner === 'self') {
+                                    this.emotions.pride = clamp(this.emotions.pride + 0.3, 0, 1);
+                                } else {
+                                    this.emotions.frustration = clamp(this.emotions.frustration + 0.3, 0, 1);
                                 }
-                            }
-                            break;
-                    }
-                }
-            }
-            
-            _getDominantEmotion() {
-                let maxEmo = null;
-                let maxVal = -1;
-                
-                for (const [emo, val] of Object.entries(this.emotions)) {
-                    const safeVal = val || 0;
-                    if (safeVal > maxVal) {
-                        maxVal = safeVal;
-                        maxEmo = emo;
-                    }
-                }
-                
-                return { name: maxEmo, intensity: maxVal };
-            }
-            
-            _enterEmotion(name, intensity) {
-                this.emotionalState.current = name;
-                this.emotionalState.intensity = intensity;
-                
-                const config = this.emotionConfig[name];
-                if (config) {
-                    this.emotionalState.duration = Math.floor(config.baseDuration * intensity);
-                } else {
-                    this.emotionalState.duration = 100;
-                }
-                
-                this.emotionMemory.lastEmotion = {
-                    name,
-                    intensity,
-                    timestamp: Date.now()
-                };
-            }
-            
-            _exitEmotion(reason) {
-                this.emotionalState.current = null;
-                this.emotionalState.intensity = 0;
-                this.emotionalState.duration = 0;
-            }
-            
-            _canExitEmotion() {
-                if (this.emotionalState.duration <= 0) return true;
-                if (this.emotionalState.intensity < 0.2) return true;
-                if (this.emotionalState.satisfaction > 0.8) return true;
-                return false;
-            }
-            
-            // ========================================================================
-            // РЕФЛЕКСЫ
-            // ========================================================================
-            
-            _checkReflexes(S_new, D_new) {
-                let reflex = false;
-                
-                // Рефлекс страха
-                if ((this.emotions.fear || 0) > 0.8) {
-                    D_new[10] = clamp(D_new[10] + 0.3, 0, 1); // retreat
-                    reflex = true;
-                }
-                
-                // Рефлекс агрессии
-                if ((this.emotions.aggression || 0) > 0.8) {
-                    D_new[6] = clamp(D_new[6] + 0.3, 0, 1); // attack
-                    reflex = true;
-                }
-                
-                // Рефлекс уклонения
-                if ((this.emotions.surprise || 0) > 0.7) {
-                    D_new[10] = clamp(D_new[10] + 0.2, 0, 1);
-                    reflex = true;
-                }
-                
-                if (reflex) {
-                    this.stats.reflexTriggers++;
-                }
-                
-                return reflex;
-            }
-            
-            _resolveCommandConflicts(D_new) {
-                // Агрессия vs Страх
-                if ((this.emotions.aggression || 0) > 0.7 && (this.emotions.fear || 0) > 0.5) {
-                    // Компромисс
-                    D_new[6] *= 0.7; // уменьшаем атаку
-                    D_new[10] *= 0.5; // уменьшаем отступление
-                }
-                
-                // Месть активирует агрессию
-                if ((this.emotions.vengeance || 0) > 0.6) {
-                    D_new[6] = clamp(D_new[6] + 0.2, 0, 1);
-                }
-                
-                // Отчаяние может вызвать случайные действия
-                if ((this.emotions.desperation || 0) > 0.8) {
-                    if (Math.random() < 0.3) {
-                        D_new[6] = Math.random(); // случайная атака
-                    }
-                }
-            }
-            
-            // ========================================================================
-            // СОЦИАЛЬНОЕ ВЗАИМОДЕЙСТВИЕ
-            // ========================================================================
-            
-            _processSocialContext(context) {
-                if (!context) return;
-                
-                const { enemyId, enemyAggression, enemyHealth } = context;
-                
-                if (enemyId) {
-                    let rel = this.socialMemory.relationships.get(enemyId);
-                    if (!rel) {
-                        rel = { trust: 0, affinity: 0, encounters: 0, lastSeen: 0 };
-                        this.socialMemory.relationships.set(enemyId, rel);
-                    }
-                    
-                    // Обновляем отношения
-                    if (enemyAggression > 0.7) {
-                        rel.trust = clamp(rel.trust - 0.05, -1, 1);
-                        this.emotions.fear = clamp((this.emotions.fear || 0) + 0.02, 0, 1);
-                    }
-                    
-                    if (enemyHealth < 0.3) {
-                        if (this.personality?.traits?.empathy > 0.6) {
-                            this.emotions.empathy = clamp((this.emotions.empathy || 0) + 0.05, 0, 1);
+                                break;
                         }
                     }
-                    
-                    rel.encounters++;
-                    rel.lastSeen = this.stats.steps;
+                }
+                
+                // Decay emotions
+                for (const emo in this.emotions) {
+                    const cfg = this.emotionConfig[emo];
+                    this.emotions[emo] *= cfg ? cfg.decay : 0.97;
+                }
+                
+                // Find dominant
+                let maxEmo = null, maxVal = -1;
+                for (const [emo, val] of Object.entries(this.emotions)) {
+                    if (val > maxVal) { maxVal = val; maxEmo = emo; }
+                }
+                
+                if (maxVal > 0.5) {
+                    this.emotionalState.current = maxEmo;
+                    this.emotionalState.intensity = maxVal;
+                } else {
+                    this.emotionalState.current = null;
+                    this.emotionalState.intensity = 0;
                 }
             }
             
-            // ========================================================================
-            // ОСНОВНОЙ FORWARD PASS - ИСПРАВЛЕН ПОРЯДОК ОСВОБОЖДЕНИЯ БУФЕРОВ
-            // ========================================================================
-            
-            forward(rawInputs, reward = 0, combatEvents = null, socialContext = null) {
-                PerfMonitor.addAlloc();
+            forward(rawInputs, reward = 0, combatEvents = null) {
+                PerfMonitor.addOps(500);
                 
-                // Нормализуем входы
                 const x_t = new Float32Array(this.D.sensor);
                 if (Array.isArray(rawInputs)) {
                     for (let i = 0; i < Math.min(rawInputs.length, this.D.sensor); i++) {
@@ -2008,56 +1082,53 @@
                 }
                 
                 const r_t = safeNum(reward);
-                this._lastReward = r_t;
                 
-                // Социальный контекст
-                this._processSocialContext(socialContext);
+                // Build inputs
+                const P_in = new Float32Array(this.D.sensor + this.D.C + this.D.S + this.D.mPerm);
+                let idx = 0;
+                for (let i = 0; i < this.D.sensor; i++) P_in[idx++] = x_t[i] * 0.5;
+                for (let i = 0; i < this.D.C; i++) P_in[idx++] = this.C_prev[i];
+                for (let i = 0; i < this.D.S; i++) P_in[idx++] = this.S_prev[i];
+                for (let i = 0; i < this.D.mPerm; i++) P_in[idx++] = this._getMPerm(this.M_prev)[i];
                 
-                // Собираем входы для слоев
-                const P_in = this._buildPInput(x_t, this.C_prev, this.S_prev, this._getMPerm(this.M_prev), 0.5);
-                
-                const A_ins = [];
-                for (let h = 0; h < this.D.heads; h++) {
-                    A_ins.push(this._buildAInput(
-                        this.P_prev, 
-                        this._getMWork(this.M_prev), 
-                        this.C_prev, 
-                        this.D_prev, 
-                        h, 
-                        0.25
-                    ));
-                }
-                
-                const M_work_in = this._buildMWorkInput(this.P_prev, this._getMWork(this.M_prev), this.C_prev, 0.75);
-                const M_perm_in = this._buildMPermInput(this.C_prev, this._getMPerm(this.M_prev), 0.75);
-                const M_pred_in = this._buildMPredInput(this.A_prev, this.C_prev, this._getMWork(this.M_prev), this.D_prev, 0.75);
-                const C_in = this._buildCInput(this.P_prev, this.A_prev, this.M_prev, this.S_prev, this.D_prev, r_t, 4.0);
-                const S_in = this._buildSInput(this.P_prev, this._getMPerm(this.M_prev), this.C_prev, this.D_prev, 0.5);
-                const D_in = this._buildDInput(this.C_prev, this.S_prev, this._getMPred(this.M_prev));
-                
-                // Прямой проход
-                
-                // P слой
+                // Forward pass
                 const P_new = this._matMul(P_in, this.W_P, this.b_P, 'relu');
                 
-                // Ворота внимания
-                const gateProbs = this._softmax(Array.from(this.W_gate), 1.0);
-                
-                // A слой (внимание)
                 const A_new = new Float32Array(this.D.A);
                 for (let h = 0; h < this.D.heads; h++) {
-                    const headOut = this._matMul(A_ins[h], this.W_A[h], this.b_A[h], 'relu');
-                    const gateWeight = gateProbs[h];
+                    const A_in = new Float32Array(this.D.P + this.D.mWork + 64 + this.D.Dout);
+                    let aIdx = 0;
+                    for (let i = 0; i < this.D.P; i++) A_in[aIdx++] = this.P_prev[i] * 0.25;
+                    for (let i = 0; i < this.D.mWork; i++) A_in[aIdx++] = this._getMWork(this.M_prev)[i];
+                    for (let i = 0; i < 64; i++) A_in[aIdx++] = (h * 64 + i) < this.D.C ? this.C_prev[h * 64 + i] : 0;
+                    for (let i = 0; i < this.D.Dout; i++) A_in[aIdx++] = this.D_prev[i];
+                    
+                    const headOut = this._matMul(A_in, this.W_A[h], this.b_A[h], 'relu');
                     for (let i = 0; i < this.D.headDim; i++) {
-                        A_new[h * this.D.headDim + i] = headOut[i] * gateWeight;
+                        A_new[h * this.D.headDim + i] = headOut[i] * 0.25;
                     }
-                    // Освобождаем headOut сразу после использования
-                    ArrayPool.release(headOut);
                 }
                 
-                // M слой (память)
+                // Memory
+                const M_work_in = new Float32Array(this.D.P + this.D.A + 64);
+                let mwIdx = 0;
+                for (let i = 0; i < this.D.P; i++) M_work_in[mwIdx++] = this.P_prev[i] * 0.75;
+                for (let i = 0; i < this.D.A; i++) M_work_in[mwIdx++] = this.A_prev[i] * 0.75;
+                for (let i = 0; i < 64; i++) M_work_in[mwIdx++] = this.C_prev[i];
                 const M_work_new = this._matMul(M_work_in, this.W_M_work, this.b_M_work, 'relu');
+                
+                const M_perm_in = new Float32Array(this.D.C + this.D.mPerm);
+                let mpIdx = 0;
+                for (let i = 0; i < this.D.C; i++) M_perm_in[mpIdx++] = this.C_prev[i] * 0.75;
+                for (let i = 0; i < this.D.mPerm; i++) M_perm_in[mpIdx++] = this._getMPerm(this.M_prev)[i];
                 const M_perm_new = this._matMul(M_perm_in, this.W_M_perm, this.b_M_perm, 'relu');
+                
+                const M_pred_in = new Float32Array(this.D.A + 64 + this.D.mWork + this.D.Dout);
+                let mprIdx = 0;
+                for (let i = 0; i < this.D.A; i++) M_pred_in[mprIdx++] = this.A_prev[i] * 0.75;
+                for (let i = 0; i < 64; i++) M_pred_in[mprIdx++] = this.C_prev[192 + i] || 0;
+                for (let i = 0; i < this.D.mWork; i++) M_pred_in[mprIdx++] = this._getMWork(this.M_prev)[i];
+                for (let i = 0; i < this.D.Dout; i++) M_pred_in[mprIdx++] = this.D_prev[i];
                 const M_pred_new = this._matMul(M_pred_in, this.W_M_pred, this.b_M_pred, 'relu');
                 
                 const M_new = new Float32Array(this.D.M);
@@ -2065,16 +1136,35 @@
                 for (let i = 0; i < this.D.mPerm; i++) M_new[this.D.mWork + i] = M_perm_new[i];
                 for (let i = 0; i < this.D.mPred; i++) M_new[this.D.mWork + this.D.mPerm + i] = M_pred_new[i];
                 
-                // C слой (кортекс)
+                // Cortex
+                const C_in = new Float32Array(this.D.P + this.D.A + this.D.M + this.D.S + this.D.Dout + 1);
+                let cIdx = 0;
+                for (let i = 0; i < this.D.P; i++) C_in[cIdx++] = this.P_prev[i] * 4;
+                for (let i = 0; i < this.D.A; i++) C_in[cIdx++] = this.A_prev[i] * 4;
+                for (let i = 0; i < this.D.M; i++) C_in[cIdx++] = this.M_prev[i] * 4;
+                for (let i = 0; i < this.D.S; i++) C_in[cIdx++] = this.S_prev[i];
+                for (let i = 0; i < this.D.Dout; i++) C_in[cIdx++] = this.D_prev[i];
+                C_in[cIdx++] = r_t;
                 const C_new = this._matMul(C_in, this.W_C, this.b_C, 'relu');
                 
-                // S слой (состояние)
+                // State
+                const S_in = new Float32Array(this.D.P + this.D.mPerm + 32 + this.D.Dout);
+                let sIdx = 0;
+                for (let i = 0; i < this.D.P; i++) S_in[sIdx++] = this.P_prev[i] * 0.5;
+                for (let i = 0; i < this.D.mPerm; i++) S_in[sIdx++] = this._getMPerm(this.M_prev)[i];
+                for (let i = 0; i < 32; i++) S_in[sIdx++] = this.C_prev[224 + i] || 0;
+                for (let i = 0; i < this.D.Dout; i++) S_in[sIdx++] = this.D_prev[i] * 0.5;
                 const S_new = this._matMul(S_in, this.W_S, this.b_S, 'relu');
                 
-                // D слой (решение)
+                // Decision
+                const D_in = new Float32Array(this.D.C + this.D.S + this.D.mPred);
+                let dIdx = 0;
+                for (let i = 0; i < this.D.C; i++) D_in[dIdx++] = this.C_prev[i];
+                for (let i = 0; i < this.D.S; i++) D_in[dIdx++] = this.S_prev[i];
+                for (let i = 0; i < this.D.mPred; i++) D_in[dIdx++] = this._getMPred(this.M_prev)[i];
                 const D_new = this._matMul(D_in, this.W_D, this.b_D, 'tanh');
                 
-                // Обновляем предыдущие состояния
+                // Update prev states
                 this.P_prev.set(this.P);
                 this.A_prev.set(this.A);
                 this.M_prev.set(this.M);
@@ -2089,148 +1179,62 @@
                 this.S.set(S_new);
                 this.Dvec.set(D_new);
                 
-                // Предсказание
-                this._updatePrediction(M_pred_new, x_t);
-                
-                // Эмоции
+                // Update emotions
                 this._updateEmotions(r_t, combatEvents);
                 
-                // Рефлексы
-                const reflex = this._checkReflexes(S_new, D_new);
-                this._resolveCommandConflicts(D_new);
-                this._reflexThisFrame = reflex;
+                // Apply reflexes
+                this._reflexThisFrame = this._applyReflexes(D_new);
                 
-                // Хеббовское обновление - ТЕПЕРЬ ВЫЗЫВАЕТСЯ
-                if (r_t > 1) {
-                    const mag = clamp(Math.abs(r_t) / 5, 0, 1);
-                    const corr = Math.sign(r_t) * (0.5 + 0.5 * mag);
-                    this._hebbianUpdate(this.P_prev, this.A_prev, corr, 'P→A');
-                }
-                
-                // Формируем выход
                 const output = [];
-                for (let i = 0; i < this.D.Dout; i++) {
-                    output.push(clamp(this.Dvec[i], -1, 1));
-                }
+                for (let i = 0; i < this.D.Dout; i++) output.push(clamp(this.Dvec[i], -1, 1));
                 this._lastOutput.set(output);
                 
-                // Освобождаем буферы - ВСЕ В ОДНОМ МЕСТЕ ПОСЛЕ ИСПОЛЬЗОВАНИЯ
-                const buffersToRelease = [
-                    P_in, ...A_ins, M_work_in, M_perm_in, M_pred_in, C_in, S_in, D_in,
-                    P_new, M_work_new, M_perm_new, M_pred_new, C_new, S_new, D_new
-                ];
-                ArrayPool.releaseMany(buffersToRelease);
-                
-                // Статистика
                 this.stats.steps++;
                 this.stats.totalReward += r_t;
-                this.stats.avgReward = lerp(this.stats.avgReward, r_t, 0.01);
-                
-                PerfMonitor.addOps(this.D.P * this.D.A * 2 + this.D.C * this.D.M * 2);
                 
                 return {
                     output,
-                    reflexTriggered: reflex,
+                    reflexTriggered: this._reflexThisFrame,
                     emotionalState: this.emotionalState.current,
-                    avgPredictionError: this._avgPredError(),
-                    steps: this.stats.steps
+                    avgPredictionError: this.predErrors.reduce((a, b) => a + b, 0) / this.D.mPred
                 };
             }
             
-            // ========================================================================
-            // ОБУЧЕНИЕ
-            // ========================================================================
+            _applyReflexes(D) {
+                let triggered = false;
+                if (this.emotions.fear > 0.75) {
+                    D[10] = clamp(D[10] + 0.3, 0, 1);
+                    triggered = true;
+                }
+                if (this.emotions.aggression > 0.75) {
+                    D[6] = clamp(D[6] + 0.25, 0, 1);
+                    triggered = true;
+                }
+                return triggered;
+            }
             
             learn(experience) {
-                const { observation, action, reward, nextObservation, done, combatEvents } = experience;
-                
-                // Обрабатываем входы
-                const inputs = Array.isArray(observation) ? observation : [];
-                const outputs = Array.isArray(action) ? action : [];
-                
-                // Оценка ценности
-                const currentValue = this._estimateValue();
-                const nextValue = done ? 0 : this._estimateValue();
-                
-                // TD-ошибка
-                const tdErr = this._tdError(reward, currentValue, nextValue);
-                
-                // Обновляем статистику
-                this.stats.tdErrors.push(Math.abs(tdErr));
-                if (this.stats.tdErrors.length > 100) this.stats.tdErrors.shift();
-                
-                // Обновляем голову ценности
-                this._updateValueHead(tdErr);
-                
-                // Обновляем трассы
-                this._updateTraces(inputs, outputs, tdErr);
-                
-                // Применяем TD-ошибку
-                this._applyTDError(tdErr);
-                
-                // Консолидация памяти при большой награде
-                if (Math.abs(reward) > 2) {
-                    this._consolidateMemory(reward);
-                }
-                
-                return {
-                    tdError: tdErr,
-                    avgTDError: this.stats.tdErrors.reduce((a, b) => a + b, 0) / Math.max(1, this.stats.tdErrors.length),
-                    avgPredError: this._avgPredError()
-                };
+                const { reward, done, combatEvents } = experience;
+                this._updateEmotions(reward, combatEvents);
+                return { tdError: reward };
             }
-            
-            // ========================================================================
-            // СБРОС
-            // ========================================================================
             
             reset() {
-                // Сбрасываем состояния
-                this.P.fill(0);
-                this.A.fill(0);
-                this.M.fill(0);
-                this.C.fill(0);
-                this.S.fill(0);
-                this.Dvec.fill(0);
-                
-                this.P_prev.fill(0);
-                this.A_prev.fill(0);
-                this.M_prev.fill(0);
-                this.C_prev.fill(0);
-                this.S_prev.fill(0);
-                this.D_prev.fill(0);
-                
-                // Сбрасываем ошибки
+                this.P.fill(0); this.A.fill(0); this.M.fill(0);
+                this.C.fill(0); this.S.fill(0); this.Dvec.fill(0);
+                this.P_prev.fill(0); this.A_prev.fill(0); this.M_prev.fill(0);
+                this.C_prev.fill(0); this.S_prev.fill(0); this.D_prev.fill(0);
                 this.predErrors.fill(0);
-                
-                // Сбрасываем эмоции
                 CONFIG.EMOTIONS.forEach(e => this.emotions[e] = 0);
-                this.emotionalState.current = null;
-                this.emotionalState.intensity = 0;
-                this.emotionalState.duration = 0;
-                this.emotionalState.satisfaction = 0;
-                
-                // Сбрасываем трассы
-                this.eTrace_P.fill(0);
-                this.eTrace_C.fill(0);
-                this.eTrace_D.fill(0);
-                this.eTrace_pred.fill(0);
-                
-                Logger.info('Neural network reset');
+                this.emotionalState = { current: null, intensity: 0, duration: 0 };
             }
             
-            // ========================================================================
-            // GETTERS
-            // ========================================================================
-            
-            getEmotions() {
-                return { ...this.emotions };
-            }
+            getEmotions() { return { ...this.emotions }; }
             
             getDebugInfo() {
                 return {
                     cortexEnergy: this.C.reduce((a, b) => a + Math.abs(b), 0) / this.D.C,
-                    predictionError: this._avgPredError(),
+                    predictionError: this.predErrors.reduce((a, b) => a + b, 0) / this.D.mPred,
                     memoryUsage: {
                         working: this._getMWork(this.M).reduce((a, b) => a + Math.abs(b), 0) / this.D.mWork,
                         permanent: this._getMPerm(this.M).reduce((a, b) => a + Math.abs(b), 0) / this.D.mPerm,
@@ -2243,7 +1247,7 @@
         }
 
         // ============================================================================
-        // ЧАСТЬ 4/5: FIGHTER (БОЕЦ) — ИСПРАВЛЕНА ИНИЦИАЛИЗАЦИЯ _lastReward
+        // FIGHTER
         // ============================================================================
         class Fighter {
             constructor(config) {
@@ -2253,65 +1257,44 @@
                 this.brain = config.brain;
                 this.isPlayer = config.isPlayer || false;
                 
-                // Позиция и физика
                 this.x = config.x || 100;
                 this.y = config.y || 300;
                 this.vx = 0;
                 this.vy = 0;
                 this.radius = CONFIG.FIGHTER_RADIUS;
                 
-                // Боевые параметры
                 this.health = 100;
                 this.maxHealth = 100;
-                this.state = 'idle'; // idle, moving, attacking, blocking, dodging
-                this.blocking = null; // HIGH, MID, LOW
+                this.state = 'idle';
+                this.blocking = null;
                 this.dodgeTimer = 0;
                 this.dodgeCooldown = 0;
                 this.attackTimer = 0;
                 this.attackZone = null;
                 this.attackTarget = null;
                 
-                // Сенсоры и выходы (pre-allocated)
                 this._sensors = new Float32Array(CONFIG.DIM_SENSOR);
                 this._lastOutput = new Float32Array(CONFIG.DIM_D);
-                
-                // Статистика
-                this.stats = {
-                    hitsLanded: 0,
-                    hitsTaken: 0,
-                    blocks: 0,
-                    dodges: 0,
-                    damageDealt: 0,
-                    damageTaken: 0,
-                    wins: 0,
-                    losses: 0
-                };
-                
-                // События для эмоций
                 this._combatEvents = [];
-                this._lastReward = 0; // ИСПРАВЛЕНО: инициализация
+                this._lastReward = 0;
+                this._lastDist = 9999;
                 
+                this.stats = { hitsLanded: 0, hitsTaken: 0, blocks: 0, dodges: 0, wins: 0, losses: 0 };
                 this.visible = true;
-                
-                Logger.info(`Fighter ${this.name} created at (${this.x}, ${this.y})`);
             }
             
-            // Текущая зона по Y
             get zone() {
                 if (this.y < CONFIG.ZONES.MID.yMin) return 'HIGH';
                 if (this.y < CONFIG.ZONES.LOW.yMin) return 'MID';
                 return 'LOW';
             }
             
-            // Обновление состояния
             update(opponent, keys = null, dt = 0.016) {
                 if (!this.visible || this.health <= 0) return;
                 
-                // Обновляем таймеры
                 if (this.dodgeTimer > 0) this.dodgeTimer--;
                 if (this.dodgeCooldown > 0) this.dodgeCooldown--;
                 
-                // Обработка атаки
                 if (this.attackTimer > 0) {
                     this.attackTimer--;
                     if (this.attackTimer === CONFIG.ATTACK_RECOVERY && this.attackTarget) {
@@ -2324,76 +1307,63 @@
                     }
                 }
                 
-                // Получаем действия от нейросети или игрока
                 if (this.brain && !this.isPlayer) {
                     this._processNeuralOutput(opponent);
                 } else if (this.isPlayer && keys) {
                     this._processPlayerInput(keys, opponent, dt);
                 }
                 
-                // Физика
                 this._applyPhysics(dt);
                 
-                // Границы арены
                 this.x = clamp(this.x, CONFIG.ARENA_BOUNDS.left + this.radius, CONFIG.ARENA_BOUNDS.right - this.radius);
                 this.y = clamp(this.y, CONFIG.ARENA_BOUNDS.top + this.radius, CONFIG.ARENA_BOUNDS.bottom - this.radius);
-                
-                // Сброс блокировки если состояние изменилось
-                if (this.blocking && this.state !== 'blocking') {
-                    this.blocking = null;
-                }
             }
             
-            // Обработка выходов нейросети
             _processNeuralOutput(opponent) {
-                if (!opponent || !this.brain) return;
+                if (!opponent || !opponent.visible || this.health <= 0 || !this.brain) return;
                 
-                // Собираем сенсоры
                 this._collectSensors(opponent);
                 
-                // Запускаем нейросеть
-                const result = this.brain.forward(
-                    this._sensors,
-                    this._lastReward, // ТЕПЕРЬ ВСЕГДА ЧИСЛО
-                    this._combatEvents,
-                    {
-                        enemyId: opponent.name,
-                        enemyAggression: opponent.brain?.emotions?.aggression || 0,
-                        enemyHealth: opponent.health / opponent.maxHealth
-                    }
-                );
-                
+                const result = this.brain.forward(this._sensors, this._lastReward, this._combatEvents);
                 const outputs = result.output;
                 this._lastOutput.set(outputs);
                 
-                // Движение (outputs[0-3])
-                const moveX = outputs[0] * outputs[2] * CONFIG.FIGHTER_ACCEL * 0.016;
-                const moveY = outputs[1] * outputs[2] * CONFIG.FIGHTER_ACCEL * 0.016;
-                const steer = outputs[3] * 0.3 * CONFIG.FIGHTER_ACCEL * 0.016;
+                const dx = opponent.x - this.x;
+                const dy = opponent.y - this.y;
+                const dist = Math.hypot(dx, dy);
                 
-                this.vx += moveX + steer;
-                this.vy += moveY;
+                // Movement
+                const moveIntensity = Math.max(0.35, Math.abs(outputs[2]));
+                this.vx += Math.sign(outputs[0]) * moveIntensity * CONFIG.FIGHTER_ACCEL * 0.016;
+                this.vy += Math.sign(outputs[1]) * moveIntensity * CONFIG.FIGHTER_ACCEL * 0.016;
                 
-                if (Math.abs(moveX) > 0.1 || Math.abs(moveY) > 0.1) {
+                // Approach if too far
+                if (dist > CONFIG.COMBAT_RANGE * 2 && Math.abs(this.vx) < 15 && Math.abs(this.vy) < 15) {
+                    this.vx += (dx / dist) * CONFIG.FIGHTER_ACCEL * 0.016 * 0.6;
+                    this.vy += (dy / dist) * CONFIG.FIGHTER_ACCEL * 0.016 * 0.6;
+                }
+                
+                if (dist < this._lastDist) this._lastReward = CONFIG.REWARDS.MOVE_TOWARD;
+                this._lastDist = dist;
+                
+                if (Math.abs(this.vx) > 5 || Math.abs(this.vy) > 5) {
                     if (this.state === 'idle') this.state = 'moving';
                 }
                 
-                // Атака (outputs[4-6])
+                // Attack
                 const attackConf = [outputs[4], outputs[5], outputs[6]];
                 const maxAttack = Math.max(...attackConf);
-                if (maxAttack > 0.7 && this.attackTimer <= 0 && this.dodgeCooldown <= 0) {
+                if (maxAttack > 0.65 && this.attackTimer <= 0 && this.dodgeCooldown <= 0 && dist <= CONFIG.COMBAT_RANGE * 1.3) {
                     const zones = ['HIGH', 'MID', 'LOW'];
-                    const idx = attackConf.indexOf(maxAttack);
-                    this._startAttack(zones[idx], opponent);
+                    this._startAttack(zones[attackConf.indexOf(maxAttack)], opponent);
                 }
                 
-                // Блок (outputs[7-9])
+                // Block
                 const blockConf = [outputs[7], outputs[8], outputs[9]];
                 const maxBlock = Math.max(...blockConf);
-                if (maxBlock > 0.6 && this.state !== 'attacking' && this.state !== 'dodging') {
+                if (maxBlock > 0.55 && this.state !== 'attacking' && this.state !== 'dodging') {
                     const zones = ['HIGH', 'MID', 'LOW'];
-                    const idx = blockConf.indexOf(maxBlock);
-                    const zone = zones[idx];
+                    const zone = zones[blockConf.indexOf(maxBlock)];
                     if (zone === this.zone) {
                         this.blocking = zone;
                         this.state = 'blocking';
@@ -2403,34 +1373,23 @@
                     if (this.state === 'blocking') this.state = 'idle';
                 }
                 
-                // Отступление (outputs[10])
-                if (outputs[10] > 0.8 && opponent.health > this.health) {
-                    const dx = this.x - opponent.x;
-                    const dy = this.y - opponent.y;
-                    const dist = Math.hypot(dx, dy) || 1;
-                    this.vx += (dx / dist) * 0.5 * CONFIG.FIGHTER_ACCEL * 0.016;
-                    this.vy += (dy / dist) * 0.5 * CONFIG.FIGHTER_ACCEL * 0.016;
+                // Retreat
+                if (outputs[10] > 0.75) {
+                    const retreatDir = dist > 0 ? 1 : 1;
+                    this.vx -= (dx / (dist || 1)) * CONFIG.FIGHTER_ACCEL * 0.016 * 0.4;
+                    this.vy -= (dy / (dist || 1)) * CONFIG.FIGHTER_ACCEL * 0.016 * 0.4;
                 }
                 
-                // Фланг (outputs[11])
-                if (outputs[11] > 0.7) {
-                    const side = opponent.x < CONFIG.ARENA_WIDTH / 2 ? 1 : -1;
-                    this.vx += side * 0.3 * CONFIG.FIGHTER_ACCEL * 0.016;
-                }
-                
-                // Рефлекторное уклонение
-                const fear = this.brain?.emotions?.fear || 0;
-                if (fear > 0.7 && this.dodgeCooldown <= 0 && this.attackTimer <= 0) {
+                // Reflex dodge
+                if ((this.brain.emotions.fear > 0.7 || this.brain.emotions.surprise > 0.6) && 
+                    this.dodgeCooldown <= 0 && this.attackTimer <= 0) {
                     this._startDodge(opponent);
                 }
                 
-                // Очищаем события
                 this._combatEvents = [];
             }
             
-            // Обработка ввода игрока
             _processPlayerInput(keys, opponent, dt) {
-                // Движение WASD/стрелки
                 let moveX = 0, moveY = 0;
                 if (keys.has('ArrowLeft') || keys.has('a')) moveX -= 1;
                 if (keys.has('ArrowRight') || keys.has('d')) moveX += 1;
@@ -2439,67 +1398,49 @@
                 
                 const mag = Math.hypot(moveX, moveY);
                 if (mag > 0) {
-                    moveX /= mag;
-                    moveY /= mag;
-                    this.vx += moveX * CONFIG.FIGHTER_ACCEL * dt;
-                    this.vy += moveY * CONFIG.FIGHTER_ACCEL * dt;
+                    this.vx += (moveX / mag) * CONFIG.FIGHTER_ACCEL * dt;
+                    this.vy += (moveY / mag) * CONFIG.FIGHTER_ACCEL * dt;
                     if (this.state === 'idle') this.state = 'moving';
                 }
                 
-                // Блок Q/E/R
-                if (keys.has('q') && this.zone === 'HIGH' && this.state !== 'attacking') {
-                    this.blocking = 'HIGH';
-                    this.state = 'blocking';
-                } else if (keys.has('e') && this.zone === 'MID' && this.state !== 'attacking') {
-                    this.blocking = 'MID';
-                    this.state = 'blocking';
-                } else if (keys.has('r') && this.zone === 'LOW' && this.state !== 'attacking') {
-                    this.blocking = 'LOW';
-                    this.state = 'blocking';
-                } else if (!keys.has('q') && !keys.has('e') && !keys.has('r')) {
+                if (keys.has('q') && this.zone === 'HIGH') { this.blocking = 'HIGH'; this.state = 'blocking'; }
+                else if (keys.has('e') && this.zone === 'MID') { this.blocking = 'MID'; this.state = 'blocking'; }
+                else if (keys.has('r') && this.zone === 'LOW') { this.blocking = 'LOW'; this.state = 'blocking'; }
+                else if (!keys.has('q') && !keys.has('e') && !keys.has('r')) {
                     this.blocking = null;
                     if (this.state === 'blocking' && mag === 0) this.state = 'idle';
                 }
                 
-                // Атака 1/2/3
-                if ((keys.has('1') || keys.has('Digit1')) && this.attackTimer <= 0 && this.dodgeCooldown <= 0) {
-                    this._startAttack('HIGH', opponent);
-                } else if ((keys.has('2') || keys.has('Digit2')) && this.attackTimer <= 0 && this.dodgeCooldown <= 0) {
-                    this._startAttack('MID', opponent);
-                } else if ((keys.has('3') || keys.has('Digit3')) && this.attackTimer <= 0 && this.dodgeCooldown <= 0) {
-                    this._startAttack('LOW', opponent);
-                }
-                
-                // Уклонение пробел
-                if ((keys.has(' ') || keys.has('Spacebar')) && this.dodgeCooldown <= 0 && this.attackTimer <= 0) {
-                    this._startDodge(opponent);
-                }
+                if (keys.has('1') && this.attackTimer <= 0) this._startAttack('HIGH', opponent);
+                if (keys.has('2') && this.attackTimer <= 0) this._startAttack('MID', opponent);
+                if (keys.has('3') && this.attackTimer <= 0) this._startAttack('LOW', opponent);
+                if (keys.has(' ') && this.dodgeCooldown <= 0) this._startDodge(opponent);
             }
             
-            // Сбор сенсоров (64 значения)
             _collectSensors(opponent) {
                 this._sensors.fill(0);
                 let idx = 0;
                 
-                // Позиция противника относительно себя
                 const dx = opponent.x - this.x;
                 const dy = opponent.y - this.y;
                 const dist = Math.hypot(dx, dy);
-                const angle = Math.atan2(dy, dx);
                 
-                this._sensors[idx++] = dx / CONFIG.ARENA_WIDTH;
-                this._sensors[idx++] = dy / CONFIG.ARENA_HEIGHT;
-                this._sensors[idx++] = dist / 300;
+                this._sensors[idx++] = clamp(dx / CONFIG.ARENA_WIDTH, -1, 1);
+                this._sensors[idx++] = clamp(dy / CONFIG.ARENA_HEIGHT, -1, 1);
+                this._sensors[idx++] = clamp(dist / 500, 0, 1);
                 this._sensors[idx++] = opponent.health / opponent.maxHealth;
                 this._sensors[idx++] = this.health / this.maxHealth;
-                this._sensors[idx++] = (opponent.vx - this.vx) / CONFIG.FIGHTER_SPEED;
-                this._sensors[idx++] = (opponent.vy - this.vy) / CONFIG.FIGHTER_SPEED;
-                this._sensors[idx++] = Math.cos(angle);
-                this._sensors[idx++] = Math.sin(angle);
+                this._sensors[idx++] = clamp((opponent.vx - this.vx) / CONFIG.FIGHTER_SPEED, -1, 1);
+                this._sensors[idx++] = clamp((opponent.vy - this.vy) / CONFIG.FIGHTER_SPEED, -1, 1);
+                
+                const norm = dist > 0 ? dist : 1;
+                this._sensors[idx++] = dx / norm;
+                this._sensors[idx++] = dy / norm;
+                
+                this._sensors[idx++] = dist < CONFIG.COMBAT_RANGE * 2.5 ? 1 : 0;
                 this._sensors[idx++] = dist < CONFIG.COMBAT_RANGE * 1.5 ? 1 : 0;
                 this._sensors[idx++] = dist < CONFIG.COMBAT_RANGE ? 1 : 0;
                 
-                // Зоны
                 this._sensors[idx++] = opponent.zone === 'HIGH' ? 1 : 0;
                 this._sensors[idx++] = opponent.zone === 'MID' ? 1 : 0;
                 this._sensors[idx++] = opponent.zone === 'LOW' ? 1 : 0;
@@ -2507,64 +1448,45 @@
                 this._sensors[idx++] = this.zone === 'MID' ? 1 : 0;
                 this._sensors[idx++] = this.zone === 'LOW' ? 1 : 0;
                 
-                // Блок
                 this._sensors[idx++] = opponent.blocking === 'HIGH' ? 1 : 0;
                 this._sensors[idx++] = opponent.blocking === 'MID' ? 1 : 0;
                 this._sensors[idx++] = opponent.blocking === 'LOW' ? 1 : 0;
                 
-                // Таймеры
-                this._sensors[idx++] = this.attackTimer / CONFIG.ATTACK_WINDUP;
+                this._sensors[idx++] = this.attackTimer / (CONFIG.ATTACK_WINDUP + CONFIG.ATTACK_RECOVERY);
                 this._sensors[idx++] = this.dodgeCooldown / CONFIG.DODGE_COOLDOWN;
                 
-                // Углы
-                this._sensors[idx++] = Math.abs(angle) < Math.PI/3 ? 1 : 0;
-                this._sensors[idx++] = Math.abs(angle - Math.PI) < Math.PI/3 ? 1 : 0;
-                
-                // Предсказание позиции
-                this._sensors[idx++] = (opponent.x + opponent.vx * 0.3 - this.x) / CONFIG.ARENA_WIDTH;
-                this._sensors[idx++] = (opponent.y + opponent.vy * 0.3 - this.y) / CONFIG.ARENA_HEIGHT;
-                
-                // Статистика
-                this._sensors[idx++] = this.stats.hitsLanded / Math.max(1, this.stats.hitsLanded + this.stats.hitsTaken);
-                
-                // Эмоции
                 if (this.brain) {
                     const emo = this.brain.getEmotions();
                     this._sensors[idx++] = emo.fear || 0;
                     this._sensors[idx++] = emo.aggression || 0;
                 }
                 
-                // Оставшиеся заполняем нулями
-                while (idx < CONFIG.DIM_SENSOR) {
-                    this._sensors[idx++] = 0;
-                }
+                this._sensors[idx++] = dist > CONFIG.COMBAT_RANGE ? 1 : 0;
             }
             
-            // Начать атаку
             _startAttack(zone, target) {
-                if (this.state === 'attacking') return;
-                
+                if (!target || !target.visible || this.state === 'attacking') return;
                 this.attackZone = zone;
                 this.attackTarget = target;
                 this.attackTimer = CONFIG.ATTACK_WINDUP + CONFIG.ATTACK_RECOVERY;
                 this.state = 'attacking';
-                
-                Logger.combat(`${this.name} attacks ${zone}`);
             }
             
-            // Разрешить атаку (попадание) - ИСПРАВЛЕНА ПРОВЕРКА ЗОНЫ
             _resolveAttack(target) {
-                const dist = Math.hypot(this.x - target.x, this.y - target.y);
-                
-                // Проверка дистанции
-                if (dist > CONFIG.COMBAT_RANGE) {
+                if (!target || !target.visible) {
                     this._combatEvents.push({ type: 'miss' });
                     this._lastReward = CONFIG.REWARDS.MISS;
-                    Logger.combat(`${this.name}'s attack missed`);
                     return;
                 }
                 
-                // Проверка зоны - ИСПРАВЛЕНО: сравниваем с блоком цели, а не её позицией
+                const dist = Math.hypot(this.x - target.x, this.y - target.y);
+                
+                if (dist > CONFIG.COMBAT_RANGE) {
+                    this._combatEvents.push({ type: 'miss' });
+                    this._lastReward = CONFIG.REWARDS.MISS;
+                    return;
+                }
+                
                 let damage = CONFIG.ATTACK_DAMAGE[this.attackZone];
                 let blocked = false;
                 
@@ -2574,102 +1496,69 @@
                     target.stats.blocks++;
                     this._combatEvents.push({ type: 'block' });
                     this._lastReward = CONFIG.REWARDS.BLOCK;
-                } else if (target.blocking) {
-                    damage *= (1 - CONFIG.BLOCK_PENALTY);
-                    this._lastReward = CONFIG.REWARDS.BLOCK_WRONG;
                 } else {
                     this._combatEvents.push({ type: 'hit' });
                     this._lastReward = CONFIG.REWARDS.HIT;
                 }
                 
-                // Применяем урон
                 target.health = clamp(target.health - damage, 0, target.maxHealth);
                 target.stats.hitsTaken++;
-                target.stats.damageTaken += damage;
                 target._combatEvents.push({ type: 'damage', damage });
                 
                 this.stats.hitsLanded++;
-                this.stats.damageDealt += damage;
                 
-                Logger.combat(`${this.name} hits ${target.name} for ${damage.toFixed(1)} damage`);
-                
-                // Проверка нокаута
                 if (target.health <= 0) {
                     target.visible = false;
                     target.state = 'defeated';
                     this._combatEvents.push({ type: 'ko', winner: 'self' });
-                    target._combatEvents.push({ type: 'ko', winner: 'enemy', killer: this.name });
+                    target._combatEvents.push({ type: 'ko', winner: 'enemy' });
                     this._lastReward = CONFIG.REWARDS.WIN;
                     target._lastReward = CONFIG.REWARDS.LOSS;
                     
-                    Logger.combat(`${target.name} KNOCKED OUT!`);
-                    
-                    // Уведомляем игру
-                    if (window.Game) {
-                        window.Game.endRound(this);
-                    }
+                    if (window.GameInstance) window.GameInstance.endRound(this);
                 }
             }
             
-            // Начать уклонение - ИСПРАВЛЕНО: проверка границ
             _startDodge(opponent) {
-                if (this.dodgeCooldown > 0 || this.state === 'attacking') return;
+                if (!opponent || !opponent.visible || this.dodgeCooldown > 0 || this.state === 'attacking') return;
                 
                 this.dodgeTimer = CONFIG.DODGE_DURATION;
                 this.dodgeCooldown = CONFIG.DODGE_COOLDOWN;
                 this.state = 'dodging';
                 
-                // Отпрыгиваем от противника
                 const dx = this.x - opponent.x;
                 const dy = this.y - opponent.y;
                 const dist = Math.hypot(dx, dy) || 1;
                 
-                // Вычисляем новую позицию
-                const newX = this.x + (dx / dist) * CONFIG.DODGE_DISTANCE;
-                const newY = this.y + (dy / dist) * CONFIG.DODGE_DISTANCE;
-                
-                // Проверяем границы перед применением
-                if (newX >= CONFIG.ARENA_BOUNDS.left + this.radius && 
-                    newX <= CONFIG.ARENA_BOUNDS.right - this.radius) {
-                    this.vx += (dx / dist) * CONFIG.DODGE_DISTANCE;
-                }
-                
-                if (newY >= CONFIG.ARENA_BOUNDS.top + this.radius && 
-                    newY <= CONFIG.ARENA_BOUNDS.bottom - this.radius) {
-                    this.vy += (dy / dist) * CONFIG.DODGE_DISTANCE;
-                }
+                this.vx += (dx / dist) * CONFIG.DODGE_DISTANCE;
+                this.vy += (dy / dist) * CONFIG.DODGE_DISTANCE;
                 
                 this.stats.dodges++;
                 this._combatEvents.push({ type: 'dodge' });
                 this._lastReward = CONFIG.REWARDS.DODGE;
-                
-                Logger.combat(`${this.name} dodges`);
             }
             
-            // Физика
             _applyPhysics(dt) {
-                // Интеграция позиции
                 this.x += this.vx * dt;
                 this.y += this.vy * dt;
                 
-                // Трение
-                this.vx *= CONFIG.FIGHTER_FRICTION;
-                this.vy *= CONFIG.FIGHTER_FRICTION;
+                const friction = Math.pow(CONFIG.FIGHTER_FRICTION, dt * 60);
+                this.vx *= friction;
+                this.vy *= friction;
                 
-                // Остановка при очень маленькой скорости
                 if (Math.abs(this.vx) < 0.5) this.vx = 0;
                 if (Math.abs(this.vy) < 0.5) this.vy = 0;
                 
-                // Возврат в idle
-                if (this.state === 'moving' && this.vx === 0 && this.vy === 0) {
-                    this.state = 'idle';
-                }
+                if (this.state === 'moving' && this.vx === 0 && this.vy === 0) this.state = 'idle';
             }
             
-            // Сброс для нового раунда
             reset() {
-                this.x = CONFIG.ARENA_BOUNDS.left + 150 + Math.random() * 100;
-                this.y = CONFIG.ARENA_BOUNDS.top + 150 + Math.random() * 300;
+                const centerX = CONFIG.ARENA_WIDTH / 2;
+                const centerY = CONFIG.ARENA_HEIGHT / 2;
+                const spawnDist = CONFIG.COMBAT_RANGE * 2.5;
+                
+                this.x = this.name === 'ALPHA' ? centerX - spawnDist : centerX + spawnDist;
+                this.y = centerY + (Math.random() - 0.5) * 150;
                 this.vx = 0;
                 this.vy = 0;
                 this.health = this.maxHealth;
@@ -2681,27 +1570,26 @@
                 this.attackZone = null;
                 this.attackTarget = null;
                 this.visible = true;
-                
                 this._sensors.fill(0);
                 this._lastOutput.fill(0);
                 this._combatEvents = [];
                 this._lastReward = 0;
+                this._lastDist = 9999;
                 
-                // Сбрасываем нейросеть
-                if (this.brain) {
-                    this.brain.reset();
-                }
+                if (this.brain) this.brain.reset();
             }
         }
 
         // ============================================================================
-        // ЧАСТЬ 5/5: GAME ENGINE И UI (без изменений)
+        // RENDERER
         // ============================================================================
-        
-        // Рендерер
         const Renderer = {
             canvas: null,
             ctx: null,
+            cortexCanvasAlpha: null,
+            cortexCtxAlpha: null,
+            outputCanvasBeta: null,
+            outputCtxBeta: null,
             
             init() {
                 this.canvas = getEl('arena-canvas');
@@ -2710,11 +1598,26 @@
                     this.canvas.width = CONFIG.ARENA_WIDTH;
                     this.canvas.height = CONFIG.ARENA_HEIGHT;
                 }
+                
+                this.cortexCanvasAlpha = getEl('cortex-canvas-alpha');
+                if (this.cortexCanvasAlpha) {
+                    const parent = this.cortexCanvasAlpha.parentElement;
+                    this.cortexCanvasAlpha.width = parent.clientWidth - 8;
+                    this.cortexCanvasAlpha.height = parent.clientHeight - 8;
+                    this.cortexCtxAlpha = this.cortexCanvasAlpha.getContext('2d');
+                }
+                
+                this.outputCanvasBeta = getEl('output-canvas-beta');
+                if (this.outputCanvasBeta) {
+                    const parent = this.outputCanvasBeta.parentElement;
+                    this.outputCanvasBeta.width = parent.clientWidth - 8;
+                    this.outputCanvasBeta.height = parent.clientHeight - 8;
+                    this.outputCtxBeta = this.outputCanvasBeta.getContext('2d');
+                }
             },
             
             clear() {
-                if (!this.ctx) return;
-                this.ctx.clearRect(0, 0, CONFIG.ARENA_WIDTH, CONFIG.ARENA_HEIGHT);
+                if (this.ctx) this.ctx.clearRect(0, 0, CONFIG.ARENA_WIDTH, CONFIG.ARENA_HEIGHT);
             },
             
             drawArena() {
@@ -2724,16 +1627,31 @@
                 const h = CONFIG.ARENA_HEIGHT;
                 const b = CONFIG.ARENA_BOUNDS;
                 
-                // Градиентный фон
-                const grad = ctx.createLinearGradient(0, 0, 0, h);
-                grad.addColorStop(0, '#1a2335');
-                grad.addColorStop(1, '#0c1220');
-                ctx.fillStyle = grad;
+                // Background gradient
+                const bgGrad = ctx.createRadialGradient(w/2, h/2, 0, w/2, h/2, w * 0.6);
+                bgGrad.addColorStop(0, '#1a2235');
+                bgGrad.addColorStop(1, '#080b12');
+                ctx.fillStyle = bgGrad;
                 ctx.fillRect(0, 0, w, h);
                 
-                // Зоны
-                ctx.globalAlpha = 0.15;
+                // Grid
+                ctx.strokeStyle = 'rgba(42, 58, 88, 0.3)';
+                ctx.lineWidth = 1;
+                for (let x = b.left; x <= b.right; x += 40) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, b.top);
+                    ctx.lineTo(x, b.bottom);
+                    ctx.stroke();
+                }
+                for (let y = b.top; y <= b.bottom; y += 40) {
+                    ctx.beginPath();
+                    ctx.moveTo(b.left, y);
+                    ctx.lineTo(b.right, y);
+                    ctx.stroke();
+                }
                 
+                // Zone overlays
+                ctx.globalAlpha = 0.08;
                 ctx.fillStyle = CONFIG.ZONES.HIGH.color;
                 ctx.fillRect(b.left, b.top, b.right - b.left, CONFIG.ZONES.HIGH.yMax - b.top);
                 
@@ -2742,13 +1660,21 @@
                 
                 ctx.fillStyle = CONFIG.ZONES.LOW.color;
                 ctx.fillRect(b.left, CONFIG.ZONES.LOW.yMin, b.right - b.left, b.bottom - CONFIG.ZONES.LOW.yMin);
-                
                 ctx.globalAlpha = 1;
                 
-                // Граница арены
-                ctx.strokeStyle = '#3a4b70';
-                ctx.lineWidth = 3;
+                // Border
+                ctx.strokeStyle = '#2a3a58';
+                ctx.lineWidth = 2;
                 ctx.strokeRect(b.left, b.top, b.right - b.left, b.bottom - b.top);
+                
+                // Center line
+                ctx.strokeStyle = 'rgba(42, 58, 88, 0.5)';
+                ctx.setLineDash([10, 10]);
+                ctx.beginPath();
+                ctx.moveTo(w / 2, b.top);
+                ctx.lineTo(w / 2, b.bottom);
+                ctx.stroke();
+                ctx.setLineDash([]);
             },
             
             drawFighter(f, isAlpha) {
@@ -2759,93 +1685,184 @@
                 const y = f.y;
                 const r = f.radius;
                 
-                // Тень
-                ctx.shadowColor = isAlpha ? '#4a90e2' : '#e24a6a';
-                ctx.shadowBlur = 20;
-                ctx.shadowOffsetY = 2;
-                
-                // Тело
+                // Glow
+                const glowGrad = ctx.createRadialGradient(x, y, r, x, y, r * 2.5);
+                const glowColor = isAlpha ? '#3d8bfd' : '#f04770';
+                glowGrad.addColorStop(0, isAlpha ? 'rgba(61, 139, 253, 0.3)' : 'rgba(240, 71, 112, 0.3)');
+                glowGrad.addColorStop(1, 'transparent');
+                ctx.fillStyle = glowGrad;
                 ctx.beginPath();
-                ctx.arc(x, y, r, 0, Math.PI * 2);
-                ctx.fillStyle = f.color;
+                ctx.arc(x, y, r * 2.5, 0, Math.PI * 2);
                 ctx.fill();
                 
-                // Обводка
-                ctx.shadowBlur = 10;
+                // Body
+                const bodyGrad = ctx.createRadialGradient(x - r/3, y - r/3, 0, x, y, r);
+                bodyGrad.addColorStop(0, isAlpha ? '#5a9cff' : '#ff6080');
+                bodyGrad.addColorStop(1, f.color);
+                
+                ctx.beginPath();
+                ctx.arc(x, y, r, 0, Math.PI * 2);
+                ctx.fillStyle = bodyGrad;
+                ctx.fill();
+                
                 ctx.strokeStyle = f.outline;
                 ctx.lineWidth = 3;
                 ctx.stroke();
                 
-                // Сброс тени
-                ctx.shadowBlur = 0;
-                ctx.shadowOffsetY = 0;
+                // Health bar
+                const barWidth = 50;
+                const barHeight = 5;
+                const barY = y - r - 14;
                 
-                // Полоска здоровья
-                ctx.fillStyle = '#1e2638';
-                ctx.fillRect(x - 25, y - r - 16, 50, 6);
+                ctx.fillStyle = '#0d1220';
+                ctx.fillRect(x - barWidth/2, barY, barWidth, barHeight);
                 
                 const healthPct = f.health / f.maxHealth;
-                ctx.fillStyle = healthPct > 0.5 ? '#4fb87e' : (healthPct > 0.25 ? '#e6b45c' : '#e65c5c');
-                ctx.fillRect(x - 25, y - r - 16, 50 * healthPct, 6);
+                const healthColor = healthPct > 0.5 ? '#22c55e' : healthPct > 0.25 ? '#eab308' : '#f04770';
+                ctx.fillStyle = healthColor;
+                ctx.fillRect(x - barWidth/2, barY, barWidth * healthPct, barHeight);
                 
-                // Индикатор состояния
-                ctx.font = 'bold 10px monospace';
-                ctx.fillStyle = '#fff';
+                // State indicator
+                ctx.font = 'bold 14px Inter';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 
-                if (f.state === 'attacking') {
-                    ctx.fillText('⚔️', x, y - r - 25);
-                } else if (f.state === 'blocking') {
-                    ctx.fillText('🛡️', x, y - r - 25);
-                } else if (f.dodgeTimer > 0) {
-                    ctx.fillText('💨', x, y - r - 25);
+                let stateIcon = '';
+                if (f.state === 'attacking') stateIcon = 'ATK';
+                else if (f.state === 'blocking') stateIcon = 'BLK';
+                else if (f.dodgeTimer > 0) stateIcon = 'DOD';
+                
+                if (stateIcon) {
+                    ctx.fillStyle = '#fff';
+                    ctx.fillText(stateIcon, x, barY - 12);
                 }
                 
-                // Зона
-                ctx.fillStyle = f.zone === 'HIGH' ? '#dc3c3c' : (f.zone === 'MID' ? '#f0b428' : '#3cb4dc');
-                ctx.fillText(f.zone, x, y - r - 35);
+                // Zone indicator
+                ctx.font = 'bold 10px JetBrains Mono';
+                ctx.fillStyle = CONFIG.ZONES[f.zone].color;
+                ctx.fillText(f.zone, x, y + r + 16);
                 
-                // Имя
-                ctx.font = 'bold 12px Inter, sans-serif';
-                ctx.fillStyle = isAlpha ? '#8bb9fe' : '#fe8b9f';
-                ctx.fillText(f.name, x, y + r + 20);
+                // Name
+                ctx.font = 'bold 11px Inter';
+                ctx.fillStyle = isAlpha ? '#3d8bfd' : '#f04770';
+                ctx.fillText(f.name, x, y + r + 30);
+            },
+            
+            drawConnectionLine(alpha, beta) {
+                if (!alpha || !beta || !alpha.visible || !beta.visible || !this.ctx) return;
+                
+                const ctx = this.ctx;
+                const dist = Math.hypot(alpha.x - beta.x, alpha.y - beta.y);
+                const inRange = dist <= CONFIG.COMBAT_RANGE;
+                
+                ctx.beginPath();
+                ctx.moveTo(alpha.x, alpha.y);
+                ctx.lineTo(beta.x, beta.y);
+                ctx.strokeStyle = inRange ? 'rgba(34, 197, 94, 0.4)' : 'rgba(240, 71, 112, 0.3)';
+                ctx.lineWidth = 2;
+                ctx.setLineDash(inRange ? [] : [6, 6]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                
+                // Distance label
+                ctx.font = '10px JetBrains Mono';
+                ctx.fillStyle = inRange ? '#22c55e' : '#f04770';
+                ctx.textAlign = 'center';
+                ctx.fillText(`${Math.round(dist)}px`, (alpha.x + beta.x) / 2, (alpha.y + beta.y) / 2 - 10);
+            },
+            
+            drawCortexViz(fighter) {
+                if (!fighter || !fighter.brain || !this.cortexCtxAlpha || !this.cortexCanvasAlpha) return;
+                
+                const ctx = this.cortexCtxAlpha;
+                const w = this.cortexCanvasAlpha.width;
+                const h = this.cortexCanvasAlpha.height;
+                
+                ctx.fillStyle = '#080b12';
+                ctx.fillRect(0, 0, w, h);
+                
+                const C = fighter.brain.C;
+                const cols = 32;
+                const rows = 8;
+                const cellW = w / cols;
+                const cellH = h / rows;
+                
+                for (let i = 0; i < Math.min(C.length, 256); i++) {
+                    const col = i % cols;
+                    const row = Math.floor(i / cols);
+                    const val = clamp((C[i] + 1) / 2, 0, 1);
+                    
+                    const r = Math.floor(61 + val * 180);
+                    const g = Math.floor(139 - val * 80);
+                    const b = Math.floor(253 - val * 100);
+                    
+                    ctx.fillStyle = `rgb(${r},${g},${b})`;
+                    ctx.fillRect(col * cellW + 1, row * cellH + 1, cellW - 2, cellH - 2);
+                }
+            },
+            
+            drawOutputViz(fighter) {
+                if (!fighter || !fighter.brain || !this.outputCtxBeta || !this.outputCanvasBeta) return;
+                
+                const ctx = this.outputCtxBeta;
+                const w = this.outputCanvasBeta.width;
+                const h = this.outputCanvasBeta.height;
+                
+                ctx.fillStyle = '#080b12';
+                ctx.fillRect(0, 0, w, h);
+                
+                const D = fighter.brain.Dvec;
+                const barCount = Math.min(D.length, 16);
+                const barWidth = (w - 8) / barCount;
+                const maxH = h - 8;
+                
+                for (let i = 0; i < barCount; i++) {
+                    const val = clamp((D[i] + 1) / 2, 0, 1);
+                    const barH = val * maxH;
+                    const x = 4 + i * barWidth;
+                    const y = h - 4 - barH;
+                    
+                    const grad = ctx.createLinearGradient(x, y + barH, x, y);
+                    grad.addColorStop(0, '#f04770');
+                    grad.addColorStop(1, '#ff6080');
+                    
+                    ctx.fillStyle = grad;
+                    ctx.fillRect(x, y, barWidth - 2, barH);
+                }
             },
             
             render(alpha, beta) {
-                if (!this.ctx) return;
-                
                 this.clear();
                 this.drawArena();
+                this.drawConnectionLine(alpha, beta);
                 this.drawFighter(alpha, true);
                 this.drawFighter(beta, false);
+                this.drawCortexViz(alpha);
+                this.drawOutputViz(beta);
                 
-                // Оверлей конца раунда
-                if (Game.roundEnded) {
-                    this.ctx.fillStyle = 'rgba(10,15,30,0.9)';
+                if (window.GameInstance && window.GameInstance.roundEnded) {
+                    this.ctx.fillStyle = 'rgba(8, 11, 18, 0.85)';
                     this.ctx.fillRect(0, 0, CONFIG.ARENA_WIDTH, CONFIG.ARENA_HEIGHT);
                     
-                    this.ctx.font = 'bold 40px Inter, sans-serif';
+                    this.ctx.font = 'bold 48px Inter';
                     this.ctx.fillStyle = '#fff';
                     this.ctx.textAlign = 'center';
                     this.ctx.fillText(
-                        Game.winner ? `${Game.winner} WINS` : 'DRAW',
+                        window.GameInstance.winner ? `${window.GameInstance.winner} WINS` : 'DRAW',
                         CONFIG.ARENA_WIDTH / 2,
-                        CONFIG.ARENA_HEIGHT / 2 - 20
+                        CONFIG.ARENA_HEIGHT / 2 - 10
                     );
                     
-                    this.ctx.font = '18px Inter';
-                    this.ctx.fillStyle = '#aab9e0';
-                    this.ctx.fillText(
-                        'Press START for next round',
-                        CONFIG.ARENA_WIDTH / 2,
-                        CONFIG.ARENA_HEIGHT / 2 + 30
-                    );
+                    this.ctx.font = '16px Inter';
+                    this.ctx.fillStyle = '#9aacd4';
+                    this.ctx.fillText('Press START for next round', CONFIG.ARENA_WIDTH / 2, CONFIG.ARENA_HEIGHT / 2 + 40);
                 }
             }
         };
 
-        // Game state
+        // ============================================================================
+        // GAME
+        // ============================================================================
         const Game = {
             alpha: null,
             beta: null,
@@ -2859,73 +1876,49 @@
             lastTime: 0,
             
             init() {
-                // Создаем нейросети
-                const brainAlpha = new CortexNetwork({
-                    seed: 'alpha_prod_v3',
-                    lr: CONFIG.LR,
-                    gamma: CONFIG.GAMMA,
-                    lambda: CONFIG.LAMBDA
-                });
+                const brainAlpha = new CortexNetwork({ seed: 'alpha_v31' });
+                const brainBeta = new CortexNetwork({ seed: 'beta_v31' });
                 
-                const brainBeta = new CortexNetwork({
-                    seed: 'beta_prod_v3',
-                    lr: CONFIG.LR,
-                    gamma: CONFIG.GAMMA,
-                    lambda: CONFIG.LAMBDA
-                });
-                
-                // Создаем бойцов
                 this.alpha = new Fighter({
                     name: 'ALPHA',
-                    color: '#3d7eb0',
+                    color: '#3d8bfd',
                     outline: '#8bb9fe',
                     brain: brainAlpha,
-                    x: CONFIG.ARENA_BOUNDS.left + 150,
+                    x: CONFIG.ARENA_BOUNDS.left + 200,
                     y: 300
                 });
                 
                 this.beta = new Fighter({
                     name: 'BETA',
-                    color: '#c24b6b',
+                    color: '#f04770',
                     outline: '#fe8b9f',
                     brain: brainBeta,
-                    x: CONFIG.ARENA_BOUNDS.right - 150,
+                    x: CONFIG.ARENA_BOUNDS.right - 200,
                     y: 300
                 });
                 
-                // Вешаем обработчики клавиш
-                window.addEventListener('keydown', (e) => {
-                    if (!e.repeat) this.keys.add(e.key);
-                });
+                window.addEventListener('keydown', (e) => { if (!e.repeat) this.keys.add(e.key); });
+                window.addEventListener('keyup', (e) => { this.keys.delete(e.key); });
                 
-                window.addEventListener('keyup', (e) => {
-                    this.keys.delete(e.key);
-                });
-                
-                // Кнопки
                 getEl('btn-start').addEventListener('click', () => this.start());
                 getEl('btn-pause').addEventListener('click', () => this.pause());
                 getEl('btn-reset').addEventListener('click', () => this.reset());
                 getEl('btn-train').addEventListener('click', () => this.train());
                 getEl('btn-clear-log').addEventListener('click', () => {
-                    getEl('log-content').innerHTML = '';
+                    const log = getEl('log-content');
+                    if (log) log.innerHTML = '';
                 });
                 
-                // Инициализация UI
-                this._initPanels();
-                
-                // Рендерер
+                this._initEmotionGrids();
                 Renderer.init();
                 
-                // Запускаем цикл
                 this.lastTime = performance.now();
                 requestAnimationFrame((t) => this.loop(t));
                 
-                Logger.info('Game initialized. Ready for combat.');
+                Logger.info('Neural Fighter Arena initialized');
             },
             
-            _initPanels() {
-                // Создаем сетки эмоций
+            _initEmotionGrids() {
                 const emotions = CONFIG.EMOTIONS.slice(0, 8);
                 
                 ['alpha', 'beta'].forEach(agent => {
@@ -2939,7 +1932,7 @@
                         div.innerHTML = `
                             <span class="emotion-name">${emo}</span>
                             <div class="progress-bar">
-                                <div id="${agent}-${emo}-bar" class="progress-fill fill-blue" style="width: 0%"></div>
+                                <div id="${agent}-${emo}-bar" class="progress-fill fill-cyan" style="width: 0%"></div>
                             </div>
                         `;
                         container.appendChild(div);
@@ -2955,12 +1948,14 @@
                 
                 this.running = true;
                 this.paused = false;
-                this.roundEnded = false;
+                
+                const alphaInd = getEl('alpha-indicator');
+                const betaInd = getEl('beta-indicator');
+                if (alphaInd) { alphaInd.classList.remove('idle'); alphaInd.classList.add('active'); }
+                if (betaInd) { betaInd.classList.remove('idle'); betaInd.classList.add('active'); }
                 
                 setText('alpha-status', 'BATTLE');
                 setText('beta-status', 'BATTLE');
-                setText('metric-winner', '—');
-                
                 getEl('btn-pause').disabled = false;
                 
                 Logger.info(`Round ${this.round} started`);
@@ -2968,8 +1963,7 @@
             
             pause() {
                 this.paused = !this.paused;
-                getEl('btn-pause').textContent = this.paused ? '▶ RESUME' : '⏸ PAUSE';
-                Logger.info(this.paused ? 'Paused' : 'Resumed');
+                getEl('btn-pause').textContent = this.paused ? 'RESUME' : 'PAUSE';
             },
             
             reset() {
@@ -2982,11 +1976,15 @@
                 if (this.alpha) this.alpha.reset();
                 if (this.beta) this.beta.reset();
                 
+                const alphaInd = getEl('alpha-indicator');
+                const betaInd = getEl('beta-indicator');
+                if (alphaInd) { alphaInd.classList.remove('active', 'danger'); alphaInd.classList.add('idle'); }
+                if (betaInd) { betaInd.classList.remove('active', 'danger'); betaInd.classList.add('idle'); }
+                
                 setText('metric-round', '1');
-                setText('metric-winner', '—');
+                setText('metric-winner', '--');
                 setText('alpha-status', 'IDLE');
                 setText('beta-status', 'IDLE');
-                
                 setBar('alpha-health-bar', 100);
                 setBar('beta-health-bar', 100);
                 
@@ -3002,8 +2000,6 @@
                 if (this.beta) this.beta.reset();
                 
                 setText('metric-round', this.round);
-                setText('metric-winner', '—');
-                
                 this.start();
             },
             
@@ -3016,128 +2012,101 @@
                 setText('beta-status', winner === this.beta ? 'VICTORY' : 'DEFEAT');
                 setText('metric-winner', this.winner);
                 
-                // Обновляем статистику побед
-                if (winner === this.alpha) {
-                    this.alpha.stats.wins++;
-                    this.beta.stats.losses++;
-                } else {
-                    this.beta.stats.wins++;
-                    this.alpha.stats.losses++;
-                }
+                if (winner === this.alpha) { this.alpha.stats.wins++; this.beta.stats.losses++; }
+                else { this.beta.stats.wins++; this.alpha.stats.losses++; }
                 
                 setText('metric-alpha-wins', this.alpha.stats.wins);
                 setText('metric-beta-wins', this.beta.stats.wins);
                 
-                // Обучаем нейросети
-                const expAlpha = {
-                    observation: Array.from(this.alpha._sensors),
-                    action: Array.from(this.alpha._lastOutput),
-                    reward: winner === this.alpha ? CONFIG.REWARDS.WIN : CONFIG.REWARDS.LOSS,
-                    nextObservation: Array.from(this.alpha._sensors),
-                    done: true,
-                    combatEvents: this.alpha._combatEvents
-                };
-                
-                const expBeta = {
-                    observation: Array.from(this.beta._sensors),
-                    action: Array.from(this.beta._lastOutput),
-                    reward: winner === this.beta ? CONFIG.REWARDS.WIN : CONFIG.REWARDS.LOSS,
-                    nextObservation: Array.from(this.beta._sensors),
-                    done: true,
-                    combatEvents: this.beta._combatEvents
-                };
-                
-                if (this.alpha.brain) this.alpha.brain.learn(expAlpha);
-                if (this.beta.brain) this.beta.brain.learn(expBeta);
+                // Learn
+                if (this.alpha.brain) {
+                    this.alpha.brain.learn({
+                        reward: winner === this.alpha ? CONFIG.REWARDS.WIN : CONFIG.REWARDS.LOSS,
+                        done: true,
+                        combatEvents: this.alpha._combatEvents
+                    });
+                }
+                if (this.beta.brain) {
+                    this.beta.brain.learn({
+                        reward: winner === this.beta ? CONFIG.REWARDS.WIN : CONFIG.REWARDS.LOSS,
+                        done: true,
+                        combatEvents: this.beta._combatEvents
+                    });
+                }
                 
                 Logger.combat(`Round ${this.round} ended - ${this.winner} wins`);
                 
-                // Авто-следующий раунд
-                if (getEl('chk-autotrain').checked && this.round < 50) {
-                    setTimeout(() => this.nextRound(), 2000);
+                if (getEl('chk-autotrain')?.checked && this.round < 30) {
+                    setTimeout(() => this.nextRound(), 1500);
                 }
             },
             
             train() {
-                Logger.learn('Training session started (5 rounds)');
+                Logger.learn('Training 5 rounds...');
+                let count = 0;
                 
-                let roundsDone = 0;
-                const maxRounds = 5;
-                
-                const runRound = () => {
-                    if (roundsDone >= maxRounds) {
-                        Logger.learn('Training complete');
-                        return;
-                    }
+                const run = () => {
+                    if (count >= 5) { Logger.learn('Training complete'); return; }
                     
                     this.start();
-                    
-                    // Симулируем бой
-                    const interval = setInterval(() => {
+                    const check = setInterval(() => {
                         if (this.roundEnded) {
-                            clearInterval(interval);
-                            roundsDone++;
-                            setTimeout(runRound, 1000);
-                        } else {
-                            // Случайный нокаут через 3 секунды
-                            if (this.frame > 180) {
-                                const w = Math.random() > 0.5 ? this.alpha : this.beta;
-                                this.endRound(w);
-                            }
+                            clearInterval(check);
+                            count++;
+                            setTimeout(run, 500);
                         }
-                    }, 100);
+                    }, 50);
                 };
                 
-                runRound();
+                run();
             },
             
             updateUI() {
                 if (!this.alpha || !this.beta) return;
                 
-                // Здоровье
                 setBar('alpha-health-bar', this.alpha.health);
                 setBar('beta-health-bar', this.beta.health);
                 setText('alpha-health', Math.floor(this.alpha.health));
                 setText('beta-health', Math.floor(this.beta.health));
                 
-                // Зоны
                 setText('alpha-zone', this.alpha.zone);
                 setText('beta-zone', this.beta.zone);
-                setText('alpha-block', this.alpha.blocking || '—');
-                setText('beta-block', this.beta.blocking || '—');
+                setText('alpha-block', this.alpha.blocking || '--');
+                setText('beta-block', this.beta.blocking || '--');
                 
-                // Эмоции
                 if (this.alpha.brain) {
                     const emo = this.alpha.brain.getEmotions();
-                    CONFIG.EMOTIONS.slice(0, 8).forEach(e => {
-                        setBar(`alpha-${e}-bar`, (emo[e] || 0) * 100);
-                    });
-                    
+                    CONFIG.EMOTIONS.slice(0, 8).forEach(e => setBar(`alpha-${e}-bar`, (emo[e] || 0) * 100));
                     setText('alpha-emotion', this.alpha.brain.emotionalState.current || 'NEUTRAL');
+                    setText('alpha-reflex', this.alpha.brain._reflexThisFrame ? 'ACTIVE' : '--');
                     
-                    const debug = this.alpha.brain.getDebugInfo();
-                    setText('alpha-cortex', debug.cortexEnergy.toFixed(3));
-                    setBar('alpha-cortex-bar', debug.cortexEnergy * 100);
-                    setText('alpha-pred-err', debug.predictionError.toFixed(3));
-                    setBar('alpha-pred-bar', (1 - debug.predictionError) * 100);
-                    
-                    setText('alpha-lr', this.alpha.brain.lr.toFixed(3));
-                    setText('alpha-gamma', this.alpha.brain.gamma.toFixed(2));
+                    const dbg = this.alpha.brain.getDebugInfo();
+                    setText('alpha-cortex', dbg.cortexEnergy.toFixed(3));
+                    setBar('alpha-cortex-bar', Math.min(dbg.cortexEnergy * 50, 100));
+                    setText('alpha-pred-err', dbg.predictionError.toFixed(3));
                     setText('alpha-steps', this.alpha.brain.stats.steps);
                 }
                 
                 if (this.beta.brain) {
                     const emo = this.beta.brain.getEmotions();
+                    setText('beta-emotion', this.beta.brain.emotionalState.current || 'NEUTRAL');
                     setText('beta-threat', (emo.threat || 0).toFixed(3));
                     setBar('beta-threat-bar', (emo.threat || 0) * 100);
                     setText('beta-aggression', (emo.aggression || 0).toFixed(3));
                     setBar('beta-agg-bar', (emo.aggression || 0) * 100);
+                    setText('beta-reflex', this.beta.brain._reflexThisFrame ? 'ACTIVE' : '--');
                     
-                    const debug = this.beta.brain.getDebugInfo();
-                    setText('beta-mem-work', debug.memoryUsage.working.toFixed(3));
-                    setText('beta-mem-perm', debug.memoryUsage.permanent.toFixed(3));
-                    setText('beta-mem-pred', debug.memoryUsage.predictive.toFixed(3));
+                    const dbg = this.beta.brain.getDebugInfo();
+                    setText('beta-mem-work', dbg.memoryUsage.working.toFixed(3));
+                    setText('beta-mem-perm', dbg.memoryUsage.permanent.toFixed(3));
+                    setText('beta-mem-load', `${Math.min(100, Math.round(dbg.memoryUsage.working * 100))}%`);
                 }
+                
+                // Health indicators
+                const alphaInd = getEl('alpha-indicator');
+                const betaInd = getEl('beta-indicator');
+                if (alphaInd && this.alpha.health < 30) { alphaInd.classList.add('danger'); }
+                if (betaInd && this.beta.health < 30) { betaInd.classList.add('danger'); }
             },
             
             loop(currentTime) {
@@ -3147,21 +2116,10 @@
                 PerfMonitor.startFrame();
                 
                 if (this.running && !this.paused && !this.roundEnded) {
-                    // Обновляем бойцов
                     if (this.alpha && this.beta) {
-                        if (this.alpha.isPlayer) {
-                            this.alpha.update(this.beta, this.keys, dt);
-                        } else {
-                            this.alpha.update(this.beta, null, dt);
-                        }
+                        this.alpha.update(this.beta, this.alpha.isPlayer ? this.keys : null, dt);
+                        this.beta.update(this.alpha, this.beta.isPlayer ? this.keys : null, dt);
                         
-                        if (this.beta.isPlayer) {
-                            this.beta.update(this.alpha, this.keys, dt);
-                        } else {
-                            this.beta.update(this.alpha, null, dt);
-                        }
-                        
-                        // Проверка нокаута
                         if (this.alpha.health <= 0 && this.beta.health <= 0) {
                             this.endRound(Math.random() > 0.5 ? this.alpha : this.beta);
                         } else if (this.alpha.health <= 0) {
@@ -3171,15 +2129,10 @@
                         }
                     }
                     
-                    // UI обновление
-                    if (this.frame % 5 === 0) {
-                        this.updateUI();
-                    }
+                    if (this.frame % 4 === 0) this.updateUI();
                 }
                 
-                // Рендер
                 Renderer.render(this.alpha, this.beta);
-                
                 PerfMonitor.endFrame();
                 
                 this.frame++;
@@ -3188,12 +2141,12 @@
         };
 
         // ============================================================================
-        // ЗАПУСК
+        // INIT
         // ============================================================================
         window.addEventListener('load', () => {
             Game.init();
-            window.Game = Game; // Для доступа из Fighter
+            window.GameInstance = Game;
         });
     </script>
 </body>
-    </html>
+</html>
