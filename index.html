@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self'; font-src 'self';">
-    <meta name="description" content="AI Fighter v6.2.3-PRO-A — CORTEX-2 v2.4 | 6D Strategy Architecture, Professional UI">
+    <meta name="description" content="AI Fighter v6.2.3-PRO-B — CORTEX-2 v2.4 | Gamepad Architecture, Professional Visuals, Full Neural Control">
     <meta name="theme-color" content="#0a0a15">
     <meta name="robots" content="noindex">
-    <title>🎮 AI FIGHTER v6.2.3-PRO-A | CORTEX-2 v2.4 6D STRATEGY</title>
+    <title>🎮 AI FIGHTER v6.2.3-PRO-B | CORTEX-2 v2.4 GAMEPAD ARCHITECTURE</title>
     <style>
         :root {
             --bg: #0a0a15; --bg-gradient-start: #0a0a15; --bg-gradient-end: #1a1a2e;
@@ -23,7 +23,6 @@
             --shadow-sm: 0 1px 2px rgba(0,0,0,0.3); --shadow-md: 0 4px 8px rgba(0,0,0,0.4);
             --z-canvas: 1; --z-sidebar: 10; --z-header: 100; --z-modal: 1000;
             --z-hit-effect: 50; --z-damage-popup: 100; --z-debug: 1000;
-            --z-controls: 200;
         }
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
         html { font-size: 16px; -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
@@ -132,71 +131,71 @@
         .fighter-name.red  { color: #ff5577; }
         .combo-display { font-size: 11px; color: var(--yellow); font-weight: 700; margin-top: 6px; }
         
-        /* CONTROLLER PAD */
-        .controller-container {
-            position: fixed; bottom: 20px; left: 0; right: 0;
-            display: flex; justify-content: space-between; padding: 0 40px;
-            pointer-events: none; z-index: var(--z-controls);
-        }
-        .controller-pad {
-            background: rgba(18,18,37,0.95); border: 2px solid var(--border);
-            border-radius: 12px; padding: 12px; backdrop-filter: blur(8px);
-            display: flex; gap: 16px; align-items: center;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+        /* CONTROLLER PANEL — в sidebar, не перекрывает canvas */
+        .controller-panel {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;
+            padding: 8px; background: rgba(0,0,0,0.2); border-radius: 8px; margin: 8px 0;
         }
         .dpad {
-            display: grid; grid-template-columns: repeat(3, 36px); grid-template-rows: repeat(3, 36px);
-            gap: 4px;
+            display: grid; grid-template-columns: repeat(3, 28px); grid-template-rows: repeat(3, 28px);
+            gap: 3px; justify-self: center;
         }
-        .dpad-center { grid-column: 2; grid-row: 2; background: rgba(0,0,0,0.3); border-radius: 6px; }
-        .btn-dpad {
-            width: 36px; height: 36px; background: #2a2a45; border: 2px solid #3a3a5a;
-            border-radius: 8px; display: flex; align-items: center; justify-content: center;
-            font-size: 16px; font-weight: 700; color: var(--text-dim);
-            transition: all 0.1s ease; cursor: pointer;
+        .dpad-btn {
+            width: 28px; height: 28px; background: #2a2a45; border: 2px solid #3a3a5a;
+            border-radius: 5px; display: flex; align-items: center; justify-content: center;
+            font-size: 13px; font-weight: 700; color: var(--text-dim);
+            transition: all 0.08s;
         }
-        .btn-dpad.active {
+        .dpad-btn.active {
             background: var(--primary); border-color: var(--primary-dark);
-            color: #000; box-shadow: 0 0 15px rgba(0,242,255,0.6);
-            transform: scale(0.92);
+            color: #000; box-shadow: 0 0 12px rgba(0,242,255,0.6);
+            transform: scale(0.93);
         }
-        .btn-dpad:nth-child(1) { grid-column: 2; grid-row: 1; } /* UP */
-        .btn-dpad:nth-child(2) { grid-column: 1; grid-row: 2; } /* LEFT */
-        .btn-dpad:nth-child(3) { grid-column: 3; grid-row: 2; } /* RIGHT */
-        .btn-dpad:nth-child(4) { grid-column: 2; grid-row: 3; } /* DOWN */
+        .dpad-btn:nth-child(1) { grid-column: 2; grid-row: 1; }
+        .dpad-btn:nth-child(2) { grid-column: 1; grid-row: 2; }
+        .dpad-btn:nth-child(3) { grid-column: 3; grid-row: 2; }
+        .dpad-btn:nth-child(4) { grid-column: 2; grid-row: 3; }
         
-        .attack-buttons {
-            display: grid; grid-template-columns: repeat(4, 44px); grid-template-rows: repeat(2, 44px);
-            gap: 8px;
+        .face-buttons {
+            display: grid; grid-template-columns: repeat(2, 30px); gap: 6px;
+            justify-self: center; align-self: center;
         }
-        .btn-attack {
-            width: 44px; height: 44px; border-radius: 50%;
-            background: #2a2a45; border: 2px solid #3a3a5a;
+        .face-btn {
+            width: 30px; height: 30px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            font-size: 10px; font-weight: 700; color: var(--text);
-            transition: all 0.1s ease; cursor: pointer;
+            font-size: 10px; font-weight: 700; border: 2px solid #3a3a5a;
+            transition: all 0.08s;
         }
-        .btn-attack.active {
-            background: var(--danger); border-color: #ff6666;
-            color: #fff; box-shadow: 0 0 20px rgba(255,68,68,0.8);
-            transform: scale(0.9);
+        .face-btn.active { transform: scale(0.9); box-shadow: 0 0 12px currentColor; }
+        .btn-a { background: #ff4444; color: #fff; }
+        .btn-b { background: #44ff44; color: #000; }
+        .btn-x { background: #4488ff; color: #fff; }
+        .btn-y { background: #ffdd44; color: #000; }
+        .btn-a.active { background: #ff6666; }
+        .btn-b.active { background: #66ff66; }
+        .btn-x.active { background: #66aaff; }
+        .btn-y.active { background: #ffee66; }
+        
+        .shoulder-buttons {
+            grid-column: 1 / 3; display: flex; gap: 5px; justify-content: center; margin-top: 4px;
         }
-        .btn-attack.punch { background: #4a2a45; }
-        .btn-attack.punch.active { background: #ff4444; }
-        .btn-attack.kick { background: #2a4a45; }
-        .btn-attack.kick.active { background: #44ff44; }
-        .btn-attack.special { background: #4a4a2a; }
-        .btn-attack.special.active { background: #ffff44; }
+        .shoulder-btn, .func-btn {
+            padding: 3px 9px; background: #2a2a45; border: 2px solid #3a3a5a;
+            border-radius: 4px; font-size: 9px; font-weight: 700; color: var(--text);
+            transition: all 0.08s;
+        }
+        .shoulder-btn.active, .func-btn.active {
+            background: var(--warning); border-color: var(--warning);
+            color: #000; box-shadow: 0 0 10px rgba(255,170,0,0.6);
+        }
         
         .combo-box {
-            min-width: 120px; text-align: center;
+            grid-column: 1 / 3; text-align: center; padding: 6px;
+            background: rgba(0,0,0,0.3); border-radius: 6px; margin-top: 4px;
         }
-        .combo-count {
-            font-size: 24px; font-weight: 900; color: var(--yellow);
-            text-shadow: 0 0 10px rgba(255,221,68,0.6);
-        }
-        .combo-label { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
-        .last-action { font-size: 11px; color: var(--primary); margin-top: 4px; font-family: monospace; }
+        .combo-count { font-size: 22px; font-weight: 900; color: var(--yellow); text-shadow: 0 0 8px rgba(255,221,68,0.6); }
+        .combo-label { font-size: 9px; color: var(--text-dim); margin-top: 1px; }
+        .last-move { font-size: 10px; color: var(--primary); font-family: monospace; margin-top: 3px; }
         
         /* DAMAGE POPUP */
         .damage-popup { 
@@ -226,70 +225,71 @@
         
         /* STRATEGY RADAR */
         .radar-container {
-            display: flex; justify-content: center; align-items: center;
-            margin: 8px 0;
+            display: flex; justify-content: center; align-items: center; margin: 8px 0;
         }
         .radar-canvas {
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border); border-radius: 8px; background: rgba(0,0,0,0.3);
         }
         
         /* OUTPUT BARS */
-        .output-bar {
-            display: flex; align-items: center; gap: 8px;
-            margin: 2px 0; padding: 2px 4px;
-            background: rgba(0,0,0,0.2); border-radius: 4px;
+        .output-row {
+            display: flex; align-items: center; gap: 6px; margin: 2px 0; padding: 2px 4px;
+            background: rgba(0,0,0,0.2); border-radius: 4px; font-size: 10px;
         }
-        .output-label {
-            width: 60px; font-size: 10px; color: var(--text-dim);
-            font-family: monospace;
+        .out-label { width: 48px; font-family: monospace; color: var(--text-dim); }
+        .out-track { flex: 1; height: 10px; background: rgba(0,0,0,0.3); border-radius: 4px; overflow: hidden; }
+        .out-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--success)); transition: width 0.1s; }
+        .out-fill.active { background: linear-gradient(90deg, var(--danger), var(--warning)); box-shadow: 0 0 6px rgba(255,68,68,0.5); }
+        .out-val { width: 36px; text-align: right; font-family: monospace; color: var(--primary); }
+        .out-src { width: 50px; text-align: right; font-size: 9px; color: var(--text-muted); }
+        
+        /* EMOTION BARS */
+        .emotion-grid { display: grid; gap: 5px; margin: 8px 0; }
+        .emotion-item {
+            display: grid; grid-template-columns: 70px 1fr 36px; gap: 6px;
+            align-items: center; font-size: 10px;
         }
-        .output-track {
-            flex: 1; height: 12px; background: rgba(0,0,0,0.3);
-            border-radius: 6px; overflow: hidden;
+        .emotion-label { color: var(--text-dim); font-family: monospace; }
+        .emotion-bar { height: 7px; background: rgba(0,0,0,0.3); border-radius: 3px; overflow: hidden; }
+        .emotion-fill { height: 100%; transition: width 0.2s; }
+        #p1EmoAgg .emotion-fill { background: #ff4444; }
+        #p1EmoFear .emotion-fill { background: #4488ff; }
+        #p1EmoConf .emotion-fill { background: #44ff44; }
+        #p1EmoFrus .emotion-fill { background: #ffaa00; }
+        #p1EmoDesp .emotion-fill { background: #aa44ff; }
+        #p1EmoVeng .emotion-fill { background: #ff44aa; }
+        .emotion-val { text-align: right; font-family: monospace; color: var(--primary); }
+        
+        /* WEIGHT INSPECTOR */
+        .weight-grid { display: grid; gap: 3px; margin: 6px 0; max-height: 140px; overflow-y: auto; }
+        .weight-row {
+            display: grid; grid-template-columns: 40px 1fr 32px; gap: 5px;
+            align-items: center; font-size: 9px;
         }
-        .output-fill {
-            height: 100%; background: linear-gradient(90deg, var(--primary), var(--success));
-            transition: width 0.1s ease;
-        }
-        .output-fill.active {
-            background: linear-gradient(90deg, var(--danger), var(--warning));
-            box-shadow: 0 0 8px rgba(255,68,68,0.6);
-        }
-        .output-value {
-            width: 40px; font-size: 10px; color: var(--primary);
-            font-family: monospace; text-align: right;
-        }
+        .weight-label { color: var(--text-dim); font-family: monospace; }
+        .weight-bar { height: 6px; background: rgba(0,0,0,0.3); border-radius: 3px; overflow: hidden; }
+        .weight-fill { height: 100%; transition: width 0.15s; }
+        .weight-fill.pos { background: linear-gradient(90deg, #44ff44, #00cc00); }
+        .weight-fill.neg { background: linear-gradient(90deg, #ff4444, #cc0000); }
+        .weight-val { text-align: right; font-family: monospace; color: var(--primary); }
         
         /* ACTION FEED */
         .action-feed {
-            background: #000; border: 1px solid var(--border);
-            border-radius: 8px; padding: 8px;
-            height: 120px; overflow-y: auto;
-            font-size: 11px; font-family: monospace;
+            background: #000; border: 1px solid var(--border); border-radius: 8px;
+            padding: 8px; height: 110px; overflow-y: auto; font-size: 10px; font-family: monospace;
         }
-        .action-item {
-            padding: 3px 0; border-bottom: 1px solid #1a1a2a;
-            display: flex; gap: 8px;
-        }
-        .action-time { color: var(--text-muted); min-width: 45px; }
+        .action-item { padding: 2px 0; border-bottom: 1px solid #1a1a2a; display: flex; gap: 6px; }
+        .action-time { color: var(--text-muted); min-width: 42px; }
         .action-p1 { color: var(--cyan); }
         .action-p2 { color: #ff5577; }
         .action-event { color: var(--success); }
-        
-        /* OUTPUTS SECTION */
-        .outputs-grid {
-            display: grid; grid-template-columns: 1fr; gap: 2px;
-            max-height: 200px; overflow-y: auto;
-        }
+        .action-strat { color: var(--warning); font-size: 9px; }
         
         @media (max-width: 1100px) {
             .container { grid-template-columns: 1fr !important; grid-template-rows: var(--header-height) 1fr auto !important; grid-template-areas: "header" "canvas" "sidebar" !important; }
             .sidebar { border-left: none !important; border-top: 1px solid var(--border) !important; max-height: 45vh !important; }
             .fighter-hud { top: 50px; left: 10px; right: 10px; }
             .fighter-bar { width: 49%; padding: 8px; }
-            .controller-container { display: none; }
         }
         @media (max-width: 600px) {
             :root { --sidebar-width: 100%; }
@@ -305,7 +305,7 @@
 <a href="#gameCanvas" class="skip-link">Перейти к симуляции</a>
 <div class="container">
     <header class="header">
-        <h1>🎮 AI FIGHTER <span class="version-badge">v6.2.3-PRO-A | CORTEX-2 v2.4 6D STRATEGY</span></h1>
+        <h1>🎮 AI FIGHTER <span class="version-badge">v6.2.3-PRO-B | CORTEX-2 v2.4 GAMEPAD</span></h1>
         <div style="display:flex;gap:10px;align-items:center">
             <div class="timer-display" id="roundTimer">1:30</div>
             <div class="fps-counter" id="fpsCounter">FPS: 0</div>
@@ -314,13 +314,13 @@
     <canvas id="gameCanvas"></canvas>
     <aside class="sidebar">
         <section class="panel">
-            <h2 class="panel-title">⚙️ НАСТРОЙКИ БОЯ</h2>
+            <h2 class="panel-title">⚙️ НАСТРОЙКИ</h2>
             <div class="control-group">
                 <label class="control-label"><span>Раунд (сек)</span><span id="roundTimeValue">90</span></label>
                 <input type="range" id="roundTime" min="30" max="180" step="10" value="90">
             </div>
             <div class="control-group">
-                <label class="control-label"><span>Скорость игры</span><span id="gameSpeedValue">1.0</span></label>
+                <label class="control-label"><span>Скорость</span><span id="gameSpeedValue">1.0</span></label>
                 <input type="range" id="gameSpeed" min="0.5" max="3.0" step="0.1" value="1.0">
             </div>
             <div class="btn-group">
@@ -340,9 +340,79 @@
         </section>
         
         <section class="panel">
-            <h2 class="panel-title">🎯 6D СТРАТЕГИЯ BLUE</h2>
+            <h2 class="panel-title">🎮 GAMEPAD P1</h2>
+            <div class="controller-panel">
+                <div class="dpad">
+                    <div class="dpad-btn" id="p1BtnUp">↑</div>
+                    <div class="dpad-btn" id="p1BtnLeft">←</div>
+                    <div class="dpad-btn" id="p1BtnRight">→</div>
+                    <div class="dpad-btn" id="p1BtnDown">↓</div>
+                </div>
+                <div class="face-buttons">
+                    <div class="face-btn btn-y" id="p1BtnY">Y</div>
+                    <div class="face-btn btn-b" id="p1BtnB">B</div>
+                    <div class="face-btn btn-x" id="p1BtnX">X</div>
+                    <div class="face-btn btn-a" id="p1BtnA">A</div>
+                </div>
+                <div class="shoulder-buttons">
+                    <div class="shoulder-btn" id="p1BtnL1">L1</div>
+                    <div class="shoulder-btn" id="p1BtnL2">L2</div>
+                    <div class="shoulder-btn" id="p1BtnR1">R1</div>
+                    <div class="shoulder-btn" id="p1BtnR2">R2</div>
+                </div>
+                <div class="shoulder-buttons">
+                    <div class="func-btn" id="p1BtnSel">SEL</div>
+                    <div class="func-btn" id="p1BtnStr">STR</div>
+                    <div class="func-btn" id="p1BtnL3">L3</div>
+                    <div class="func-btn" id="p1BtnR3">R3</div>
+                </div>
+                <div class="combo-box">
+                    <div class="combo-count" id="p1ComboCount">0</div>
+                    <div class="combo-label">COMBO</div>
+                    <div class="last-move" id="p1LastMove">IDLE</div>
+                </div>
+            </div>
+        </section>
+        
+        <section class="panel">
+            <h2 class="panel-title">🎮 GAMEPAD P2</h2>
+            <div class="controller-panel">
+                <div class="combo-box">
+                    <div class="combo-count" id="p2ComboCount">0</div>
+                    <div class="combo-label">COMBO</div>
+                    <div class="last-move" id="p2LastMove">IDLE</div>
+                </div>
+                <div class="shoulder-buttons">
+                    <div class="func-btn" id="p2BtnSel">SEL</div>
+                    <div class="func-btn" id="p2BtnStr">STR</div>
+                    <div class="func-btn" id="p2BtnL3">L3</div>
+                    <div class="func-btn" id="p2BtnR3">R3</div>
+                </div>
+                <div class="shoulder-buttons">
+                    <div class="shoulder-btn" id="p2BtnL1">L1</div>
+                    <div class="shoulder-btn" id="p2BtnL2">L2</div>
+                    <div class="shoulder-btn" id="p2BtnR1">R1</div>
+                    <div class="shoulder-btn" id="p2BtnR2">R2</div>
+                </div>
+                <div class="face-buttons">
+                    <div class="face-btn btn-y" id="p2BtnY">Y</div>
+                    <div class="face-btn btn-b" id="p2BtnB">B</div>
+                    <div class="face-btn btn-x" id="p2BtnX">X</div>
+                    <div class="face-btn btn-a" id="p2BtnA">A</div>
+                </div>
+                <div class="dpad">
+                    <div class="dpad-btn" id="p2BtnUp">↑</div>
+                    <div class="dpad-btn" id="p2BtnLeft">←</div>
+                    <div class="dpad-btn" id="p2BtnRight">→</div>
+                    <div class="dpad-btn" id="p2BtnDown">↓</div>
+                </div>
+            </div>
+        </section>
+        
+        <section class="panel">
+            <h2 class="panel-title">🎯 6D STRATEGY P1</h2>
             <div class="radar-container">
-                <canvas id="radarP1" class="radar-canvas" width="140" height="140"></canvas>
+                <canvas id="radarP1" class="radar-canvas" width="130" height="130"></canvas>
             </div>
             <div class="stat-grid">
                 <div class="stat"><span class="stat-label">VALUE</span><span class="stat-value" id="p1Value">0.00</span></div>
@@ -351,13 +421,25 @@
         </section>
         
         <section class="panel">
-            <h2 class="panel-title">🎯 6D СТРАТЕГИЯ RED</h2>
+            <h2 class="panel-title">🎯 6D STRATEGY P2</h2>
             <div class="radar-container">
-                <canvas id="radarP2" class="radar-canvas" width="140" height="140"></canvas>
+                <canvas id="radarP2" class="radar-canvas" width="130" height="130"></canvas>
             </div>
             <div class="stat-grid">
                 <div class="stat"><span class="stat-label">VALUE</span><span class="stat-value" id="p2Value">0.00</span></div>
                 <div class="stat"><span class="stat-label">PRED ERR</span><span class="stat-value" id="p2Pred">0.00</span></div>
+            </div>
+        </section>
+        
+        <section class="panel">
+            <h2 class="panel-title">💭 EMOTIONS P1</h2>
+            <div class="emotion-grid">
+                <div class="emotion-item"><span class="emotion-label">Aggression</span><div class="emotion-bar"><div class="emotion-fill" id="p1EmoAgg" style="width:0%"></div></div><span class="emotion-val" id="p1EmoAggVal">0.00</span></div>
+                <div class="emotion-item"><span class="emotion-label">Fear</span><div class="emotion-bar"><div class="emotion-fill" id="p1EmoFear" style="width:0%"></div></div><span class="emotion-val" id="p1EmoFearVal">0.00</span></div>
+                <div class="emotion-item"><span class="emotion-label">Confidence</span><div class="emotion-bar"><div class="emotion-fill" id="p1EmoConf" style="width:0%"></div></div><span class="emotion-val" id="p1EmoConfVal">0.00</span></div>
+                <div class="emotion-item"><span class="emotion-label">Frustration</span><div class="emotion-bar"><div class="emotion-fill" id="p1EmoFrus" style="width:0%"></div></div><span class="emotion-val" id="p1EmoFrusVal">0.00</span></div>
+                <div class="emotion-item"><span class="emotion-label">Desperation</span><div class="emotion-bar"><div class="emotion-fill" id="p1EmoDesp" style="width:0%"></div></div><span class="emotion-val" id="p1EmoDespVal">0.00</span></div>
+                <div class="emotion-item"><span class="emotion-label">Vengeance</span><div class="emotion-bar"><div class="emotion-fill" id="p1EmoVeng" style="width:0%"></div></div><span class="emotion-val" id="p1EmoVengVal">0.00</span></div>
             </div>
         </section>
         
@@ -369,6 +451,11 @@
                 <div class="stat"><span class="stat-label">Forward ms</span><span class="stat-value" id="forwardMs">0.00</span></div>
                 <div class="stat"><span class="stat-label">Learn ms</span><span class="stat-value" id="learnMs">0.00</span></div>
             </div>
+        </section>
+        
+        <section class="panel">
+            <h2 class="panel-title">🔗 W_STRATEGY P1 (AGG→Outputs)</h2>
+            <div class="weight-grid" id="p1WeightGrid"></div>
         </section>
         
         <section class="panel">
@@ -396,7 +483,7 @@
         <section class="panel">
             <h2 class="panel-title">💾 УПРАВЛЕНИЕ</h2>
             <div class="btn-group">
-                <button class="btn-success"   id="btnSave">💾 СОХРАНИТЬ</button>
+                <button class="btn-success" id="btnSave">💾 СОХРАНИТЬ</button>
                 <button class="btn-secondary" id="btnLoad">📂 ЗАГРУЗИТЬ</button>
             </div>
         </section>
@@ -422,61 +509,11 @@
     </div>
 </div>
 
-<div class="controller-container">
-    <div class="controller-pad">
-        <div class="dpad">
-            <div class="dpad-center"></div>
-            <div class="btn-dpad" id="p1BtnUp">↑</div>
-            <div class="btn-dpad" id="p1BtnLeft">←</div>
-            <div class="btn-dpad" id="p1BtnRight">→</div>
-            <div class="btn-dpad" id="p1BtnDown">↓</div>
-        </div>
-        <div class="attack-buttons">
-            <div class="btn-attack punch" id="p1BtnLP">LP</div>
-            <div class="btn-attack punch" id="p1BtnHP">HP</div>
-            <div class="btn-attack kick" id="p1BtnLK">LK</div>
-            <div class="btn-attack kick" id="p1BtnHK">HK</div>
-            <div class="btn-attack special" id="p1BtnBLK">BLK</div>
-            <div class="btn-attack special" id="p1BtnGRB">GRB</div>
-            <div class="btn-attack special" id="p1BtnSPL">SPL</div>
-        </div>
-        <div class="combo-box">
-            <div class="combo-count" id="p1ComboCount">0</div>
-            <div class="combo-label">COMBO</div>
-            <div class="last-action" id="p1LastAction">IDLE</div>
-        </div>
-    </div>
-    
-    <div class="controller-pad">
-        <div class="combo-box">
-            <div class="combo-count" id="p2ComboCount">0</div>
-            <div class="combo-label">COMBO</div>
-            <div class="last-action" id="p2LastAction">IDLE</div>
-        </div>
-        <div class="attack-buttons">
-            <div class="btn-attack punch" id="p2BtnLP">LP</div>
-            <div class="btn-attack punch" id="p2BtnHP">HP</div>
-            <div class="btn-attack kick" id="p2BtnLK">LK</div>
-            <div class="btn-attack kick" id="p2BtnHK">HK</div>
-            <div class="btn-attack special" id="p2BtnBLK">BLK</div>
-            <div class="btn-attack special" id="p2BtnGRB">GRB</div>
-            <div class="btn-attack special" id="p2BtnSPL">SPL</div>
-        </div>
-        <div class="dpad">
-            <div class="dpad-center"></div>
-            <div class="btn-dpad" id="p2BtnUp">↑</div>
-            <div class="btn-dpad" id="p2BtnLeft">←</div>
-            <div class="btn-dpad" id="p2BtnRight">→</div>
-            <div class="btn-dpad" id="p2BtnDown">↓</div>
-        </div>
-    </div>
-</div>
-
 <script>
 'use strict';
 
 // ============================================================================
-// SECTION 1 — CONFIG & CONSTANTS (ПОЛНАЯ ВЕРСИЯ С 8 АТАКАМИ И 4 ДВИЖЕНИЯМИ)
+// SECTION 1 — CONFIG & CONSTANTS (v2.4 GAMEPAD ARCHITECTURE)
 // ============================================================================
 const CONFIG = Object.freeze({
     CORTEX: Object.freeze({
@@ -493,44 +530,48 @@ const CONFIG = Object.freeze({
     }),
     STRATEGY: Object.freeze({
         DIM: 6,
-        AGGRESSION: 0,
-        DEFENSE:    1,
-        MOBILITY:   2,
-        PATIENCE:   3,
-        RANGE:      4,
-        RISK:       5,
+        AGGRESSION: 0, DEFENSE: 1, MOBILITY: 2, PATIENCE: 3, RANGE: 4, RISK: 5,
         LABELS: ['AGG', 'DEF', 'MOB', 'PAT', 'RNG', 'RSK'],
-        COLORS: ['#ff4444', '#44ff44', '#4444ff', '#ffff44', '#ff44ff', '#44ffff']
+        COLORS: ['#ff4444', '#4488ff', '#44ff44', '#ffff44', '#ff44ff', '#44ffff']
     }),
     OUTPUT: Object.freeze({
-        // ДВИЖЕНИЕ (4 направления - АНАЛОГОВЫЕ)
-        MOVE_LEFT: 0,      // Отрицательная ось X
-        MOVE_RIGHT: 1,     // Положительная ось X  
-        MOVE_UP: 2,        // Отрицательная ось Y (прыжок/вверх)
-        MOVE_DOWN: 3,      // Положительная ось Y (присед/вниз)
-        
-        // АТАКИ (8 ударов)
-        PUNCH_LIGHT_STAND: 4,    // Легкий удар рукой стоя
-        PUNCH_HEAVY_STAND: 5,    // Тяжелый удар рукой стоя
-        KICK_LIGHT_STAND: 6,     // Легкий удар ногой стоя
-        KICK_HEAVY_STAND: 7,     // Тяжелый удар ногой стоя
-        PUNCH_LIGHT_CROUCH: 8,   // Легкий удар рукой сидя
-        PUNCH_HEAVY_CROUCH: 9,   // Тяжелый удар рукой сидя
-        KICK_LIGHT_CROUCH: 10,   // Легкий удар ногой сидя
-        KICK_HEAVY_CROUCH: 11,   // Тяжелый удар ногой сидя
-        
-        // ОСОБЫЕ
-        BLOCK: 12,         // Блок
-        GRAB: 13,          // Захват
-        SPECIAL: 14,       // Спецприем
-        RESERVED_15: 15    // Резерв
+        DPAD_LEFT: 0, DPAD_RIGHT: 1, DPAD_UP: 2, DPAD_DOWN: 3,
+        BTN_A: 4, BTN_B: 5, BTN_X: 6, BTN_Y: 7,
+        BTN_L1: 8, BTN_L2: 9, BTN_R1: 10, BTN_R2: 11,
+        BTN_SELECT: 12, BTN_START: 13, BTN_L3: 14, BTN_R3: 15
     }),
-    OUTPUT_LABELS: [
-        '←', '→', '↑', '↓',              // 0-3: Движение
-        'LP⭡', 'HP⭡', 'LK⭡', 'HK⭡',     // 4-7: Атаки стоя
-        'LP⭣', 'HP⭣', 'LK⭣', 'HK⭣',     // 8-11: Атаки сидя
-        'BLK', 'GRB', 'SPL', 'R15'        // 12-15: Особые
-    ],
+    OUTPUT_LABELS: ['←', '→', '↑', '↓', 'A', 'B', 'X', 'Y', 'L1', 'L2', 'R1', 'R2', 'SEL', 'STR', 'L3', 'R3'],
+    OUTPUT_GROUPS: { DPAD: [0,1,2,3], FACE: [4,5,6,7], SHOULDER: [8,9,10,11], FUNCTION: [12,13,14,15] },
+    
+    // ============================================
+    // НОВАЯ СЕКЦИЯ: маппинг кнопок в действия
+    // ============================================
+    ACTION_MAP: {
+        // Движение
+        MOVE_LEFT: 0,    // DPAD_LEFT
+        MOVE_RIGHT: 1,   // DPAD_RIGHT
+        JUMP: 2,         // DPAD_UP
+        CROUCH: 3,       // DPAD_DOWN
+        
+        // Атаки
+        PUNCH_LIGHT: 4,  // BTN_A
+        PUNCH_HEAVY: 5,  // BTN_B
+        KICK_LIGHT: 6,   // BTN_X
+        KICK_HEAVY: 7,   // BTN_Y
+        
+        // Особые
+        BLOCK: 8,        // BTN_L1
+        GRAB: 9,         // BTN_L2
+        SPECIAL: 10,     // BTN_R1 + BTN_R2
+        TAUNT: 11,       // (зарезервировано)
+        
+        // Функциональные (пока не используются в бою)
+        FOCUS: 12,       // BTN_SELECT
+        RAGE: 13,        // BTN_START
+        L3_ACTION: 14,   // BTN_L3
+        R3_ACTION: 15    // BTN_R3
+    },
+    
     WEAPONS: Object.freeze({
         hammer:  { name:'Hammer',  icon:'🔨', damage:1.0, speed:1.0, range:45,  type:'melee',  knockback:8.0,  stunTime:5,  arcAngle: Math.PI * 0.9 },
         sword:   { name:'Sword',   icon:'⚔️',  damage:1.4, speed:0.7, range:50,  type:'melee',  knockback:12.0, stunTime:8,  arcAngle: Math.PI * 1.2 },
@@ -543,28 +584,18 @@ const CONFIG = Object.freeze({
         GRAVITY: 0.8, GROUND_Y: 500, MOVE_SPEED: 6, JUMP_FORCE: -18,
         FRICTION: 0.85, AIR_RESISTANCE: 0.95,
         HITSTUN_BASE: 15, BLOCKSTUN_BASE: 8, KNOCKBACK_BASE: 8,
-        MAX_VELOCITY: 25, FRICTION_GROUND: 0.92,
-        MAX_VERTICAL_SPEED: 12,        // Макс. скорость вертикального перемещения
-        CROUCH_SPEED: 3                 // Скорость приседания/вставания
+        MAX_VELOCITY: 25, FRICTION_GROUND: 0.92
     }),
     COMBAT: Object.freeze({
-        // АТАКИ СТОЯ
-        PUNCH_LIGHT_STAND: { damage: 8,  startup: 4,  active: 3, recovery: 8,  range: 70,  stun: 10, cost: 5  },
-        PUNCH_HEAVY_STAND: { damage: 15, startup: 8,  active: 4, recovery: 15, range: 75,  stun: 18, cost: 12 },
-        KICK_LIGHT_STAND:  { damage: 10, startup: 5,  active: 4, recovery: 10, range: 80,  stun: 12, cost: 8  },
-        KICK_HEAVY_STAND:  { damage: 20, startup: 12, active: 5, recovery: 20, range: 90,  stun: 22, cost: 18 },
-        
-        // АТАКИ СИДЯ (меньше дальность, другой угол)
-        PUNCH_LIGHT_CROUCH: { damage: 6,  startup: 3,  active: 3, recovery: 7,  range: 50,  stun: 8,  cost: 4  },
-        PUNCH_HEAVY_CROUCH: { damage: 12, startup: 7,  active: 4, recovery: 13, range: 55,  stun: 15, cost: 10 },
-        KICK_LIGHT_CROUCH:  { damage: 8,  startup: 4,  active: 3, recovery: 8,  range: 60,  stun: 10, cost: 6  },
-        KICK_HEAVY_CROUCH:  { damage: 16, startup: 10, active: 5, recovery: 18, range: 65,  stun: 18, cost: 15 },
-        
-        SPECIAL: { damage: 30, startup: 15, active: 6, recovery: 25, range: 100, stun: 30, cost: 35 },
-        GRAB:    { damage: 25, startup: 6,  active: 10, recovery: 20, range: 50,  stun: 25, cost: 15, unblockable: true },
-        BLOCK:   { damageReduction: 0.2, chipDamage: 0.1, staminaCost: 0.5 }
+        PUNCH_LIGHT: { damage: 8,  startup: 4,  active: 3, recovery: 8,  range: 70,  stun: 10, cost: 5  },
+        PUNCH_HEAVY: { damage: 15, startup: 8,  active: 4, recovery: 15, range: 75,  stun: 18, cost: 12 },
+        KICK_LIGHT:  { damage: 10, startup: 5,  active: 4, recovery: 10, range: 80,  stun: 12, cost: 8  },
+        KICK_HEAVY:  { damage: 20, startup: 12, active: 5, recovery: 20, range: 90,  stun: 22, cost: 18 },
+        SPECIAL:     { damage: 30, startup: 15, active: 6, recovery: 25, range: 100, stun: 30, cost: 35 },
+        GRAB:        { damage: 25, startup: 6,  active: 10,recovery: 20, range: 50,  stun: 25, cost: 15, unblockable: true },
+        BLOCK: { damageReduction: 0.2, chipDamage: 0.1, staminaCost: 0.5 }
     }),
-    LEARNING: { lr: 0.015, gamma: 0.99, lambda: 0.95, hebbianRate: 0.002, temperature: 0.15, gradClip: 1.0 },
+    LEARNING: { lr: 0.015, gamma: 0.99, lambda: 0.95, hebbianRate: 0.002, temperature: 0.15, gradClip: 1.0, activationThreshold: 0.4 },
     TACTICAL: Object.freeze({
         DAMAGE_FRONT: 0.6, DAMAGE_FLANK: 1.0, DAMAGE_BACK: 1.8,
         FLANK_BONUS: 0.05, EXPOSURE_PENALTY: 0.08,
@@ -586,12 +617,12 @@ const CONFIG = Object.freeze({
         DECISION_RATE: 10,
         ATTACK_COOLDOWN: 20,
         ACTION_HOLD_TIME: 6,
-        DEADZONE: 0.2,                  // Мертвая зона для аналогового ввода
-        ACTIVE_THRESHOLD: 0.2            // Порог зажигания кнопок (было 0.5)
+        DEADZONE: 0.2,
+        ACTIVE_THRESHOLD: 0.3
     }),
     PERF: { TARGET_FPS: 60, TARGET_OPS: 1000000, LOG_INTERVAL: 60 },
-    seed: 'FIGHTER_V623_PRO_A_' + Date.now(),
-    version: '6.2.3-CORTEX2-v2.4-6D-STRATEGY-FIXED'
+    seed: 'FIGHTER_V623_PRO_B_' + Date.now(),
+    version: '6.2.3-CORTEX2-v2.4-GAMEPAD-ARCH'
 });
 
 // ============================================================================
@@ -616,7 +647,7 @@ function deriveArchSizes(DIM) {
 }
 
 // ============================================================================
-// SECTION 3 — UTILS
+// SECTION 3 — UTILS (БЕЗОПАСНАЯ МАТЕМАТИКА)
 // ============================================================================
 const Utils = Object.freeze({
     clamp: (v, min, max) => {
@@ -786,7 +817,7 @@ const Utils = Object.freeze({
 });
 
 // ============================================================================
-// SECTION 4 — SeededRNG
+// SECTION 4 — SeededRNG (ДЕТЕРМИНИРОВАННЫЙ)
 // ============================================================================
 class SeededRNG {
     constructor(seed) {
@@ -837,7 +868,7 @@ class SeededRNG {
 }
 
 // ============================================================================
-// SECTION 5 — Cortex2Brain v2.4
+// SECTION 5 — Cortex2Brain v2.4 (GAMEPAD ARCH)
 // ============================================================================
 class Cortex2Brain {
     constructor(config = {}) {
@@ -888,6 +919,7 @@ class Cortex2Brain {
         this.W_V = this._rng.deriveVector(this.DIM.DIM_C, 0.1);
         this.b_V = 0;
 
+        // 6D STRATEGY → 16D GAMEPAD BUTTONS (LEARNABLE)
         this.W_strategy = this._rng.deriveWeights(this.STRATEGY.DIM, this.DIM.DIM_D, 0.3);
 
         this.permGate = [];
@@ -1202,16 +1234,19 @@ class Cortex2Brain {
             this.S.set(S_new);
             this.D.set(D_new);
 
+            // 6D STRATEGY from C[0:6]
             this.strategy6D_prev.set(this.strategy6D);
             for (let i = 0; i < this.STRATEGY.DIM; i++) {
                 this.strategy6D[i] = Utils.sigmoid(this.C[this.ARCH.C_STRATEGY_OFFSET + i]);
             }
 
+            // STRATEGY → GAMEPAD BUTTONS via W_strategy
             const strategyMod = Utils.linearMultiply(this.strategy6D, this.W_strategy);
             for (let i = 0; i < this.DIM.DIM_D; i++) {
                 this.D[i] = Utils.leakyRelu(this.D[i] + strategyMod[i]);
             }
 
+            // Update strategy traces for learning
             for (let i = 0; i < this.STRATEGY.DIM; i++) {
                 for (let j = 0; j < this.DIM.DIM_D; j++) {
                     const idx = i * this.DIM.DIM_D + j;
@@ -1272,6 +1307,7 @@ class Cortex2Brain {
         this._updateEligibilityTraces(tdErr);
         this._applyTDError(tdErr);
 
+        // LEARN W_strategy: strategy → button mapping
         if (finalAction && this.lr > 0) {
             const alpha = this.lr * 0.5;
             for (let i = 0; i < this.STRATEGY.DIM; i++) {
@@ -1702,30 +1738,35 @@ class Cortex2Brain {
     selectAction(temp = 0.15) {
         const D = this.D;
         const OUT = CONFIG.OUTPUT;
+        const ACT = CONFIG.ACTION_MAP;
+        
+        // Преобразуем выходы нейросети в действия через маппинг
         const actions = {
-            left:   Utils.safeNumber(D[OUT.MOVE_LEFT], 0),
-            right:  Utils.safeNumber(D[OUT.MOVE_RIGHT], 0),
-            up: Utils.safeNumber(D[OUT.MOVE_UP], 0),
-            down: Utils.safeNumber(D[OUT.MOVE_DOWN], 0),
-            punchLStand: Utils.safeNumber(D[OUT.PUNCH_LIGHT_STAND], 0),
-            punchHStand: Utils.safeNumber(D[OUT.PUNCH_HEAVY_STAND], 0),
-            kickLStand:  Utils.safeNumber(D[OUT.KICK_LIGHT_STAND], 0),
-            kickHStand:  Utils.safeNumber(D[OUT.KICK_HEAVY_STAND], 0),
-            punchLCrouch: Utils.safeNumber(D[OUT.PUNCH_LIGHT_CROUCH], 0),
-            punchHCrouch: Utils.safeNumber(D[OUT.PUNCH_HEAVY_CROUCH], 0),
-            kickLCrouch:  Utils.safeNumber(D[OUT.KICK_LIGHT_CROUCH], 0),
-            kickHCrouch:  Utils.safeNumber(D[OUT.KICK_HEAVY_CROUCH], 0),
-            block:  Utils.safeNumber(D[OUT.BLOCK], 0),
-            grab:   Utils.safeNumber(D[OUT.GRAB], 0),
-            special: Utils.safeNumber(D[OUT.SPECIAL], 0)
+            left:   Utils.safeNumber(D[ACT.MOVE_LEFT], 0),
+            right:  Utils.safeNumber(D[ACT.MOVE_RIGHT], 0),
+            up:     Utils.safeNumber(D[ACT.JUMP], 0),
+            down:   Utils.safeNumber(D[ACT.CROUCH], 0),
+            punchL: Utils.safeNumber(D[ACT.PUNCH_LIGHT], 0),
+            punchH: Utils.safeNumber(D[ACT.PUNCH_HEAVY], 0),
+            kickL:  Utils.safeNumber(D[ACT.KICK_LIGHT], 0),
+            kickH:  Utils.safeNumber(D[ACT.KICK_HEAVY], 0),
+            block:  Utils.safeNumber(D[ACT.BLOCK], 0),
+            grab:   Utils.safeNumber(D[ACT.GRAB], 0),
+            special: (Utils.safeNumber(D[OUT.BTN_R1], 0) > 0.3 && Utils.safeNumber(D[OUT.BTN_R2], 0) > 0.3) ? 
+                     Math.min(D[OUT.BTN_R1], D[OUT.BTN_R2]) : 0,
+            taunt:  Utils.safeNumber(D[ACT.TAUNT], 0),
+            focus:  Utils.safeNumber(D[ACT.FOCUS], 0),
+            rage:   Utils.safeNumber(D[ACT.RAGE], 0)
         };
 
-        const entries = Object.entries(actions).filter(e => Math.abs(e[1]) > 0.01);
+        const entries = Object.entries(actions).filter(e => Math.abs(e[1]) > CONFIG.AI.DEADZONE);
         if (!entries.length) return { action: 'IDLE', probs: {}, actions };
+        
         const scaled = entries.map(e => [e[0], Math.exp(Utils.safeNumber(e[1], 0) / Math.max(temp, 0.01))]);
         const sum = scaled.reduce((a, e) => a + e[1], 0);
         const probs = {};
         for (const [k, v] of scaled) probs[k] = v / sum;
+        
         let r = Math.random();
         let cum = 0;
         let selected = 'IDLE';
@@ -1798,7 +1839,7 @@ class Cortex2Brain {
     toJSON() {
         return {
             type: 'Cortex2Brain',
-            version: '2.4-6D-STRATEGY',
+            version: '2.4-GAMEPAD-ARCH',
             config: {
                 seed: this.seed,
                 lr: this.lr,
@@ -1943,7 +1984,7 @@ class Cortex2Brain {
 }
 
 // ============================================================================
-// SECTION 6 — Fighter (ПОЛНАЯ ВЕРСИЯ С 8 АТАКАМИ)
+// SECTION 6 — Fighter (GAMEPAD CONTROL)
 // ============================================================================
 class Fighter {
     constructor(x, y, color, isP1, seed, weaponType = 'sword') {
@@ -2085,6 +2126,7 @@ class Fighter {
             s[46] = Utils.clamp(Utils.safeNumber(this.brain.emotions.confidence, 0), 0, 1);
             s[47] = 0;
 
+            // 6D STRATEGY feedback
             for (let i = 0; i < 6; i++) {
                 s[48 + i] = Utils.clamp(Utils.safeNumber(this.brain.strategy6D[i], 0), 0, 1);
             }
@@ -2147,92 +2189,88 @@ class Fighter {
     }
 
     // ============================================
-    // ИСПРАВЛЕННЫЙ executeAction С 8 АТАКАМИ
+    // ИСПРАВЛЕННЫЙ executeAction С МАППИНГОМ КНОПОК В ДЕЙСТВИЯ
     // ============================================
     executeAction(decision, opp) {
         if (!decision || !decision.finalAction) return;
         
         const D = decision.finalAction;
         const OUT = CONFIG.OUTPUT;
+        const ACT = CONFIG.ACTION_MAP;
+        const threshold = CONFIG.AI.ACTIVE_THRESHOLD;
         const speed = CONFIG.PHYSICS.MOVE_SPEED;
-        const deadzone = CONFIG.AI.DEADZONE;
+
+        if (this.actionCooldown > 0) {
+            this.actionCooldown--;
+            return;
+        }
 
         // ============================================
-        // 1. АНАЛОГОВОЕ ДВИЖЕНИЕ (4 направления)
+        // 1. ДВИЖЕНИЕ (D-Pad)
         // ============================================
         if (this.state === 'IDLE' || this.state === 'WALK' || this.state === 'CROUCH') {
             
-            // ГОРИЗОНТАЛЬ: ← и → работают как одна ось
-            let horizontal = 0;
-            if (D[OUT.MOVE_RIGHT] > deadzone) horizontal += D[OUT.MOVE_RIGHT];
-            if (D[OUT.MOVE_LEFT] > deadzone) horizontal -= D[OUT.MOVE_LEFT];
-            horizontal = Utils.clamp(horizontal, -1, 1);
+            // LEFT / RIGHT
+            const leftVal = Utils.safeNumber(D[ACT.MOVE_LEFT], 0);
+            const rightVal = Utils.safeNumber(D[ACT.MOVE_RIGHT], 0);
             
-            // ВЕРТИКАЛЬ: ↑ и ↓ работают как одна ось
-            let vertical = 0;
-            if (D[OUT.MOVE_DOWN] > deadzone) vertical += D[OUT.MOVE_DOWN];
-            if (D[OUT.MOVE_UP] > deadzone) vertical -= D[OUT.MOVE_UP];
-            vertical = Utils.clamp(vertical, -1, 1);
-            
-            // Применяем горизонтальное движение
-            if (Math.abs(horizontal) > deadzone) {
-                this.vx = horizontal * speed;
+            if (rightVal > leftVal && rightVal > threshold) {
+                this.vx = speed * rightVal;
                 this.state = 'WALK';
                 this.stateTimer = 10;
-                this.facing = horizontal > 0 ? 1 : -1;
+                this.facing = 1;
+                this.limbs.legL.targetAngle = 0.5;
+                this.limbs.legR.targetAngle = -0.5;
+            } else if (leftVal > rightVal && leftVal > threshold) {
+                this.vx = -speed * leftVal;
+                this.state = 'WALK';
+                this.stateTimer = 10;
+                this.facing = -1;
+                this.limbs.legL.targetAngle = -0.5;
+                this.limbs.legR.targetAngle = 0.5;
             } else {
                 this.vx *= CONFIG.PHYSICS.FRICTION;
             }
-            
-            // Применяем вертикальное движение (вверх/вниз)
-            if (Math.abs(vertical) > deadzone) {
-                if (vertical < -deadzone) {
-                    if (this.state === 'IDLE' && this.stamina >= 15) {
-                        this.vy = CONFIG.PHYSICS.JUMP_FORCE * Math.abs(vertical);
-                        this.stamina -= 15 * Math.abs(vertical);
-                        this.state = 'JUMP';
-                    }
-                } else if (vertical > deadzone) {
-                    if (this.state === 'IDLE' || this.state === 'WALK') {
-                        this.state = 'CROUCH';
-                        this.hurtBox.h = 40;
-                        this.hurtBox.y = -30;
-                        this.y = Math.min(this.y + CONFIG.PHYSICS.CROUCH_SPEED * vertical, CONFIG.ARENA.GROUND_Y);
-                    }
+
+            // JUMP (UP)
+            if (D[ACT.JUMP] > threshold && this.state === 'IDLE' && this.stamina >= 15) {
+                this.vy = CONFIG.PHYSICS.JUMP_FORCE * Math.min(1, D[ACT.JUMP]);
+                this.stamina -= 15 * Math.min(1, D[ACT.JUMP]);
+                this.state = 'JUMP';
+                this.limbs.legL.targetAngle = -0.3;
+                this.limbs.legR.targetAngle = -0.3;
+            }
+
+            // CROUCH (DOWN)
+            if (D[ACT.CROUCH] > threshold) {
+                if (this.state === 'IDLE' || this.state === 'WALK') {
+                    this.state = 'CROUCH';
+                    this.hurtBox.h = 40;
+                    this.hurtBox.y = -30;
                 }
             } else {
-                if (this.state !== 'CROUCH' && this.state !== 'JUMP' && this.state !== 'ATTACK') {
-                    this.hurtBox.h = 70;
-                    this.hurtBox.y = -60;
-                    if (this.state === 'CROUCH') this.state = 'IDLE';
+                if (this.state === 'CROUCH') {
+                    this.state = 'IDLE';
                 }
+                this.hurtBox.h = 70;
+                this.hurtBox.y = -60;
             }
         }
 
         // ============================================
-        // 2. АТАКИ (8 ударов)
+        // 2. АТАКИ (Face Buttons)
         // ============================================
-        if (this.actionCooldown <= 0 && (this.state === 'IDLE' || this.state === 'WALK' || this.state === 'CROUCH')) {
-            
-            const isCrouching = (this.state === 'CROUCH' || D[OUT.MOVE_DOWN] > deadzone);
-            
-            const attacks = [
-                { key: 'PUNCH_LIGHT_STAND',  out: OUT.PUNCH_LIGHT_STAND,  move: CONFIG.COMBAT.PUNCH_LIGHT_STAND,  crouch: false },
-                { key: 'PUNCH_HEAVY_STAND',  out: OUT.PUNCH_HEAVY_STAND,  move: CONFIG.COMBAT.PUNCH_HEAVY_STAND,  crouch: false },
-                { key: 'KICK_LIGHT_STAND',   out: OUT.KICK_LIGHT_STAND,   move: CONFIG.COMBAT.KICK_LIGHT_STAND,   crouch: false },
-                { key: 'KICK_HEAVY_STAND',   out: OUT.KICK_HEAVY_STAND,   move: CONFIG.COMBAT.KICK_HEAVY_STAND,   crouch: false },
-                { key: 'PUNCH_LIGHT_CROUCH', out: OUT.PUNCH_LIGHT_CROUCH, move: CONFIG.COMBAT.PUNCH_LIGHT_CROUCH, crouch: true },
-                { key: 'PUNCH_HEAVY_CROUCH', out: OUT.PUNCH_HEAVY_CROUCH, move: CONFIG.COMBAT.PUNCH_HEAVY_CROUCH, crouch: true },
-                { key: 'KICK_LIGHT_CROUCH',  out: OUT.KICK_LIGHT_CROUCH,  move: CONFIG.COMBAT.KICK_LIGHT_CROUCH,  crouch: true },
-                { key: 'KICK_HEAVY_CROUCH',  out: OUT.KICK_HEAVY_CROUCH,  move: CONFIG.COMBAT.KICK_HEAVY_CROUCH,  crouch: true }
-            ];
-            
+        const attacks = [
+            { type: 'punchL', idx: ACT.PUNCH_LIGHT, move: CONFIG.COMBAT.PUNCH_LIGHT },
+            { type: 'punchH', idx: ACT.PUNCH_HEAVY, move: CONFIG.COMBAT.PUNCH_HEAVY },
+            { type: 'kickL',  idx: ACT.KICK_LIGHT,  move: CONFIG.COMBAT.KICK_LIGHT },
+            { type: 'kickH',  idx: ACT.KICK_HEAVY,  move: CONFIG.COMBAT.KICK_HEAVY }
+        ];
+
+        if (this.state === 'IDLE' || this.state === 'WALK' || this.state === 'CROUCH') {
             for (const attack of attacks) {
-                if (D[attack.out] > deadzone && 
-                    isCrouching === attack.crouch && 
-                    this.stamina >= attack.move.cost) {
-                    
-                    this._startAttack(attack.key, attack.move);
+                if (D[attack.idx] > threshold && this.stamina >= attack.move.cost) {
+                    this._startAttack(attack.type, attack.move);
                     this.actionCooldown = CONFIG.AI.ATTACK_COOLDOWN;
                     break;
                 }
@@ -2244,27 +2282,29 @@ class Fighter {
         // ============================================
         if (this.state === 'IDLE' || this.state === 'WALK' || this.state === 'CROUCH') {
             
-            if (D[OUT.BLOCK] > deadzone && this.stamina >= 2) {
+            // BLOCK (L1)
+            if (D[ACT.BLOCK] > threshold && this.stamina >= 2) {
                 this.state = 'BLOCK';
                 this.stateTimer = 15;
                 this.stamina -= 2;
                 this._showBlockEffect();
             }
             
-            if (D[OUT.GRAB] > deadzone && this.stamina >= CONFIG.COMBAT.GRAB.cost) {
-                this._startAttack('GRAB', CONFIG.COMBAT.GRAB);
+            // GRAB (L2)
+            if (D[ACT.GRAB] > threshold && this.stamina >= CONFIG.COMBAT.GRAB.cost) {
+                this._startAttack('grab', CONFIG.COMBAT.GRAB);
                 this.actionCooldown = CONFIG.AI.ATTACK_COOLDOWN;
             }
             
-            if (D[OUT.SPECIAL] > deadzone && this.stamina >= CONFIG.COMBAT.SPECIAL.cost) {
-                this._startAttack('SPECIAL', CONFIG.COMBAT.SPECIAL);
+            // SPECIAL (R1 + R2)
+            if (D[OUT.BTN_R1] > threshold && D[OUT.BTN_R2] > threshold && 
+                this.stamina >= CONFIG.COMBAT.SPECIAL.cost) {
+                this._startAttack('special', CONFIG.COMBAT.SPECIAL);
                 this.actionCooldown = CONFIG.AI.ATTACK_COOLDOWN;
             }
         }
 
-        if (this.state === 'ATTACK' && this.currentMove) {
-            this.lastAction = this.currentMove.type;
-        }
+        this.lastAction = decision.action;
     }
 
     _startAttack(type, move) {
@@ -2279,10 +2319,10 @@ class Fighter {
             w: move.range,
             h: 30
         };
-        if (type.includes('PUNCH')) {
+        if (type.includes('punch')) {
             this.limbs.armR.targetAngle = -Math.PI / 2;
             this.limbs.armR.speed = 0.4;
-        } else if (type.includes('KICK')) {
+        } else if (type.includes('kick')) {
             this.limbs.legR.targetAngle = -Math.PI / 3;
             this.limbs.legR.speed = 0.35;
         }
@@ -2436,10 +2476,10 @@ class Fighter {
             this.limbs.armR.angle = lp(this.limbs.armR.angle, Math.sin(t) * 0.3, 0.2);
         } else if (this.state === 'ATTACK' && this.currentMove) {
             const prog = this.moveFrame / (this.currentMove.startup + this.currentMove.active);
-            if (this.currentMove.type.includes('PUNCH')) {
+            if (this.currentMove.type.includes('punch')) {
                 this.limbs.armR.angle = lp(this.limbs.armR.angle,
                     -Math.PI / 2 * Math.sin(prog * Math.PI), this.limbs.armR.speed);
-            } else if (this.currentMove.type.includes('KICK')) {
+            } else if (this.currentMove.type.includes('kick')) {
                 this.limbs.legR.angle = lp(this.limbs.legR.angle,
                     -Math.PI / 3 * Math.sin(prog * Math.PI), this.limbs.legR.speed);
             }
@@ -2668,7 +2708,7 @@ class Fighter {
 }
 
 // ============================================================================
-// SECTION 7 — Arena / Game Engine (С ИСПРАВЛЕННЫМ UI)
+// SECTION 7 — Arena / Game Engine
 // ============================================================================
 class Arena {
     constructor() {
@@ -2676,22 +2716,8 @@ class Arena {
         this.ctx = this.canvas.getContext('2d');
         this.resize();
 
-        this.p1 = new Fighter(
-            300,
-            CONFIG.ARENA.GROUND_Y,
-            '#00d4ff',
-            true,
-            'P1_' + Date.now(),
-            'sword'
-        );
-        this.p2 = new Fighter(
-            700,
-            CONFIG.ARENA.GROUND_Y,
-            '#ff5577',
-            false,
-            'P2_' + Date.now(),
-            'sword'
-        );
+        this.p1 = new Fighter(300, CONFIG.ARENA.GROUND_Y, '#00d4ff', true, 'P1_' + Date.now(), 'sword');
+        this.p2 = new Fighter(700, CONFIG.ARENA.GROUND_Y, '#ff5577', false, 'P2_' + Date.now(), 'sword');
 
         this.walls = this._generateWalls();
         this.projectiles = [];
@@ -2709,12 +2735,11 @@ class Arena {
         this._fpsSamples = [];
         this._opsTotal = 0;
         this.debugHitboxes = true;
-
         this.actionHistory = [];
 
         this.bindEvents();
         this.initUI();
-        this.log('🎮 AI FIGHTER v6.2.3-PRO-A | PROFESSIONAL UI', 'success');
+        this.log('🎮 AI FIGHTER v6.2.3-PRO-B | GAMEPAD ARCH', 'success');
     }
 
     _generateWalls() {
@@ -2727,23 +2752,12 @@ class Arena {
                 const y = 120 + Math.random() * 300;
                 let valid = true;
                 for (const w of walls) {
-                    const dx = x - w.x;
-                    const dy = y - w.y;
-                    if (Math.hypot(dx, dy) < CONFIG.ARENA.WALL_MIN_DIST) {
-                        valid = false;
-                        break;
-                    }
+                    const dx = x - w.x; const dy = y - w.y;
+                    if (Math.hypot(dx, dy) < CONFIG.ARENA.WALL_MIN_DIST) { valid = false; break; }
                 }
-                if (valid) {
-                    walls.push({ x, y });
-                    placed = true;
-                }
+                if (valid) { walls.push({ x, y }); placed = true; }
             }
-            if (!placed) {
-                const x = 80 + Math.random() * 840;
-                const y = 120 + Math.random() * 300;
-                walls.push({ x, y });
-            }
+            if (!placed) walls.push({ x: 80 + Math.random() * 840, y: 120 + Math.random() * 300 });
         }
         return walls;
     }
@@ -2755,7 +2769,6 @@ class Arena {
 
     bindEvents() {
         window.addEventListener('resize', () => this.resize());
-
         document.getElementById('btnStart').onclick = () => this.toggle();
         document.getElementById('btnReset').onclick = () => this.fullReset();
         document.getElementById('btnSave').onclick = () => this.save();
@@ -2773,29 +2786,25 @@ class Arena {
         document.getElementById('learningRate').oninput = (e) => {
             const v = parseFloat(e.target.value);
             CONFIG.LEARNING.lr = v;
-            this.p1.brain.lr = v;
-            this.p2.brain.lr = v;
+            this.p1.brain.lr = v; this.p2.brain.lr = v;
             document.getElementById('lrValue').textContent = v.toFixed(3);
         };
         document.getElementById('lambda').oninput = (e) => {
             const v = parseFloat(e.target.value);
             CONFIG.LEARNING.lambda = v;
-            this.p1.brain.lambda = v;
-            this.p2.brain.lambda = v;
+            this.p1.brain.lambda = v; this.p2.brain.lambda = v;
             document.getElementById('lambdaValue').textContent = v.toFixed(2);
         };
         document.getElementById('gamma').oninput = (e) => {
             const v = parseFloat(e.target.value);
             CONFIG.LEARNING.gamma = v;
-            this.p1.brain.gamma = v;
-            this.p2.brain.gamma = v;
+            this.p1.brain.gamma = v; this.p2.brain.gamma = v;
             document.getElementById('gammaValue').textContent = v.toFixed(3);
         };
         document.getElementById('hebbianRate').oninput = (e) => {
             const v = parseFloat(e.target.value);
             CONFIG.LEARNING.hebbianRate = v;
-            this.p1.brain.hebbianRate = v;
-            this.p2.brain.hebbianRate = v;
+            this.p1.brain.hebbianRate = v; this.p2.brain.hebbianRate = v;
             document.getElementById('hebbValue').textContent = v.toFixed(3);
         };
         document.getElementById('temperature').oninput = (e) => {
@@ -2805,50 +2814,32 @@ class Arena {
         document.getElementById('gradClip').oninput = (e) => {
             const v = parseFloat(e.target.value);
             CONFIG.LEARNING.gradClip = v;
-            this.p1.brain.gradClip = v;
-            this.p2.brain.gradClip = v;
+            this.p1.brain.gradClip = v; this.p2.brain.gradClip = v;
             document.getElementById('gradClipValue').textContent = v.toFixed(1);
         };
-        document.getElementById('debugHitboxes').onchange = (e) => {
-            this.debugHitboxes = e.target.checked;
-        };
+        document.getElementById('debugHitboxes').onchange = (e) => { this.debugHitboxes = e.target.checked; };
 
-        const toggleIds = ['enableTraining', 'enableFighting'];
-        toggleIds.forEach(id => {
+        ['enableTraining', 'enableFighting'].forEach(id => {
             document.getElementById(id).onchange = () => {
-                const rawKey = id.replace('enable', '');
-                const key = rawKey.charAt(0).toLowerCase() + rawKey.slice(1);
+                const key = id.replace('enable', '').toLowerCase();
                 this.log(`🔧 ${key}: ${document.getElementById(id).checked}`, 'info');
             };
         });
     }
 
-    // ============================================
-    // ИСПРАВЛЕННЫЙ initUI С НОВЫМИ МЕТКАМИ
-    // ============================================
     initUI() {
         const p1Out = document.getElementById('p1Outputs');
         const p2Out = document.getElementById('p2Outputs');
-        p1Out.innerHTML = '';
-        p2Out.innerHTML = '';
-        
+        p1Out.innerHTML = ''; p2Out.innerHTML = '';
         for (let i = 0; i < 16; i++) {
-            p1Out.innerHTML += `
-                <div class="output-bar">
-                    <div class="output-label">D${i} ${CONFIG.OUTPUT_LABELS[i]}</div>
-                    <div class="output-track">
-                        <div class="output-fill" id="p1OutBar${i}" style="width:0%"></div>
-                    </div>
-                    <div class="output-value" id="p1Out${i}">0.00</div>
-                </div>`;
-            p2Out.innerHTML += `
-                <div class="output-bar">
-                    <div class="output-label">D${i} ${CONFIG.OUTPUT_LABELS[i]}</div>
-                    <div class="output-track">
-                        <div class="output-fill" id="p2OutBar${i}" style="width:0%"></div>
-                    </div>
-                    <div class="output-value" id="p2Out${i}">0.00</div>
-                </div>`;
+            p1Out.innerHTML += `<div class="output-row"><span class="out-label">D${i} ${CONFIG.OUTPUT_LABELS[i]}</span><div class="out-track"><div class="out-fill" id="p1OutBar${i}" style="width:0%"></div></div><span class="out-val" id="p1Out${i}">0.00</span><span class="out-src" id="p1OutSrc${i}">—</span></div>`;
+            p2Out.innerHTML += `<div class="output-row"><span class="out-label">D${i} ${CONFIG.OUTPUT_LABELS[i]}</span><div class="out-track"><div class="out-fill" id="p2OutBar${i}" style="width:0%"></div></div><span class="out-val" id="p2Out${i}">0.00</span><span class="out-src" id="p2OutSrc${i}">—</span></div>`;
+        }
+        // Weight inspector init
+        const wg = document.getElementById('p1WeightGrid');
+        wg.innerHTML = '';
+        for (let j = 0; j < 16; j++) {
+            wg.innerHTML += `<div class="weight-row"><span class="weight-label">${CONFIG.OUTPUT_LABELS[j]}</span><div class="weight-bar"><div class="weight-fill" id="p1Wt${j}" style="width:50%"></div></div><span class="weight-val" id="p1WtVal${j}">0.00</span></div>`;
         }
     }
 
@@ -2857,15 +2848,11 @@ class Arena {
         const btn = document.getElementById('btnStart');
         btn.textContent = this.running ? '⏸ ПАУЗА' : '▶ СТАРТ';
         btn.className = this.running ? 'btn-danger' : 'btn-success';
-        if (this.running) {
-            this._lastTimestamp = 0;
-            requestAnimationFrame((ts) => this.loop(ts));
-        }
+        if (this.running) { this._lastTimestamp = 0; requestAnimationFrame((ts) => this.loop(ts)); }
     }
 
     formatTime(seconds) {
-        const m = Math.floor(seconds / 60);
-        const s = Math.floor(seconds % 60);
+        const m = Math.floor(seconds / 60), s = Math.floor(seconds % 60);
         return `${m}:${s.toString().padStart(2, '0')}`;
     }
 
@@ -2886,37 +2873,22 @@ class Arena {
         try {
             this.step++;
             this.roundTimer -= (delta / 1000) * this.gameSpeed;
+            if (this.roundTimer <= 0) { this.endRound('TIMEOUT'); return; }
 
-            if (this.roundTimer <= 0) {
-                this.endRound('TIMEOUT');
-                return;
-            }
-
-            const aW = this.canvas.width;
-            const aH = this.canvas.height;
-
+            const aW = this.canvas.width, aH = this.canvas.height;
             const oldDist = Math.hypot(this.p1.x - this.p2.x, this.p1.y - this.p2.y);
 
             const d1 = this.p1.decide(this.p2, aW, aH, this.step);
             const d2 = this.p2.decide(this.p1, aW, aH, this.step);
-
             this._opsTotal += (d1.brainResult?.ops || 0) + (d2.brainResult?.ops || 0);
 
             this.p1.executeAction(d1, this.p2);
             this.p2.executeAction(d2, this.p1);
-            this.p1.update();
-            this.p2.update();
+            this.p1.update(); this.p2.update();
 
             const newDist = Math.hypot(this.p1.x - this.p2.x, this.p1.y - this.p2.y);
-
-            if (newDist < oldDist) {
-                this.p1.lastReward += 0.02;
-                this.p2.lastReward += 0.02;
-            }
-            if (newDist > oldDist + 10) {
-                this.p1.lastReward -= 0.01;
-                this.p2.lastReward -= 0.01;
-            }
+            if (newDist < oldDist) { this.p1.lastReward += 0.02; this.p2.lastReward += 0.02; }
+            if (newDist > oldDist + 10) { this.p1.lastReward -= 0.01; this.p2.lastReward -= 0.01; }
 
             this.checkHits(this.p1, this.p2);
             this.checkHits(this.p2, this.p1);
@@ -2924,11 +2896,7 @@ class Arena {
             if (d1.sensors && d1.sensors.length === 64 && document.getElementById('enableTraining').checked) {
                 const value = this.p1.brain._estimateValue();
                 const learnResult = this.p1.brain.tdLearn(
-                    Utils.clamp(Utils.safeNumber(this.p1.lastReward, 0) / 10, -1, 1),
-                    value,
-                    value,
-                    d1.finalAction
-                );
+                    Utils.clamp(Utils.safeNumber(this.p1.lastReward, 0) / 10, -1, 1), value, value, d1.finalAction);
                 this.p1.lastReward = 0;
                 if (this.step % 10 === 0) {
                     const p1Stats = this.p1.brain.getStats();
@@ -2940,22 +2908,13 @@ class Arena {
             }
             if (d2.sensors && d2.sensors.length === 64 && document.getElementById('enableTraining').checked) {
                 const value = this.p2.brain._estimateValue();
-                this.p2.brain.tdLearn(
-                    Utils.clamp(Utils.safeNumber(this.p2.lastReward, 0) / 10, -1, 1),
-                    value,
-                    value,
-                    d2.finalAction
-                );
+                this.p2.brain.tdLearn(Utils.clamp(Utils.safeNumber(this.p2.lastReward, 0) / 10, -1, 1), value, value, d2.finalAction);
                 this.p2.lastReward = 0;
             }
 
             if (!this.p1.alive || !this.p2.alive) {
-                if (!this.p1.alive && !this.p2.alive) {
-                    this.endRound('DRAW');
-                } else {
-                    const winner = this.p1.alive ? 'P1' : 'P2';
-                    this.endRound(winner);
-                }
+                if (!this.p1.alive && !this.p2.alive) this.endRound('DRAW');
+                else { const winner = this.p1.alive ? 'P1' : 'P2'; this.endRound(winner); }
                 return;
             }
 
@@ -2978,59 +2937,49 @@ class Arena {
         if (!attacker.checkHit(defender)) return;
 
         const timeStr = new Date().toLocaleTimeString('ru-RU', {hour12:false, hour:'2-digit',minute:'2-digit',second:'2-digit'});
+        const strat = attacker.brain.strategy6D;
+        const domStrat = CONFIG.STRATEGY.LABELS[Utils.argmax(Array.from(strat))];
 
         if (defender.state === 'BLOCK' && !m.unblockable) {
             const chip = Math.floor((m.damage || 10) * CONFIG.COMBAT.BLOCK.chipDamage);
-            const actualDamage = defender.takeDamage(chip, (m.knockback || 5) * 0.3, CONFIG.PHYSICS.BLOCKSTUN_BASE);
+            defender.takeDamage(chip, (m.knockback || 5) * 0.3, CONFIG.PHYSICS.BLOCKSTUN_BASE);
             defender.stamina -= CONFIG.COMBAT.BLOCK.staminaCost;
             attacker.lastReward += chip / 50;
             this._showDamage(chip, defender.x, defender.y - 50, '#ffaa00');
-            this.addActionFeed(timeStr, attacker.id, 'BLOCK', `${chip} chip`);
+            this.addActionFeed(timeStr, attacker.id, 'BLOCK', `${chip} chip`, domStrat);
         } else {
             const mult = defender.calculateDirectionalDamageMultiplier(attacker);
             const baseDamage = (m.damage || 10) * (attacker.stats.damage / 3);
             const damage = Math.floor(baseDamage * mult);
-            const actualDamage = defender.takeDamage(damage, m.knockback || 5, m.stun || 10);
+            defender.takeDamage(damage, m.knockback || 5, m.stun || 10);
 
-            attacker.lastReward += actualDamage / 25;
-            attacker.totalDamage += actualDamage;
-            attacker._totalAttacks++;
-            attacker._successfulHits++;
-            attacker._totalDamageDealt += actualDamage;
+            attacker.lastReward += damage / 25;
+            attacker.totalDamage += damage;
+            attacker._totalAttacks++; attacker._successfulHits++; attacker._totalDamageDealt += damage;
             if (mult >= 1.5) attacker._tacticalHits++;
 
             if (defender.id === attacker.combo.lastHitId && attacker.combo.timer > 0) {
                 attacker.combo.count = Math.min(5, attacker.combo.count + 1);
                 attacker.combo.history.push(m.type);
-            } else {
-                attacker.combo.count = 1;
-                attacker.combo.history = [m.type];
-            }
-            attacker.combo.timer = 30;
-            attacker.combo.lastHitId = defender.id;
+            } else { attacker.combo.count = 1; attacker.combo.history = [m.type]; }
+            attacker.combo.timer = 30; attacker.combo.lastHitId = defender.id;
 
             attacker._combatEvents.push({ type: 'hit_dealt' });
-            defender._combatEvents.push({ type: 'damage_received', damage: actualDamage });
+            defender._combatEvents.push({ type: 'damage_received', damage });
 
-            this._showDamage(actualDamage, defender.x, defender.y - 50, '#ff4444');
+            this._showDamage(damage, defender.x, defender.y - 50, '#ff4444');
             this._showHitEffect(defender.x, defender.y - 40);
-            
             const comboStr = attacker.combo.count > 1 ? ` combo x${attacker.combo.count}` : '';
-            this.addActionFeed(timeStr, attacker.id, m.type.toUpperCase(), `${damage} dmg${comboStr}`);
+            this.addActionFeed(timeStr, attacker.id, m.type.toUpperCase(), `${damage} dmg${comboStr}`, domStrat);
         }
     }
 
-    addActionFeed(time, player, action, result) {
+    addActionFeed(time, player, action, result, strategy) {
         const feed = document.getElementById('actionFeed');
         const item = document.createElement('div');
         item.className = 'action-item';
         const playerClass = player === 'P1' ? 'action-p1' : 'action-p2';
-        item.innerHTML = `
-            <span class="action-time">${time}</span>
-            <span class="${playerClass}">${player}</span>
-            <span class="action-event">${action}</span>
-            <span>${result}</span>
-        `;
+        item.innerHTML = `<span class="action-time">${time}</span><span class="${playerClass}">${player}</span><span class="action-strat">[${strategy}]</span><span class="action-event">${action}</span><span>${result}</span>`;
         feed.insertBefore(item, feed.firstChild);
         while (feed.children.length > 20) feed.removeChild(feed.lastChild);
     }
@@ -3053,268 +3002,192 @@ class Arena {
     }
 
     endRound(winner) {
-        this.running = false;
-        this.round++;
+        this.running = false; this.round++;
         if (winner === 'P1') {
-            this.p1.wins++;
-            this.p1Wins++;
-            this.p1.brain._stats.kills++;
-            this.p2.brain._stats.deaths++;
+            this.p1.wins++; this.p1Wins++; this.p1.brain._stats.kills++; this.p2.brain._stats.deaths++;
             this.log(`🏆 Round ${this.round}: BLUE wins!`, 'success');
         } else if (winner === 'P2') {
-            this.p2.wins++;
-            this.p2Wins++;
-            this.p2.brain._stats.kills++;
-            this.p1.brain._stats.deaths++;
+            this.p2.wins++; this.p2Wins++; this.p2.brain._stats.kills++; this.p1.brain._stats.deaths++;
             this.log(`🏆 Round ${this.round}: RED wins!`, 'success');
-        } else {
-            this.log(`⏱ Round ${this.round}: DRAW`, 'warn');
-        }
+        } else { this.log(`⏱ Round ${this.round}: DRAW`, 'warn'); }
 
-        this.p1.lastReward = 0;
-        this.p2.lastReward = 0;
-
+        this.p1.lastReward = 0; this.p2.lastReward = 0;
         document.getElementById('btnStart').textContent = '▶ NEXT ROUND';
         document.getElementById('btnStart').className = 'btn-success';
         setTimeout(() => {
             this.p1.reset(300, CONFIG.ARENA.GROUND_Y);
             this.p2.reset(700, CONFIG.ARENA.GROUND_Y);
             this.roundTimer = this.roundTime;
-            this.running = true;
-            this._lastTimestamp = 0;
+            this.running = true; this._lastTimestamp = 0;
             requestAnimationFrame((ts) => this.loop(ts));
         }, 2000);
     }
 
     render() {
-        const ctx = this.ctx;
-        const w = this.canvas.width;
-        const h = this.canvas.height;
+        const ctx = this.ctx, w = this.canvas.width, h = this.canvas.height;
         ctx.clearRect(0, 0, w, h);
-
         const grad = ctx.createLinearGradient(0, 0, w, h);
-        grad.addColorStop(0, '#0a0a15');
-        grad.addColorStop(1, '#1a1a2e');
-        ctx.fillStyle = grad;
-        ctx.fillRect(0, 0, w, h);
-
-        ctx.fillStyle = '#1a1a2a';
-        ctx.fillRect(0, CONFIG.ARENA.GROUND_Y, w, h - CONFIG.ARENA.GROUND_Y);
-        ctx.strokeStyle = '#00d4ff';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(0, CONFIG.ARENA.GROUND_Y);
-        ctx.lineTo(w, CONFIG.ARENA.GROUND_Y);
-        ctx.stroke();
-
+        grad.addColorStop(0, '#0a0a15'); grad.addColorStop(1, '#1a1a2e');
+        ctx.fillStyle = grad; ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = '#1a1a2a'; ctx.fillRect(0, CONFIG.ARENA.GROUND_Y, w, h - CONFIG.ARENA.GROUND_Y);
+        ctx.strokeStyle = '#00d4ff'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(0, CONFIG.ARENA.GROUND_Y); ctx.lineTo(w, CONFIG.ARENA.GROUND_Y); ctx.stroke();
         for (const wall of this.walls) {
-            ctx.fillStyle = '#4a4a7a';
-            ctx.beginPath();
-            ctx.arc(wall.x, wall.y, CONFIG.ARENA.WALL_RADIUS, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.strokeStyle = '#6a6a9a';
-            ctx.lineWidth = 2;
-            ctx.stroke();
+            ctx.fillStyle = '#4a4a7a'; ctx.beginPath(); ctx.arc(wall.x, wall.y, CONFIG.ARENA.WALL_RADIUS, 0, Math.PI * 2); ctx.fill();
+            ctx.strokeStyle = '#6a6a9a'; ctx.lineWidth = 2; ctx.stroke();
         }
-
-        this.p1.draw(ctx, this.debugHitboxes);
-        this.p2.draw(ctx, this.debugHitboxes);
-
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 22px monospace';
-        ctx.textAlign = 'center';
+        this.p1.draw(ctx, this.debugHitboxes); this.p2.draw(ctx, this.debugHitboxes);
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 22px monospace'; ctx.textAlign = 'center';
         ctx.fillText(`Round ${this.round}`, w / 2, 38);
     }
 
     drawRadar(canvasId, strategy6D, color) {
-        const canvas = document.getElementById(canvasId);
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d');
-        const w = canvas.width;
-        const h = canvas.height;
-        const cx = w / 2;
-        const cy = h / 2;
-        const radius = Math.min(w, h) / 2 - 10;
-
+        const canvas = document.getElementById(canvasId); if (!canvas) return;
+        const ctx = canvas.getContext('2d'), w = canvas.width, h = canvas.height;
+        const cx = w / 2, cy = h / 2, radius = Math.min(w, h) / 2 - 10;
         ctx.clearRect(0, 0, w, h);
-
-        const labels = CONFIG.STRATEGY.LABELS;
-        const colors = CONFIG.STRATEGY.COLORS;
-        const angleStep = (Math.PI * 2) / 6;
-
+        const labels = CONFIG.STRATEGY.LABELS, colors = CONFIG.STRATEGY.COLORS, angleStep = (Math.PI * 2) / 6;
         for (let ring = 1; ring <= 3; ring++) {
-            ctx.beginPath();
-            const r = (radius / 3) * ring;
+            ctx.beginPath(); const r = (radius / 3) * ring;
             for (let i = 0; i < 6; i++) {
-                const angle = i * angleStep - Math.PI / 2;
-                const px = cx + Math.cos(angle) * r;
-                const py = cy + Math.sin(angle) * r;
-                if (i === 0) ctx.moveTo(px, py);
-                else ctx.lineTo(px, py);
+                const angle = i * angleStep - Math.PI / 2, px = cx + Math.cos(angle) * r, py = cy + Math.sin(angle) * r;
+                if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
             }
-            ctx.closePath();
-            ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-            ctx.lineWidth = 1;
-            ctx.stroke();
+            ctx.closePath(); ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 1; ctx.stroke();
         }
-
         for (let i = 0; i < 6; i++) {
             const angle = i * angleStep - Math.PI / 2;
-            const px = cx + Math.cos(angle) * radius;
-            const py = cy + Math.sin(angle) * radius;
-            ctx.beginPath();
-            ctx.moveTo(cx, cy);
-            ctx.lineTo(px, py);
-            ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-            ctx.lineWidth = 1;
-            ctx.stroke();
-
-            const labelX = cx + Math.cos(angle) * (radius + 12);
-            const labelY = cy + Math.sin(angle) * (radius + 12);
-            ctx.fillStyle = colors[i];
-            ctx.font = '9px monospace';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(labels[i], labelX, labelY);
+            ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(angle) * radius, cy + Math.sin(angle) * radius);
+            ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 1; ctx.stroke();
+            ctx.fillStyle = colors[i]; ctx.font = '9px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(labels[i], cx + Math.cos(angle) * (radius + 12), cy + Math.sin(angle) * (radius + 12));
         }
-
         ctx.beginPath();
         for (let i = 0; i < 6; i++) {
-            const angle = i * angleStep - Math.PI / 2;
-            const r = radius * Utils.safeNumber(strategy6D[i], 0);
-            const px = cx + Math.cos(angle) * r;
-            const py = cy + Math.sin(angle) * r;
-            if (i === 0) ctx.moveTo(px, py);
-            else ctx.lineTo(px, py);
+            const angle = i * angleStep - Math.PI / 2, r = radius * Utils.safeNumber(strategy6D[i], 0);
+            const px = cx + Math.cos(angle) * r, py = cy + Math.sin(angle) * r;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
         }
-        ctx.closePath();
-        ctx.fillStyle = color + '40';
-        ctx.fill();
-        ctx.strokeStyle = color;
-        ctx.lineWidth = 2;
-        ctx.stroke();
-
+        ctx.closePath(); ctx.fillStyle = color + '40'; ctx.fill(); ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.stroke();
         for (let i = 0; i < 6; i++) {
-            const angle = i * angleStep - Math.PI / 2;
-            const r = radius * Utils.safeNumber(strategy6D[i], 0);
-            const px = cx + Math.cos(angle) * r;
-            const py = cy + Math.sin(angle) * r;
-            ctx.beginPath();
-            ctx.arc(px, py, 3, 0, Math.PI * 2);
-            ctx.fillStyle = color;
-            ctx.fill();
+            const angle = i * angleStep - Math.PI / 2, r = radius * Utils.safeNumber(strategy6D[i], 0);
+            ctx.beginPath(); ctx.arc(cx + Math.cos(angle) * r, cy + Math.sin(angle) * r, 3, 0, Math.PI * 2);
+            ctx.fillStyle = color; ctx.fill();
         }
     }
 
-    // ============================================
-    // ИСПРАВЛЕННЫЙ updateControllerUI
-    // ============================================
     updateControllerUI() {
         const threshold = CONFIG.AI.ACTIVE_THRESHOLD;
         
-        const updateBtn = (id, value) => {
-            const btn = document.getElementById(id);
-            if (btn) btn.classList.toggle('active', value > threshold);
+        const setBtn = (id, val) => { 
+            const btn = document.getElementById(id); 
+            if (btn) btn.classList.toggle('active', val > threshold); 
         };
-
-        const updatePlayer = (fighter, prefix) => {
-            if (!fighter || !fighter.brain || !fighter.brain.D) return;
+        
+        const upd = (f, p) => {
+            if (!f || !f.brain || !f.brain.D) return;
             
-            const D = fighter.brain.D;
+            const D = f.brain.D;
             const OUT = CONFIG.OUTPUT;
+            const ACT = CONFIG.ACTION_MAP;
 
-            updateBtn(prefix+'BtnLeft', D[OUT.MOVE_LEFT]);
-            updateBtn(prefix+'BtnRight', D[OUT.MOVE_RIGHT]);
-            updateBtn(prefix+'BtnUp', D[OUT.MOVE_UP]);
-            updateBtn(prefix+'BtnDown', D[OUT.MOVE_DOWN]);
-
-            updateBtn(prefix+'BtnLP', D[OUT.PUNCH_LIGHT_STAND] || D[OUT.PUNCH_LIGHT_CROUCH]);
-            updateBtn(prefix+'BtnHP', D[OUT.PUNCH_HEAVY_STAND] || D[OUT.PUNCH_HEAVY_CROUCH]);
-            updateBtn(prefix+'BtnLK', D[OUT.KICK_LIGHT_STAND] || D[OUT.KICK_LIGHT_CROUCH]);
-            updateBtn(prefix+'BtnHK', D[OUT.KICK_HEAVY_STAND] || D[OUT.KICK_HEAVY_CROUCH]);
+            // D-Pad
+            setBtn(p+'BtnLeft', D[ACT.MOVE_LEFT]);
+            setBtn(p+'BtnRight', D[ACT.MOVE_RIGHT]);
+            setBtn(p+'BtnUp', D[ACT.JUMP]);
+            setBtn(p+'BtnDown', D[ACT.CROUCH]);
             
-            updateBtn(prefix+'BtnBLK', D[OUT.BLOCK]);
-            updateBtn(prefix+'BtnGRB', D[OUT.GRAB]);
-            updateBtn(prefix+'BtnSPL', D[OUT.SPECIAL]);
-
-            const comboEl = document.getElementById(prefix+'ComboCount');
-            if (comboEl) comboEl.textContent = fighter.combo.count || 0;
+            // Face buttons
+            setBtn(p+'BtnA', D[ACT.PUNCH_LIGHT]);
+            setBtn(p+'BtnB', D[ACT.PUNCH_HEAVY]);
+            setBtn(p+'BtnX', D[ACT.KICK_LIGHT]);
+            setBtn(p+'BtnY', D[ACT.KICK_HEAVY]);
             
-            const lastActionEl = document.getElementById(prefix+'LastAction');
-            if (lastActionEl) {
-                const lastAction = fighter.combo.history.length > 0 ? 
-                    fighter.combo.history.slice(-3).join('→') : fighter.lastAction;
-                lastActionEl.textContent = lastAction;
-            }
-        };
-
-        updatePlayer(this.p1, 'p1');
-        updatePlayer(this.p2, 'p2');
-    }
-
-    updateUI() {
-        const sf = (id, v) => {
-            const el = document.getElementById(id);
-            if (!el) return;
-            if (typeof v === 'number' && isFinite(v)) {
-                el.textContent = !Number.isInteger(v) ? v.toFixed(2) : String(v);
-            } else {
-                el.textContent = String(v ?? '—');
+            // Shoulder
+            setBtn(p+'BtnL1', D[ACT.BLOCK]);
+            setBtn(p+'BtnL2', D[ACT.GRAB]);
+            setBtn(p+'BtnR1', D[OUT.BTN_R1]);
+            setBtn(p+'BtnR2', D[OUT.BTN_R2]);
+            
+            // Function
+            setBtn(p+'BtnSel', D[ACT.FOCUS]);
+            setBtn(p+'BtnStr', D[ACT.RAGE]);
+            setBtn(p+'BtnL3', D[OUT.BTN_L3]);
+            setBtn(p+'BtnR3', D[OUT.BTN_R3]);
+            
+            // Combo
+            const comboEl = document.getElementById(p+'ComboCount');
+            if (comboEl) comboEl.textContent = f.combo.count;
+            
+            const lastMoveEl = document.getElementById(p+'LastMove');
+            if (lastMoveEl) {
+                lastMoveEl.textContent = f.combo.history.length > 0 ? 
+                    f.combo.history.slice(-3).join('→') : 'IDLE';
             }
         };
         
-        const setBar = (id, pct) => {
-            const el = document.getElementById(id);
-            if (!el) return;
-            el.style.width = Utils.clamp(pct, 0, 100) + '%';
-        };
+        upd(this.p1, 'p1'); 
+        upd(this.p2, 'p2');
+    }
 
-        setBar('p1HpBar', (this.p1.hp / this.p1.maxHp) * 100);
-        setBar('p1StmBar', (this.p1.stamina / this.p1.maxStamina) * 100);
-        setBar('p2HpBar', (this.p2.hp / this.p2.maxHp) * 100);
-        setBar('p2StmBar', (this.p2.stamina / this.p2.maxStamina) * 100);
+    updateUI() {
+        const sf = (id, v) => { const el = document.getElementById(id); if (!el) return; el.textContent = (typeof v === 'number' && isFinite(v)) ? (!Number.isInteger(v) ? v.toFixed(2) : String(v)) : String(v ?? '—'); };
+        const setBar = (id, pct) => { const el = document.getElementById(id); if (el) el.style.width = Utils.clamp(pct, 0, 100) + '%'; };
 
+        setBar('p1HpBar', (this.p1.hp / this.p1.maxHp) * 100); setBar('p1StmBar', (this.p1.stamina / this.p1.maxStamina) * 100);
+        setBar('p2HpBar', (this.p2.hp / this.p2.maxHp) * 100); setBar('p2StmBar', (this.p2.stamina / this.p2.maxStamina) * 100);
         document.getElementById('p1HpText').textContent = `${Math.floor(this.p1.hp)}/${this.p1.maxHp}`;
         document.getElementById('p2HpText').textContent = `${Math.floor(this.p2.hp)}/${this.p2.maxHp}`;
 
-        sf('roundStat', this.round);
-        sf('stepStat', this.step);
-        sf('p1Wins', this.p1Wins);
-        sf('p2Wins', this.p2Wins);
+        sf('roundStat', this.round); sf('stepStat', this.step); sf('p1Wins', this.p1Wins); sf('p2Wins', this.p2Wins);
 
-        const p1Stats = this.p1.brain.getStats();
-        const p2Stats = this.p2.brain.getStats();
-        const avgTD = ((p1Stats.tdErrorHistory?.slice(-1)[0] || 0) +
-                       (p2Stats.tdErrorHistory?.slice(-1)[0] || 0)) / 2;
-        sf('tdError', avgTD.toFixed(3));
-        sf('hebbDelta', ((this.p1.brain.hebbianRate + this.p2.brain.hebbianRate) / 2).toFixed(3));
+        const p1Stats = this.p1.brain.getStats(), p2Stats = this.p2.brain.getStats();
+        const avgTD = ((p1Stats.tdErrorHistory?.slice(-1)[0] || 0) + (p2Stats.tdErrorHistory?.slice(-1)[0] || 0)) / 2;
+        sf('tdError', avgTD.toFixed(3)); sf('hebbDelta', ((this.p1.brain.hebbianRate + this.p2.brain.hebbianRate) / 2).toFixed(3));
 
-        const rp = document.getElementById('roundProgress');
-        if (rp) rp.style.width = ((this.roundTime - this.roundTimer) / this.roundTime * 100) + '%';
+        const rp = document.getElementById('roundProgress'); if (rp) rp.style.width = ((this.roundTime - this.roundTimer) / this.roundTime * 100) + '%';
 
-        this.drawRadar('radarP1', this.p1.brain.strategy6D, '#00d4ff');
-        this.drawRadar('radarP2', this.p2.brain.strategy6D, '#ff5577');
+        this.drawRadar('radarP1', this.p1.brain.strategy6D, '#00d4ff'); this.drawRadar('radarP2', this.p2.brain.strategy6D, '#ff5577');
 
-        sf('p1Value', this.p1.brain._estimateValue().toFixed(2));
-        sf('p1Pred', this.p1.brain._computeAvgPredError().toFixed(3));
-        sf('p2Value', this.p2.brain._estimateValue().toFixed(2));
-        sf('p2Pred', this.p2.brain._computeAvgPredError().toFixed(3));
+        sf('p1Value', this.p1.brain._estimateValue().toFixed(2)); sf('p1Pred', this.p1.brain._computeAvgPredError().toFixed(3));
+        sf('p2Value', this.p2.brain._estimateValue().toFixed(2)); sf('p2Pred', this.p2.brain._computeAvgPredError().toFixed(3));
 
+        // Emotions P1
+        const emo = this.p1.brain.emotions;
+        sf('p1EmoAggVal', emo.aggression); setBar('p1EmoAgg', emo.aggression * 100);
+        sf('p1EmoFearVal', emo.fear); setBar('p1EmoFear', emo.fear * 100);
+        sf('p1EmoConfVal', emo.confidence); setBar('p1EmoConf', emo.confidence * 100);
+        sf('p1EmoFrusVal', emo.frustration); setBar('p1EmoFrus', emo.frustration * 100);
+        sf('p1EmoDespVal', emo.desperation); setBar('p1EmoDesp', emo.desperation * 100);
+        sf('p1EmoVengVal', emo.vengeance); setBar('p1EmoVeng', emo.vengeance * 100);
+
+        // Outputs + source strategy
         for (let i = 0; i < 16; i++) {
-            const v1 = Utils.safeNumber(this.p1.brain.D[i], 0);
-            const v2 = Utils.safeNumber(this.p2.brain.D[i], 0);
-            sf('p1Out' + i, v1.toFixed(2));
-            sf('p2Out' + i, v2.toFixed(2));
+            const v1 = Utils.safeNumber(this.p1.brain.D[i], 0), v2 = Utils.safeNumber(this.p2.brain.D[i], 0);
+            sf('p1Out'+i, v1.toFixed(2)); sf('p2Out'+i, v2.toFixed(2));
+            const bar1 = document.getElementById('p1OutBar'+i), bar2 = document.getElementById('p2OutBar'+i);
+            if (bar1) { bar1.style.width = (v1 * 100) + '%'; bar1.classList.toggle('active', v1 > 0.5); }
+            if (bar2) { bar2.style.width = (v2 * 100) + '%'; bar2.classList.toggle('active', v2 > 0.5); }
             
-            const bar1 = document.getElementById('p1OutBar'+i);
-            const bar2 = document.getElementById('p2OutBar'+i);
-            if (bar1) {
-                bar1.style.width = (v1 * 100) + '%';
-                bar1.classList.toggle('active', v1 > 0.5);
+            // Source strategy (which strategy contributed most to this output)
+            let maxContrib = -1, maxStrat = '—';
+            for (let s = 0; s < 6; s++) {
+                const contrib = this.p1.brain.strategy6D[s] * this.p1.brain.W_strategy[s][i];
+                if (Math.abs(contrib) > Math.abs(maxContrib)) { maxContrib = contrib; maxStrat = CONFIG.STRATEGY.LABELS[s]; }
             }
-            if (bar2) {
-                bar2.style.width = (v2 * 100) + '%';
-                bar2.classList.toggle('active', v2 > 0.5);
+            const srcEl1 = document.getElementById('p1OutSrc'+i);
+            if (srcEl1) srcEl1.textContent = maxStrat + (maxContrib >= 0 ? '+' : '') + maxContrib.toFixed(2);
+        }
+
+        // Weight inspector (AGG → outputs)
+        for (let j = 0; j < 16; j++) {
+            const w = this.p1.brain.W_strategy[CONFIG.STRATEGY.AGGRESSION][j];
+            const fill = document.getElementById('p1Wt'+j), val = document.getElementById('p1WtVal'+j);
+            if (fill && val) {
+                const pct = Math.min(100, Math.abs(w) * 100);
+                fill.style.width = pct + '%';
+                fill.className = 'weight-fill ' + (w >= 0 ? 'pos' : 'neg');
+                val.textContent = (w >= 0 ? '+' : '') + w.toFixed(2);
             }
         }
     }
@@ -3323,28 +3196,18 @@ class Arena {
         this.running = false;
         document.getElementById('btnStart').textContent = '▶ СТАРТ';
         document.getElementById('btnStart').className = 'btn-success';
-        this.round = 0;
-        this.step = 0;
-        this.roundTimer = this.roundTime;
-        this.p1Wins = 0;
-        this.p2Wins = 0;
-        this.p1.reset(300, CONFIG.ARENA.GROUND_Y);
-        this.p2.reset(700, CONFIG.ARENA.GROUND_Y);
-        this.walls = this._generateWalls();
-        this.projectiles = [];
-        this._fpsSamples = [];
-        this._opsTotal = 0;
-        this.actionHistory = [];
+        this.round = 0; this.step = 0; this.roundTimer = this.roundTime;
+        this.p1Wins = 0; this.p2Wins = 0;
+        this.p1.reset(300, CONFIG.ARENA.GROUND_Y); this.p2.reset(700, CONFIG.ARENA.GROUND_Y);
+        this.walls = this._generateWalls(); this.projectiles = [];
+        this._fpsSamples = []; this._opsTotal = 0; this.actionHistory = [];
         document.getElementById('actionFeed').innerHTML = '';
-        this.updateUI();
-        this.log('🔄 Full reset', 'success');
+        this.updateUI(); this.log('🔄 Full reset', 'success');
     }
 
     log(msg, type = 'info') {
-        const feed = document.getElementById('actionFeed');
-        if (!feed) return;
-        const item = document.createElement('div');
-        item.className = 'action-item';
+        const feed = document.getElementById('actionFeed'); if (!feed) return;
+        const item = document.createElement('div'); item.className = 'action-item';
         const timeStr = new Date().toLocaleTimeString('ru-RU', {hour12:false, hour:'2-digit',minute:'2-digit',second:'2-digit'});
         item.innerHTML = `<span class="action-time">${timeStr}</span><span class="${type === 'error' ? 'action-p2' : 'action-p1'}">SYS</span><span>${msg}</span>`;
         feed.insertBefore(item, feed.firstChild);
@@ -3352,35 +3215,20 @@ class Arena {
     }
 
     save() {
-        const data = {
-            version: CONFIG.version,
-            round: this.round,
-            p1Wins: this.p1Wins,
-            p2Wins: this.p2Wins,
-            p1: this.p1.toJSON(),
-            p2: this.p2.toJSON()
-        };
-        localStorage.setItem('aiFighterV623PROA', JSON.stringify(data));
+        const data = { version: CONFIG.version, round: this.round, p1Wins: this.p1Wins, p2Wins: this.p2Wins, p1: this.p1.toJSON(), p2: this.p2.toJSON() };
+        localStorage.setItem('aiFighterV623PROB', JSON.stringify(data));
         this.log('💾 Saved', 'success');
     }
 
     load() {
-        const raw = localStorage.getItem('aiFighterV623PROA');
-        if (!raw) {
-            this.log('❌ No save found', 'error');
-            return;
-        }
+        const raw = localStorage.getItem('aiFighterV623PROB');
+        if (!raw) { this.log('❌ No save found', 'error'); return; }
         try {
             const data = JSON.parse(raw);
-            this.round = data.round || 0;
-            this.p1Wins = data.p1Wins || 0;
-            this.p2Wins = data.p2Wins || 0;
-            this.p1 = Fighter.fromJSON(data.p1, '#00d4ff');
-            this.p2 = Fighter.fromJSON(data.p2, '#ff5577');
+            this.round = data.round || 0; this.p1Wins = data.p1Wins || 0; this.p2Wins = data.p2Wins || 0;
+            this.p1 = Fighter.fromJSON(data.p1, '#00d4ff'); this.p2 = Fighter.fromJSON(data.p2, '#ff5577');
             this.log('📂 Loaded', 'success');
-        } catch (e) {
-            this.log('❌ Load error: ' + e.message, 'error');
-        }
+        } catch (e) { this.log('❌ Load error: ' + e.message, 'error'); }
     }
 }
 
@@ -3389,10 +3237,12 @@ class Arena {
 // ============================================================================
 window.addEventListener('DOMContentLoaded', () => {
     window.arena = new Arena();
-    console.log('✅ AI FIGHTER v6.2.3-PRO-A | PROFESSIONAL UI');
-    console.log('🎮 Controller pad, radar charts, action feed');
-    console.log('🧠 6D Strategy visualization');
-    console.log('✅ FIXED: 8 attacks (standing/crouching), 4-way analog movement, working buttons');
+    console.log('✅ AI FIGHTER v6.2.3-PRO-B | GAMEPAD ARCHITECTURE');
+    console.log('🎮 16 outputs = gamepad buttons (D-Pad, Face, Shoulder, Function)');
+    console.log('🎯 6D Strategy → W_strategy(6×16) → Buttons (learnable)');
+    console.log('💭 Emotions → Strategy (not directly to buttons)');
+    console.log('🧠 CORTEX-2: P32→A64→M144→C256→S32→D16 (fixed)');
+    console.log('🔧 FIXED: Button mapping, movement, attacks, combo system');
 });
 </script>
 </body>
