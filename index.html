@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self'; font-src 'self';">
-    <meta name="description" content="AI Fighter v6.2.2 — CORTEX-2 v2.3 | ИСПРАВЛЕНО: урон, таймер, хитбоксы">
+    <meta name="description" content="AI Fighter v6.2.3-PRO-A — CORTEX-2 v2.4 | 6D Strategy Architecture, Professional UI">
     <meta name="theme-color" content="#0a0a15">
     <meta name="robots" content="noindex">
-    <title>🎮 AI FIGHTER v6.2.2 | CORTEX-2 v2.3 WORKING</title>
+    <title>🎮 AI FIGHTER v6.2.3-PRO-A | CORTEX-2 v2.4 6D STRATEGY</title>
     <style>
         :root {
             --bg: #0a0a15; --bg-gradient-start: #0a0a15; --bg-gradient-end: #1a1a2e;
@@ -17,12 +17,13 @@
             --success: #00ff9d; --warning: #ffaa00; --danger: #ff4444;
             --border: #2a2a45; --border-light: #3a3a5a;
             --purple: #aa88ff; --yellow: #ffdd44; --cyan: #00d4ff;
-            --sidebar-width: 420px; --header-height: 48px; --panel-radius: 12px;
+            --sidebar-width: 480px; --header-height: 56px; --panel-radius: 12px;
             --btn-radius: 8px; --input-radius: 6px; --card-radius: 10px;
             --transition-fast: 150ms ease; --transition-normal: 250ms ease;
             --shadow-sm: 0 1px 2px rgba(0,0,0,0.3); --shadow-md: 0 4px 8px rgba(0,0,0,0.4);
             --z-canvas: 1; --z-sidebar: 10; --z-header: 100; --z-modal: 1000;
             --z-hit-effect: 50; --z-damage-popup: 100; --z-debug: 1000;
+            --z-controls: 200;
         }
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
         html { font-size: 16px; -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
@@ -53,6 +54,7 @@
         .header h1 { font-size: 1rem; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 0.5rem; margin: 0; }
         .version-badge { background: var(--accent); color: #fff; padding: 0.125rem 0.375rem; border-radius: 0.25rem; font-size: 0.625rem; font-weight: 600; }
         .fps-counter { font-family: monospace; color: var(--success); font-weight: 700; font-size: 0.875rem; background: rgba(0,255,157,0.1); padding: 0.25rem 0.5rem; border-radius: 0.375rem; min-width: 70px; text-align: center; }
+        .timer-display { font-family: monospace; color: var(--warning); font-weight: 700; font-size: 1.125rem; background: rgba(255,170,0,0.1); padding: 0.25rem 0.75rem; border-radius: 0.375rem; min-width: 80px; text-align: center; border: 1px solid var(--warning); }
         #gameCanvas { grid-area: canvas; width: 100%; height: 100%; display: block; cursor: crosshair; touch-action: none; }
         .sidebar {
             grid-area: sidebar; background: var(--panel); border-left: 1px solid var(--border);
@@ -105,24 +107,114 @@
         .log-entry.warn { color: var(--warning); } .log-entry.error { color: var(--danger); }
         .progress-bar { height: 0.25rem; background: rgba(0,0,0,0.3); border-radius: 0.1875rem; overflow: hidden; margin-top: 0.1875rem; }
         .progress-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--success)); transition: width var(--transition-normal); }
-        .fighter-hud { position: fixed; top: 60px; left: 20px; right: 440px; display: flex; justify-content: space-between; pointer-events: none; z-index: 10; }
-        .fighter-bar { width: 48%; background: rgba(10,10,20,0.95); border: 2px solid var(--border); border-radius: 8px; padding: 12px; backdrop-filter: blur(4px); }
+        
+        /* FIGHTER HUD */
+        .fighter-hud { 
+            position: fixed; top: 64px; left: 20px; right: calc(var(--sidebar-width) + 20px); 
+            display: flex; justify-content: space-between; pointer-events: none; z-index: 10; 
+            gap: 20px;
+        }
+        .fighter-bar { 
+            width: 48%; background: rgba(10,10,20,0.95); border: 2px solid var(--border); 
+            border-radius: 12px; padding: 12px; backdrop-filter: blur(8px); 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
         .fighter-bar.right { text-align: right; }
-        .hp-bar { height: 24px; background: #1a1a2a; border-radius: 4px; margin: 6px 0; overflow: hidden; border: 1px solid #334; }
-        .hp-fill { height: 100%; transition: width 0.1s; }
+        .hp-bar { height: 28px; background: #1a1a2a; border-radius: 6px; margin: 8px 0; overflow: hidden; border: 1px solid #334; position: relative; }
+        .hp-fill { height: 100%; transition: width 0.2s ease-out; position: absolute; top: 0; left: 0; }
         .hp-fill.blue { background: linear-gradient(90deg, #00d4ff, #0099cc); }
         .hp-fill.red  { background: linear-gradient(90deg, #ff5577, #cc4455); }
-        .stm-bar { height: 10px; background: #1a1a2a; border-radius: 3px; overflow: hidden; border: 1px solid #334; }
+        .hp-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-weight: 700; font-size: 14px; color: #fff; text-shadow: 0 0 4px rgba(0,0,0,0.8); z-index: 2; }
+        .stm-bar { height: 8px; background: #1a1a2a; border-radius: 4px; overflow: hidden; border: 1px solid #334; }
         .stm-fill { height: 100%; background: linear-gradient(90deg, #ffdd44, #ccaa00); transition: width 0.1s; }
         .fighter-name { font-size: 16px; font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
         .fighter-name.blue { color: var(--cyan); }
         .fighter-name.red  { color: #ff5577; }
-        .combo-display { font-size: 11px; color: var(--yellow); font-weight: 700; margin-top: 4px; }
-        .damage-popup { position: fixed; font-size: 28px; font-weight: 900; color: #fff; text-shadow: 0 0 15px #ff0000, 0 0 30px #ff0000; pointer-events: none; animation: damageFloat 0.8s ease-out forwards; z-index: var(--z-damage-popup); }
+        .combo-display { font-size: 11px; color: var(--yellow); font-weight: 700; margin-top: 6px; }
+        
+        /* CONTROLLER PAD */
+        .controller-container {
+            position: fixed; bottom: 20px; left: 0; right: 0;
+            display: flex; justify-content: space-between; padding: 0 40px;
+            pointer-events: none; z-index: var(--z-controls);
+        }
+        .controller-pad {
+            background: rgba(18,18,37,0.95); border: 2px solid var(--border);
+            border-radius: 12px; padding: 12px; backdrop-filter: blur(8px);
+            display: flex; gap: 16px; align-items: center;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+        }
+        .dpad {
+            display: grid; grid-template-columns: repeat(3, 36px); grid-template-rows: repeat(3, 36px);
+            gap: 4px;
+        }
+        .dpad-center { grid-column: 2; grid-row: 2; background: rgba(0,0,0,0.3); border-radius: 6px; }
+        .btn-dpad {
+            width: 36px; height: 36px; background: #2a2a45; border: 2px solid #3a3a5a;
+            border-radius: 8px; display: flex; align-items: center; justify-content: center;
+            font-size: 16px; font-weight: 700; color: var(--text-dim);
+            transition: all 0.1s ease; cursor: pointer;
+        }
+        .btn-dpad.active {
+            background: var(--primary); border-color: var(--primary-dark);
+            color: #000; box-shadow: 0 0 15px rgba(0,242,255,0.6);
+            transform: scale(0.92);
+        }
+        .btn-dpad:nth-child(1) { grid-column: 2; grid-row: 1; } /* UP */
+        .btn-dpad:nth-child(2) { grid-column: 1; grid-row: 2; } /* LEFT */
+        .btn-dpad:nth-child(3) { grid-column: 3; grid-row: 2; } /* RIGHT */
+        .btn-dpad:nth-child(4) { grid-column: 2; grid-row: 3; } /* DOWN */
+        
+        .attack-buttons {
+            display: grid; grid-template-columns: repeat(4, 44px); grid-template-rows: repeat(2, 44px);
+            gap: 8px;
+        }
+        .btn-attack {
+            width: 44px; height: 44px; border-radius: 50%;
+            background: #2a2a45; border: 2px solid #3a3a5a;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 10px; font-weight: 700; color: var(--text);
+            transition: all 0.1s ease; cursor: pointer;
+        }
+        .btn-attack.active {
+            background: var(--danger); border-color: #ff6666;
+            color: #fff; box-shadow: 0 0 20px rgba(255,68,68,0.8);
+            transform: scale(0.9);
+        }
+        .btn-attack.punch { background: #4a2a45; }
+        .btn-attack.punch.active { background: #ff4444; }
+        .btn-attack.kick { background: #2a4a45; }
+        .btn-attack.kick.active { background: #44ff44; }
+        .btn-attack.special { background: #4a4a2a; }
+        .btn-attack.special.active { background: #ffff44; }
+        
+        .combo-box {
+            min-width: 120px; text-align: center;
+        }
+        .combo-count {
+            font-size: 24px; font-weight: 900; color: var(--yellow);
+            text-shadow: 0 0 10px rgba(255,221,68,0.6);
+        }
+        .combo-label { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+        .last-action { font-size: 11px; color: var(--primary); margin-top: 4px; font-family: monospace; }
+        
+        /* DAMAGE POPUP */
+        .damage-popup { 
+            position: fixed; font-size: 32px; font-weight: 900; color: #fff; 
+            text-shadow: 0 0 15px #ff0000, 0 0 30px #ff0000; 
+            pointer-events: none; animation: damageFloat 0.8s ease-out forwards; 
+            z-index: var(--z-damage-popup); 
+        }
         @keyframes damageFloat { 0% { opacity:1; transform:translateY(0) scale(1); } 100% { opacity:0; transform:translateY(-50px) scale(1.3); } }
-        .hit-effect { position: fixed; border-radius: 50%; pointer-events: none; animation: hitExpand 0.4s ease-out forwards; z-index: var(--z-hit-effect); }
+        
+        /* HIT EFFECT */
+        .hit-effect { 
+            position: fixed; border-radius: 50%; pointer-events: none; 
+            animation: hitExpand 0.4s ease-out forwards; z-index: var(--z-hit-effect); 
+        }
         @keyframes hitExpand { 0% { opacity:1; transform:scale(0.5); } 100% { opacity:0; transform:scale(2.5); } }
-        @keyframes shake { 0%,100% { transform:translateX(0); } 25% { transform:translateX(-8px); } 75% { transform:translateX(8px); } }
+        
+        /* BLOCK INDICATOR */
         .block-indicator { 
             position: absolute; width: 40px; height: 40px; 
             border: 3px solid #ffdd44; border-radius: 50%; 
@@ -131,11 +223,73 @@
             pointer-events: none; z-index: var(--z-hit-effect);
         }
         @keyframes blockPulse { 0% { opacity:1; transform:translate(-50%, -50%) scale(0.5); } 100% { opacity:0; transform:translate(-50%, -50%) scale(1.5); } }
+        
+        /* STRATEGY RADAR */
+        .radar-container {
+            display: flex; justify-content: center; align-items: center;
+            margin: 8px 0;
+        }
+        .radar-canvas {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: rgba(0,0,0,0.3);
+        }
+        
+        /* OUTPUT BARS */
+        .output-bar {
+            display: flex; align-items: center; gap: 8px;
+            margin: 2px 0; padding: 2px 4px;
+            background: rgba(0,0,0,0.2); border-radius: 4px;
+        }
+        .output-label {
+            width: 60px; font-size: 10px; color: var(--text-dim);
+            font-family: monospace;
+        }
+        .output-track {
+            flex: 1; height: 12px; background: rgba(0,0,0,0.3);
+            border-radius: 6px; overflow: hidden;
+        }
+        .output-fill {
+            height: 100%; background: linear-gradient(90deg, var(--primary), var(--success));
+            transition: width 0.1s ease;
+        }
+        .output-fill.active {
+            background: linear-gradient(90deg, var(--danger), var(--warning));
+            box-shadow: 0 0 8px rgba(255,68,68,0.6);
+        }
+        .output-value {
+            width: 40px; font-size: 10px; color: var(--primary);
+            font-family: monospace; text-align: right;
+        }
+        
+        /* ACTION FEED */
+        .action-feed {
+            background: #000; border: 1px solid var(--border);
+            border-radius: 8px; padding: 8px;
+            height: 120px; overflow-y: auto;
+            font-size: 11px; font-family: monospace;
+        }
+        .action-item {
+            padding: 3px 0; border-bottom: 1px solid #1a1a2a;
+            display: flex; gap: 8px;
+        }
+        .action-time { color: var(--text-muted); min-width: 45px; }
+        .action-p1 { color: var(--cyan); }
+        .action-p2 { color: #ff5577; }
+        .action-event { color: var(--success); }
+        
+        /* OUTPUTS SECTION */
+        .outputs-grid {
+            display: grid; grid-template-columns: 1fr; gap: 2px;
+            max-height: 200px; overflow-y: auto;
+        }
+        
         @media (max-width: 1100px) {
             .container { grid-template-columns: 1fr !important; grid-template-rows: var(--header-height) 1fr auto !important; grid-template-areas: "header" "canvas" "sidebar" !important; }
             .sidebar { border-left: none !important; border-top: 1px solid var(--border) !important; max-height: 45vh !important; }
             .fighter-hud { top: 50px; left: 10px; right: 10px; }
             .fighter-bar { width: 49%; padding: 8px; }
+            .controller-container { display: none; }
         }
         @media (max-width: 600px) {
             :root { --sidebar-width: 100%; }
@@ -151,8 +305,11 @@
 <a href="#gameCanvas" class="skip-link">Перейти к симуляции</a>
 <div class="container">
     <header class="header">
-        <h1>🎮 AI FIGHTER <span class="version-badge">v6.2.2 | CORTEX-2 v2.3 WORKING</span></h1>
-        <div class="fps-counter" id="fpsCounter">FPS: 0</div>
+        <h1>🎮 AI FIGHTER <span class="version-badge">v6.2.3-PRO-A | CORTEX-2 v2.4 6D STRATEGY</span></h1>
+        <div style="display:flex;gap:10px;align-items:center">
+            <div class="timer-display" id="roundTimer">1:30</div>
+            <div class="fps-counter" id="fpsCounter">FPS: 0</div>
+        </div>
     </header>
     <canvas id="gameCanvas"></canvas>
     <aside class="sidebar">
@@ -171,147 +328,77 @@
                 <button class="btn-danger" id="btnReset">🔄 СБРОС</button>
             </div>
         </section>
+        
         <section class="panel">
-            <h2 class="panel-title">🧠 CORTEX-2 v2.3 ПАРАМЕТРЫ</h2>
-            <div class="control-group">
-                <label class="control-label"><span>Learning Rate (α)</span><span id="lrValue">0.015</span></label>
-                <input type="range" id="learningRate" min="0.001" max="0.05" step="0.001" value="0.015">
-            </div>
-            <div class="control-group">
-                <label class="control-label"><span>TD Lambda (λ)</span><span id="lambdaValue">0.95</span></label>
-                <input type="range" id="lambda" min="0.8" max="0.99" step="0.01" value="0.95">
-            </div>
-            <div class="control-group">
-                <label class="control-label"><span>Discount (γ)</span><span id="gammaValue">0.99</span></label>
-                <input type="range" id="gamma" min="0.9" max="0.999" step="0.001" value="0.99">
-            </div>
-            <div class="control-group">
-                <label class="control-label"><span>Hebbian Rate (η)</span><span id="hebbValue">0.002</span></label>
-                <input type="range" id="hebbianRate" min="0" max="0.01" step="0.001" value="0.002">
-            </div>
-            <div class="control-group">
-                <label class="control-label"><span>Temperature (τ)</span><span id="tempValue">0.15</span></label>
-                <input type="range" id="temperature" min="0.05" max="0.5" step="0.01" value="0.15">
-            </div>
-            <div class="control-group">
-                <label class="control-label"><span>Gate Bias</span><span id="gateValue">0.00</span></label>
-                <input type="range" id="gateBias" min="-0.5" max="0.5" step="0.01" value="0.0">
-            </div>
-        </section>
-        <section class="panel">
-            <h2 class="panel-title">🔧 РЕЖИМЫ</h2>
-            <label class="toggle"><input type="checkbox" id="enableTraining" checked> TD(λ) Learning</label>
-            <label class="toggle"><input type="checkbox" id="enableEvolution" checked> Evolution</label>
-            <label class="toggle"><input type="checkbox" id="enableFighting" checked> Бои</label>
-            <label class="toggle"><input type="checkbox" id="enableRanged" checked> Дальний бой</label>
-            <label class="toggle"><input type="checkbox" id="enableWeightInheritance" checked> Наследование</label>
-            <label class="toggle"><input type="checkbox" id="enableTactical" checked> Тактика</label>
-            <label class="toggle"><input type="checkbox" id="enableHebbian" checked> Hebbian</label>
-            <label class="toggle"><input type="checkbox" id="enableConsolidation" checked> Consolidation</label>
-            <label class="toggle"><input type="checkbox" id="debugHitboxes" checked> Отладка хитбоксов</label>
-        </section>
-        <section class="panel">
-            <h2 class="panel-title">📊 СТАТИСТИКА</h2>
+            <h2 class="panel-title">📊 СЧЕТ</h2>
             <div class="stat-grid">
                 <div class="stat"><span class="stat-label">Раунд</span><span class="stat-value" id="roundStat">0</span></div>
-                <div class="stat"><span class="stat-label">Шаг</span><span class="stat-value" id="stepStat">0</span></div>
                 <div class="stat"><span class="stat-label">P1 Wins</span><span class="stat-value" id="p1Wins">0</span></div>
                 <div class="stat"><span class="stat-label">P2 Wins</span><span class="stat-value" id="p2Wins">0</span></div>
+                <div class="stat"><span class="stat-label">Шаг</span><span class="stat-value" id="stepStat">0</span></div>
             </div>
-            <div class="progress-bar"><div class="progress-fill" id="roundProgress" style="width:0%"></div></div>
         </section>
+        
+        <section class="panel">
+            <h2 class="panel-title">🎯 6D СТРАТЕГИЯ BLUE</h2>
+            <div class="radar-container">
+                <canvas id="radarP1" class="radar-canvas" width="140" height="140"></canvas>
+            </div>
+            <div class="stat-grid">
+                <div class="stat"><span class="stat-label">VALUE</span><span class="stat-value" id="p1Value">0.00</span></div>
+                <div class="stat"><span class="stat-label">PRED ERR</span><span class="stat-value" id="p1Pred">0.00</span></div>
+            </div>
+        </section>
+        
+        <section class="panel">
+            <h2 class="panel-title">🎯 6D СТРАТЕГИЯ RED</h2>
+            <div class="radar-container">
+                <canvas id="radarP2" class="radar-canvas" width="140" height="140"></canvas>
+            </div>
+            <div class="stat-grid">
+                <div class="stat"><span class="stat-label">VALUE</span><span class="stat-value" id="p2Value">0.00</span></div>
+                <div class="stat"><span class="stat-label">PRED ERR</span><span class="stat-value" id="p2Pred">0.00</span></div>
+            </div>
+        </section>
+        
         <section class="panel">
             <h2 class="panel-title">📈 METRICS</h2>
             <div class="stat-grid">
                 <div class="stat"><span class="stat-label">TD Error</span><span class="stat-value" id="tdError">0.000</span></div>
                 <div class="stat"><span class="stat-label">Hebbian Δ</span><span class="stat-value" id="hebbDelta">0.000</span></div>
-                <div class="stat"><span class="stat-label">Pred Error</span><span class="stat-value" id="predError">0.000</span></div>
-                <div class="stat"><span class="stat-label">Value</span><span class="stat-value" id="valueEst">0.00</span></div>
-            </div>
-            <div style="margin-top:0.5rem">
-                <div style="display:flex;align-items:center;gap:0.25rem;font-size:0.5rem;margin-bottom:0.25rem">
-                    <span style="width:4rem;color:var(--text-dim)">TD Learning</span>
-                    <div style="flex:1;height:0.1875rem;background:rgba(0,0,0,0.3);border-radius:0.125rem;overflow:hidden">
-                        <div class="progress-fill" id="progressTD" style="width:50%;background:linear-gradient(90deg,#ff4444,#ffaa00,#00ff9d)"></div>
-                    </div>
-                </div>
-                <div style="display:flex;align-items:center;gap:0.25rem;font-size:0.5rem">
-                    <span style="width:4rem;color:var(--text-dim)">Combat</span>
-                    <div style="flex:1;height:0.1875rem;background:rgba(0,0,0,0.3);border-radius:0.125rem;overflow:hidden">
-                        <div class="progress-fill" id="progressCombat" style="width:50%;background:linear-gradient(90deg,#ffaa00,#00f2ff)"></div>
-                    </div>
-                </div>
+                <div class="stat"><span class="stat-label">Forward ms</span><span class="stat-value" id="forwardMs">0.00</span></div>
+                <div class="stat"><span class="stat-label">Learn ms</span><span class="stat-value" id="learnMs">0.00</span></div>
             </div>
         </section>
+        
         <section class="panel">
-            <h2 class="panel-title">🧠 CORTEX-2 BLUE</h2>
-            <div class="stat-grid">
-                <div class="stat"><span class="stat-label">MODE</span><span class="stat-value" id="p1Mode">—</span></div>
-                <div class="stat"><span class="stat-label">VALUE</span><span class="stat-value" id="p1Value">0.00</span></div>
-                <div class="stat"><span class="stat-label">PRED ERR</span><span class="stat-value" id="p1Pred">0.00</span></div>
-                <div class="stat"><span class="stat-label">STEPS</span><span class="stat-value" id="p1Steps">0</span></div>
-            </div>
-            <div style="margin-top:0.5rem;font-size:0.625rem;color:var(--text-dim)">ARBITER MODES:</div>
-            <div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:0.25rem" id="p1Arbiter">
-                <span style="padding:2px 5px;background:#1a1a2a;border:1px solid #2a2a3a;border-radius:3px;font-size:0.5rem" data-mode="AGGRESSIVE">AGGR</span>
-                <span style="padding:2px 5px;background:#1a1a2a;border:1px solid #2a2a3a;border-radius:3px;font-size:0.5rem" data-mode="DEFENSIVE">DEF</span>
-                <span style="padding:2px 5px;background:#1a1a2a;border:1px solid #2a2a3a;border-radius:3px;font-size:0.5rem" data-mode="MOBILE">MOB</span>
-                <span style="padding:2px 5px;background:#1a1a2a;border:1px solid #2a2a3a;border-radius:3px;font-size:0.5rem" data-mode="COUNTER">CNT</span>
-                <span style="padding:2px 5px;background:#1a1a2a;border:1px solid #2a2a3a;border-radius:3px;font-size:0.5rem" data-mode="RETREAT">RET</span>
-            </div>
-            <div style="margin-top:0.5rem;font-size:0.625rem;color:var(--text-dim)">MEMORY M144:</div>
-            <div style="display:flex;gap:2px;height:20px;align-items:flex-end;margin-top:0.25rem">
-                <div style="flex:1;background:linear-gradient(#4b7bec,#00d2ff);border-radius:2px 2px 0 0" id="p1MemPerm"></div>
-                <div style="flex:1;background:linear-gradient(#ffd700,#ffa502);border-radius:2px 2px 0 0" id="p1MemPred"></div>
-                <div style="flex:1;background:linear-gradient(#ff4757,#ff6b81);border-radius:2px 2px 0 0" id="p1MemWork"></div>
-            </div>
-            <div style="display:flex;justify-content:space-between;font-size:0.4375rem;color:var(--text-dim);margin-top:2px">
-                <span>PERM</span><span>PRED</span><span>WORK</span>
-            </div>
-            <div style="margin-top:0.5rem;font-size:0.625rem;color:var(--text-dim)">OUTPUTS D0-D15:</div>
-            <div class="stat-grid" id="p1Outputs" style="margin-top:0.25rem"></div>
+            <h2 class="panel-title">🎮 OUTPUTS P1 (D0-D15)</h2>
+            <div class="outputs-grid" id="p1Outputs"></div>
         </section>
+        
         <section class="panel">
-            <h2 class="panel-title">🧠 CORTEX-2 RED</h2>
-            <div class="stat-grid">
-                <div class="stat"><span class="stat-label">MODE</span><span class="stat-value" id="p2Mode">—</span></div>
-                <div class="stat"><span class="stat-label">VALUE</span><span class="stat-value" id="p2Value">0.00</span></div>
-                <div class="stat"><span class="stat-label">PRED ERR</span><span class="stat-value" id="p2Pred">0.00</span></div>
-                <div class="stat"><span class="stat-label">STEPS</span><span class="stat-value" id="p2Steps">0</span></div>
-            </div>
-            <div style="margin-top:0.5rem;font-size:0.625rem;color:var(--text-dim)">ARBITER MODES:</div>
-            <div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:0.25rem" id="p2Arbiter">
-                <span style="padding:2px 5px;background:#1a1a2a;border:1px solid #2a2a3a;border-radius:3px;font-size:0.5rem" data-mode="AGGRESSIVE">AGGR</span>
-                <span style="padding:2px 5px;background:#1a1a2a;border:1px solid #2a2a3a;border-radius:3px;font-size:0.5rem" data-mode="DEFENSIVE">DEF</span>
-                <span style="padding:2px 5px;background:#1a1a2a;border:1px solid #2a2a3a;border-radius:3px;font-size:0.5rem" data-mode="MOBILE">MOB</span>
-                <span style="padding:2px 5px;background:#1a1a2a;border:1px solid #2a2a3a;border-radius:3px;font-size:0.5rem" data-mode="COUNTER">CNT</span>
-                <span style="padding:2px 5px;background:#1a1a2a;border:1px solid #2a2a3a;border-radius:3px;font-size:0.5rem" data-mode="RETREAT">RET</span>
-            </div>
-            <div style="margin-top:0.5rem;font-size:0.625rem;color:var(--text-dim)">MEMORY M144:</div>
-            <div style="display:flex;gap:2px;height:20px;align-items:flex-end;margin-top:0.25rem">
-                <div style="flex:1;background:linear-gradient(#4b7bec,#00d2ff);border-radius:2px 2px 0 0" id="p2MemPerm"></div>
-                <div style="flex:1;background:linear-gradient(#ffd700,#ffa502);border-radius:2px 2px 0 0" id="p2MemPred"></div>
-                <div style="flex:1;background:linear-gradient(#ff4757,#ff6b81);border-radius:2px 2px 0 0" id="p2MemWork"></div>
-            </div>
-            <div style="display:flex;justify-content:space-between;font-size:0.4375rem;color:var(--text-dim);margin-top:2px">
-                <span>PERM</span><span>PRED</span><span>WORK</span>
-            </div>
-            <div style="margin-top:0.5rem;font-size:0.625rem;color:var(--text-dim)">OUTPUTS D0-D15:</div>
-            <div class="stat-grid" id="p2Outputs" style="margin-top:0.25rem"></div>
+            <h2 class="panel-title">🎮 OUTPUTS P2 (D0-D15)</h2>
+            <div class="outputs-grid" id="p2Outputs"></div>
         </section>
+        
         <section class="panel">
-            <h2 class="panel-title">📝 ЛОГ</h2>
-            <div class="log" id="eventLog"></div>
+            <h2 class="panel-title">📝 ACTION FEED</h2>
+            <div class="action-feed" id="actionFeed"></div>
         </section>
+        
+        <section class="panel">
+            <h2 class="panel-title">🔧 РЕЖИМЫ</h2>
+            <label class="toggle"><input type="checkbox" id="enableTraining" checked> TD(λ) Learning</label>
+            <label class="toggle"><input type="checkbox" id="enableFighting" checked> Бои</label>
+            <label class="toggle"><input type="checkbox" id="debugHitboxes" checked> Отладка хитбоксов</label>
+        </section>
+        
         <section class="panel">
             <h2 class="panel-title">💾 УПРАВЛЕНИЕ</h2>
             <div class="btn-group">
                 <button class="btn-success"   id="btnSave">💾 СОХРАНИТЬ</button>
                 <button class="btn-secondary" id="btnLoad">📂 ЗАГРУЗИТЬ</button>
-                <button class="btn-primary"   id="btnExport">📤 ЭКСПОРТ</button>
-                <button class="btn-secondary" id="btnImport">📥 ИМПОРТ</button>
             </div>
-            <input type="file" id="fileImport" accept=".json" style="display:none">
         </section>
     </aside>
 </div>
@@ -319,15 +406,69 @@
 <div class="fighter-hud" id="fighterHud">
     <div class="fighter-bar">
         <div class="fighter-name blue">🔵 BLUE FIGHTER</div>
-        <div class="hp-bar"><div class="hp-fill blue" id="p1HpBar" style="width:100%"></div></div>
+        <div class="hp-bar">
+            <div class="hp-fill blue" id="p1HpBar" style="width:100%"></div>
+            <div class="hp-text" id="p1HpText">100/100</div>
+        </div>
         <div class="stm-bar"><div class="stm-fill" id="p1StmBar" style="width:100%"></div></div>
-        <div class="combo-display">COMBO: <span id="p1Combo">0</span>x | DMG: <span id="p1Damage">0</span></div>
     </div>
     <div class="fighter-bar right">
         <div class="fighter-name red">🔴 RED FIGHTER</div>
-        <div class="hp-bar"><div class="hp-fill red" id="p2HpBar" style="width:100%"></div></div>
+        <div class="hp-bar">
+            <div class="hp-fill red" id="p2HpBar" style="width:100%"></div>
+            <div class="hp-text" id="p2HpText">100/100</div>
+        </div>
         <div class="stm-bar"><div class="stm-fill" id="p2StmBar" style="width:100%"></div></div>
-        <div class="combo-display">COMBO: <span id="p2Combo">0</span>x | DMG: <span id="p2Damage">0</span></div>
+    </div>
+</div>
+
+<div class="controller-container">
+    <div class="controller-pad">
+        <div class="dpad">
+            <div class="dpad-center"></div>
+            <div class="btn-dpad" id="p1BtnUp">↑</div>
+            <div class="btn-dpad" id="p1BtnLeft">←</div>
+            <div class="btn-dpad" id="p1BtnRight">→</div>
+            <div class="btn-dpad" id="p1BtnDown">↓</div>
+        </div>
+        <div class="attack-buttons">
+            <div class="btn-attack punch" id="p1BtnLP">LP</div>
+            <div class="btn-attack punch" id="p1BtnHP">HP</div>
+            <div class="btn-attack kick" id="p1BtnLK">LK</div>
+            <div class="btn-attack kick" id="p1BtnHK">HK</div>
+            <div class="btn-attack special" id="p1BtnBLK">BLK</div>
+            <div class="btn-attack special" id="p1BtnGRB">GRB</div>
+            <div class="btn-attack special" id="p1BtnSPL">SPL</div>
+        </div>
+        <div class="combo-box">
+            <div class="combo-count" id="p1ComboCount">0</div>
+            <div class="combo-label">COMBO</div>
+            <div class="last-action" id="p1LastAction">IDLE</div>
+        </div>
+    </div>
+    
+    <div class="controller-pad">
+        <div class="combo-box">
+            <div class="combo-count" id="p2ComboCount">0</div>
+            <div class="combo-label">COMBO</div>
+            <div class="last-action" id="p2LastAction">IDLE</div>
+        </div>
+        <div class="attack-buttons">
+            <div class="btn-attack punch" id="p2BtnLP">LP</div>
+            <div class="btn-attack punch" id="p2BtnHP">HP</div>
+            <div class="btn-attack kick" id="p2BtnLK">LK</div>
+            <div class="btn-attack kick" id="p2BtnHK">HK</div>
+            <div class="btn-attack special" id="p2BtnBLK">BLK</div>
+            <div class="btn-attack special" id="p2BtnGRB">GRB</div>
+            <div class="btn-attack special" id="p2BtnSPL">SPL</div>
+        </div>
+        <div class="dpad">
+            <div class="dpad-center"></div>
+            <div class="btn-dpad" id="p2BtnUp">↑</div>
+            <div class="btn-dpad" id="p2BtnLeft">←</div>
+            <div class="btn-dpad" id="p2BtnRight">→</div>
+            <div class="btn-dpad" id="p2BtnDown">↓</div>
+        </div>
     </div>
 </div>
 
@@ -335,7 +476,7 @@
 'use strict';
 
 // ============================================================================
-// SECTION 1 — CONFIG & CONSTANTS (v2.3 — ПОЛНОСТЬЮ ИСПРАВЛЕНО)
+// SECTION 1 — CONFIG & CONSTANTS (ПОЛНАЯ ВЕРСИЯ С 8 АТАКАМИ И 4 ДВИЖЕНИЯМИ)
 // ============================================================================
 const CONFIG = Object.freeze({
     CORTEX: Object.freeze({
@@ -347,15 +488,49 @@ const CONFIG = Object.freeze({
         M_WORK: 48, M_PERM: 48, M_PRED: 48,
         C_STATE_OFFSET: 224,
         C_PRED_OFFSET: 192,
-        C_ATTENTION_OFFSET: 0
+        C_STRATEGY_OFFSET: 0,
+        C_ATTENTION_OFFSET: 64
+    }),
+    STRATEGY: Object.freeze({
+        DIM: 6,
+        AGGRESSION: 0,
+        DEFENSE:    1,
+        MOBILITY:   2,
+        PATIENCE:   3,
+        RANGE:      4,
+        RISK:       5,
+        LABELS: ['AGG', 'DEF', 'MOB', 'PAT', 'RNG', 'RSK'],
+        COLORS: ['#ff4444', '#44ff44', '#4444ff', '#ffff44', '#ff44ff', '#44ffff']
     }),
     OUTPUT: Object.freeze({
-        MOVE_LEFT: 0, MOVE_RIGHT: 1, JUMP: 2, CROUCH: 3,
-        PUNCH_LIGHT: 4, PUNCH_HEAVY: 5, KICK_LIGHT: 6, KICK_HEAVY: 7,
-        BLOCK: 8, GRAB: 9, SPECIAL: 10,
-        AGGRESSION: 11, CONFIDENCE: 12, FOCUS: 13, FEINT: 14, RETREAT: 15
+        // ДВИЖЕНИЕ (4 направления - АНАЛОГОВЫЕ)
+        MOVE_LEFT: 0,      // Отрицательная ось X
+        MOVE_RIGHT: 1,     // Положительная ось X  
+        MOVE_UP: 2,        // Отрицательная ось Y (прыжок/вверх)
+        MOVE_DOWN: 3,      // Положительная ось Y (присед/вниз)
+        
+        // АТАКИ (8 ударов)
+        PUNCH_LIGHT_STAND: 4,    // Легкий удар рукой стоя
+        PUNCH_HEAVY_STAND: 5,    // Тяжелый удар рукой стоя
+        KICK_LIGHT_STAND: 6,     // Легкий удар ногой стоя
+        KICK_HEAVY_STAND: 7,     // Тяжелый удар ногой стоя
+        PUNCH_LIGHT_CROUCH: 8,   // Легкий удар рукой сидя
+        PUNCH_HEAVY_CROUCH: 9,   // Тяжелый удар рукой сидя
+        KICK_LIGHT_CROUCH: 10,   // Легкий удар ногой сидя
+        KICK_HEAVY_CROUCH: 11,   // Тяжелый удар ногой сидя
+        
+        // ОСОБЫЕ
+        BLOCK: 12,         // Блок
+        GRAB: 13,          // Захват
+        SPECIAL: 14,       // Спецприем
+        RESERVED_15: 15    // Резерв
     }),
-    MODES: ['AGGRESSIVE', 'DEFENSIVE', 'MOBILE', 'COUNTER', 'RETREAT'],
+    OUTPUT_LABELS: [
+        '←', '→', '↑', '↓',              // 0-3: Движение
+        'LP⭡', 'HP⭡', 'LK⭡', 'HK⭡',     // 4-7: Атаки стоя
+        'LP⭣', 'HP⭣', 'LK⭣', 'HK⭣',     // 8-11: Атаки сидя
+        'BLK', 'GRB', 'SPL', 'R15'        // 12-15: Особые
+    ],
     WEAPONS: Object.freeze({
         hammer:  { name:'Hammer',  icon:'🔨', damage:1.0, speed:1.0, range:45,  type:'melee',  knockback:8.0,  stunTime:5,  arcAngle: Math.PI * 0.9 },
         sword:   { name:'Sword',   icon:'⚔️',  damage:1.4, speed:0.7, range:50,  type:'melee',  knockback:12.0, stunTime:8,  arcAngle: Math.PI * 1.2 },
@@ -368,18 +543,28 @@ const CONFIG = Object.freeze({
         GRAVITY: 0.8, GROUND_Y: 500, MOVE_SPEED: 6, JUMP_FORCE: -18,
         FRICTION: 0.85, AIR_RESISTANCE: 0.95,
         HITSTUN_BASE: 15, BLOCKSTUN_BASE: 8, KNOCKBACK_BASE: 8,
-        MAX_VELOCITY: 25, FRICTION_GROUND: 0.92
+        MAX_VELOCITY: 25, FRICTION_GROUND: 0.92,
+        MAX_VERTICAL_SPEED: 12,        // Макс. скорость вертикального перемещения
+        CROUCH_SPEED: 3                 // Скорость приседания/вставания
     }),
     COMBAT: Object.freeze({
-        PUNCH_LIGHT: { damage: 8,  startup: 4,  active: 3, recovery: 8,  range: 70,  stun: 10, cost: 5  },
-        PUNCH_HEAVY: { damage: 15, startup: 8,  active: 4, recovery: 15, range: 75,  stun: 18, cost: 12 },
-        KICK_LIGHT:  { damage: 10, startup: 5,  active: 4, recovery: 10, range: 80,  stun: 12, cost: 8  },
-        KICK_HEAVY:  { damage: 20, startup: 12, active: 5, recovery: 20, range: 90,  stun: 22, cost: 18 },
-        SPECIAL:     { damage: 30, startup: 15, active: 6, recovery: 25, range: 100, stun: 30, cost: 35 },
-        GRAB:        { damage: 25, startup: 6,  active: 10,recovery: 20, range: 50,  stun: 25, cost: 15, unblockable: true },
-        BLOCK: { damageReduction: 0.2, chipDamage: 0.1, staminaCost: 0.5 }
+        // АТАКИ СТОЯ
+        PUNCH_LIGHT_STAND: { damage: 8,  startup: 4,  active: 3, recovery: 8,  range: 70,  stun: 10, cost: 5  },
+        PUNCH_HEAVY_STAND: { damage: 15, startup: 8,  active: 4, recovery: 15, range: 75,  stun: 18, cost: 12 },
+        KICK_LIGHT_STAND:  { damage: 10, startup: 5,  active: 4, recovery: 10, range: 80,  stun: 12, cost: 8  },
+        KICK_HEAVY_STAND:  { damage: 20, startup: 12, active: 5, recovery: 20, range: 90,  stun: 22, cost: 18 },
+        
+        // АТАКИ СИДЯ (меньше дальность, другой угол)
+        PUNCH_LIGHT_CROUCH: { damage: 6,  startup: 3,  active: 3, recovery: 7,  range: 50,  stun: 8,  cost: 4  },
+        PUNCH_HEAVY_CROUCH: { damage: 12, startup: 7,  active: 4, recovery: 13, range: 55,  stun: 15, cost: 10 },
+        KICK_LIGHT_CROUCH:  { damage: 8,  startup: 4,  active: 3, recovery: 8,  range: 60,  stun: 10, cost: 6  },
+        KICK_HEAVY_CROUCH:  { damage: 16, startup: 10, active: 5, recovery: 18, range: 65,  stun: 18, cost: 15 },
+        
+        SPECIAL: { damage: 30, startup: 15, active: 6, recovery: 25, range: 100, stun: 30, cost: 35 },
+        GRAB:    { damage: 25, startup: 6,  active: 10, recovery: 20, range: 50,  stun: 25, cost: 15, unblockable: true },
+        BLOCK:   { damageReduction: 0.2, chipDamage: 0.1, staminaCost: 0.5 }
     }),
-    LEARNING: { lr: 0.015, gamma: 0.99, lambda: 0.95, hebbianRate: 0.002, temperature: 0.15 },
+    LEARNING: { lr: 0.015, gamma: 0.99, lambda: 0.95, hebbianRate: 0.002, temperature: 0.15, gradClip: 1.0 },
     TACTICAL: Object.freeze({
         DAMAGE_FRONT: 0.6, DAMAGE_FLANK: 1.0, DAMAGE_BACK: 1.8,
         FLANK_BONUS: 0.05, EXPOSURE_PENALTY: 0.08,
@@ -397,12 +582,20 @@ const CONFIG = Object.freeze({
         BOUNDARY_LEFT: 50, BOUNDARY_RIGHT: 950,
         WALL_COUNT: 8, WALL_RADIUS: 14, WALL_MIN_DIST: 100
     }),
-    seed: 'FIGHTER_V622_' + Date.now(),
-    version: '6.2.2-CORTEX2-v2.3-WORKING'
+    AI: Object.freeze({
+        DECISION_RATE: 10,
+        ATTACK_COOLDOWN: 20,
+        ACTION_HOLD_TIME: 6,
+        DEADZONE: 0.2,                  // Мертвая зона для аналогового ввода
+        ACTIVE_THRESHOLD: 0.2            // Порог зажигания кнопок (было 0.5)
+    }),
+    PERF: { TARGET_FPS: 60, TARGET_OPS: 1000000, LOG_INTERVAL: 60 },
+    seed: 'FIGHTER_V623_PRO_A_' + Date.now(),
+    version: '6.2.3-CORTEX2-v2.4-6D-STRATEGY-FIXED'
 });
 
 // ============================================================================
-// SECTION 2 — deriveArchSizes (ЕДИНСТВЕННЫЙ ИСТОЧНИК РАЗМЕРОВ)
+// SECTION 2 — deriveArchSizes
 // ============================================================================
 function deriveArchSizes(DIM) {
     return Object.freeze({
@@ -414,6 +607,7 @@ function deriveArchSizes(DIM) {
         C_INPUT:      DIM.DIM_P + DIM.DIM_A + DIM.DIM_M + DIM.DIM_S + DIM.DIM_D + 1,
         S_INPUT:      DIM.DIM_P + DIM.M_PERM + 32 + DIM.DIM_D,
         D_INPUT:      DIM.DIM_C + DIM.DIM_S + DIM.M_PRED,
+        C_STRATEGY_OFFSET: 0,
         C_PRED_OFFSET: 192,
         C_STATE_OFFSET: 224,
         NUM_GATES: 48,
@@ -422,35 +616,31 @@ function deriveArchSizes(DIM) {
 }
 
 // ============================================================================
-// SECTION 3 — UTILS (БЕЗОПАСНАЯ МАТЕМАТИКА)
+// SECTION 3 — UTILS
 // ============================================================================
 const Utils = Object.freeze({
     clamp: (v, min, max) => {
         const val = typeof v === 'number' && !isNaN(v) && isFinite(v) ? v : min;
         return Math.max(min, Math.min(max, val));
     },
-    
     lerp: (a, b, t) => {
         const aa = Utils.safeNumber(a, 0);
         const bb = Utils.safeNumber(b, 0);
         const tt = Utils.clamp(Utils.safeNumber(t, 0), 0, 1);
         return aa + (bb - aa) * tt;
     },
-    
     dist: (a, b) => {
         if (!a || !b) return 0;
         const dx = Utils.safeNumber(a.x, 0) - Utils.safeNumber(b.x, 0);
         const dy = Utils.safeNumber(a.y, 0) - Utils.safeNumber(b.y, 0);
         return Math.hypot(dx, dy);
     },
-    
     normalize: (x, y) => {
         const xx = Utils.safeNumber(x, 0);
         const yy = Utils.safeNumber(y, 0);
         const l = Math.hypot(xx, yy);
         return l > 1e-10 ? {x: xx/l, y: yy/l} : {x:0, y:0};
     },
-    
     tanh: (x) => {
         const xx = Utils.safeNumber(x, 0);
         if (xx > 20) return 1;
@@ -458,35 +648,29 @@ const Utils = Object.freeze({
         const e = Math.exp(2 * xx);
         return (e - 1) / (e + 1);
     },
-    
     sigmoid: (x) => {
         const xx = Utils.safeNumber(x, 0);
         if (xx > 20) return 1;
         if (xx < -20) return 0;
         return 1 / (1 + Math.exp(-xx));
     },
-    
     leakyRelu: (x, a=0.01) => {
         const xx = Utils.safeNumber(x, 0);
         return xx > 0 ? xx : a * xx;
     },
-    
     safeNumber: (v, fb=0) => {
         if (typeof v !== 'number') return fb;
         if (isNaN(v) || !isFinite(v)) return fb;
         return v;
     },
-    
     normalizeAngle: (a) => {
         let aa = Utils.safeNumber(a, 0);
         while (aa > Math.PI) aa -= Math.PI * 2;
         while (aa < -Math.PI) aa += Math.PI * 2;
         return aa;
     },
-    
     rand: (min, max) => Math.random() * (max - min) + min,
     randInt: (min, max) => Math.floor(Math.random() * (max - min + 1)) + min,
-    
     argmax: (arr) => {
         if (!arr || !arr.length) return -1;
         let mi = 0;
@@ -495,7 +679,6 @@ const Utils = Object.freeze({
         }
         return mi;
     },
-    
     softmax: (arr, temp=1) => {
         if (!arr || arr.length === 0) return [];
         const a = Array.from(arr).map(v => Utils.safeNumber(v, 0));
@@ -504,7 +687,6 @@ const Utils = Object.freeze({
         const sum = exps.reduce((s, x) => s + x, 0) || 1e-10;
         return exps.map(e => e / sum);
     },
-
     tdError: (reward, value, nextValue, gamma=0.99) => {
         const r = Utils.safeNumber(reward, 0);
         const v = Utils.safeNumber(value, 0);
@@ -512,7 +694,6 @@ const Utils = Object.freeze({
         const g = Utils.safeNumber(gamma, 0.99);
         return r + g * nv - v;
     },
-
     deepClone: (obj) => {
         if (obj === null || typeof obj !== 'object') return obj;
         if (obj instanceof Float32Array) return new Float32Array(obj);
@@ -521,7 +702,6 @@ const Utils = Object.freeze({
         for (const k of Object.keys(obj)) c[k] = Utils.deepClone(obj[k]);
         return c;
     },
-
     hashSeed: (seed, i, j) => {
         const s = String(seed || 'default');
         let h = s.split('').reduce((a, c, idx) => 
@@ -530,7 +710,6 @@ const Utils = Object.freeze({
         h = (h * 2654435761) >>> 0;
         return h / 4294967296;
     },
-
     matrixMultiply: (vec, mat, activation='tanh') => {
         if (!vec || !vec.length || !mat || !mat.length || !mat[0] || !mat[0].length) {
             return new Float32Array(0);
@@ -549,7 +728,6 @@ const Utils = Object.freeze({
         }
         return out;
     },
-
     linearMultiply: (vec, mat) => {
         if (!vec || !vec.length || !mat || !mat.length || !mat[0] || !mat[0].length) {
             return new Float32Array(0);
@@ -562,7 +740,6 @@ const Utils = Object.freeze({
         }
         return out;
     },
-
     projectToCortexSensors: (rawInputs, config) => {
         const out = new Float32Array(config.DIM_SENSOR);
         const src = rawInputs || [];
@@ -570,13 +747,12 @@ const Utils = Object.freeze({
         for (let i = 0; i < len; i++) {
             out[i] = Utils.clamp(Utils.safeNumber(src[i], 0), -1, 1);
         }
-        const seed = config?.seed || CONFIG.seed;
+        const seed = config?.seed || 'FIGHTER_DEFAULT_SEED';
         for (let i = len; i < config.DIM_SENSOR; i++) {
             out[i] = (Utils.hashSeed(seed, i, 0xDEADBEEF) * 2 - 1) * 0.05;
         }
         return out;
     },
-
     normalizeRecurrentWeights: (W, targetRho = 0.95) => {
         if (!W || !W.length || !W[0] || !W[0].length) return W;
         let v = new Float32Array(W[0].length).fill(1);
@@ -610,7 +786,7 @@ const Utils = Object.freeze({
 });
 
 // ============================================================================
-// SECTION 4 — SeededRNG (ДЕТЕРМИНИРОВАННЫЙ)
+// SECTION 4 — SeededRNG
 // ============================================================================
 class SeededRNG {
     constructor(seed) {
@@ -620,7 +796,6 @@ class SeededRNG {
         this._state = this._baseSeed;
         this._callCount = 0;
     }
-    
     next() {
         let x = this._state;
         x ^= x << 13;
@@ -630,13 +805,11 @@ class SeededRNG {
         this._callCount++;
         return this._state / 4294967296;
     }
-    
     gaussian(mean = 0, std = 1) {
         const u1 = Math.max(this.next(), 1e-10);
         const u2 = this.next();
         return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2) * std + mean;
     }
-    
     deriveWeights(rows, cols, scale) {
         const mat = [];
         for (let i = 0; i < rows; i++) {
@@ -648,7 +821,6 @@ class SeededRNG {
         }
         return mat;
     }
-    
     deriveVector(length, scale) {
         const v = new Float32Array(length);
         for (let i = 0; i < length; i++) {
@@ -656,23 +828,22 @@ class SeededRNG {
         }
         return v;
     }
-    
     reset() {
         this._state = this._baseSeed;
     }
-    
     getSeed() {
         return String(this._baseSeed);
     }
 }
 
 // ============================================================================
-// SECTION 5 — Cortex2Brain v2.3 (ПОЛНОСТЬЮ ИСПРАВЛЕНО)
+// SECTION 5 — Cortex2Brain v2.4
 // ============================================================================
 class Cortex2Brain {
     constructor(config = {}) {
         this.DIM = CONFIG.CORTEX;
         this.ARCH = deriveArchSizes(this.DIM);
+        this.STRATEGY = CONFIG.STRATEGY;
 
         this.seed = config.seed ?? CONFIG.seed;
         this._rng = new SeededRNG(this.seed);
@@ -680,6 +851,7 @@ class Cortex2Brain {
         this.gamma = config.gamma ?? CONFIG.LEARNING.gamma;
         this.lambda = config.lambda ?? CONFIG.LEARNING.lambda;
         this.hebbianRate = config.hebbianRate ?? CONFIG.LEARNING.hebbianRate;
+        this.gradClip = config.gradClip ?? CONFIG.LEARNING.gradClip;
 
         this.W_P = this._rng.deriveWeights(this.ARCH.P_INPUT, this.DIM.DIM_P, 0.3);
         this.b_P = this._rng.deriveVector(this.DIM.DIM_P, 0.1);
@@ -716,6 +888,8 @@ class Cortex2Brain {
         this.W_V = this._rng.deriveVector(this.DIM.DIM_C, 0.1);
         this.b_V = 0;
 
+        this.W_strategy = this._rng.deriveWeights(this.STRATEGY.DIM, this.DIM.DIM_D, 0.3);
+
         this.permGate = [];
         for (let g = 0; g < this.ARCH.NUM_GATES; g++) {
             const gate = new Float32Array(this.ARCH.GATE_DIM);
@@ -723,15 +897,6 @@ class Cortex2Brain {
                 gate[i] = (this._rng.next() * 2 - 1) * 0.1;
             }
             this.permGate.push(gate);
-        }
-
-        this.W_mode = [];
-        for (let j = 0; j < CONFIG.MODES.length; j++) {
-            const row = new Float32Array(32);
-            for (let i = 0; i < 32; i++) {
-                row[i] = (this._rng.next() * 2 - 1) * 0.1;
-            }
-            this.W_mode.push(row);
         }
 
         this.P = new Float32Array(this.DIM.DIM_P);
@@ -751,9 +916,11 @@ class Cortex2Brain {
         this.trace_C = new Float32Array(this.ARCH.C_INPUT * this.DIM.DIM_C);
         this.trace_D = new Float32Array(this.ARCH.D_INPUT * this.DIM.DIM_D);
         this.trace_pred = new Float32Array(this.DIM.M_PRED * this.DIM.DIM_SENSOR);
+        this.trace_strategy = new Float32Array(this.STRATEGY.DIM * this.DIM.DIM_D);
 
         this._lastP_input = new Float32Array(this.ARCH.P_INPUT);
         this._lastC_input = new Float32Array(this.ARCH.C_INPUT);
+        this._lastStrategy = new Float32Array(this.STRATEGY.DIM);
 
         this.predictionErrors = new Float32Array(this.DIM.M_PRED);
         this.consolidationBuffer = [];
@@ -763,7 +930,8 @@ class Cortex2Brain {
             tdErrorHistory: [], predictionErrorHistory: [],
             totalSteps: 0, avgReward: 0,
             kills: 0, deaths: 0, reflexTriggers: 0,
-            consolidationEvents: 0, gradientClips: 0
+            consolidationEvents: 0, gradientClips: 0,
+            forwardTime: 0, learnTime: 0, neuralOps: 0
         };
 
         this._lastInputs = null;
@@ -806,7 +974,9 @@ class Cortex2Brain {
         this.predictedPos60 = { x: 0, y: 0 };
         this.predictionError60 = 0;
         this.predictedTrajectory = { angle: 0, confidence: 0 };
-        this.mode = 'MOBILE';
+
+        this.strategy6D = new Float32Array(this.STRATEGY.DIM);
+        this.strategy6D_prev = new Float32Array(this.STRATEGY.DIM);
     }
 
     _buildP(x_t, C_prev, S_prev, M_perm_prev) {
@@ -923,6 +1093,9 @@ class Cortex2Brain {
     }
 
     forward(rawInputs, reward = 0, combatEvents = null) {
+        const t0 = performance.now();
+        let ops = 0;
+        
         try {
             reward = Utils.safeNumber(reward, 0);
             
@@ -941,11 +1114,14 @@ class Cortex2Brain {
 
             const P_input = this._buildP(x_t, this.C_prev, this.S_prev,
                                          this.M_prev.slice(this.DIM.M_PERM_START, this.DIM.M_PERM_END));
+            ops += P_input.length * this.DIM.DIM_P;
+
             const A_inputs = [];
             for (let h = 0; h < this.DIM.NUM_HEADS; h++) {
                 A_inputs.push(this._buildA(this.P_prev,
                     this.M_prev.slice(this.DIM.M_WORK_START, this.DIM.M_WORK_END),
                     this.C_prev, this.D_prev, h));
+                ops += A_inputs[h].length * this.DIM.HEAD_DIM;
             }
             const M_work_input = this._buildMWork(this.P_prev, this.A_prev, this.C_prev);
             const M_perm_input = this._buildMPerm(this.C_prev,
@@ -963,6 +1139,7 @@ class Cortex2Brain {
             const P_new = new Float32Array(this.DIM.DIM_P);
             this._mmAct(P_input, this.W_P, P_new);
             for (let i = 0; i < this.DIM.DIM_P; i++) P_new[i] = Utils.leakyRelu(P_new[i] + this.b_P[i]);
+            ops += this.DIM.DIM_P * 2;
 
             const gateProbs = Utils.softmax(Array.from(this.W_gate), 1.0);
             const A_new = new Float32Array(this.DIM.DIM_A);
@@ -973,19 +1150,23 @@ class Cortex2Brain {
                 for (let i = 0; i < this.DIM.HEAD_DIM; i++) {
                     A_new[h * this.DIM.HEAD_DIM + i] = Utils.leakyRelu(headOut[i] + this.b_A[h][i]) * gw;
                 }
+                ops += this.DIM.HEAD_DIM * 3;
             }
 
             const M_work_new = new Float32Array(this.DIM.M_WORK);
             this._mmAct(M_work_input, this.W_M_work, M_work_new);
             for (let i = 0; i < this.DIM.M_WORK; i++) M_work_new[i] = Utils.leakyRelu(M_work_new[i] + this.b_M_work[i]);
+            ops += this.DIM.M_WORK * 2;
 
             const M_perm_new = new Float32Array(this.DIM.M_PERM);
             this._mmAct(M_perm_input, this.W_M_perm, M_perm_new);
             for (let i = 0; i < this.DIM.M_PERM; i++) M_perm_new[i] = Utils.leakyRelu(M_perm_new[i] + this.b_M_perm[i]);
+            ops += this.DIM.M_PERM * 2;
 
             const M_pred_new = new Float32Array(this.DIM.M_PRED);
             this._mmAct(M_pred_input, this.W_M_pred, M_pred_new);
             for (let i = 0; i < this.DIM.M_PRED; i++) M_pred_new[i] = Utils.leakyRelu(M_pred_new[i] + this.b_M_pred[i]);
+            ops += this.DIM.M_PRED * 2;
 
             const M_new = new Float32Array(this.DIM.DIM_M);
             for (let i = 0; i < this.DIM.M_WORK; i++) M_new[i] = M_work_new[i];
@@ -995,14 +1176,17 @@ class Cortex2Brain {
             const C_new = new Float32Array(this.DIM.DIM_C);
             this._mmAct(C_input, this.W_C, C_new);
             for (let i = 0; i < this.DIM.DIM_C; i++) C_new[i] = Utils.leakyRelu(C_new[i] + this.b_C[i]);
+            ops += this.DIM.DIM_C * 2;
 
             const S_new = new Float32Array(this.DIM.DIM_S);
             this._mmAct(S_input, this.W_S, S_new);
             for (let i = 0; i < this.DIM.DIM_S; i++) S_new[i] = Utils.leakyRelu(S_new[i] + this.b_S[i]);
+            ops += this.DIM.DIM_S * 2;
 
             const D_new = new Float32Array(this.DIM.DIM_D);
             this._mmAct(D_input, this.W_D, D_new);
             for (let i = 0; i < this.DIM.DIM_D; i++) D_new[i] = Utils.tanh(D_new[i] + this.b_D[i]);
+            ops += this.DIM.DIM_D * 2;
 
             this.P_prev.set(this.P);
             this.A_prev.set(this.A);
@@ -1018,30 +1202,38 @@ class Cortex2Brain {
             this.S.set(S_new);
             this.D.set(D_new);
 
+            this.strategy6D_prev.set(this.strategy6D);
+            for (let i = 0; i < this.STRATEGY.DIM; i++) {
+                this.strategy6D[i] = Utils.sigmoid(this.C[this.ARCH.C_STRATEGY_OFFSET + i]);
+            }
+
+            const strategyMod = Utils.linearMultiply(this.strategy6D, this.W_strategy);
+            for (let i = 0; i < this.DIM.DIM_D; i++) {
+                this.D[i] = Utils.leakyRelu(this.D[i] + strategyMod[i]);
+            }
+
+            for (let i = 0; i < this.STRATEGY.DIM; i++) {
+                for (let j = 0; j < this.DIM.DIM_D; j++) {
+                    const idx = i * this.DIM.DIM_D + j;
+                    this.trace_strategy[idx] = Utils.clamp(
+                        (this.gamma * this.lambda) * Utils.safeNumber(this.trace_strategy[idx], 0) +
+                        Utils.safeNumber(this.strategy6D_prev[i], 0) * Utils.safeNumber(this.D[j], 0), -10, 10);
+                }
+            }
+
             this._updatePrediction(M_pred_new, x_t);
             this._updateEmotions(r_t, x_t, combatEvents);
-            this._checkReflexPath(x_t, S_new, D_new);
-            this._resolveCommandConflicts(D_new, this.emotions);
 
             this._attentionHeadNorms = this._computeAttentionHeadNorms();
-
-            const modeScores = new Float32Array(CONFIG.MODES.length);
-            for (let j = 0; j < CONFIG.MODES.length; j++) {
-                let s = 0;
-                for (let i = 0; i < 32; i++) {
-                    s += Utils.safeNumber(this.C[i], 0) * Utils.safeNumber(this.W_mode[j]?.[i], 0);
-                }
-                modeScores[j] = Utils.sigmoid(s);
-            }
-            let best = 0;
-            for (let j = 1; j < modeScores.length; j++) {
-                if (modeScores[j] > modeScores[best]) best = j;
-            }
-            this.mode = CONFIG.MODES[best];
             this._reflexThisFrame = Array.from(this.S).some(v => Utils.safeNumber(v, 0) > 0.9);
+
+            const t1 = performance.now();
+            this._stats.forwardTime = t1 - t0;
+            this._stats.neuralOps += ops;
 
             return {
                 output: Array.from(this.D),
+                strategy6D: Array.from(this.strategy6D),
                 cortex: Array.from(this.C),
                 predictionError: this._computeAvgPredError(),
                 predictionError60: this.predictionError60,
@@ -1050,7 +1242,8 @@ class Cortex2Brain {
                 reflexTriggered: this._reflexThisFrame,
                 emotions: { ...this.emotions },
                 emotionalState: this.emotionalState.current ? { ...this.emotionalState.current } : null,
-                mode: this.mode
+                ops: ops,
+                forwardTime: this._stats.forwardTime
             };
         } catch (err) {
             console.error('Cortex2Brain.forward error:', err);
@@ -1058,7 +1251,8 @@ class Cortex2Brain {
         }
     }
 
-    tdLearn(p_input, outputs, reward, value, nextValue) {
+    tdLearn(reward, value, nextValue, finalAction = null) {
+        const t0 = performance.now();
         reward = Utils.safeNumber(reward, 0);
         value = Utils.safeNumber(value, 0);
         nextValue = Utils.safeNumber(nextValue, 0);
@@ -1078,6 +1272,21 @@ class Cortex2Brain {
         this._updateEligibilityTraces(tdErr);
         this._applyTDError(tdErr);
 
+        if (finalAction && this.lr > 0) {
+            const alpha = this.lr * 0.5;
+            for (let i = 0; i < this.STRATEGY.DIM; i++) {
+                for (let j = 0; j < this.DIM.DIM_D; j++) {
+                    const idx = i * this.DIM.DIM_D + j;
+                    const actionSignal = Utils.safeNumber(finalAction[j], 0);
+                    const delta = Utils.clamp(alpha * tdErr * Utils.safeNumber(this.strategy6D_prev[i], 0) * actionSignal, -this.gradClip, this.gradClip);
+                    this.W_strategy[i][j] = Utils.clamp(Utils.safeNumber(this.W_strategy[i][j], 0) + delta, -2, 2);
+                    this.trace_strategy[idx] = Utils.clamp(
+                        (this.gamma * this.lambda) * Utils.safeNumber(this.trace_strategy[idx], 0) +
+                        Utils.safeNumber(this.strategy6D_prev[i], 0) * actionSignal, -10, 10);
+                }
+            }
+        }
+
         if (reward > 3) this._consolidateMemories(reward);
         if (reward > 1) {
             const mag = Utils.clamp(Math.abs(reward) / 5.0, 0, 1);
@@ -1090,17 +1299,23 @@ class Cortex2Brain {
         this._stats.totalSteps++;
         this._stats.avgReward = Utils.lerp(this._stats.avgReward, reward, 0.01);
 
+        const t1 = performance.now();
+        this._stats.learnTime = t1 - t0;
+
         return {
             tdError: tdErr,
             avgTDError: this._stats.tdErrorHistory.reduce((a, b) => a + b, 0) / Math.max(1, this._stats.tdErrorHistory.length),
-            avgPredictionError: this._computeAvgPredError()
+            avgPredictionError: this._computeAvgPredError(),
+            learnTime: this._stats.learnTime
         };
     }
 
     _estimateValue() {
         let s = Utils.safeNumber(this.b_V, 0);
         for (let i = 0; i < this.DIM.DIM_C; i++) {
-            s += Utils.safeNumber(this.C[i], 0) * Utils.safeNumber(this.W_V[i], 0);
+            const w = Utils.safeNumber(this.W_V[i], 0);
+            const c = Utils.safeNumber(this.C[i], 0);
+            s += w * c;
         }
         return Utils.tanh(s);
     }
@@ -1135,8 +1350,13 @@ class Cortex2Brain {
 
     _applyTDError(tdErr) {
         const alpha = this.lr * Math.sign(tdErr) * 0.1;
-        const MAX_G = 0.3;
-        const subsystems = [{ start: 64, end: 128, lr: 0.01 }, { start: 128, end: 192, lr: 0.03 }];
+        const MAX_G = this.gradClip;
+        const quarter = Math.floor(this.DIM.DIM_C / 4);
+        const half = Math.floor(this.DIM.DIM_C / 2);
+        const subsystems = [
+            { start: quarter, end: half, lr: 0.01 },
+            { start: half, end: Math.floor(this.DIM.DIM_C * 0.75), lr: 0.03 }
+        ];
         for (const sub of subsystems) {
             const sa = alpha * sub.lr;
             for (let i = sub.start; i < sub.end; i++) {
@@ -1148,6 +1368,7 @@ class Cortex2Brain {
                 }
             }
         }
+        if (Math.abs(tdErr) > MAX_G) this._stats.gradientClips++;
     }
 
     _hebbianUpdate(pre, post, correlation, label) {
@@ -1160,8 +1381,9 @@ class Cortex2Brain {
                 if (label === 'P→A' && i < this.DIM.DIM_A) {
                     const hi = Math.floor(i / this.DIM.HEAD_DIM);
                     const li = i % this.DIM.HEAD_DIM;
-                    if (hi < this.DIM.NUM_HEADS && j < this.W_A[hi].length &&
-                        li < this.W_A[hi][j].length) {
+                    if (hi < this.DIM.NUM_HEADS && 
+                        j < this.W_A[hi]?.length && 
+                        this.W_A[hi][j]?.length > li) {
                         this.W_A[hi][j][li] = Utils.clamp(Utils.safeNumber(this.W_A[hi][j][li], 0) + delta, -2, 2);
                     }
                 } else if (label === 'A→C' && i < this.DIM.DIM_C) {
@@ -1477,84 +1699,26 @@ class Cortex2Brain {
         }
     }
 
-    _checkReflexPath(x_t, S_new, D_new) {
-        const em = this.emotionInfluence;
-        if (Utils.safeNumber(S_new[8], 0) > 0.6) {
-            this._stats.reflexTriggers++;
-            D_new[6] = Utils.lerp(Utils.safeNumber(D_new[6], 0), Math.min(1, Utils.safeNumber(D_new[6], 0) + 0.4), em);
-            D_new[4] = Utils.lerp(Utils.safeNumber(D_new[4], 0), Math.min(1, Utils.safeNumber(D_new[4], 0) + 0.3), em);
-        }
-        if (Utils.safeNumber(S_new[7], 0) > 0.6) {
-            this._stats.reflexTriggers++;
-            D_new[6] = Utils.lerp(Utils.safeNumber(D_new[6], 0), Math.min(1, Utils.safeNumber(D_new[6], 0) + 0.35), em);
-            D_new[4] = Utils.lerp(Utils.safeNumber(D_new[4], 0), Math.min(1, Utils.safeNumber(D_new[4], 0) + 0.3), em);
-        }
-        if (Utils.safeNumber(S_new[4], 0) > 0.7) {
-            this._stats.reflexTriggers++;
-            D_new[10] = Utils.lerp(Utils.safeNumber(D_new[10], 0), Math.min(1, Utils.safeNumber(D_new[10], 0) + 0.35), em);
-            D_new[4] = Utils.lerp(Utils.safeNumber(D_new[4], 0), Math.max(0, Utils.safeNumber(D_new[4], 0) - 0.2), em);
-        }
-        if (Utils.safeNumber(S_new[1], 0) > 0.7) {
-            this._stats.reflexTriggers++;
-            D_new[6] = Utils.lerp(Utils.safeNumber(D_new[6], 0), Math.min(1, Utils.safeNumber(D_new[6], 0) + 0.3), em);
-            D_new[4] = Utils.lerp(Utils.safeNumber(D_new[4], 0), Math.min(1, Utils.safeNumber(D_new[4], 0) + 0.25), em);
-        }
-        if (Utils.safeNumber(S_new[2], 0) > 0.6) {
-            D_new[11] = Utils.lerp(Utils.safeNumber(D_new[11], 0), Math.min(1, Utils.safeNumber(D_new[11], 0) + 0.25), em);
-        }
-    }
-
-    _resolveCommandConflicts(D_new, emotions) {
-        const inf = this.emotionInfluence;
-        if (Utils.safeNumber(emotions.vengeance, 0) > 0.5 || Utils.safeNumber(emotions.desperation, 0) > 0.5) {
-            D_new[4] = Utils.lerp(Utils.safeNumber(D_new[4], 0), Math.min(1, Utils.safeNumber(D_new[4], 0) + 0.3), inf);
-        }
-        if (Utils.safeNumber(emotions.fear, 0) > 0.7) {
-            D_new[6] = Utils.lerp(Utils.safeNumber(D_new[6], 0), Math.min(1, Utils.safeNumber(D_new[6], 0) + 0.5), inf);
-            D_new[4] = Math.max(0, Utils.safeNumber(D_new[4], 0) - 0.2);
-        }
-        if (Utils.safeNumber(emotions.aggression, 0) > 0.6) {
-            D_new[6] = Utils.lerp(Utils.safeNumber(D_new[6], 0), Math.min(1, Utils.safeNumber(D_new[6], 0) + 0.3), inf);
-        }
-    }
-
     selectAction(temp = 0.15) {
         const D = this.D;
         const OUT = CONFIG.OUTPUT;
         const actions = {
             left:   Utils.safeNumber(D[OUT.MOVE_LEFT], 0),
             right:  Utils.safeNumber(D[OUT.MOVE_RIGHT], 0),
-            jump:   Utils.safeNumber(D[OUT.JUMP], 0),
-            crouch: Utils.safeNumber(D[OUT.CROUCH], 0),
-            punchL: Utils.safeNumber(D[OUT.PUNCH_LIGHT], 0),
-            punchH: Utils.safeNumber(D[OUT.PUNCH_HEAVY], 0),
-            kickL:  Utils.safeNumber(D[OUT.KICK_LIGHT], 0),
-            kickH:  Utils.safeNumber(D[OUT.KICK_HEAVY], 0),
+            up: Utils.safeNumber(D[OUT.MOVE_UP], 0),
+            down: Utils.safeNumber(D[OUT.MOVE_DOWN], 0),
+            punchLStand: Utils.safeNumber(D[OUT.PUNCH_LIGHT_STAND], 0),
+            punchHStand: Utils.safeNumber(D[OUT.PUNCH_HEAVY_STAND], 0),
+            kickLStand:  Utils.safeNumber(D[OUT.KICK_LIGHT_STAND], 0),
+            kickHStand:  Utils.safeNumber(D[OUT.KICK_HEAVY_STAND], 0),
+            punchLCrouch: Utils.safeNumber(D[OUT.PUNCH_LIGHT_CROUCH], 0),
+            punchHCrouch: Utils.safeNumber(D[OUT.PUNCH_HEAVY_CROUCH], 0),
+            kickLCrouch:  Utils.safeNumber(D[OUT.KICK_LIGHT_CROUCH], 0),
+            kickHCrouch:  Utils.safeNumber(D[OUT.KICK_HEAVY_CROUCH], 0),
             block:  Utils.safeNumber(D[OUT.BLOCK], 0),
             grab:   Utils.safeNumber(D[OUT.GRAB], 0),
             special: Utils.safeNumber(D[OUT.SPECIAL], 0)
         };
-        const modeMod = {
-            AGGRESSIVE: { punchL: 0.3, punchH: 0.2, kickL: 0.2, kickH: 0.3, block: -0.2 },
-            DEFENSIVE:  { punchL: -0.2, punchH: -0.3, kickL: -0.1, kickH: -0.2, block: 0.4 },
-            MOBILE:     { jump: 0.3, punchL: 0.1, kickL: 0.1 },
-            COUNTER:    { punchL: 0.2, punchH: 0.1, block: 0.3 },
-            RETREAT:    { block: 0.2, jump: 0.2, punchL: -0.3 }
-        };
-        const mod = modeMod[this.mode] || {};
-        for (const k in mod) {
-            if (actions[k] !== undefined) {
-                actions[k] = Utils.clamp(actions[k] + mod[k], -1, 1);
-            }
-        }
-        if (Utils.safeNumber(this.emotions.fear, 0) > 0.6) {
-            actions.block = Utils.clamp(actions.block + 0.3, -1, 1);
-            actions.punchL *= 0.7;
-        }
-        if (Utils.safeNumber(this.emotions.aggression, 0) > 0.6) {
-            actions.punchH = Utils.clamp(actions.punchH + 0.2, -1, 1);
-            actions.kickH = Utils.clamp(actions.kickH + 0.2, -1, 1);
-        }
 
         const entries = Object.entries(actions).filter(e => Math.abs(e[1]) > 0.01);
         if (!entries.length) return { action: 'IDLE', probs: {}, actions };
@@ -1586,7 +1750,8 @@ class Cortex2Brain {
             reflexActive: reflexAct,
             cortexEnergy: cortexEng.toFixed(3),
             emotions: { ...this.emotions },
-            emotionalState: this.emotionalState.current ? { ...this.emotionalState.current } : null
+            emotionalState: this.emotionalState.current ? { ...this.emotionalState.current } : null,
+            strategy6D: Array.from(this.strategy6D)
         };
     }
 
@@ -1603,6 +1768,8 @@ class Cortex2Brain {
         this.C_prev.fill(0);
         this.S_prev.fill(0);
         this.D_prev.fill(0);
+        this.strategy6D.fill(0);
+        this.strategy6D_prev.fill(0);
         this._lastP_input.fill(0);
         this._lastC_input.fill(0);
         this.predictionErrors.fill(0);
@@ -1631,13 +1798,14 @@ class Cortex2Brain {
     toJSON() {
         return {
             type: 'Cortex2Brain',
-            version: '2.3-FIGHTER',
+            version: '2.4-6D-STRATEGY',
             config: {
                 seed: this.seed,
                 lr: this.lr,
                 gamma: this.gamma,
                 lambda: this.lambda,
-                hebbianRate: this.hebbianRate
+                hebbianRate: this.hebbianRate,
+                gradClip: this.gradClip
             },
             weights: {
                 W_P: this.W_P.map(r => Array.from(r)),
@@ -1662,7 +1830,7 @@ class Cortex2Brain {
                 b_pred: Array.from(this.b_pred),
                 W_V: Array.from(this.W_V),
                 b_V: this.b_V,
-                W_mode: this.W_mode.map(r => Array.from(r)),
+                W_strategy: this.W_strategy.map(r => Array.from(r)),
                 permGate: this.permGate.map(g => Array.from(g))
             },
             state: {
@@ -1678,6 +1846,8 @@ class Cortex2Brain {
                 C_prev: Array.from(this.C_prev),
                 S_prev: Array.from(this.S_prev),
                 D_prev: Array.from(this.D_prev),
+                strategy6D: Array.from(this.strategy6D),
+                strategy6D_prev: Array.from(this.strategy6D_prev),
                 predictionErrors: Array.from(this.predictionErrors)
             },
             stats: { ...this._stats },
@@ -1690,8 +1860,7 @@ class Cortex2Brain {
                 killer: this.emotionMemory.killer
             },
             step: this.step,
-            cumulativeReward: this.cumulativeReward,
-            mode: this.mode
+            cumulativeReward: this.cumulativeReward
         };
     }
 
@@ -1720,9 +1889,13 @@ class Cortex2Brain {
             if (w.b_D) brain.b_D = new Float32Array(w.b_D);
             if (w.W_pred) brain.W_pred = w.W_pred.map(r => new Float32Array(r));
             if (w.b_pred) brain.b_pred = new Float32Array(w.b_pred);
-            if (w.W_V) brain.W_V = new Float32Array(w.W_V);
+            if (w.W_V && Array.isArray(w.W_V) && w.W_V.length === brain.DIM.DIM_C) {
+                brain.W_V = new Float32Array(w.W_V);
+            } else {
+                brain.W_V = brain._rng.deriveVector(brain.DIM.DIM_C, 0.1);
+            }
             if (w.b_V !== undefined) brain.b_V = w.b_V;
-            if (w.W_mode) brain.W_mode = w.W_mode.map(r => new Float32Array(r));
+            if (w.W_strategy) brain.W_strategy = w.W_strategy.map(r => new Float32Array(r));
             if (w.permGate) brain.permGate = w.permGate.map(g => new Float32Array(g));
 
             const s = data.state;
@@ -1739,6 +1912,8 @@ class Cortex2Brain {
                 if (s.C_prev) brain.C_prev.set(s.C_prev);
                 if (s.S_prev) brain.S_prev.set(s.S_prev);
                 if (s.D_prev) brain.D_prev.set(s.D_prev);
+                if (s.strategy6D) brain.strategy6D.set(s.strategy6D);
+                if (s.strategy6D_prev) brain.strategy6D_prev.set(s.strategy6D_prev);
                 if (s.predictionErrors) brain.predictionErrors.set(s.predictionErrors);
             }
             if (data.stats) brain._stats = { ...brain._stats, ...data.stats };
@@ -1752,7 +1927,6 @@ class Cortex2Brain {
             }
             if (data.step) brain.step = data.step;
             if (data.cumulativeReward !== undefined) brain.cumulativeReward = data.cumulativeReward;
-            if (data.mode) brain.mode = data.mode;
         } catch (e) {
             console.warn('Cortex2Brain.fromJSON error:', e);
         }
@@ -1769,7 +1943,7 @@ class Cortex2Brain {
 }
 
 // ============================================================================
-// SECTION 6 — Fighter (2D Stickman) — ПОЛНОСТЬЮ ИСПРАВЛЕНО
+// SECTION 6 — Fighter (ПОЛНАЯ ВЕРСИЯ С 8 АТАКАМИ)
 // ============================================================================
 class Fighter {
     constructor(x, y, color, isP1, seed, weaponType = 'sword') {
@@ -1797,7 +1971,7 @@ class Fighter {
         this.blockStun = 0;
 
         this.brain = new Cortex2Brain({ seed: seed + '_' + this.id });
-        this.combo = { count: 0, timer: 0, lastHitId: null };
+        this.combo = { count: 0, timer: 0, lastHitId: null, history: [] };
         this.totalDamage = 0;
         this.wins = 0;
         this.deaths = 0;
@@ -1831,6 +2005,13 @@ class Fighter {
         this.stats = { maxHealth: 100, damage: 3, fireRate: 15, dodgeChance: 0.0 };
         this.alive = true;
         this.trail = [];
+        
+        this.actionCooldown = 0;
+        this.lastDecisionFrame = 0;
+        this.currentActionHold = 0;
+        this.lastChosenAction = 'IDLE';
+        this.lastFinalAction = null;
+        
         this._applyWeaponStats();
     }
 
@@ -1902,11 +2083,10 @@ class Fighter {
             s[44] = Utils.clamp(Utils.safeNumber(this.brain.emotions.aggression, 0), 0, 1);
             s[45] = Utils.clamp(Utils.safeNumber(this.brain.emotions.fear, 0), 0, 1);
             s[46] = Utils.clamp(Utils.safeNumber(this.brain.emotions.confidence, 0), 0, 1);
-            s[47] = Utils.clamp(Utils.safeNumber(CONFIG.MODES.indexOf(this.brain.mode) / (CONFIG.MODES.length - 1), 0), 0, 1);
+            s[47] = 0;
 
-            const ctx = this.brain.C.slice(0, 32);
-            for (let i = 0; i < 16; i++) {
-                s[48 + i] = Utils.clamp(Utils.safeNumber(this._gateSkill(i, ctx), 0), -1, 1);
+            for (let i = 0; i < 6; i++) {
+                s[48 + i] = Utils.clamp(Utils.safeNumber(this.brain.strategy6D[i], 0), 0, 1);
             }
 
             for (let i = 0; i < 64; i++) {
@@ -1922,30 +2102,21 @@ class Fighter {
         }
     }
 
-    _gateSkill(sid, ctx) {
-        if (sid < 0 || sid >= 16) return 0;
-        let s = 0;
-        for (let i = 0; i < 32 && i < ctx.length; i++) {
-            s += Utils.safeNumber(ctx[i], 0) * Utils.safeNumber(this.brain.permGate[sid]?.[i], 0);
+    decide(opp, arenaW, arenaH, currentFrame) {
+        const framesSinceLastDecision = currentFrame - this.lastDecisionFrame;
+        const shouldMakeDecision = framesSinceLastDecision >= (60 / CONFIG.AI.DECISION_RATE);
+        
+        if (!shouldMakeDecision && this.currentActionHold > 0) {
+            this.currentActionHold--;
+            return { 
+                action: this.lastChosenAction, 
+                sensors: this.lastSensors || new Array(64).fill(0),
+                brainResult: null,
+                policy: { action: this.lastChosenAction, probs: {}, actions: {} },
+                finalAction: this.lastFinalAction
+            };
         }
-        return Utils.sigmoid(s);
-    }
-
-    calculateDirectionalDamageMultiplier(attacker) {
-        if (!attacker) return 1;
-        this.facingAngle = this.facing === 1 ? 0 : Math.PI;
-        const toAtk = Math.atan2(
-            Utils.safeNumber(attacker.y - this.y, 0),
-            Utils.safeNumber(attacker.x - this.x, 0)
-        );
-        const diff = Math.abs(Utils.normalizeAngle(toAtk - this.facingAngle));
-        const arc = (Utils.safeNumber(this.weapon.arcAngle, Math.PI)) / 2;
-        if (diff <= arc * 0.5) return CONFIG.TACTICAL.DAMAGE_FRONT;
-        if (diff <= arc) return CONFIG.TACTICAL.DAMAGE_FLANK;
-        return CONFIG.TACTICAL.DAMAGE_BACK;
-    }
-
-    decide(opp, arenaW, arenaH) {
+        
         const sensors = this.getSensors(opp, arenaW, arenaH);
         
         const brainResult = this.brain.forward(
@@ -1960,85 +2131,140 @@ class Fighter {
                 action: 'STUNNED',
                 sensors,
                 brainResult,
-                policy: { action: 'STUNNED', probs: {}, actions: {} }
+                policy: { action: 'STUNNED', probs: {}, actions: {} },
+                finalAction: Array.from(this.brain.D)
             };
         }
 
         const policy = this.brain.selectAction(CONFIG.LEARNING.temperature);
-        return { action: policy.action, sensors, brainResult, policy };
+        
+        this.lastDecisionFrame = currentFrame;
+        this.lastChosenAction = policy.action;
+        this.currentActionHold = CONFIG.AI.ACTION_HOLD_TIME;
+        this.lastFinalAction = Array.from(this.brain.D);
+        
+        return { action: policy.action, sensors, brainResult, policy, finalAction: this.lastFinalAction };
     }
 
+    // ============================================
+    // ИСПРАВЛЕННЫЙ executeAction С 8 АТАКАМИ
+    // ============================================
     executeAction(decision, opp) {
-        const act = decision.action;
-        const OUT = CONFIG.OUTPUT;
-        const D = this.brain.D;
-        const speed = CONFIG.PHYSICS.MOVE_SPEED;
-
-        if ((act === 'left' || Utils.safeNumber(D[OUT.MOVE_LEFT], 0) > 0.5) &&
-            (this.state === 'IDLE' || this.state === 'WALK')) {
-            this.vx = -speed;
-            this.state = 'WALK';
-            this.stateTimer = 10;
-            this.limbs.legL.targetAngle = -0.5;
-            this.limbs.legR.targetAngle = 0.5;
-        } else if ((act === 'right' || Utils.safeNumber(D[OUT.MOVE_RIGHT], 0) > 0.5) &&
-                   (this.state === 'IDLE' || this.state === 'WALK')) {
-            this.vx = speed;
-            this.state = 'WALK';
-            this.stateTimer = 10;
-            this.limbs.legL.targetAngle = 0.5;
-            this.limbs.legR.targetAngle = -0.5;
-        }
-
-        if ((act === 'jump' || Utils.safeNumber(D[OUT.JUMP], 0) > 0.5) &&
-            this.state === 'IDLE' && this.stamina >= 15) {
-            this.vy = CONFIG.PHYSICS.JUMP_FORCE;
-            this.stamina -= 15;
-            this.state = 'JUMP';
-            this.limbs.legL.targetAngle = -0.3;
-            this.limbs.legR.targetAngle = -0.3;
-        }
-
-        if (act === 'crouch' || Utils.safeNumber(D[OUT.CROUCH], 0) > 0.5) {
-            if (this.state === 'IDLE' || this.state === 'WALK') {
-                this.state = 'CROUCH';
-                this.hurtBox.h = 40;
-                this.hurtBox.y = -30;
-            }
-        } else {
-            this.hurtBox.h = 70;
-            this.hurtBox.y = -60;
-        }
-
-        const attacks = {
-            punchL: CONFIG.COMBAT.PUNCH_LIGHT,
-            punchH: CONFIG.COMBAT.PUNCH_HEAVY,
-            kickL: CONFIG.COMBAT.KICK_LIGHT,
-            kickH: CONFIG.COMBAT.KICK_HEAVY,
-            special: CONFIG.COMBAT.SPECIAL,
-            grab: CONFIG.COMBAT.GRAB
-        };
+        if (!decision || !decision.finalAction) return;
         
-        for (const [key, move] of Object.entries(attacks)) {
-            const outKey = key.toUpperCase();
-            const outIndex = CONFIG.OUTPUT[outKey];
-            if (outIndex !== undefined && (act === key || Utils.safeNumber(D[outIndex], 0) > 0.5) &&
-                this.stamina >= move.cost) {
-                if (this.state === 'IDLE' || this.state === 'WALK') {
-                    this._startAttack(key, move);
+        const D = decision.finalAction;
+        const OUT = CONFIG.OUTPUT;
+        const speed = CONFIG.PHYSICS.MOVE_SPEED;
+        const deadzone = CONFIG.AI.DEADZONE;
+
+        // ============================================
+        // 1. АНАЛОГОВОЕ ДВИЖЕНИЕ (4 направления)
+        // ============================================
+        if (this.state === 'IDLE' || this.state === 'WALK' || this.state === 'CROUCH') {
+            
+            // ГОРИЗОНТАЛЬ: ← и → работают как одна ось
+            let horizontal = 0;
+            if (D[OUT.MOVE_RIGHT] > deadzone) horizontal += D[OUT.MOVE_RIGHT];
+            if (D[OUT.MOVE_LEFT] > deadzone) horizontal -= D[OUT.MOVE_LEFT];
+            horizontal = Utils.clamp(horizontal, -1, 1);
+            
+            // ВЕРТИКАЛЬ: ↑ и ↓ работают как одна ось
+            let vertical = 0;
+            if (D[OUT.MOVE_DOWN] > deadzone) vertical += D[OUT.MOVE_DOWN];
+            if (D[OUT.MOVE_UP] > deadzone) vertical -= D[OUT.MOVE_UP];
+            vertical = Utils.clamp(vertical, -1, 1);
+            
+            // Применяем горизонтальное движение
+            if (Math.abs(horizontal) > deadzone) {
+                this.vx = horizontal * speed;
+                this.state = 'WALK';
+                this.stateTimer = 10;
+                this.facing = horizontal > 0 ? 1 : -1;
+            } else {
+                this.vx *= CONFIG.PHYSICS.FRICTION;
+            }
+            
+            // Применяем вертикальное движение (вверх/вниз)
+            if (Math.abs(vertical) > deadzone) {
+                if (vertical < -deadzone) {
+                    if (this.state === 'IDLE' && this.stamina >= 15) {
+                        this.vy = CONFIG.PHYSICS.JUMP_FORCE * Math.abs(vertical);
+                        this.stamina -= 15 * Math.abs(vertical);
+                        this.state = 'JUMP';
+                    }
+                } else if (vertical > deadzone) {
+                    if (this.state === 'IDLE' || this.state === 'WALK') {
+                        this.state = 'CROUCH';
+                        this.hurtBox.h = 40;
+                        this.hurtBox.y = -30;
+                        this.y = Math.min(this.y + CONFIG.PHYSICS.CROUCH_SPEED * vertical, CONFIG.ARENA.GROUND_Y);
+                    }
+                }
+            } else {
+                if (this.state !== 'CROUCH' && this.state !== 'JUMP' && this.state !== 'ATTACK') {
+                    this.hurtBox.h = 70;
+                    this.hurtBox.y = -60;
+                    if (this.state === 'CROUCH') this.state = 'IDLE';
+                }
+            }
+        }
+
+        // ============================================
+        // 2. АТАКИ (8 ударов)
+        // ============================================
+        if (this.actionCooldown <= 0 && (this.state === 'IDLE' || this.state === 'WALK' || this.state === 'CROUCH')) {
+            
+            const isCrouching = (this.state === 'CROUCH' || D[OUT.MOVE_DOWN] > deadzone);
+            
+            const attacks = [
+                { key: 'PUNCH_LIGHT_STAND',  out: OUT.PUNCH_LIGHT_STAND,  move: CONFIG.COMBAT.PUNCH_LIGHT_STAND,  crouch: false },
+                { key: 'PUNCH_HEAVY_STAND',  out: OUT.PUNCH_HEAVY_STAND,  move: CONFIG.COMBAT.PUNCH_HEAVY_STAND,  crouch: false },
+                { key: 'KICK_LIGHT_STAND',   out: OUT.KICK_LIGHT_STAND,   move: CONFIG.COMBAT.KICK_LIGHT_STAND,   crouch: false },
+                { key: 'KICK_HEAVY_STAND',   out: OUT.KICK_HEAVY_STAND,   move: CONFIG.COMBAT.KICK_HEAVY_STAND,   crouch: false },
+                { key: 'PUNCH_LIGHT_CROUCH', out: OUT.PUNCH_LIGHT_CROUCH, move: CONFIG.COMBAT.PUNCH_LIGHT_CROUCH, crouch: true },
+                { key: 'PUNCH_HEAVY_CROUCH', out: OUT.PUNCH_HEAVY_CROUCH, move: CONFIG.COMBAT.PUNCH_HEAVY_CROUCH, crouch: true },
+                { key: 'KICK_LIGHT_CROUCH',  out: OUT.KICK_LIGHT_CROUCH,  move: CONFIG.COMBAT.KICK_LIGHT_CROUCH,  crouch: true },
+                { key: 'KICK_HEAVY_CROUCH',  out: OUT.KICK_HEAVY_CROUCH,  move: CONFIG.COMBAT.KICK_HEAVY_CROUCH,  crouch: true }
+            ];
+            
+            for (const attack of attacks) {
+                if (D[attack.out] > deadzone && 
+                    isCrouching === attack.crouch && 
+                    this.stamina >= attack.move.cost) {
+                    
+                    this._startAttack(attack.key, attack.move);
+                    this.actionCooldown = CONFIG.AI.ATTACK_COOLDOWN;
                     break;
                 }
             }
         }
 
-        if ((act === 'block' || Utils.safeNumber(D[OUT.BLOCK], 0) > 0.5) && this.stamina >= 2) {
-            this.state = 'BLOCK';
-            this.stateTimer = 15;
-            this.stamina -= 2;
-            this._showBlockEffect();
+        // ============================================
+        // 3. ОСОБЫЕ ДЕЙСТВИЯ
+        // ============================================
+        if (this.state === 'IDLE' || this.state === 'WALK' || this.state === 'CROUCH') {
+            
+            if (D[OUT.BLOCK] > deadzone && this.stamina >= 2) {
+                this.state = 'BLOCK';
+                this.stateTimer = 15;
+                this.stamina -= 2;
+                this._showBlockEffect();
+            }
+            
+            if (D[OUT.GRAB] > deadzone && this.stamina >= CONFIG.COMBAT.GRAB.cost) {
+                this._startAttack('GRAB', CONFIG.COMBAT.GRAB);
+                this.actionCooldown = CONFIG.AI.ATTACK_COOLDOWN;
+            }
+            
+            if (D[OUT.SPECIAL] > deadzone && this.stamina >= CONFIG.COMBAT.SPECIAL.cost) {
+                this._startAttack('SPECIAL', CONFIG.COMBAT.SPECIAL);
+                this.actionCooldown = CONFIG.AI.ATTACK_COOLDOWN;
+            }
         }
 
-        this.lastAction = act;
+        if (this.state === 'ATTACK' && this.currentMove) {
+            this.lastAction = this.currentMove.type;
+        }
     }
 
     _startAttack(type, move) {
@@ -2053,13 +2279,27 @@ class Fighter {
             w: move.range,
             h: 30
         };
-        if (type.includes('punch')) {
+        if (type.includes('PUNCH')) {
             this.limbs.armR.targetAngle = -Math.PI / 2;
             this.limbs.armR.speed = 0.4;
-        } else if (type.includes('kick')) {
+        } else if (type.includes('KICK')) {
             this.limbs.legR.targetAngle = -Math.PI / 3;
             this.limbs.legR.speed = 0.35;
         }
+    }
+
+    calculateDirectionalDamageMultiplier(attacker) {
+        if (!attacker) return 1;
+        this.facingAngle = this.facing === 1 ? 0 : Math.PI;
+        const toAtk = Math.atan2(
+            Utils.safeNumber(attacker.y - this.y, 0),
+            Utils.safeNumber(attacker.x - this.x, 0)
+        );
+        const diff = Math.abs(Utils.normalizeAngle(toAtk - this.facingAngle));
+        const arc = (Utils.safeNumber(this.weapon.arcAngle, Math.PI)) / 2;
+        if (diff <= arc * 0.5) return CONFIG.TACTICAL.DAMAGE_FRONT;
+        if (diff <= arc) return CONFIG.TACTICAL.DAMAGE_FLANK;
+        return CONFIG.TACTICAL.DAMAGE_BACK;
     }
 
     checkHit(opp) {
@@ -2196,10 +2436,10 @@ class Fighter {
             this.limbs.armR.angle = lp(this.limbs.armR.angle, Math.sin(t) * 0.3, 0.2);
         } else if (this.state === 'ATTACK' && this.currentMove) {
             const prog = this.moveFrame / (this.currentMove.startup + this.currentMove.active);
-            if (this.currentMove.type.includes('punch')) {
+            if (this.currentMove.type.includes('PUNCH')) {
                 this.limbs.armR.angle = lp(this.limbs.armR.angle,
                     -Math.PI / 2 * Math.sin(prog * Math.PI), this.limbs.armR.speed);
-            } else if (this.currentMove.type.includes('kick')) {
+            } else if (this.currentMove.type.includes('KICK')) {
                 this.limbs.legR.angle = lp(this.limbs.legR.angle,
                     -Math.PI / 3 * Math.sin(prog * Math.PI), this.limbs.legR.speed);
             }
@@ -2355,11 +2595,6 @@ class Fighter {
         ctx.fillRect(this.x - 25, this.y - 85, 50, 4);
         ctx.fillStyle = '#ffdd44';
         ctx.fillRect(this.x - 25, this.y - 85, 50 * (this.stamina / this.maxStamina), 4);
-        
-        ctx.fillStyle = this.color + 'cc';
-        ctx.font = 'bold 9px monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText(this.brain.mode, this.x, this.y - 100);
     }
 
     reset(x, y) {
@@ -2373,7 +2608,7 @@ class Fighter {
         this.stateTimer = 0;
         this.hitStun = 0;
         this.blockStun = 0;
-        this.combo = { count: 0, timer: 0, lastHitId: null };
+        this.combo = { count: 0, timer: 0, lastHitId: null, history: [] };
         this.currentMove = null;
         this.attackBox = null;
         this.brain.reset();
@@ -2393,6 +2628,12 @@ class Fighter {
             bodyLean: 0
         };
         this.hurtBox = { x: this.x, y: -60, w: 30, h: 70 };
+        
+        this.actionCooldown = 0;
+        this.lastDecisionFrame = 0;
+        this.currentActionHold = 0;
+        this.lastChosenAction = 'IDLE';
+        this.lastFinalAction = null;
     }
 
     toJSON() {
@@ -2427,7 +2668,7 @@ class Fighter {
 }
 
 // ============================================================================
-// SECTION 7 — Arena / Game Engine (ИСПРАВЛЕНО)
+// SECTION 7 — Arena / Game Engine (С ИСПРАВЛЕННЫМ UI)
 // ============================================================================
 class Arena {
     constructor() {
@@ -2466,12 +2707,14 @@ class Arena {
 
         this._lastTimestamp = 0;
         this._fpsSamples = [];
+        this._opsTotal = 0;
         this.debugHitboxes = true;
+
+        this.actionHistory = [];
 
         this.bindEvents();
         this.initUI();
-        this.log('🎮 AI FIGHTER v6.2.2 | CORTEX-2 v2.3 WORKING', 'success');
-        this.log('🔧 Исправлено: урон, таймер, хитбоксы, VALUE', 'info');
+        this.log('🎮 AI FIGHTER v6.2.3-PRO-A | PROFESSIONAL UI', 'success');
     }
 
     _generateWalls() {
@@ -2517,9 +2760,6 @@ class Arena {
         document.getElementById('btnReset').onclick = () => this.fullReset();
         document.getElementById('btnSave').onclick = () => this.save();
         document.getElementById('btnLoad').onclick = () => this.load();
-        document.getElementById('btnExport').onclick = () => this.exportData();
-        document.getElementById('btnImport').onclick = () => document.getElementById('fileImport').click();
-        document.getElementById('fileImport').onchange = (e) => this.importData(e);
 
         document.getElementById('roundTime').oninput = (e) => {
             this.roundTime = parseInt(e.target.value);
@@ -2562,17 +2802,18 @@ class Arena {
             CONFIG.LEARNING.temperature = parseFloat(e.target.value);
             document.getElementById('tempValue').textContent = CONFIG.LEARNING.temperature.toFixed(2);
         };
-        document.getElementById('gateBias').oninput = (e) => {
-            document.getElementById('gateValue').textContent = parseFloat(e.target.value).toFixed(2);
+        document.getElementById('gradClip').oninput = (e) => {
+            const v = parseFloat(e.target.value);
+            CONFIG.LEARNING.gradClip = v;
+            this.p1.brain.gradClip = v;
+            this.p2.brain.gradClip = v;
+            document.getElementById('gradClipValue').textContent = v.toFixed(1);
         };
         document.getElementById('debugHitboxes').onchange = (e) => {
             this.debugHitboxes = e.target.checked;
         };
 
-        const toggleIds = [
-            'enableTraining', 'enableEvolution', 'enableFighting', 'enableRanged',
-            'enableWeightInheritance', 'enableTactical', 'enableHebbian', 'enableConsolidation'
-        ];
+        const toggleIds = ['enableTraining', 'enableFighting'];
         toggleIds.forEach(id => {
             document.getElementById(id).onchange = () => {
                 const rawKey = id.replace('enable', '');
@@ -2582,19 +2823,32 @@ class Arena {
         });
     }
 
+    // ============================================
+    // ИСПРАВЛЕННЫЙ initUI С НОВЫМИ МЕТКАМИ
+    // ============================================
     initUI() {
-        const labels = [
-            'LEFT', 'RIGHT', 'JUMP', 'CROUCH', 'PUNCH_L', 'PUNCH_H',
-            'KICK_L', 'KICK_H', 'BLOCK', 'GRAB', 'SPECIAL',
-            'AGGRO', 'CONF', 'FOCUS', 'FEINT', 'RETREAT'
-        ];
         const p1Out = document.getElementById('p1Outputs');
         const p2Out = document.getElementById('p2Outputs');
         p1Out.innerHTML = '';
         p2Out.innerHTML = '';
+        
         for (let i = 0; i < 16; i++) {
-            p1Out.innerHTML += `<div class="stat"><span class="stat-label">D${i} ${labels[i]}</span><span class="stat-value" id="p1Out${i}">0.00</span></div>`;
-            p2Out.innerHTML += `<div class="stat"><span class="stat-label">D${i} ${labels[i]}</span><span class="stat-value" id="p2Out${i}">0.00</span></div>`;
+            p1Out.innerHTML += `
+                <div class="output-bar">
+                    <div class="output-label">D${i} ${CONFIG.OUTPUT_LABELS[i]}</div>
+                    <div class="output-track">
+                        <div class="output-fill" id="p1OutBar${i}" style="width:0%"></div>
+                    </div>
+                    <div class="output-value" id="p1Out${i}">0.00</div>
+                </div>`;
+            p2Out.innerHTML += `
+                <div class="output-bar">
+                    <div class="output-label">D${i} ${CONFIG.OUTPUT_LABELS[i]}</div>
+                    <div class="output-track">
+                        <div class="output-fill" id="p2OutBar${i}" style="width:0%"></div>
+                    </div>
+                    <div class="output-value" id="p2Out${i}">0.00</div>
+                </div>`;
         }
     }
 
@@ -2609,6 +2863,12 @@ class Arena {
         }
     }
 
+    formatTime(seconds) {
+        const m = Math.floor(seconds / 60);
+        const s = Math.floor(seconds % 60);
+        return `${m}:${s.toString().padStart(2, '0')}`;
+    }
+
     loop(timestamp = 0) {
         if (!this.running) return;
         requestAnimationFrame((ts) => this.loop(ts));
@@ -2618,7 +2878,10 @@ class Arena {
         this._fpsSamples.push(1000 / Math.max(delta, 1));
         if (this._fpsSamples.length > 20) this._fpsSamples.shift();
         const fps = Math.round(this._fpsSamples.reduce((a, b) => a + b, 0) / this._fpsSamples.length);
-        if (this.step % 10 === 0) document.getElementById('fpsCounter').textContent = `FPS: ${fps}`;
+        if (this.step % 10 === 0) {
+            document.getElementById('fpsCounter').textContent = `FPS: ${fps}`;
+            document.getElementById('roundTimer').textContent = this.formatTime(this.roundTimer);
+        }
 
         try {
             this.step++;
@@ -2634,12 +2897,10 @@ class Arena {
 
             const oldDist = Math.hypot(this.p1.x - this.p2.x, this.p1.y - this.p2.y);
 
-            const d1 = this.p1.decide(this.p2, aW, aH);
-            const d2 = this.p2.decide(this.p1, aW, aH);
+            const d1 = this.p1.decide(this.p2, aW, aH, this.step);
+            const d2 = this.p2.decide(this.p1, aW, aH, this.step);
 
-            if (this.step % 60 === 0) {
-                this.log(`⚔ Step ${this.step} | P1:${d1.action} Mode:${this.p1.brain.mode} | P2:${d2.action} Mode:${this.p2.brain.mode}`, 'info');
-            }
+            this._opsTotal += (d1.brainResult?.ops || 0) + (d2.brainResult?.ops || 0);
 
             this.p1.executeAction(d1, this.p2);
             this.p2.executeAction(d2, this.p1);
@@ -2660,25 +2921,30 @@ class Arena {
             this.checkHits(this.p1, this.p2);
             this.checkHits(this.p2, this.p1);
 
-            if (d1.sensors && d1.sensors.length === 64) {
+            if (d1.sensors && d1.sensors.length === 64 && document.getElementById('enableTraining').checked) {
                 const value = this.p1.brain._estimateValue();
-                this.p1.brain.tdLearn(
-                    d1.sensors,
-                    Array.from(this.p1.brain.D),
+                const learnResult = this.p1.brain.tdLearn(
                     Utils.clamp(Utils.safeNumber(this.p1.lastReward, 0) / 10, -1, 1),
                     value,
-                    value
+                    value,
+                    d1.finalAction
                 );
                 this.p1.lastReward = 0;
+                if (this.step % 10 === 0) {
+                    const p1Stats = this.p1.brain.getStats();
+                    const fwdEl = document.getElementById('forwardMs');
+                    if (fwdEl) fwdEl.textContent = (p1Stats.forwardTime || 0).toFixed(2);
+                    const lrnEl = document.getElementById('learnMs');
+                    if (lrnEl) lrnEl.textContent = (learnResult.learnTime || 0).toFixed(2);
+                }
             }
-            if (d2.sensors && d2.sensors.length === 64) {
+            if (d2.sensors && d2.sensors.length === 64 && document.getElementById('enableTraining').checked) {
                 const value = this.p2.brain._estimateValue();
                 this.p2.brain.tdLearn(
-                    d2.sensors,
-                    Array.from(this.p2.brain.D),
                     Utils.clamp(Utils.safeNumber(this.p2.lastReward, 0) / 10, -1, 1),
                     value,
-                    value
+                    value,
+                    d2.finalAction
                 );
                 this.p2.lastReward = 0;
             }
@@ -2695,6 +2961,7 @@ class Arena {
 
             this.render();
             this.updateUI();
+            this.updateControllerUI();
 
         } catch (err) {
             this.log(`❌ ${err.message}`, 'error');
@@ -2709,9 +2976,8 @@ class Arena {
         const m = attacker.currentMove;
         if (attacker.moveFrame < m.startup || attacker.moveFrame >= m.startup + m.active) return;
         if (!attacker.checkHit(defender)) return;
-        
-        // Важно: НЕ сбрасываем attackBox здесь, чтобы избежать множественных попаданий в одном кадре
-        // attackBox сбросится в update после окончания активной фазы
+
+        const timeStr = new Date().toLocaleTimeString('ru-RU', {hour12:false, hour:'2-digit',minute:'2-digit',second:'2-digit'});
 
         if (defender.state === 'BLOCK' && !m.unblockable) {
             const chip = Math.floor((m.damage || 10) * CONFIG.COMBAT.BLOCK.chipDamage);
@@ -2719,7 +2985,7 @@ class Arena {
             defender.stamina -= CONFIG.COMBAT.BLOCK.staminaCost;
             attacker.lastReward += chip / 50;
             this._showDamage(chip, defender.x, defender.y - 50, '#ffaa00');
-            this.log(`🛡️ ${attacker.id}→${defender.id}: BLOCK (${chip} chip)`, 'info');
+            this.addActionFeed(timeStr, attacker.id, 'BLOCK', `${chip} chip`);
         } else {
             const mult = defender.calculateDirectionalDamageMultiplier(attacker);
             const baseDamage = (m.damage || 10) * (attacker.stats.damage / 3);
@@ -2735,8 +3001,10 @@ class Arena {
 
             if (defender.id === attacker.combo.lastHitId && attacker.combo.timer > 0) {
                 attacker.combo.count = Math.min(5, attacker.combo.count + 1);
+                attacker.combo.history.push(m.type);
             } else {
                 attacker.combo.count = 1;
+                attacker.combo.history = [m.type];
             }
             attacker.combo.timer = 30;
             attacker.combo.lastHitId = defender.id;
@@ -2746,8 +3014,25 @@ class Arena {
 
             this._showDamage(actualDamage, defender.x, defender.y - 50, '#ff4444');
             this._showHitEffect(defender.x, defender.y - 40);
-            this.log(`💥 ${attacker.id}→${defender.id}: ${actualDamage} (×${mult.toFixed(1)})`, 'info');
+            
+            const comboStr = attacker.combo.count > 1 ? ` combo x${attacker.combo.count}` : '';
+            this.addActionFeed(timeStr, attacker.id, m.type.toUpperCase(), `${damage} dmg${comboStr}`);
         }
+    }
+
+    addActionFeed(time, player, action, result) {
+        const feed = document.getElementById('actionFeed');
+        const item = document.createElement('div');
+        item.className = 'action-item';
+        const playerClass = player === 'P1' ? 'action-p1' : 'action-p2';
+        item.innerHTML = `
+            <span class="action-time">${time}</span>
+            <span class="${playerClass}">${player}</span>
+            <span class="action-event">${action}</span>
+            <span>${result}</span>
+        `;
+        feed.insertBefore(item, feed.firstChild);
+        while (feed.children.length > 20) feed.removeChild(feed.lastChild);
     }
 
     _showDamage(amount, x, y, color) {
@@ -2765,10 +3050,6 @@ class Arena {
         el.style.cssText = `left:${x - 25}px; top:${y - 25}px; width:50px; height:50px; background:radial-gradient(circle,rgba(255,200,50,0.8) 0%,transparent 70%);`;
         document.body.appendChild(el);
         setTimeout(() => el.remove(), 400);
-        document.body.style.animation = 'none';
-        requestAnimationFrame(() => {
-            document.body.style.animation = '';
-        });
     }
 
     endRound(winner) {
@@ -2842,19 +3123,150 @@ class Arena {
         ctx.fillStyle = '#fff';
         ctx.font = 'bold 22px monospace';
         ctx.textAlign = 'center';
-        ctx.fillText(`Round ${this.round} | ${Math.max(0, Math.ceil(this.roundTimer))}s`, w / 2, 38);
+        ctx.fillText(`Round ${this.round}`, w / 2, 38);
+    }
+
+    drawRadar(canvasId, strategy6D, color) {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const w = canvas.width;
+        const h = canvas.height;
+        const cx = w / 2;
+        const cy = h / 2;
+        const radius = Math.min(w, h) / 2 - 10;
+
+        ctx.clearRect(0, 0, w, h);
+
+        const labels = CONFIG.STRATEGY.LABELS;
+        const colors = CONFIG.STRATEGY.COLORS;
+        const angleStep = (Math.PI * 2) / 6;
+
+        for (let ring = 1; ring <= 3; ring++) {
+            ctx.beginPath();
+            const r = (radius / 3) * ring;
+            for (let i = 0; i < 6; i++) {
+                const angle = i * angleStep - Math.PI / 2;
+                const px = cx + Math.cos(angle) * r;
+                const py = cy + Math.sin(angle) * r;
+                if (i === 0) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+            }
+            ctx.closePath();
+            ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+        }
+
+        for (let i = 0; i < 6; i++) {
+            const angle = i * angleStep - Math.PI / 2;
+            const px = cx + Math.cos(angle) * radius;
+            const py = cy + Math.sin(angle) * radius;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(px, py);
+            ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            const labelX = cx + Math.cos(angle) * (radius + 12);
+            const labelY = cy + Math.sin(angle) * (radius + 12);
+            ctx.fillStyle = colors[i];
+            ctx.font = '9px monospace';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(labels[i], labelX, labelY);
+        }
+
+        ctx.beginPath();
+        for (let i = 0; i < 6; i++) {
+            const angle = i * angleStep - Math.PI / 2;
+            const r = radius * Utils.safeNumber(strategy6D[i], 0);
+            const px = cx + Math.cos(angle) * r;
+            const py = cy + Math.sin(angle) * r;
+            if (i === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.fillStyle = color + '40';
+        ctx.fill();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        for (let i = 0; i < 6; i++) {
+            const angle = i * angleStep - Math.PI / 2;
+            const r = radius * Utils.safeNumber(strategy6D[i], 0);
+            const px = cx + Math.cos(angle) * r;
+            const py = cy + Math.sin(angle) * r;
+            ctx.beginPath();
+            ctx.arc(px, py, 3, 0, Math.PI * 2);
+            ctx.fillStyle = color;
+            ctx.fill();
+        }
+    }
+
+    // ============================================
+    // ИСПРАВЛЕННЫЙ updateControllerUI
+    // ============================================
+    updateControllerUI() {
+        const threshold = CONFIG.AI.ACTIVE_THRESHOLD;
+        
+        const updateBtn = (id, value) => {
+            const btn = document.getElementById(id);
+            if (btn) btn.classList.toggle('active', value > threshold);
+        };
+
+        const updatePlayer = (fighter, prefix) => {
+            if (!fighter || !fighter.brain || !fighter.brain.D) return;
+            
+            const D = fighter.brain.D;
+            const OUT = CONFIG.OUTPUT;
+
+            updateBtn(prefix+'BtnLeft', D[OUT.MOVE_LEFT]);
+            updateBtn(prefix+'BtnRight', D[OUT.MOVE_RIGHT]);
+            updateBtn(prefix+'BtnUp', D[OUT.MOVE_UP]);
+            updateBtn(prefix+'BtnDown', D[OUT.MOVE_DOWN]);
+
+            updateBtn(prefix+'BtnLP', D[OUT.PUNCH_LIGHT_STAND] || D[OUT.PUNCH_LIGHT_CROUCH]);
+            updateBtn(prefix+'BtnHP', D[OUT.PUNCH_HEAVY_STAND] || D[OUT.PUNCH_HEAVY_CROUCH]);
+            updateBtn(prefix+'BtnLK', D[OUT.KICK_LIGHT_STAND] || D[OUT.KICK_LIGHT_CROUCH]);
+            updateBtn(prefix+'BtnHK', D[OUT.KICK_HEAVY_STAND] || D[OUT.KICK_HEAVY_CROUCH]);
+            
+            updateBtn(prefix+'BtnBLK', D[OUT.BLOCK]);
+            updateBtn(prefix+'BtnGRB', D[OUT.GRAB]);
+            updateBtn(prefix+'BtnSPL', D[OUT.SPECIAL]);
+
+            const comboEl = document.getElementById(prefix+'ComboCount');
+            if (comboEl) comboEl.textContent = fighter.combo.count || 0;
+            
+            const lastActionEl = document.getElementById(prefix+'LastAction');
+            if (lastActionEl) {
+                const lastAction = fighter.combo.history.length > 0 ? 
+                    fighter.combo.history.slice(-3).join('→') : fighter.lastAction;
+                lastActionEl.textContent = lastAction;
+            }
+        };
+
+        updatePlayer(this.p1, 'p1');
+        updatePlayer(this.p2, 'p2');
     }
 
     updateUI() {
         const sf = (id, v) => {
             const el = document.getElementById(id);
-            if (el) {
-                el.textContent = typeof v === 'number' && !Number.isInteger(v) ? v.toFixed(2) : String(v ?? '—');
+            if (!el) return;
+            if (typeof v === 'number' && isFinite(v)) {
+                el.textContent = !Number.isInteger(v) ? v.toFixed(2) : String(v);
+            } else {
+                el.textContent = String(v ?? '—');
             }
         };
+        
         const setBar = (id, pct) => {
             const el = document.getElementById(id);
-            if (el) el.style.width = Utils.clamp(pct, 0, 100) + '%';
+            if (!el) return;
+            el.style.width = Utils.clamp(pct, 0, 100) + '%';
         };
 
         setBar('p1HpBar', (this.p1.hp / this.p1.maxHp) * 100);
@@ -2862,10 +3274,8 @@ class Arena {
         setBar('p2HpBar', (this.p2.hp / this.p2.maxHp) * 100);
         setBar('p2StmBar', (this.p2.stamina / this.p2.maxStamina) * 100);
 
-        sf('p1Combo', this.p1.combo.count);
-        sf('p1Damage', this.p1.totalDamage);
-        sf('p2Combo', this.p2.combo.count);
-        sf('p2Damage', this.p2.totalDamage);
+        document.getElementById('p1HpText').textContent = `${Math.floor(this.p1.hp)}/${this.p1.maxHp}`;
+        document.getElementById('p2HpText').textContent = `${Math.floor(this.p2.hp)}/${this.p2.maxHp}`;
 
         sf('roundStat', this.round);
         sf('stepStat', this.step);
@@ -2878,50 +3288,34 @@ class Arena {
                        (p2Stats.tdErrorHistory?.slice(-1)[0] || 0)) / 2;
         sf('tdError', avgTD.toFixed(3));
         sf('hebbDelta', ((this.p1.brain.hebbianRate + this.p2.brain.hebbianRate) / 2).toFixed(3));
-        sf('predError', ((this.p1.brain._computeAvgPredError() +
-                          this.p2.brain._computeAvgPredError()) / 2).toFixed(3));
-        sf('valueEst', ((this.p1.brain._estimateValue() +
-                         this.p2.brain._estimateValue()) / 2).toFixed(2));
 
         const rp = document.getElementById('roundProgress');
         if (rp) rp.style.width = ((this.roundTime - this.roundTimer) / this.roundTime * 100) + '%';
 
-        sf('p1Mode', this.p1.brain.mode);
+        this.drawRadar('radarP1', this.p1.brain.strategy6D, '#00d4ff');
+        this.drawRadar('radarP2', this.p2.brain.strategy6D, '#ff5577');
+
         sf('p1Value', this.p1.brain._estimateValue().toFixed(2));
         sf('p1Pred', this.p1.brain._computeAvgPredError().toFixed(3));
-        sf('p1Steps', this.p1.brain.step);
-        sf('p2Mode', this.p2.brain.mode);
         sf('p2Value', this.p2.brain._estimateValue().toFixed(2));
         sf('p2Pred', this.p2.brain._computeAvgPredError().toFixed(3));
-        sf('p2Steps', this.p2.brain.step);
-
-        const setMode = (prefix, mode) => {
-            document.querySelectorAll(`#${prefix}Arbiter span`).forEach((s) => {
-                s.style.background = s.dataset.mode === mode
-                    ? (prefix === 'p1' ? 'linear-gradient(145deg,#00d2ff,#4b7bec)' : 'linear-gradient(145deg,#ff4757,#ff6b81)')
-                    : '#1a1a2a';
-                s.style.color = s.dataset.mode === mode ? '#fff' : '#707090';
-            });
-        };
-        setMode('p1', this.p1.brain.mode);
-        setMode('p2', this.p2.brain.mode);
-
-        const memBar = (id, M, start, end) => {
-            const el = document.getElementById(id);
-            if (!el) return;
-            const energy = Array.from(M.slice(start, end)).reduce((s, v) => s + Math.abs(Utils.safeNumber(v, 0)), 0) / (end - start);
-            el.style.height = Utils.clamp(energy * 20, 2, 20) + 'px';
-        };
-        memBar('p1MemWork', this.p1.brain.M, 0, 48);
-        memBar('p1MemPerm', this.p1.brain.M, 48, 96);
-        memBar('p1MemPred', this.p1.brain.M, 96, 144);
-        memBar('p2MemWork', this.p2.brain.M, 0, 48);
-        memBar('p2MemPerm', this.p2.brain.M, 48, 96);
-        memBar('p2MemPred', this.p2.brain.M, 96, 144);
 
         for (let i = 0; i < 16; i++) {
-            sf('p1Out' + i, this.p1.brain.D[i] || 0);
-            sf('p2Out' + i, this.p2.brain.D[i] || 0);
+            const v1 = Utils.safeNumber(this.p1.brain.D[i], 0);
+            const v2 = Utils.safeNumber(this.p2.brain.D[i], 0);
+            sf('p1Out' + i, v1.toFixed(2));
+            sf('p2Out' + i, v2.toFixed(2));
+            
+            const bar1 = document.getElementById('p1OutBar'+i);
+            const bar2 = document.getElementById('p2OutBar'+i);
+            if (bar1) {
+                bar1.style.width = (v1 * 100) + '%';
+                bar1.classList.toggle('active', v1 > 0.5);
+            }
+            if (bar2) {
+                bar2.style.width = (v2 * 100) + '%';
+                bar2.classList.toggle('active', v2 > 0.5);
+            }
         }
     }
 
@@ -2939,17 +3333,22 @@ class Arena {
         this.walls = this._generateWalls();
         this.projectiles = [];
         this._fpsSamples = [];
+        this._opsTotal = 0;
+        this.actionHistory = [];
+        document.getElementById('actionFeed').innerHTML = '';
         this.updateUI();
         this.log('🔄 Full reset', 'success');
     }
 
     log(msg, type = 'info') {
-        const el = document.getElementById('eventLog');
-        const div = document.createElement('div');
-        div.className = 'log-entry ' + type;
-        div.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
-        el.insertBefore(div, el.firstChild);
-        while (el.children.length > 25) el.removeChild(el.lastChild);
+        const feed = document.getElementById('actionFeed');
+        if (!feed) return;
+        const item = document.createElement('div');
+        item.className = 'action-item';
+        const timeStr = new Date().toLocaleTimeString('ru-RU', {hour12:false, hour:'2-digit',minute:'2-digit',second:'2-digit'});
+        item.innerHTML = `<span class="action-time">${timeStr}</span><span class="${type === 'error' ? 'action-p2' : 'action-p1'}">SYS</span><span>${msg}</span>`;
+        feed.insertBefore(item, feed.firstChild);
+        while (feed.children.length > 20) feed.removeChild(feed.lastChild);
     }
 
     save() {
@@ -2961,12 +3360,12 @@ class Arena {
             p1: this.p1.toJSON(),
             p2: this.p2.toJSON()
         };
-        localStorage.setItem('aiFighterV622', JSON.stringify(data));
+        localStorage.setItem('aiFighterV623PROA', JSON.stringify(data));
         this.log('💾 Saved', 'success');
     }
 
     load() {
-        const raw = localStorage.getItem('aiFighterV622');
+        const raw = localStorage.getItem('aiFighterV623PROA');
         if (!raw) {
             this.log('❌ No save found', 'error');
             return;
@@ -2983,41 +3382,6 @@ class Arena {
             this.log('❌ Load error: ' + e.message, 'error');
         }
     }
-
-    exportData() {
-        const data = {
-            version: CONFIG.version,
-            timestamp: Date.now(),
-            p1: this.p1.toJSON(),
-            p2: this.p2.toJSON()
-        };
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'fighter-v622-' + Date.now() + '.json';
-        a.click();
-        URL.revokeObjectURL(url);
-        this.log('📤 Exported', 'success');
-    }
-
-    importData(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-            try {
-                const data = JSON.parse(ev.target.result);
-                this.p1 = Fighter.fromJSON(data.p1, '#00d4ff');
-                this.p2 = Fighter.fromJSON(data.p2, '#ff5577');
-                this.log('📥 Imported', 'success');
-            } catch (err) {
-                this.log('❌ Import error: ' + err.message, 'error');
-            }
-            e.target.value = '';
-        };
-        reader.readAsText(file);
-    }
 }
 
 // ============================================================================
@@ -3025,19 +3389,10 @@ class Arena {
 // ============================================================================
 window.addEventListener('DOMContentLoaded', () => {
     window.arena = new Arena();
-    console.log('✅ AI FIGHTER v6.2.2 | CORTEX-2 v2.3 | ВСЕ ИСПРАВЛЕНИЯ ПРИМЕНЕНЫ');
-    console.log('🔧 FIX-1: Сенсоры передаются каждый кадр, даже в стане');
-    console.log('🔧 FIX-2: Хитбоксы движутся вместе с бойцами');
-    console.log('🔧 FIX-3: Knockback применяется однократно');
-    console.log('🔧 FIX-4: Мёртвые бойцы не получают урон');
-    console.log('🔧 FIX-5: Модификатор оружия влияет на урон');
-    console.log('🔧 FIX-6: Множитель направления обновляется каждый кадр');
-    console.log('🔧 FIX-7: Добавлен визуальный индикатор блока');
-    console.log('🔧 FIX-8: Ничья при одновременной смерти');
-    console.log('🔧 FIX-9: VALUE больше не NaN (везде safeNumber)');
-    console.log('🔧 FIX-10: Награда за приближение к противнику');
-    console.log('🔧 FIX-11: Таймер раунда работает корректно');
-    console.log('🔧 FIX-12: Урон применяется правильно (не блокируется)');
+    console.log('✅ AI FIGHTER v6.2.3-PRO-A | PROFESSIONAL UI');
+    console.log('🎮 Controller pad, radar charts, action feed');
+    console.log('🧠 6D Strategy visualization');
+    console.log('✅ FIXED: 8 attacks (standing/crouching), 4-way analog movement, working buttons');
 });
 </script>
 </body>
