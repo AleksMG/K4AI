@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Neural Fighter Arena — Cortex² v3.3.0</title>
+    <title>Neural Fighter Arena — Cortex² v3.3.1 [BALANCED]</title>
     <style>
         :root {
             --bg-deep: #050709;
@@ -34,6 +34,7 @@
             --accent-yellow: #f5b642;
             --accent-cyan: #22d3ee;
             --accent-purple: #a78bfa;
+            --accent-orange: #f59e0b;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -53,8 +54,8 @@
 
         #app {
             display: grid;
-            grid-template-columns: 290px 1fr 290px;
-            grid-template-rows: 68px 1fr 195px;
+            grid-template-columns: 300px 1fr 300px;
+            grid-template-rows: 68px 1fr 210px;
             grid-template-areas: 
                 "header header header"
                 "left arena right"
@@ -81,15 +82,15 @@
         .header-left { display: flex; align-items: center; gap: 14px; }
 
         .logo {
-            width: 34px;
-            height: 34px;
+            width: 36px;
+            height: 36px;
             background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-cyan) 100%);
             border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 17px;
+            font-size: 18px;
             color: #fff;
             box-shadow: 0 3px 12px var(--accent-blue-glow);
         }
@@ -107,7 +108,7 @@
         .version-badge {
             font-size: 0.7rem;
             font-weight: 600;
-            color: var(--accent-cyan);
+            color: var(--accent-green);
             background: var(--bg-secondary);
             padding: 3px 8px;
             border-radius: 5px;
@@ -149,6 +150,12 @@
 
         .btn.primary:hover:not(:disabled) {
             background: linear-gradient(145deg, var(--accent-blue-bright), var(--accent-blue));
+        }
+
+        .btn.danger {
+            background: linear-gradient(145deg, var(--accent-red), var(--accent-red-dim));
+            border-color: var(--accent-red);
+            color: #fff;
         }
 
         .btn:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
@@ -239,6 +246,11 @@
             animation: statusPulse 0.6s ease-in-out infinite;
         }
 
+        .status-indicator.aggressive {
+            background: var(--accent-orange);
+            box-shadow: 0 0 10px var(--accent-orange);
+        }
+
         @keyframes statusPulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
@@ -270,6 +282,10 @@
             font-size: 0.78rem;
         }
 
+        .panel-row .value.positive { color: var(--accent-green); }
+        .panel-row .value.negative { color: var(--accent-red); }
+        .panel-row .value.warning { color: var(--accent-yellow); }
+
         .progress-bar {
             height: 6px;
             background: var(--bg-secondary);
@@ -290,6 +306,7 @@
         .fill-yellow { background: linear-gradient(90deg, #c9a030, var(--accent-yellow)); }
         .fill-cyan { background: linear-gradient(90deg, #0891b2, var(--accent-cyan)); }
         .fill-purple { background: linear-gradient(90deg, #7c3aed, var(--accent-purple)); }
+        .fill-orange { background: linear-gradient(90deg, #d97706, var(--accent-orange)); }
 
         .emotion-grid {
             display: grid;
@@ -331,10 +348,31 @@
             letter-spacing: 0.5px;
         }
 
+        .activity-indicator {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            padding: 4px 8px;
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            font-size: 0.7rem;
+        }
+
+        .activity-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--text-faint);
+        }
+
+        .activity-dot.active { background: var(--accent-green); }
+        .activity-dot.attacking { background: var(--accent-red); }
+        .activity-dot.defensive { background: var(--accent-blue); }
+
         .footer {
             grid-area: footer;
             display: grid;
-            grid-template-columns: 250px 1fr;
+            grid-template-columns: 260px 1fr;
             gap: 7px;
         }
 
@@ -412,6 +450,7 @@
         .log-entry.combat { border-color: var(--accent-red); }
         .log-entry.learn { border-color: var(--accent-green); }
         .log-entry.warn { border-color: var(--accent-yellow); }
+        .log-entry.reward { border-color: var(--accent-orange); }
 
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -419,7 +458,7 @@
         ::-webkit-scrollbar-thumb:hover { background: #5068a0; }
 
         @media (max-width: 1280px) {
-            #app { grid-template-columns: 250px 1fr 250px; }
+            #app { grid-template-columns: 260px 1fr 260px; }
         }
     </style>
 </head>
@@ -428,16 +467,16 @@
         <header class="header">
             <div class="header-left">
                 <div class="logo">N</div>
-                <h1>NEURAL FIGHTER ARENA<span class="version-badge">CORTEX² v3.3.0</span></h1>
+                <h1>NEURAL FIGHTER ARENA<span class="version-badge">CORTEX² v3.3.1 BALANCED</span></h1>
             </div>
             <div class="header-controls">
                 <button id="btn-start" class="btn primary">START</button>
                 <button id="btn-pause" class="btn" disabled>PAUSE</button>
                 <button id="btn-reset" class="btn">RESET</button>
-                <button id="btn-train" class="btn">TRAIN</button>
+                <button id="btn-train" class="btn">TRAIN 10</button>
                 <label class="checkbox-wrap">
                     <input type="checkbox" id="chk-autotrain">
-                    AUTO
+                    AUTO TRAIN
                 </label>
             </div>
         </header>
@@ -491,6 +530,15 @@
             </div>
 
             <div class="panel-section">
+                <div class="activity-indicator">
+                    <div class="activity-dot" id="alpha-act-move"></div>
+                    <div class="activity-dot" id="alpha-act-attack"></div>
+                    <div class="activity-dot" id="alpha-act-defend"></div>
+                    <span id="alpha-activity-label">IDLE</span>
+                </div>
+            </div>
+
+            <div class="panel-section">
                 <div class="panel-row">
                     <span class="label">ZONE</span>
                     <span id="alpha-zone" class="value">MID</span>
@@ -504,14 +552,25 @@
                     <span id="alpha-reflex" class="value">--</span>
                 </div>
                 <div class="panel-row">
-                    <span class="label">COLLISION</span>
-                    <span id="alpha-collision" class="value">--</span>
+                    <span class="label">COMBO</span>
+                    <span id="alpha-combo" class="value">0</span>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <div class="panel-row">
+                    <span class="label">LAST REWARD</span>
+                    <span id="alpha-last-reward" class="value">0.00</span>
+                </div>
+                <div class="panel-row">
+                    <span class="label">TOTAL REWARD</span>
+                    <span id="alpha-total-reward" class="value">0.00</span>
                 </div>
             </div>
 
             <div class="panel-section">
                 <div class="viz-label">CORTEX ACTIVATION MAP (256)</div>
-                <div class="viz-container" style="height: 90px;">
+                <div class="viz-container" style="height: 85px;">
                     <canvas id="cortex-canvas-alpha"></canvas>
                 </div>
             </div>
@@ -576,7 +635,16 @@
                     <span id="beta-aggression" class="value">0.000</span>
                 </div>
                 <div class="progress-bar">
-                    <div id="beta-agg-bar" class="progress-fill fill-red" style="width: 0%"></div>
+                    <div id="beta-agg-bar" class="progress-fill fill-orange" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <div class="activity-indicator">
+                    <div class="activity-dot" id="beta-act-move"></div>
+                    <div class="activity-dot" id="beta-act-attack"></div>
+                    <div class="activity-dot" id="beta-act-defend"></div>
+                    <span id="beta-activity-label">IDLE</span>
                 </div>
             </div>
 
@@ -594,8 +662,8 @@
                     <span id="beta-reflex" class="value">--</span>
                 </div>
                 <div class="panel-row">
-                    <span class="label">COLLISION</span>
-                    <span id="beta-collision" class="value">--</span>
+                    <span class="label">COMBO</span>
+                    <span id="beta-combo" class="value">0</span>
                 </div>
             </div>
 
@@ -645,8 +713,8 @@
                     <span id="metric-ops-sec" class="value">0</span>
                 </div>
                 <div class="metric-row">
-                    <span class="label">GC PRESSURE</span>
-                    <span id="metric-gc" class="value">LOW</span>
+                    <span class="label">VALIDATION ERR</span>
+                    <span id="metric-validation" class="value">0</span>
                 </div>
                 <div class="metric-row">
                     <span class="label">ROUND</span>
@@ -668,7 +736,7 @@
 
             <div class="log-panel">
                 <div class="log-header">
-                    <span>EVENT LOG (MAX 100)</span>
+                    <span>EVENT LOG (MAX 150)</span>
                     <button id="btn-clear-log" class="btn" style="padding: 4px 12px; font-size: 0.75rem;">CLEAR</button>
                 </div>
                 <div id="log-content" class="log-content"></div>
@@ -681,7 +749,7 @@
         'use strict';
 
         // ============================================================================
-        // PART 1: CONFIGURATION & CONSTANTS
+        // PART 1: CONFIGURATION & CONSTANTS - BALANCED REWARD SYSTEM
         // ============================================================================
 
         const CONFIG = {
@@ -697,53 +765,52 @@
             FIGHTER_FRICTION: 0.86,
             COMBAT_RANGE: 52,
             
-            // FIX #11-15: Fighter-Fighter Collision Constants
+            // Fighter-Fighter Collision
             COLLISION_ENABLED: true,
             COLLISION_REPULSION_FORCE: 280,
             COLLISION_OVERLAP_CORRECTION: 0.7,
-            COLLISION_MIN_DISTANCE: 36,  // 2 * FIGHTER_RADIUS
+            COLLISION_MIN_DISTANCE: 36,
             COLLISION_PUSH_FACTOR: 0.45,
             
-            // Combat Zones (Street Fighter style)
+            // Combat Zones
             ZONES: {
                 HIGH: { yMin: 40, yMax: 200, color: '#ef4567', name: 'HIGH' },
                 MID: { yMin: 200, yMax: 440, color: '#f5b642', name: 'MID' },
                 LOW: { yMin: 440, yMax: 600, color: '#22d3ee', name: 'LOW' }
             },
             
-            // Attack System - FIX #20: All magic numbers as constants
+            // Attack System
             ATTACK_WINDUP: 12,
             ATTACK_RECOVERY: 16,
             ATTACK_DAMAGE: { HIGH: 13, MID: 10, LOW: 7 },
             ATTACK_COOLDOWN: 22,
-            ATTACK_CONFIDENCE_THRESHOLD: 0.62,  // Was hardcoded 0.62
-            ATTACK_RANGE_MULTIPLIER: 1.28,       // Was hardcoded 1.28
+            ATTACK_CONFIDENCE_THRESHOLD: 0.55,
+            ATTACK_RANGE_MULTIPLIER: 1.30,
             
             // Block System
             BLOCK_REDUCTION: { HIGH: 0.85, MID: 0.80, LOW: 0.74 },
             BLOCK_PENALTY: 0.32,
-            BLOCK_STAMINA_COST: 0.02,
-            BLOCK_CONFIDENCE_THRESHOLD: 0.52,    // Was hardcoded 0.52
-            BLOCK_RELEASE_THRESHOLD: 0.28,       // Was hardcoded 0.28
+            BLOCK_CONFIDENCE_THRESHOLD: 0.50,
+            BLOCK_RELEASE_THRESHOLD: 0.25,
             
             // Dodge System
             DODGE_DURATION: 10,
             DODGE_COOLDOWN: 38,
             DODGE_DISTANCE: 48,
-            DODGE_FEAR_THRESHOLD: 0.68,          // Was hardcoded 0.68
+            DODGE_FEAR_THRESHOLD: 0.70,
             
-            // Movement thresholds - FIX #20
-            MOVE_MIN_INTENSITY: 0.32,
+            // Movement
+            MOVE_MIN_INTENSITY: 0.30,
             MOVE_IDLE_THRESHOLD: 12,
-            RETREAT_THRESHOLD: 0.72,
+            RETREAT_THRESHOLD: 0.75,
             FLANK_THRESHOLD: 0.65,
             APPROACH_RANGE_MULTIPLIER: 2.0,
             APPROACH_ACCEL_FACTOR: 0.55,
             
-            // FIX #28: Attack zone mismatch - now tunable
-            ZONE_MISS_PROBABILITY: 0.28,         // Was hardcoded 0.28
+            // Zone miss probability
+            ZONE_MISS_PROBABILITY: 0.25,
             
-            // Neural Network Dimensions (CORTEX² Architecture)
+            // Neural Network Dimensions
             DIM_P: 32,
             DIM_A: 64,
             DIM_M: 144,
@@ -759,20 +826,66 @@
             M_PERM_SIZE: 48,
             M_PRED_SIZE: 48,
             
-            // Reward System
+            // ============================================================================
+            // BALANCED REWARD SYSTEM - FIX FOR PASSIVE BEHAVIOR
+            // ============================================================================
             REWARDS: {
-                WIN: 5.0,
-                LOSS: -3.0,
-                HIT: 1.5,
-                BLOCK: 0.4,
-                DODGE: 0.6,
-                MISS: -0.15,
-                MOVE_TOWARD: 0.12,
-                MOVE_AWAY: -0.04,
-                IN_RANGE: 0.02,
-                TOO_FAR: -0.01,
-                BLOCK_WRONG: -0.08,
-                DAMAGE_TAKEN: -0.06,
+                // === CORE COMBAT REWARDS (Strong signals) ===
+                WIN: 10.0,
+                LOSS: -10.0,
+                
+                // Damage dealing (encourage aggression)
+                DEAL_DAMAGE: 2.5,
+                HIT_HIGH: 1.8,
+                HIT_MID: 1.2,
+                HIT_LOW: 0.8,
+                HIT: 1.5,  // Base hit reward
+                
+                // Damage taken (punish getting hit)
+                TAKE_DAMAGE: -2.0,
+                NEAR_DEATH: -5.0,
+                DAMAGE_TAKEN: -0.08,
+                
+                // === POSITIONING REWARDS (Encourage engagement) ===
+                MOVE_TOWARD: 0.20,
+                MOVE_AWAY: -0.12,
+                IN_COMBAT_RANGE: 0.10,
+                CENTER_CONTROL: 0.05,
+                IN_RANGE: 0.04,
+                TOO_FAR: -0.02,
+                
+                // === DEFENSIVE ACTIONS (Balanced, not dominant) ===
+                BLOCK: 0.50,
+                BLOCK_CORRECT: 0.60,
+                BLOCK_WRONG: -0.40,
+                DODGE: 0.60,
+                DODGE_SUCCESS: 0.80,
+                DODGE_UNNECESSARY: -0.30,
+                
+                // === ATTACK ACTIONS (Encourage trying) ===
+                ATTACK_INITIATE: 0.50,
+                MISS: -0.20,
+                ATTACK_MISS: -0.25,
+                ATTACK_BLOCKED: -0.15,
+                COMBO_2HIT: 1.0,
+                COMBO_3HIT: 2.0,
+                
+                // === COURAGE BONUS (Anti-fear system) ===
+                ENGAGE_WHILE_HURT: 1.0,
+                PRESS_ADVANTAGE: 0.80,
+                RECOVER_FROM_KNOCKDOWN: 1.5,
+                
+                // === PUNISHMENTS (Discourage passive play) ===
+                STAY_IN_CORNER: -0.08,
+                NO_ACTION_5SEC: -1.5,
+                ONLY_BLOCK_3SEC: -1.0,
+                RUN_AWAY_WHILE_WINNING: -2.5,
+                BLOCK_WRONG_ZONE: -0.08,
+                
+                // === LEARNING SIGNALS ===
+                PREDICTION_CORRECT: 0.30,
+                PREDICTION_WRONG: -0.20,
+                ADAPT_TO_ENEMY: 0.50,
                 COLLISION: -0.02
             },
             
@@ -782,43 +895,47 @@
             LAMBDA: 0.94,
             HEBBIAN_RATE: 0.002,
             
-            // Emotion thresholds - FIX #20
-            EMOTION_ENTER_THRESHOLD: 0.55,
-            EMOTION_EXIT_THRESHOLD: 0.18,
-            EMOTION_SATISFACTION_EXIT: 0.8,
+            // Emotion thresholds
+            EMOTION_ENTER_THRESHOLD: 0.50,
+            EMOTION_EXIT_THRESHOLD: 0.15,
+            EMOTION_SATISFACTION_EXIT: 0.85,
             
-            // Reflex thresholds - FIX #20
+            // Reflex thresholds
             REFLEX_FEAR_THRESHOLD: 0.75,
-            REFLEX_AGGRESSION_THRESHOLD: 0.75,
+            REFLEX_AGGRESSION_THRESHOLD: 0.70,
             REFLEX_SURPRISE_THRESHOLD: 0.65,
-            REFLEX_CONFLICT_AGGRESSION: 0.65,
-            REFLEX_CONFLICT_FEAR: 0.45,
-            REFLEX_VENGEANCE_BOOST: 0.55,
-            REFLEX_DESPERATION_THRESHOLD: 0.75,
-            REFLEX_DESPERATION_RANDOM: 0.25,
+            REFLEX_CONFLICT_AGGRESSION: 0.60,
+            REFLEX_CONFLICT_FEAR: 0.40,
+            REFLEX_VENGEANCE_BOOST: 0.50,
+            REFLEX_DESPERATION_THRESHOLD: 0.70,
+            REFLEX_DESPERATION_RANDOM: 0.20,
             
-            // Social thresholds - FIX #20
-            SOCIAL_AGGRESSION_THRESHOLD: 0.65,
+            // Social thresholds
+            SOCIAL_AGGRESSION_THRESHOLD: 0.60,
             
             // UI
-            LOG_MAX: 100,
+            LOG_MAX: 150,
             FPS_SAMPLE: 30,
             
-            // FIX #26: GC tracking
-            TRACK_ALL_ALLOCATIONS: true,
-            
-            // FIX #27: Adaptive timestep
+            // Adaptive timestep
             ADAPTIVE_TIMESTEP: true,
             MAX_FRAME_TIME: 0.05,
             FIXED_TIMESTEP: 0.01667,
             
-            // Emotions (complete set)
+            // Memory tracking
+            MAX_SAFE_VALUE: 1e10,
+            
+            // Activity tracking
+            ACTIVITY_WINDOW: 300,
+            
+            // Emotions
             EMOTIONS: [
                 'threat', 'frustration', 'confidence', 'aggression',
                 'fear', 'surprise', 'caution', 'desperation',
                 'vengeance', 'empathy', 'loyalty', 'shame',
                 'pride', 'curiosity', 'boredom', 'anxiety',
-                'excitement', 'disappointment', 'satisfaction', 'grief'
+                'excitement', 'disappointment', 'satisfaction', 'grief',
+                'courage', 'determination'
             ]
         };
 
@@ -836,35 +953,41 @@
         };
 
         // ============================================================================
-        // UTILITY FUNCTIONS - FIX #8, #9: Complete NaN/Infinity guards
+        // UTILITY FUNCTIONS
         // ============================================================================
 
         const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
         const lerp = (a, b, t) => a + (b - a) * clamp(t, 0, 1);
         
-        // FIX #9: Complete safeNum with Infinity check
+        // Complete safeNum with Infinity check
         const safeNum = (v, fallback = 0) => {
             if (typeof v !== 'number') return fallback;
-            if (!Number.isFinite(v)) return fallback;  // Now checks Infinity
+            if (!Number.isFinite(v)) return fallback;
+            if (Math.abs(v) > CONFIG.MAX_SAFE_VALUE) return fallback;
             return v;
         };
         
-        // FIX #3-7: Safe division prevents all Infinity issues
+        // Safe division
         const safeDiv = (numerator, denominator, fallback = 0) => {
             const num = safeNum(numerator, 0);
             const den = safeNum(denominator, 0);
             if (den === 0) return fallback;
             const result = num / den;
-            return Number.isFinite(result) ? result : fallback;
+            if (!Number.isFinite(result)) return fallback;
+            if (Math.abs(result) > CONFIG.MAX_SAFE_VALUE) return fallback;
+            return result;
         };
         
-        // FIX #8: Format number for display handles all edge cases
+        // Format number for display
         const formatNum = (v, decimals = 3) => {
             const n = safeNum(v, 0);
+            if (Math.abs(n) >= 1e6) {
+                return n.toExponential(2);
+            }
             return n.toFixed(decimals);
         };
 
-        // DOM helpers with caching and null safety - FIX #22: Consistent guards
+        // DOM helpers
         const domCache = new Map();
         const getEl = (id) => {
             if (!domCache.has(id)) {
@@ -874,7 +997,6 @@
             return domCache.get(id);
         };
         
-        // FIX #22: All DOM functions have explicit null guards
         const setText = (id, text) => {
             const el = getEl(id);
             if (el === null) return;
@@ -900,7 +1022,13 @@
             el.classList.remove(cls);
         };
 
-        // Float32Array Pool (Zero-GC) - FIX #26: Track allocations
+        const hasClass = (id, cls) => {
+            const el = getEl(id);
+            if (el === null) return false;
+            return el.classList.contains(cls);
+        };
+
+        // Float32Array Pool
         const ArrayPool = {
             _pools: new Map(),
             totalAllocations: 0,
@@ -914,12 +1042,7 @@
                 if (pool.length > 0) {
                     return pool.pop();
                 }
-                
-                // FIX #26: Track all allocations
-                if (CONFIG.TRACK_ALL_ALLOCATIONS) {
-                    this.totalAllocations++;
-                }
-                
+                this.totalAllocations++;
                 return new Float32Array(size);
             },
             
@@ -933,12 +1056,6 @@
                 arr.fill(0);
                 if (pool.length < 200) {
                     pool.push(arr);
-                }
-            },
-            
-            releaseMany(arrays) {
-                for (let i = 0; i < arrays.length; i++) {
-                    this.release(arrays[i]);
                 }
             },
             
@@ -978,11 +1095,12 @@
             info(msg) { this.log(msg, 'info'); },
             combat(msg) { this.log(msg, 'combat'); },
             learn(msg) { this.log(msg, 'learn'); },
-            warn(msg) { this.log(msg, 'warn'); }
+            warn(msg) { this.log(msg, 'warn'); },
+            reward(msg) { this.log(msg, 'reward'); }
         };
 
         // ============================================================================
-        // FIX #1, #2: PERFORMANCE MONITOR - Corrected FPS calculation
+        // PERFORMANCE MONITOR
         // ============================================================================
         const PerfMonitor = {
             frameStart: 0,
@@ -992,12 +1110,11 @@
             frameTime: 16.67,
             neuralOps: 0,
             neuralOpsPerSec: 0,
+            validationErrors: 0,
             SAMPLE_SIZE: CONFIG.FPS_SAMPLE,
             
             startFrame() {
                 this.frameStart = performance.now();
-                
-                // FIX #2: sampleStart only initialized once, reset at boundary
                 if (this.sampleStart === 0) {
                     this.sampleStart = this.frameStart;
                 }
@@ -1007,28 +1124,17 @@
                 this.frameCount++;
                 this.frameTime = performance.now() - this.frameStart;
                 
-                // Check if sample period complete
                 if (this.frameCount >= this.SAMPLE_SIZE) {
                     const elapsed = performance.now() - this.sampleStart;
-                    
-                    // FIX #1: Correct FPS calculation
                     this.fps = elapsed > 0 ? Math.round((this.frameCount * 1000) / elapsed) : 60;
-                    
-                    // FIX #10: Calculate ops per second correctly
                     this.neuralOpsPerSec = Math.round((this.neuralOps * 1000) / Math.max(1, elapsed));
                     
-                    // Update display
                     setText('metric-fps', safeNum(this.fps, 60));
                     setText('metric-frame', `${formatNum(this.frameTime, 1)}ms`);
                     setText('metric-ops', safeNum(this.neuralOps, 0).toLocaleString());
                     setText('metric-ops-sec', safeNum(this.neuralOpsPerSec, 0).toLocaleString());
+                    setText('metric-validation', safeNum(this.validationErrors, 0));
                     
-                    // FIX #26: Include pool allocations
-                    const gcPressure = ArrayPool.getAllocationCount() > 50 ? 'HIGH' : 
-                                      (ArrayPool.getAllocationCount() > 20 ? 'MED' : 'LOW');
-                    setText('metric-gc', gcPressure);
-                    
-                    // Reset for next sample period - FIX #2: Reset sampleStart here only
                     this.frameCount = 0;
                     this.sampleStart = performance.now();
                     this.neuralOps = 0;
@@ -1038,6 +1144,10 @@
             
             addOps(count) {
                 this.neuralOps += safeNum(count, 0);
+            },
+            
+            addValidationError() {
+                this.validationErrors++;
             }
         };
 
@@ -1070,7 +1180,7 @@
         }
 
         // ============================================================================
-        // PART 2: CORTEX² NEURAL NETWORK - FIX #18, #19: Complete traces & updates
+        // PART 2: CORTEX² NEURAL NETWORK - WITH GRADIENT CLIPPING
         // ============================================================================
         class CortexNetwork {
             constructor(config = {}) {
@@ -1097,47 +1207,46 @@
                 };
 
                 // Weight initialization
-                this.W_P = this._initMatrix(ARCH.P_INPUT, this.D.P, 0.28);
-                this.b_P = this._initVector(this.D.P, 0.08);
+                this.W_P = this._initMatrix(ARCH.P_INPUT, this.D.P, 0.25);
+                this.b_P = this._initVector(this.D.P, 0.06);
                 
                 this.W_A = [];
                 this.b_A = [];
                 for (let h = 0; h < this.D.heads; h++) {
-                    this.W_A.push(this._initMatrix(ARCH.A_INPUT, this.D.headDim, 0.28));
-                    this.b_A.push(this._initVector(this.D.headDim, 0.08));
+                    this.W_A.push(this._initMatrix(ARCH.A_INPUT, this.D.headDim, 0.25));
+                    this.b_A.push(this._initVector(this.D.headDim, 0.06));
                 }
                 
-                this.W_gate = this._initVector(this.D.heads, 0.22);
+                this.W_gate = this._initVector(this.D.heads, 0.18);
                 
-                this.W_M_work = this._initMatrix(ARCH.M_WORK_INPUT, this.D.mWork, 0.28);
-                this.b_M_work = this._initVector(this.D.mWork, 0.08);
+                this.W_M_work = this._initMatrix(ARCH.M_WORK_INPUT, this.D.mWork, 0.25);
+                this.b_M_work = this._initVector(this.D.mWork, 0.06);
                 
-                this.W_M_perm = this._initMatrix(ARCH.M_PERM_INPUT, this.D.mPerm, 0.28);
-                this.b_M_perm = this._initVector(this.D.mPerm, 0.08);
+                this.W_M_perm = this._initMatrix(ARCH.M_PERM_INPUT, this.D.mPerm, 0.25);
+                this.b_M_perm = this._initVector(this.D.mPerm, 0.06);
                 
-                this.W_M_pred = this._initMatrix(ARCH.M_PRED_INPUT, this.D.mPred, 0.28);
-                this.b_M_pred = this._initVector(this.D.mPred, 0.08);
+                this.W_M_pred = this._initMatrix(ARCH.M_PRED_INPUT, this.D.mPred, 0.25);
+                this.b_M_pred = this._initVector(this.D.mPred, 0.06);
                 
-                this.W_C = this._initMatrix(ARCH.C_INPUT, this.D.C, 0.22);
-                this.b_C = this._initVector(this.D.C, 0.08);
+                this.W_C = this._initMatrix(ARCH.C_INPUT, this.D.C, 0.20);
+                this.b_C = this._initVector(this.D.C, 0.06);
                 
-                this.W_S = this._initMatrix(ARCH.S_INPUT, this.D.S, 0.28);
-                this.b_S = this._initVector(this.D.S, 0.08);
+                this.W_S = this._initMatrix(ARCH.S_INPUT, this.D.S, 0.25);
+                this.b_S = this._initVector(this.D.S, 0.06);
                 
-                this.W_D = this._initMatrix(ARCH.D_INPUT, this.D.Dout, 0.18);
-                this.b_D = this._initVector(this.D.Dout, 0.08);
+                this.W_D = this._initMatrix(ARCH.D_INPUT, this.D.Dout, 0.15);
+                this.b_D = this._initVector(this.D.Dout, 0.06);
                 
-                this.W_pred = this._initMatrix(this.D.mPred, this.D.sensor, 0.14);
-                this.b_pred = this._initVector(this.D.sensor, 0.04);
+                this.W_pred = this._initMatrix(this.D.mPred, this.D.sensor, 0.12);
+                this.b_pred = this._initVector(this.D.sensor, 0.03);
                 
-                this.W_V = this._initVector(this.D.C, 0.08);
+                this.W_V = this._initVector(this.D.C, 0.06);
                 this.b_V = 0;
                 
-                // FIX #19: Value heads for all layers
-                this.W_V_P = this._initVector(this.D.P, 0.05);
-                this.W_V_A = this._initVector(this.D.A, 0.05);
-                this.W_V_S = this._initVector(this.D.S, 0.05);
-                this.W_V_D = this._initVector(this.D.Dout, 0.05);
+                this.W_V_P = this._initVector(this.D.P, 0.04);
+                this.W_V_A = this._initVector(this.D.A, 0.04);
+                this.W_V_S = this._initVector(this.D.S, 0.04);
+                this.W_V_D = this._initVector(this.D.Dout, 0.04);
 
                 // State vectors
                 this.P = new Float32Array(this.D.P);
@@ -1156,7 +1265,7 @@
                 
                 this.predErrors = new Float32Array(this.D.mPred);
 
-                // FIX #18: Complete eligibility traces for all layers
+                // Eligibility traces
                 this.eTrace_P = new Float32Array(ARCH.P_INPUT * this.D.P);
                 this.eTrace_A = new Float32Array(ARCH.A_INPUT * this.D.A);
                 this.eTrace_C = new Float32Array(ARCH.C_INPUT * this.D.C);
@@ -1198,27 +1307,42 @@
                     this.emotionalState.momentum[CONFIG.EMOTIONS[i]] = 0;
                 }
                 
+                // BALANCED EMOTION CONFIG - FIX FOR FEAR DOMINANCE
                 this.emotionConfig = {
-                    fear: { baseDuration: 180, decay: 0.96 },
-                    aggression: { baseDuration: 120, decay: 0.95 },
-                    frustration: { baseDuration: 240, decay: 0.94 },
-                    desperation: { baseDuration: 300, decay: 0.93 },
-                    confidence: { baseDuration: 150, decay: 0.99 },
-                    vengeance: { baseDuration: 360, decay: 0.985 },
-                    threat: { baseDuration: 90, decay: 0.97 },
-                    surprise: { baseDuration: 60, decay: 0.90 },
-                    caution: { baseDuration: 200, decay: 0.96 },
+                    // FEAR - Decays FASTER so they don't stay scared
+                    fear: { baseDuration: 90, decay: 0.90 },
+                    
+                    // AGGRESSION - STRONGER and lasts longer
+                    aggression: { baseDuration: 180, decay: 0.97 },
+                    
+                    // CONFIDENCE - Builds up faster
+                    confidence: { baseDuration: 200, decay: 0.98 },
+                    
+                    // FRUSTRATION - Don't let it accumulate
+                    frustration: { baseDuration: 120, decay: 0.92 },
+                    
+                    // COURAGE - Counter to fear
+                    courage: { baseDuration: 150, decay: 0.96 },
+                    
+                    // CAUTION - Reduced influence
+                    caution: { baseDuration: 100, decay: 0.93 },
+                    
+                    desperation: { baseDuration: 150, decay: 0.94 },
+                    vengeance: { baseDuration: 200, decay: 0.97 },
                     pride: { baseDuration: 180, decay: 0.97 },
-                    shame: { baseDuration: 250, decay: 0.95 },
-                    curiosity: { baseDuration: 150, decay: 0.98 },
-                    boredom: { baseDuration: 400, decay: 0.99 },
-                    empathy: { baseDuration: 120, decay: 0.97 },
-                    loyalty: { baseDuration: 300, decay: 0.99 },
-                    anxiety: { baseDuration: 220, decay: 0.95 },
-                    excitement: { baseDuration: 100, decay: 0.92 },
-                    disappointment: { baseDuration: 180, decay: 0.96 },
-                    satisfaction: { baseDuration: 200, decay: 0.98 },
-                    grief: { baseDuration: 500, decay: 0.985 }
+                    satisfaction: { baseDuration: 150, decay: 0.97 },
+                    shame: { baseDuration: 120, decay: 0.93 },
+                    curiosity: { baseDuration: 140, decay: 0.97 },
+                    boredom: { baseDuration: 200, decay: 0.98 },
+                    empathy: { baseDuration: 100, decay: 0.96 },
+                    loyalty: { baseDuration: 200, decay: 0.98 },
+                    anxiety: { baseDuration: 100, decay: 0.93 },
+                    excitement: { baseDuration: 80, decay: 0.91 },
+                    disappointment: { baseDuration: 120, decay: 0.95 },
+                    grief: { baseDuration: 180, decay: 0.97 },
+                    threat: { baseDuration: 70, decay: 0.95 },
+                    surprise: { baseDuration: 50, decay: 0.88 },
+                    determination: { baseDuration: 160, decay: 0.97 }
                 };
                 
                 this.emotionMemory = {
@@ -1229,22 +1353,22 @@
                     killer: null
                 };
 
-                // FIX #16: Episodic memory recall system
+                // Episodic memory
                 this.episodicMemory = {
                     events: [],
                     maxEvents: 200,
                     recallThreshold: 0.7,
                     decayRate: 0.995,
                     lastRecall: null,
-                    recallInfluence: 0.1
+                    recallInfluence: 0.08
                 };
 
-                // FIX #17: Social memory utilization
+                // Social memory
                 this.socialMemory = {
                     relationships: new Map(),
                     reputation: 0,
                     observedBehaviors: new Map(),
-                    influenceWeight: 0.15
+                    influenceWeight: 0.12
                 };
 
                 this.stats = {
@@ -1254,7 +1378,9 @@
                     tdErrors: [],
                     reflexTriggers: 0,
                     memoryRecalls: 0,
-                    socialInfluences: 0
+                    socialInfluences: 0,
+                    validationErrors: 0,
+                    gradientClips: 0
                 };
                 
                 this._lastOutput = new Float32Array(this.D.Dout);
@@ -1290,7 +1416,7 @@
             }
             
             _relu(x) { return x > 0 ? x : 0.01 * x; }
-            _sigmoid(x) { return 1 / (1 + Math.exp(-x)); }
+            _sigmoid(x) { return 1 / (1 + Math.exp(-clamp(x, -20, 20))); }
             
             _softmax(arr, temperature) {
                 if (!arr || arr.length === 0) return [];
@@ -1311,7 +1437,24 @@
                 return exps;
             }
 
-            // FIX #23: Explicit dimension validation instead of optional chaining
+            // LAYER VALIDATION - FIX FOR MEMORY OVERFLOW
+            _checkLayer(arr, name) {
+                if (!arr) return false;
+                let hasError = false;
+                for (let i = 0; i < arr.length; i++) {
+                    const val = arr[i];
+                    if (!Number.isFinite(val) || Math.abs(val) > CONFIG.MAX_SAFE_VALUE) {
+                        arr[i] = 0;
+                        hasError = true;
+                    }
+                }
+                if (hasError) {
+                    this.stats.validationErrors++;
+                    PerfMonitor.addValidationError();
+                }
+                return !hasError;
+            }
+
             _matMul(vec, mat, bias, activation) {
                 if (!vec || !mat || !mat.length || !mat[0]) {
                     return new Float32Array(0);
@@ -1319,18 +1462,11 @@
                 
                 const rows = mat.length;
                 const cols = mat[0].length;
-                
-                // Explicit dimension check
-                if (vec.length !== rows) {
-                    // Handle mismatch gracefully
-                }
-                
                 const out = new Float32Array(cols);
                 
                 for (let i = 0; i < cols; i++) {
                     let sum = bias ? safeNum(bias[i]) : 0;
                     
-                    // Unrolled loop for performance
                     let j = 0;
                     for (; j < rows - 3; j += 4) {
                         sum += safeNum(vec[j]) * safeNum(mat[j][i]) +
@@ -1341,6 +1477,9 @@
                     for (; j < rows; j++) {
                         sum += safeNum(vec[j]) * safeNum(mat[j][i]);
                     }
+                    
+                    // Clamp sum before activation
+                    sum = clamp(sum, -100, 100);
                     
                     switch (activation) {
                         case 'tanh': out[i] = this._tanh(sum); break;
@@ -1357,7 +1496,27 @@
             _getMPerm(m) { return m.subarray(this.D.mWork, this.D.mWork + this.D.mPerm); }
             _getMPred(m) { return m.subarray(this.D.mWork + this.D.mPerm, this.D.M); }
 
-            // FIX #16: Episodic memory recall for decision-making
+            // SAFE MEMORY CALCULATION - FIX FOR INFINITY DISPLAY
+            _safeArrayAvg(arr, divisor) {
+                if (!arr || arr.length === 0 || divisor === 0) return 0;
+                
+                let sum = 0;
+                let validCount = 0;
+                
+                for (let i = 0; i < arr.length; i++) {
+                    const val = arr[i];
+                    if (Number.isFinite(val) && Math.abs(val) < CONFIG.MAX_SAFE_VALUE) {
+                        sum += Math.abs(val);
+                        validCount++;
+                    }
+                }
+                
+                if (validCount === 0) return 0;
+                
+                const avg = sum / divisor;
+                return Number.isFinite(avg) && Math.abs(avg) < CONFIG.MAX_SAFE_VALUE ? avg : 0;
+            }
+
             _recallEpisodicMemory(currentState) {
                 if (this.episodicMemory.events.length === 0) return null;
                 
@@ -1366,7 +1525,7 @@
                 
                 for (let i = 0; i < this.episodicMemory.events.length; i++) {
                     const event = this.episodicMemory.events[i];
-                    const similarity = this._calculateSimilarity(currentState, event);
+                    const similarity = Math.random() * 0.3 + (event.importance || 0.5);
                     
                     if (similarity > this.episodicMemory.recallThreshold && similarity > bestSimilarity) {
                         bestSimilarity = similarity;
@@ -1382,13 +1541,6 @@
                 return bestMatch;
             }
             
-            _calculateSimilarity(state, event) {
-                // Simplified similarity calculation
-                if (!event || !event.value) return 0;
-                return Math.random() * 0.3 + (event.importance || 0.5);
-            }
-            
-            // FIX #17: Social memory influence on behavior
             _applySocialInfluence(enemyId, outputs) {
                 const rel = this.socialMemory.relationships.get(enemyId);
                 if (!rel) return outputs;
@@ -1399,14 +1551,12 @@
                 for (let i = 0; i < outputs.length; i++) {
                     modifiedOutputs[i] = outputs[i];
                     
-                    // Low trust increases defensive behavior
-                    if (rel.trust < -0.3 && i === 10) { // retreat index
+                    if (rel.trust < -0.3 && i === 10) {
                         modifiedOutputs[i] = clamp(outputs[i] + influence * Math.abs(rel.trust), -1, 1);
                     }
                     
-                    // Many encounters increase prediction accuracy
-                    if (rel.encounters > 10 && (i >= 7 && i <= 9)) { // block indices
-                        modifiedOutputs[i] = outputs[i] * (1 + influence * 0.1);
+                    if (rel.encounters > 10 && (i >= 7 && i <= 9)) {
+                        modifiedOutputs[i] = outputs[i] * (1 + influence * 0.08);
                     }
                 }
                 
@@ -1414,56 +1564,84 @@
                 return modifiedOutputs;
             }
 
+            // BALANCED EMOTION UPDATE
             _updateEmotions(reward, events) {
                 if (events && events.length) {
                     for (let i = 0; i < events.length; i++) {
                         const e = events[i];
                         switch (e.type) {
                             case 'hit':
-                                this.emotions.confidence = clamp(this.emotions.confidence + 0.10, 0, 1);
-                                this.emotions.aggression = clamp(this.emotions.aggression + 0.05, 0, 1);
-                                this.emotionalState.satisfaction = clamp(this.emotionalState.satisfaction + 0.15, -1, 1);
+                                this.emotions.confidence = clamp(this.emotions.confidence + 0.12, 0, 1);
+                                this.emotions.aggression = clamp(this.emotions.aggression + 0.08, 0, 1);
+                                this.emotions.pride = clamp(this.emotions.pride + 0.05, 0, 1);
+                                this.emotions.satisfaction = clamp(this.emotions.satisfaction + 0.15, -1, 1);
+                                this.emotions.fear = clamp(this.emotions.fear - 0.03, 0, 1);
+                                this.emotions.determination = clamp(this.emotions.determination + 0.06, 0, 1);
                                 break;
+                                
                             case 'damage':
-                                this.emotions.fear = clamp(this.emotions.fear + 0.10, 0, 1);
-                                this.emotions.frustration = clamp(this.emotions.frustration + 0.08, 0, 1);
-                                this.emotionalState.satisfaction = clamp(this.emotionalState.satisfaction - 0.18, -1, 1);
-                                if (e.damage > 20) {
-                                    this.emotionMemory.trauma = clamp(this.emotionMemory.trauma + 0.04, 0, 1);
+                                this.emotions.fear = clamp(this.emotions.fear + 0.06, 0, 1);
+                                this.emotions.frustration = clamp(this.emotions.frustration + 0.05, 0, 1);
+                                this.emotions.satisfaction = clamp(this.emotions.satisfaction - 0.12, -1, 1);
+                                // Courage counteracts fear when taking damage
+                                this.emotions.courage = clamp(this.emotions.courage + 0.04, 0, 1);
+                                
+                                if (e.damage > 15) {
+                                    this.emotionMemory.trauma = clamp(this.emotionMemory.trauma + 0.02, 0, 1);
                                 }
                                 break;
+                                
                             case 'block':
-                                this.emotions.confidence = clamp(this.emotions.confidence + 0.04, 0, 1);
-                                this.emotions.caution = clamp(this.emotions.caution + 0.025, 0, 1);
+                                this.emotions.confidence = clamp(this.emotions.confidence + 0.03, 0, 1);
+                                this.emotions.caution = clamp(this.emotions.caution + 0.02, 0, 1);
                                 break;
+                                
                             case 'dodge':
-                                this.emotions.confidence = clamp(this.emotions.confidence + 0.07, 0, 1);
-                                this.emotions.excitement = clamp(this.emotions.excitement + 0.08, 0, 1);
+                                this.emotions.confidence = clamp(this.emotions.confidence + 0.05, 0, 1);
+                                this.emotions.excitement = clamp(this.emotions.excitement + 0.06, 0, 1);
                                 break;
+                                
                             case 'miss':
-                                this.emotions.frustration = clamp(this.emotions.frustration + 0.04, 0, 1);
+                                this.emotions.frustration = clamp(this.emotions.frustration + 0.02, 0, 1);
                                 break;
+                                
                             case 'ko':
                                 if (e.winner === 'self') {
-                                    this.emotions.pride = clamp(this.emotions.pride + 0.28, 0, 1);
-                                    this.emotions.confidence = clamp(this.emotions.confidence + 0.18, 0, 1);
+                                    this.emotions.pride = clamp(this.emotions.pride + 0.30, 0, 1);
+                                    this.emotions.confidence = clamp(this.emotions.confidence + 0.20, 0, 1);
+                                    this.emotions.satisfaction = clamp(this.emotions.satisfaction + 0.30, -1, 1);
+                                    this.emotions.fear = clamp(this.emotions.fear - 0.10, 0, 1);
                                 } else {
-                                    this.emotions.grief = clamp(this.emotions.grief + 0.28, 0, 1);
-                                    this.emotions.fear = clamp(this.emotions.fear + 0.18, 0, 1);
+                                    this.emotions.grief = clamp(this.emotions.grief + 0.20, 0, 1);
+                                    this.emotions.fear = clamp(this.emotions.fear + 0.10, 0, 1);
+                                    this.emotions.vengeance = clamp(this.emotions.vengeance + 0.15, 0, 1);
+                                    this.emotions.determination = clamp(this.emotions.determination + 0.15, 0, 1);
+                                    
                                     if (e.killer) {
                                         const grudge = this.emotionMemory.grudges.get(e.killer) || 0;
-                                        this.emotionMemory.grudges.set(e.killer, clamp(grudge + 0.28, -1, 1));
-                                        this.emotions.vengeance = clamp(this.emotions.vengeance + 0.18, 0, 1);
+                                        this.emotionMemory.grudges.set(e.killer, clamp(grudge + 0.20, -1, 1));
                                     }
                                 }
                                 break;
+                                
                             case 'collision':
-                                this.emotions.frustration = clamp(this.emotions.frustration + 0.02, 0, 1);
+                                this.emotions.frustration = clamp(this.emotions.frustration + 0.015, 0, 1);
+                                break;
+                                
+                            case 'approach':
+                                this.emotions.aggression = clamp(this.emotions.aggression + 0.01, 0, 1);
+                                this.emotions.courage = clamp(this.emotions.courage + 0.01, 0, 1);
+                                break;
+                                
+                            case 'combo':
+                                this.emotions.excitement = clamp(this.emotions.excitement + 0.10, 0, 1);
+                                this.emotions.confidence = clamp(this.emotions.confidence + 0.08, 0, 1);
                                 break;
                         }
                     }
                 }
                 
+                // State transitions
                 if (this.emotionalState.current) {
                     this.emotionalState.duration--;
                     if (this._canExitEmotion()) {
@@ -1476,17 +1654,28 @@
                     }
                 }
                 
-                if (reward < 0) {
-                    this.emotions.frustration = clamp(this.emotions.frustration + 0.025, 0, 1);
-                    this.emotions.fear = clamp(this.emotions.fear + 0.018, 0, 1);
-                } else if (reward > 0) {
-                    this.emotions.confidence = clamp(this.emotions.confidence + 0.018, 0, 1);
-                    this.emotions.satisfaction = clamp(this.emotions.satisfaction + 0.022, 0, 1);
+                // Reward-based emotion updates
+                if (reward > 0.5) {
+                    this.emotions.confidence = clamp(this.emotions.confidence + 0.015 * Math.abs(reward), 0, 1);
+                    this.emotions.satisfaction = clamp(this.emotions.satisfaction + 0.018 * Math.abs(reward), -1, 1);
+                    this.emotions.fear = clamp(this.emotions.fear - 0.01 * Math.abs(reward), 0, 1);
+                } else if (reward < -0.5) {
+                    this.emotions.frustration = clamp(this.emotions.frustration + 0.020 * Math.abs(reward), 0, 1);
+                    this.emotions.fear = clamp(this.emotions.fear + 0.012 * Math.abs(reward), 0, 1);
+                    // Courage helps overcome negative emotions
+                    this.emotions.courage = clamp(this.emotions.courage + 0.008 * Math.abs(reward), 0, 1);
                 }
                 
+                // Decay emotions
                 for (const emo in this.emotions) {
-                    const config = this.emotionConfig[emo];
-                    this.emotions[emo] *= config ? config.decay : 0.97;
+                    const cfg = this.emotionConfig[emo];
+                    this.emotions[emo] *= cfg ? cfg.decay : 0.97;
+                }
+                
+                // Courage naturally builds when fighting
+                if (this.stats.steps % 60 === 0) {
+                    this.emotions.courage = clamp(this.emotions.courage + 0.01, 0, 1);
+                    this.emotions.determination = clamp(this.emotions.determination + 0.005, 0, 1);
                 }
             }
             
@@ -1523,25 +1712,30 @@
                 return false;
             }
 
-            // FIX #24: Reflex mutation documented and intentional
             _checkReflexes(D_new) {
-                // NOTE: This function intentionally mutates D_new in-place
-                // to apply reflex modifications before final output
                 let reflex = false;
                 
-                if (this.emotions.fear > CONFIG.REFLEX_FEAR_THRESHOLD) {
-                    D_new[10] = clamp(D_new[10] + 0.28, 0, 1);
+                // Courage counteracts fear-based reflexes
+                const effectiveFear = Math.max(0, this.emotions.fear - this.emotions.courage * 0.5);
+                
+                if (effectiveFear > CONFIG.REFLEX_FEAR_THRESHOLD) {
+                    D_new[10] = clamp(D_new[10] + 0.22, 0, 1);
                     reflex = true;
                 }
                 
                 if (this.emotions.aggression > CONFIG.REFLEX_AGGRESSION_THRESHOLD) {
-                    D_new[6] = clamp(D_new[6] + 0.22, 0, 1);
+                    D_new[6] = clamp(D_new[6] + 0.20, 0, 1);
                     reflex = true;
                 }
                 
                 if (this.emotions.surprise > CONFIG.REFLEX_SURPRISE_THRESHOLD) {
-                    D_new[10] = clamp(D_new[10] + 0.18, 0, 1);
+                    D_new[10] = clamp(D_new[10] + 0.15, 0, 1);
                     reflex = true;
+                }
+                
+                // Determination boosts attack
+                if (this.emotions.determination > 0.5) {
+                    D_new[6] = clamp(D_new[6] + 0.10, 0, 1);
                 }
                 
                 if (reflex) {
@@ -1554,12 +1748,14 @@
             _resolveCommandConflicts(D_new) {
                 if (this.emotions.aggression > CONFIG.REFLEX_CONFLICT_AGGRESSION && 
                     this.emotions.fear > CONFIG.REFLEX_CONFLICT_FEAR) {
-                    D_new[6] *= 0.68;
-                    D_new[10] *= 0.48;
+                    // Courage tips the balance
+                    const courageBonus = this.emotions.courage * 0.2;
+                    D_new[6] *= (0.70 + courageBonus);
+                    D_new[10] *= (0.45 - courageBonus);
                 }
                 
                 if (this.emotions.vengeance > CONFIG.REFLEX_VENGEANCE_BOOST) {
-                    D_new[6] = clamp(D_new[6] + 0.18, 0, 1);
+                    D_new[6] = clamp(D_new[6] + 0.15, 0, 1);
                 }
                 
                 if (this.emotions.desperation > CONFIG.REFLEX_DESPERATION_THRESHOLD) {
@@ -1574,95 +1770,92 @@
                 for (let i = 0; i < this.D.C; i++) {
                     sum += this.C[i] * this.W_V[i];
                 }
-                return this._tanh(sum);
+                return this._tanh(clamp(sum, -50, 50));
             }
             
-            // FIX #19: Value head updates for all layers
             _updateAllValueHeads(tdErr) {
-                const alpha = this.lr * 0.4;
+                const alpha = this.lr * 0.35;
+                const safeTD = safeNum(tdErr, 0);
                 
-                // C layer
                 for (let i = 0; i < this.D.C; i++) {
-                    this.W_V[i] = clamp(this.W_V[i] + alpha * tdErr * this.C[i], -2, 2);
+                    this.W_V[i] = clamp(this.W_V[i] + alpha * safeTD * this.C[i], -1.5, 1.5);
                 }
-                this.b_V += alpha * tdErr;
+                this.b_V = clamp(this.b_V + alpha * safeTD, -1, 1);
                 
-                // P layer
                 for (let i = 0; i < this.D.P; i++) {
-                    this.W_V_P[i] = clamp(this.W_V_P[i] + alpha * 0.3 * tdErr * this.P[i], -1.5, 1.5);
+                    this.W_V_P[i] = clamp(this.W_V_P[i] + alpha * 0.25 * safeTD * this.P[i], -1.2, 1.2);
                 }
                 
-                // A layer
                 for (let i = 0; i < this.D.A; i++) {
-                    this.W_V_A[i] = clamp(this.W_V_A[i] + alpha * 0.3 * tdErr * this.A[i], -1.5, 1.5);
+                    this.W_V_A[i] = clamp(this.W_V_A[i] + alpha * 0.25 * safeTD * this.A[i], -1.2, 1.2);
                 }
                 
-                // S layer
                 for (let i = 0; i < this.D.S; i++) {
-                    this.W_V_S[i] = clamp(this.W_V_S[i] + alpha * 0.3 * tdErr * this.S[i], -1.5, 1.5);
+                    this.W_V_S[i] = clamp(this.W_V_S[i] + alpha * 0.25 * safeTD * this.S[i], -1.2, 1.2);
                 }
                 
-                // D layer
                 for (let i = 0; i < this.D.Dout; i++) {
-                    this.W_V_D[i] = clamp(this.W_V_D[i] + alpha * 0.3 * tdErr * this.Dvec[i], -1.5, 1.5);
+                    this.W_V_D[i] = clamp(this.W_V_D[i] + alpha * 0.25 * safeTD * this.Dvec[i], -1.2, 1.2);
                 }
             }
 
-            // FIX #18: Update all eligibility traces
             _updateAllTraces(tdErr) {
                 const decay = this.gamma * this.lambda;
                 
-                // Decay all traces
                 for (let i = 0; i < this.eTrace_P.length; i++) {
-                    this.eTrace_P[i] = clamp(decay * this.eTrace_P[i], -10, 10);
+                    this.eTrace_P[i] = clamp(decay * this.eTrace_P[i], -8, 8);
                 }
                 for (let i = 0; i < this.eTrace_A.length; i++) {
-                    this.eTrace_A[i] = clamp(decay * this.eTrace_A[i], -10, 10);
+                    this.eTrace_A[i] = clamp(decay * this.eTrace_A[i], -8, 8);
                 }
                 for (let i = 0; i < this.eTrace_C.length; i++) {
-                    this.eTrace_C[i] = clamp(decay * this.eTrace_C[i], -10, 10);
+                    this.eTrace_C[i] = clamp(decay * this.eTrace_C[i], -8, 8);
                 }
                 for (let i = 0; i < this.eTrace_S.length; i++) {
-                    this.eTrace_S[i] = clamp(decay * this.eTrace_S[i], -10, 10);
+                    this.eTrace_S[i] = clamp(decay * this.eTrace_S[i], -8, 8);
                 }
                 for (let i = 0; i < this.eTrace_D.length; i++) {
-                    this.eTrace_D[i] = clamp(decay * this.eTrace_D[i], -10, 10);
+                    this.eTrace_D[i] = clamp(decay * this.eTrace_D[i], -8, 8);
                 }
                 
-                // Add current activations
                 for (let j = 0; j < ARCH.P_INPUT; j++) {
                     for (let i = 0; i < this.D.P; i++) {
-                        this.eTrace_P[j * this.D.P + i] += this.P[i] * 0.01;
+                        this.eTrace_P[j * this.D.P + i] += this.P[i] * 0.008;
                     }
                 }
                 for (let j = 0; j < ARCH.C_INPUT; j++) {
                     for (let i = 0; i < this.D.C; i++) {
-                        this.eTrace_C[j * this.D.C + i] += this.C[i] * 0.01;
+                        this.eTrace_C[j * this.D.C + i] += this.C[i] * 0.008;
                     }
                 }
                 for (let j = 0; j < ARCH.S_INPUT; j++) {
                     for (let i = 0; i < this.D.S; i++) {
-                        this.eTrace_S[j * this.D.S + i] += this.S[i] * 0.01;
+                        this.eTrace_S[j * this.D.S + i] += this.S[i] * 0.008;
                     }
                 }
                 for (let j = 0; j < ARCH.D_INPUT; j++) {
                     for (let i = 0; i < this.D.Dout; i++) {
-                        this.eTrace_D[j * this.D.Dout + i] += this.Dvec[i] * 0.01;
+                        this.eTrace_D[j * this.D.Dout + i] += this.Dvec[i] * 0.008;
                     }
                 }
             }
             
-            // FIX #18: Apply TD error to all layers with traces
+            // GRADIENT CLIPPING - FIX FOR WEIGHT EXPLOSION
             _applyTDErrorAllLayers(tdErr) {
-                const alpha = this.lr * Math.sign(tdErr) * 0.08;
-                const maxGrad = 0.25;
+                const absTD = Math.abs(safeNum(tdErr, 0));
+                const alpha = this.lr * absTD;
+                const maxGrad = 0.12;
+                const maxWeight = 1.5;
                 
                 // C layer
                 for (let j = 0; j < ARCH.C_INPUT; j++) {
                     if (!this.W_C[j]) continue;
                     for (let i = 0; i < this.D.C; i++) {
                         const grad = clamp(alpha * this.eTrace_C[j * this.D.C + i], -maxGrad, maxGrad);
-                        this.W_C[j][i] = clamp(this.W_C[j][i] + grad, -2, 2);
+                        const newWeight = this.W_C[j][i] + grad;
+                        if (Number.isFinite(newWeight)) {
+                            this.W_C[j][i] = clamp(newWeight, -maxWeight, maxWeight);
+                        }
                     }
                 }
                 
@@ -1670,8 +1863,11 @@
                 for (let j = 0; j < ARCH.P_INPUT; j++) {
                     if (!this.W_P[j]) continue;
                     for (let i = 0; i < this.D.P; i++) {
-                        const grad = clamp(alpha * 0.5 * this.eTrace_P[j * this.D.P + i], -maxGrad, maxGrad);
-                        this.W_P[j][i] = clamp(this.W_P[j][i] + grad, -2, 2);
+                        const grad = clamp(alpha * 0.4 * this.eTrace_P[j * this.D.P + i], -maxGrad, maxGrad);
+                        const newWeight = this.W_P[j][i] + grad;
+                        if (Number.isFinite(newWeight)) {
+                            this.W_P[j][i] = clamp(newWeight, -maxWeight, maxWeight);
+                        }
                     }
                 }
                 
@@ -1679,8 +1875,11 @@
                 for (let j = 0; j < ARCH.S_INPUT; j++) {
                     if (!this.W_S[j]) continue;
                     for (let i = 0; i < this.D.S; i++) {
-                        const grad = clamp(alpha * 0.5 * this.eTrace_S[j * this.D.S + i], -maxGrad, maxGrad);
-                        this.W_S[j][i] = clamp(this.W_S[j][i] + grad, -2, 2);
+                        const grad = clamp(alpha * 0.4 * this.eTrace_S[j * this.D.S + i], -maxGrad, maxGrad);
+                        const newWeight = this.W_S[j][i] + grad;
+                        if (Number.isFinite(newWeight)) {
+                            this.W_S[j][i] = clamp(newWeight, -maxWeight, maxWeight);
+                        }
                     }
                 }
                 
@@ -1689,13 +1888,20 @@
                     if (!this.W_D[j]) continue;
                     for (let i = 0; i < this.D.Dout; i++) {
                         const grad = clamp(alpha * this.eTrace_D[j * this.D.Dout + i], -maxGrad, maxGrad);
-                        this.W_D[j][i] = clamp(this.W_D[j][i] + grad, -2, 2);
+                        const newWeight = this.W_D[j][i] + grad;
+                        if (Number.isFinite(newWeight)) {
+                            this.W_D[j][i] = clamp(newWeight, -maxWeight, maxWeight);
+                        }
                     }
+                }
+                
+                // Track gradient clips
+                if (absTD > 1.0) {
+                    this.stats.gradientClips++;
                 }
             }
 
             forward(rawInputs, reward, combatEvents, socialContext) {
-                // FIX #10: More accurate op count
                 PerfMonitor.addOps(180000);
                 
                 const x_t = new Float32Array(this.D.sensor);
@@ -1708,7 +1914,7 @@
                 const r_t = safeNum(reward);
                 this._lastReward = r_t;
                 
-                // FIX #17: Process social context
+                // Process social context
                 if (socialContext && socialContext.enemyId) {
                     let rel = this.socialMemory.relationships.get(socialContext.enemyId);
                     if (!rel) {
@@ -1716,7 +1922,7 @@
                         this.socialMemory.relationships.set(socialContext.enemyId, rel);
                     }
                     if (socialContext.enemyAggression > CONFIG.SOCIAL_AGGRESSION_THRESHOLD) {
-                        rel.trust = clamp(rel.trust - 0.04, -1, 1);
+                        rel.trust = clamp(rel.trust - 0.03, -1, 1);
                     }
                     rel.encounters++;
                     rel.lastSeen = this.stats.steps;
@@ -1725,12 +1931,13 @@
                 // Build inputs
                 const P_in = this._buffers.P_in;
                 let idx = 0;
-                for (let i = 0; i < this.D.sensor; i++) P_in[idx++] = safeNum(x_t[i]) * 0.5;
+                for (let i = 0; i < this.D.sensor; i++) P_in[idx++] = safeNum(x_t[i]) * 0.45;
                 for (let i = 0; i < this.D.C; i++) P_in[idx++] = this.C_prev[i];
                 for (let i = 0; i < this.D.S; i++) P_in[idx++] = this.S_prev[i];
                 for (let i = 0; i < this.D.mPerm; i++) P_in[idx++] = this._getMPerm(this.M_prev)[i];
                 
                 const P_new = this._matMul(P_in, this.W_P, this.b_P, 'relu');
+                this._checkLayer(P_new, 'P');
                 
                 const gateProbs = this._softmax(Array.from(this.W_gate), 1.0);
                 
@@ -1738,7 +1945,7 @@
                 for (let h = 0; h < this.D.heads; h++) {
                     const A_in = this._buffers.A_in;
                     idx = 0;
-                    for (let i = 0; i < this.D.P; i++) A_in[idx++] = this.P_prev[i] * 0.25;
+                    for (let i = 0; i < this.D.P; i++) A_in[idx++] = this.P_prev[i] * 0.22;
                     for (let i = 0; i < this.D.mWork; i++) A_in[idx++] = this._getMWork(this.M_prev)[i];
                     const cStart = h * 64;
                     for (let i = 0; i < 64; i++) A_in[idx++] = (cStart + i) < this.D.C ? this.C_prev[cStart + i] : 0;
@@ -1750,23 +1957,24 @@
                         A_new[h * this.D.headDim + i] = headOut[i] * gateWeight;
                     }
                 }
+                this._checkLayer(A_new, 'A');
                 
                 const Mw_in = this._buffers.Mw_in;
                 idx = 0;
-                for (let i = 0; i < this.D.P; i++) Mw_in[idx++] = this.P_prev[i] * 0.7;
-                for (let i = 0; i < this.D.A; i++) Mw_in[idx++] = this.A_prev[i] * 0.7;
+                for (let i = 0; i < this.D.P; i++) Mw_in[idx++] = this.P_prev[i] * 0.65;
+                for (let i = 0; i < this.D.A; i++) Mw_in[idx++] = this.A_prev[i] * 0.65;
                 for (let i = 0; i < 64; i++) Mw_in[idx++] = this.C_prev[i];
                 const M_work_new = this._matMul(Mw_in, this.W_M_work, this.b_M_work, 'relu');
                 
                 const Mp_in = this._buffers.Mp_in;
                 idx = 0;
-                for (let i = 0; i < this.D.C; i++) Mp_in[idx++] = this.C_prev[i] * 0.7;
+                for (let i = 0; i < this.D.C; i++) Mp_in[idx++] = this.C_prev[i] * 0.65;
                 for (let i = 0; i < this.D.mPerm; i++) Mp_in[idx++] = this._getMPerm(this.M_prev)[i];
                 const M_perm_new = this._matMul(Mp_in, this.W_M_perm, this.b_M_perm, 'relu');
                 
                 const Mr_in = this._buffers.Mr_in;
                 idx = 0;
-                for (let i = 0; i < this.D.A; i++) Mr_in[idx++] = this.A_prev[i] * 0.7;
+                for (let i = 0; i < this.D.A; i++) Mr_in[idx++] = this.A_prev[i] * 0.65;
                 for (let i = 0; i < 64; i++) Mr_in[idx++] = this.C_prev[192 + i] || 0;
                 for (let i = 0; i < this.D.mWork; i++) Mr_in[idx++] = this._getMWork(this.M_prev)[i];
                 for (let i = 0; i < this.D.Dout; i++) Mr_in[idx++] = this.D_prev[i];
@@ -1776,23 +1984,25 @@
                 for (let i = 0; i < this.D.mWork; i++) M_new[i] = M_work_new[i];
                 for (let i = 0; i < this.D.mPerm; i++) M_new[this.D.mWork + i] = M_perm_new[i];
                 for (let i = 0; i < this.D.mPred; i++) M_new[this.D.mWork + this.D.mPerm + i] = M_pred_new[i];
+                this._checkLayer(M_new, 'M');
                 
                 const C_in = this._buffers.C_in;
                 idx = 0;
-                for (let i = 0; i < this.D.P; i++) C_in[idx++] = this.P_prev[i] * 3.5;
-                for (let i = 0; i < this.D.A; i++) C_in[idx++] = this.A_prev[i] * 3.5;
-                for (let i = 0; i < this.D.M; i++) C_in[idx++] = this.M_prev[i] * 3.5;
+                for (let i = 0; i < this.D.P; i++) C_in[idx++] = this.P_prev[i] * 3.0;
+                for (let i = 0; i < this.D.A; i++) C_in[idx++] = this.A_prev[i] * 3.0;
+                for (let i = 0; i < this.D.M; i++) C_in[idx++] = this.M_prev[i] * 3.0;
                 for (let i = 0; i < this.D.S; i++) C_in[idx++] = this.S_prev[i];
                 for (let i = 0; i < this.D.Dout; i++) C_in[idx++] = this.D_prev[i];
                 C_in[idx++] = r_t;
                 const C_new = this._matMul(C_in, this.W_C, this.b_C, 'relu');
+                this._checkLayer(C_new, 'C');
                 
                 const S_in = this._buffers.S_in;
                 idx = 0;
-                for (let i = 0; i < this.D.P; i++) S_in[idx++] = this.P_prev[i] * 0.5;
+                for (let i = 0; i < this.D.P; i++) S_in[idx++] = this.P_prev[i] * 0.45;
                 for (let i = 0; i < this.D.mPerm; i++) S_in[idx++] = this._getMPerm(this.M_prev)[i];
                 for (let i = 0; i < 32; i++) S_in[idx++] = this.C_prev[224 + i] || 0;
-                for (let i = 0; i < this.D.Dout; i++) S_in[idx++] = this.D_prev[i] * 0.5;
+                for (let i = 0; i < this.D.Dout; i++) S_in[idx++] = this.D_prev[i] * 0.45;
                 const S_new = this._matMul(S_in, this.W_S, this.b_S, 'relu');
                 
                 const D_in = this._buffers.D_in;
@@ -1801,6 +2011,7 @@
                 for (let i = 0; i < this.D.S; i++) D_in[idx++] = this.S_prev[i];
                 for (let i = 0; i < this.D.mPred; i++) D_in[idx++] = this._getMPred(this.M_prev)[i];
                 let D_new = this._matMul(D_in, this.W_D, this.b_D, 'tanh');
+                this._checkLayer(D_new, 'D');
                 
                 // Update prev states
                 this.P_prev.set(this.P);
@@ -1816,15 +2027,15 @@
                 this.C.set(C_new);
                 this.S.set(S_new);
                 
-                // FIX #16: Apply episodic memory recall influence
+                // Memory recall
                 const memoryRecall = this._recallEpisodicMemory({ P: this.P, C: this.C });
                 if (memoryRecall && this.episodicMemory.recallInfluence > 0) {
                     for (let i = 0; i < this.D.Dout; i++) {
-                        D_new[i] = lerp(D_new[i], D_new[i] * 1.1, this.episodicMemory.recallInfluence);
+                        D_new[i] = lerp(D_new[i], D_new[i] * 1.08, this.episodicMemory.recallInfluence);
                     }
                 }
                 
-                // FIX #17: Apply social influence
+                // Social influence
                 if (socialContext && socialContext.enemyId) {
                     D_new = this._applySocialInfluence(socialContext.enemyId, D_new);
                 }
@@ -1833,8 +2044,6 @@
                 
                 // Emotions and reflexes
                 this._updateEmotions(r_t, combatEvents);
-                
-                // FIX #24: Document that reflexes mutate Dvec in-place
                 this._reflexThisFrame = this._checkReflexes(this.Dvec);
                 this._resolveCommandConflicts(this.Dvec);
                 
@@ -1847,17 +2056,13 @@
                 
                 this.stats.steps++;
                 this.stats.totalReward += r_t;
-                this.stats.avgReward = lerp(this.stats.avgReward, r_t, 0.01);
+                this.stats.avgReward = lerp(this.stats.avgReward, r_t, 0.008);
                 
                 return {
                     output,
                     reflexTriggered: this._reflexThisFrame,
                     emotionalState: this.emotionalState.current,
-                    avgPredictionError: safeDiv(
-                        this.predErrors.reduce((a, b) => a + b, 0),
-                        this.D.mPred,
-                        0
-                    ),
+                    avgPredictionError: this._safeArrayAvg(this.predErrors, this.D.mPred),
                     steps: this.stats.steps
                 };
             }
@@ -1872,20 +2077,15 @@
                 this.stats.tdErrors.push(Math.abs(tdErr));
                 if (this.stats.tdErrors.length > 100) this.stats.tdErrors.shift();
                 
-                // FIX #19: Update all value heads
                 this._updateAllValueHeads(tdErr);
-                
-                // FIX #18: Update all traces
                 this._updateAllTraces(tdErr);
-                
-                // FIX #18: Apply TD error to all layers
                 this._applyTDErrorAllLayers(tdErr);
                 
-                // Consolidate memory
-                if (Math.abs(reward) > 1.8) {
+                // Memory consolidation
+                if (Math.abs(reward) > 1.5) {
                     const predOffset = this.D.mWork + this.D.mPerm;
                     for (let i = 0; i < this.D.mPred; i++) {
-                        if (this.predErrors[i] > 0.25) {
+                        if (this.predErrors[i] > 0.20) {
                             this.episodicMemory.events.push({
                                 idx: i,
                                 value: this.M[predOffset + i],
@@ -1903,21 +2103,24 @@
                 }
                 
                 // Hebbian learning
-                if (reward > 0.8) {
+                if (reward > 0.6) {
                     const mag = clamp(Math.abs(reward) / 5, 0, 1);
-                    const corr = Math.sign(reward) * (0.5 + 0.5 * mag);
+                    const corr = Math.sign(reward) * (0.4 + 0.4 * mag);
                     
                     const step = Math.max(1, Math.floor(this.D.P / 50));
-                    const eta = this.hebbianRate * corr * 0.5;
+                    const eta = this.hebbianRate * corr * 0.4;
                     
                     for (let i = 0; i < this.D.P; i += step) {
                         for (let j = 0; j < this.D.A; j += step) {
                             const c = this.P_prev[i] * this.A_prev[j];
-                            if (Math.abs(c) > 0.1) {
+                            if (Math.abs(c) > 0.08) {
                                 const h = Math.floor(j / this.D.headDim);
                                 const localJ = j % this.D.headDim;
                                 if (h < this.D.heads && i < this.W_A[h].length && localJ < this.W_A[h][i].length) {
-                                    this.W_A[h][i][localJ] = clamp(this.W_A[h][i][localJ] + eta * c, -2, 2);
+                                    const newWeight = this.W_A[h][i][localJ] + eta * c;
+                                    if (Number.isFinite(newWeight)) {
+                                        this.W_A[h][i][localJ] = clamp(newWeight, -1.5, 1.5);
+                                    }
                                 }
                             }
                         }
@@ -1926,13 +2129,15 @@
                 
                 this._updateEmotions(reward, combatEvents);
                 
+                // Calculate average TD error safely
+                let tdSum = 0;
+                for (let i = 0; i < this.stats.tdErrors.length; i++) {
+                    tdSum += this.stats.tdErrors[i];
+                }
+                
                 return {
                     tdError: tdErr,
-                    avgTDError: safeDiv(
-                        this.stats.tdErrors.reduce((a, b) => a + b, 0),
-                        this.stats.tdErrors.length,
-                        0
-                    )
+                    avgTDError: safeDiv(tdSum, this.stats.tdErrors.length, 0)
                 };
             }
 
@@ -1976,28 +2181,24 @@
                 return result;
             }
             
-            // FIX #4-7: Complete debug info with all safe divisions
+            // COMPLETE DEBUG INFO - FIX FOR INFINITY DISPLAY
             getDebugInfo() {
                 let cortexSum = 0;
-                for (let i = 0; i < this.D.C; i++) cortexSum += Math.abs(this.C[i]);
-                const cortexEnergy = safeDiv(cortexSum, this.D.C, 0);
-                
-                let workSum = 0, permSum = 0, predSum = 0;
-                for (let i = 0; i < this.D.mWork; i++) workSum += Math.abs(this._getMWork(this.M)[i]);
-                for (let i = 0; i < this.D.mPerm; i++) permSum += Math.abs(this._getMPerm(this.M)[i]);
-                for (let i = 0; i < this.D.mPred; i++) predSum += Math.abs(this._getMPred(this.M)[i]);
+                let validCortex = 0;
+                for (let i = 0; i < this.D.C; i++) {
+                    if (Number.isFinite(this.C[i]) && Math.abs(this.C[i]) < CONFIG.MAX_SAFE_VALUE) {
+                        cortexSum += Math.abs(this.C[i]);
+                        validCortex++;
+                    }
+                }
                 
                 return {
-                    cortexEnergy,
-                    predictionError: safeDiv(
-                        this.predErrors.reduce((a, b) => a + b, 0),
-                        this.D.mPred,
-                        0
-                    ),
+                    cortexEnergy: validCortex > 0 ? cortexSum / this.D.C : 0,
+                    predictionError: this._safeArrayAvg(this.predErrors, this.D.mPred),
                     memoryUsage: {
-                        working: safeDiv(workSum, this.D.mWork, 0),
-                        permanent: safeDiv(permSum, this.D.mPerm, 0),
-                        predictive: safeDiv(predSum, this.D.mPred, 0)
+                        working: this._safeArrayAvg(this._getMWork(this.M), this.D.mWork),
+                        permanent: this._safeArrayAvg(this._getMPerm(this.M), this.D.mPerm),
+                        predictive: this._safeArrayAvg(this._getMPred(this.M), this.D.mPred)
                     },
                     emotionalState: this.emotionalState.current,
                     stats: { ...this.stats }
@@ -2006,7 +2207,7 @@
         }
 
         // ============================================================================
-        // PART 3: FIGHTER CLASS - FIX #11-15: Fighter-Fighter Collision
+        // PART 3: FIGHTER CLASS - WITH ACTIVITY TRACKING
         // ============================================================================
         class Fighter {
             constructor(config) {
@@ -2032,10 +2233,25 @@
                 this.attackZone = null;
                 this.attackTarget = null;
                 
-                // FIX #11-15: Collision state
                 this.isColliding = false;
                 this.collisionNormal = { x: 0, y: 0 };
                 this.collisionForce = 0;
+                
+                // Activity tracking
+                this.activity = {
+                    moveCount: 0,
+                    attackCount: 0,
+                    blockCount: 0,
+                    lastAction: 0,
+                    combo: 0,
+                    comboTimer: 0,
+                    lastZone: 'MID',
+                    cornerTime: 0,
+                    noActionTime: 0,
+                    onlyBlockTime: 0,
+                    totalAttacks: 0,
+                    totalBlocks: 0
+                };
                 
                 this._sensors = new Float32Array(CONFIG.DIM_SENSOR);
                 this._lastOutput = new Float32Array(CONFIG.DIM_D);
@@ -2055,6 +2271,7 @@
                 this._combatEvents = [];
                 this._lastReward = 0;
                 this._lastDist = 9999;
+                this._prevHealth = 100;
                 
                 this.visible = true;
             }
@@ -2065,7 +2282,6 @@
                 return 'LOW';
             }
             
-            // FIX #11-15: Fighter-fighter collision detection and resolution
             checkCollision(other) {
                 if (!other || !other.visible || !this.visible) return false;
                 
@@ -2078,19 +2294,16 @@
                     this.isColliding = true;
                     other.isColliding = true;
                     
-                    // Calculate collision normal
                     const nx = dx / dist;
                     const ny = dy / dist;
                     
                     this.collisionNormal = { x: -nx, y: -ny };
                     other.collisionNormal = { x: nx, y: ny };
                     
-                    // Calculate overlap
                     const overlap = minDist - dist;
                     this.collisionForce = overlap;
                     other.collisionForce = overlap;
                     
-                    // Update collision stats
                     this.stats.collisions++;
                     other.stats.collisions++;
                     
@@ -2105,7 +2318,6 @@
                 return false;
             }
             
-            // FIX #13-14: Apply repulsion and push-back
             resolveCollision(other, dt) {
                 if (!this.isColliding || !other) return;
                 
@@ -2113,30 +2325,148 @@
                 const ny = this.collisionNormal.y;
                 const overlap = this.collisionForce;
                 
-                // Position correction (push apart)
                 const correction = overlap * CONFIG.COLLISION_OVERLAP_CORRECTION * 0.5;
                 this.x -= nx * correction;
                 this.y -= ny * correction;
                 other.x += nx * correction;
                 other.y += ny * correction;
                 
-                // Velocity correction (repulsion)
                 const repulsion = CONFIG.COLLISION_REPULSION_FORCE * dt;
                 this.vx -= nx * repulsion * CONFIG.COLLISION_PUSH_FACTOR;
                 this.vy -= ny * repulsion * CONFIG.COLLISION_PUSH_FACTOR;
                 other.vx += nx * repulsion * CONFIG.COLLISION_PUSH_FACTOR;
                 other.vy += ny * repulsion * CONFIG.COLLISION_PUSH_FACTOR;
                 
-                // Add collision event
                 this._combatEvents.push({ type: 'collision', force: overlap });
                 other._combatEvents.push({ type: 'collision', force: overlap });
                 this._lastReward = CONFIG.REWARDS.COLLISION;
                 other._lastReward = CONFIG.REWARDS.COLLISION;
             }
             
+            // BALANCED REWARD CALCULATION
+            _calculateBalancedReward(opponent, dt) {
+                let reward = 0;
+                
+                const dx = opponent.x - this.x;
+                const dy = opponent.y - this.y;
+                const dist = Math.hypot(dx, dy) || 1;
+                
+                // === POSITIONING REWARDS ===
+                
+                // Move toward enemy
+                if (dist < this._lastDist) {
+                    reward += CONFIG.REWARDS.MOVE_TOWARD;
+                    this._combatEvents.push({ type: 'approach' });
+                }
+                
+                // Move away penalty
+                if (dist > this._lastDist) {
+                    reward += CONFIG.REWARDS.MOVE_AWAY;
+                }
+                
+                // In combat range
+                if (dist <= CONFIG.COMBAT_RANGE) {
+                    reward += CONFIG.REWARDS.IN_COMBAT_RANGE;
+                }
+                
+                // Center control
+                const centerX = CONFIG.ARENA_WIDTH / 2;
+                const centerY = CONFIG.ARENA_HEIGHT / 2;
+                const distToCenter = Math.hypot(this.x - centerX, this.y - centerY);
+                if (distToCenter < 150) {
+                    reward += CONFIG.REWARDS.CENTER_CONTROL;
+                }
+                
+                // === PASSIVITY PENALTIES ===
+                
+                // Corner camping
+                const corners = [
+                    { x: CONFIG.ARENA_BOUNDS.left + 50, y: CONFIG.ARENA_BOUNDS.top + 50 },
+                    { x: CONFIG.ARENA_BOUNDS.right - 50, y: CONFIG.ARENA_BOUNDS.top + 50 },
+                    { x: CONFIG.ARENA_BOUNDS.left + 50, y: CONFIG.ARENA_BOUNDS.bottom - 50 },
+                    { x: CONFIG.ARENA_BOUNDS.right - 50, y: CONFIG.ARENA_BOUNDS.bottom - 50 }
+                ];
+                
+                let inCorner = false;
+                for (let i = 0; i < corners.length; i++) {
+                    if (Math.hypot(this.x - corners[i].x, this.y - corners[i].y) < 80) {
+                        inCorner = true;
+                        break;
+                    }
+                }
+                
+                if (inCorner) {
+                    this.activity.cornerTime += dt;
+                    if (this.activity.cornerTime > 2) {
+                        reward += CONFIG.REWARDS.STAY_IN_CORNER;
+                    }
+                } else {
+                    this.activity.cornerTime = 0;
+                }
+                
+                // No action penalty
+                if (this.activity.moveCount === 0 && this.activity.attackCount === 0) {
+                    this.activity.noActionTime += dt;
+                    if (this.activity.noActionTime > 5) {
+                        reward += CONFIG.REWARDS.NO_ACTION_5SEC;
+                    }
+                } else {
+                    this.activity.noActionTime = 0;
+                }
+                
+                // Only blocking penalty
+                if (this.state === 'blocking' && this.activity.attackCount === 0) {
+                    this.activity.onlyBlockTime += dt;
+                    if (this.activity.onlyBlockTime > 3) {
+                        reward += CONFIG.REWARDS.ONLY_BLOCK_3SEC;
+                    }
+                } else {
+                    this.activity.onlyBlockTime = 0;
+                }
+                
+                // === COURAGE BONUS ===
+                
+                // Fighting while hurt
+                if (this.health < 30 && dist < CONFIG.COMBAT_RANGE * 1.5 && this.activity.attackCount > 0) {
+                    reward += CONFIG.REWARDS.ENGAGE_WHILE_HURT;
+                }
+                
+                // Press advantage when winning
+                if (this.health > opponent.health + 30 && dist < CONFIG.COMBAT_RANGE) {
+                    reward += CONFIG.REWARDS.PRESS_ADVANTAGE;
+                }
+                
+                // Running away while winning
+                if (this.health > opponent.health + 30 && dist > CONFIG.COMBAT_RANGE * 2) {
+                    reward += CONFIG.REWARDS.RUN_AWAY_WHILE_WINNING;
+                }
+                
+                // === COMBO BONUS ===
+                if (this.activity.combo >= 2) {
+                    reward += CONFIG.REWARDS.COMBO_2HIT;
+                    this._combatEvents.push({ type: 'combo', count: this.activity.combo });
+                }
+                if (this.activity.combo >= 3) {
+                    reward += CONFIG.REWARDS.COMBO_3HIT;
+                }
+                
+                this._lastDist = dist;
+                
+                return reward;
+            }
+            
             update(opponent, keys, dt) {
                 if (!this.visible || this.health <= 0) return;
                 
+                // Update combo timer
+                if (this.activity.comboTimer > 0) {
+                    this.activity.comboTimer -= dt;
+                    if (this.activity.comboTimer <= 0) {
+                        this.activity.combo = 0;
+                    }
+                }
+                
+                // Update timers
                 if (this.dodgeTimer > 0) this.dodgeTimer--;
                 if (this.dodgeCooldown > 0) this.dodgeCooldown--;
                 
@@ -2152,13 +2482,18 @@
                     }
                 }
                 
+                // Reset activity counters
+                this.activity.moveCount = 0;
+                this.activity.attackCount = 0;
+                this.activity.blockCount = 0;
+                
                 if (this.brain && !this.isPlayer) {
-                    this._processNeuralOutput(opponent);
+                    this._processNeuralOutput(opponent, dt);
                 } else if (this.isPlayer && keys) {
                     this._processPlayerInput(keys, opponent, dt);
                 }
                 
-                // FIX #11-15: Check and resolve collision BEFORE physics
+                // Collision
                 if (opponent && CONFIG.COLLISION_ENABLED) {
                     if (this.checkCollision(opponent)) {
                         this.resolveCollision(opponent, dt);
@@ -2167,19 +2502,26 @@
                 
                 this._applyPhysics(dt);
                 
-                // Arena bounds
+                // Bounds
                 this.x = clamp(this.x, CONFIG.ARENA_BOUNDS.left + this.radius, CONFIG.ARENA_BOUNDS.right - this.radius);
                 this.y = clamp(this.y, CONFIG.ARENA_BOUNDS.top + this.radius, CONFIG.ARENA_BOUNDS.bottom - this.radius);
+                
+                // Calculate balanced reward
+                const balancedReward = this._calculateBalancedReward(opponent, dt);
+                this._lastReward += balancedReward;
             }
             
-            _processNeuralOutput(opponent) {
+            _processNeuralOutput(opponent, dt) {
                 if (!opponent || !opponent.visible || this.health <= 0 || !this.brain) return;
                 
                 this._collectSensors(opponent);
                 
+                // Calculate base reward
+                const baseReward = this._calculateBalancedReward(opponent, dt);
+                
                 const result = this.brain.forward(
                     this._sensors,
-                    this._lastReward,
+                    this._lastReward + baseReward,
                     this._combatEvents,
                     {
                         enemyId: opponent.name,
@@ -2197,12 +2539,15 @@
                 const dy = opponent.y - this.y;
                 const dist = Math.hypot(dx, dy) || 1;
                 
-                // FIX #20: Use constants for all thresholds
+                // MOVEMENT - Encourage engagement
                 const moveIntensity = Math.max(CONFIG.MOVE_MIN_INTENSITY, Math.abs(this._lastOutput[2]));
-                this.vx += Math.sign(this._lastOutput[0]) * moveIntensity * CONFIG.FIGHTER_ACCEL * 0.016;
-                this.vy += Math.sign(this._lastOutput[1]) * moveIntensity * CONFIG.FIGHTER_ACCEL * 0.016;
+                const moveX = Math.sign(this._lastOutput[0]) * moveIntensity * CONFIG.FIGHTER_ACCEL * 0.016;
+                const moveY = Math.sign(this._lastOutput[1]) * moveIntensity * CONFIG.FIGHTER_ACCEL * 0.016;
                 
-                // Auto-approach
+                this.vx += moveX;
+                this.vy += moveY;
+                
+                // Auto-approach if too far
                 if (dist > CONFIG.COMBAT_RANGE * CONFIG.APPROACH_RANGE_MULTIPLIER && 
                     Math.abs(this.vx) < CONFIG.MOVE_IDLE_THRESHOLD && 
                     Math.abs(this.vy) < CONFIG.MOVE_IDLE_THRESHOLD) {
@@ -2210,35 +2555,38 @@
                     this.vy += (dy / dist) * CONFIG.FIGHTER_ACCEL * 0.016 * CONFIG.APPROACH_ACCEL_FACTOR;
                 }
                 
-                if (dist < this._lastDist) this._lastReward = CONFIG.REWARDS.MOVE_TOWARD;
-                this._lastDist = dist;
-                
                 if (Math.abs(this.vx) > 4 || Math.abs(this.vy) > 4) {
                     if (this.state === 'idle') this.state = 'moving';
+                    this.activity.moveCount++;
                 }
                 
-                // Attack - FIX #20: Use constant for threshold
+                // ATTACK - Lower threshold for aggression
                 const attackConf = [
                     safeNum(this._lastOutput[4], 0),
                     safeNum(this._lastOutput[5], 0),
                     safeNum(this._lastOutput[6], 0)
                 ];
                 const maxAttack = Math.max(...attackConf);
+                
                 if (maxAttack > CONFIG.ATTACK_CONFIDENCE_THRESHOLD && 
                     this.attackTimer <= 0 && 
                     this.dodgeCooldown <= 0 && 
                     dist <= CONFIG.COMBAT_RANGE * CONFIG.ATTACK_RANGE_MULTIPLIER) {
                     const zones = ['HIGH', 'MID', 'LOW'];
                     this._startAttack(zones[attackConf.indexOf(maxAttack)], opponent);
+                    this.activity.attackCount++;
+                    this.activity.totalAttacks++;
+                    this.activity.lastAction = 0;
                 }
                 
-                // Block - FIX #20
+                // BLOCK - Lower threshold
                 const blockConf = [
                     safeNum(this._lastOutput[7], 0),
                     safeNum(this._lastOutput[8], 0),
                     safeNum(this._lastOutput[9], 0)
                 ];
                 const maxBlock = Math.max(...blockConf);
+                
                 if (maxBlock > CONFIG.BLOCK_CONFIDENCE_THRESHOLD && 
                     this.state !== 'attacking' && 
                     this.state !== 'dodging') {
@@ -2247,27 +2595,32 @@
                     if (zone === this.zone) {
                         this.blocking = zone;
                         this.state = 'blocking';
+                        this.activity.blockCount++;
+                        this.activity.totalBlocks++;
                     }
                 } else if (maxBlock <= CONFIG.BLOCK_RELEASE_THRESHOLD) {
                     this.blocking = null;
                     if (this.state === 'blocking') this.state = 'idle';
                 }
                 
-                // Retreat - FIX #20
+                // RETREAT - Higher threshold
                 if (this._lastOutput[10] > CONFIG.RETREAT_THRESHOLD) {
-                    this.vx -= (dx / dist) * CONFIG.FIGHTER_ACCEL * 0.016 * 0.38;
-                    this.vy -= (dy / dist) * CONFIG.FIGHTER_ACCEL * 0.016 * 0.38;
+                    this.vx -= (dx / dist) * CONFIG.FIGHTER_ACCEL * 0.016 * 0.35;
+                    this.vy -= (dy / dist) * CONFIG.FIGHTER_ACCEL * 0.016 * 0.35;
                 }
                 
-                // Flank - FIX #20
+                // FLANK
                 if (this._lastOutput[11] > CONFIG.FLANK_THRESHOLD) {
                     const side = opponent.x < CONFIG.ARENA_WIDTH / 2 ? 1 : -1;
-                    this.vx += side * 0.28 * CONFIG.FIGHTER_ACCEL * 0.016;
+                    this.vx += side * 0.25 * CONFIG.FIGHTER_ACCEL * 0.016;
                 }
                 
-                // Reflex dodge - FIX #20
+                // Reflex dodge
                 const fear = this.brain ? this.brain.emotions.fear : 0;
-                if (fear > CONFIG.DODGE_FEAR_THRESHOLD && this.dodgeCooldown <= 0 && this.attackTimer <= 0) {
+                const courage = this.brain ? this.brain.emotions.courage : 0;
+                const effectiveFear = Math.max(0, fear - courage * 0.4);
+                
+                if (effectiveFear > CONFIG.DODGE_FEAR_THRESHOLD && this.dodgeCooldown <= 0 && this.attackTimer <= 0) {
                     this._startDodge(opponent);
                 }
                 
@@ -2366,13 +2719,13 @@
                     const emo = this.brain.getEmotions();
                     this._sensors[idx++] = emo.fear || 0;
                     this._sensors[idx++] = emo.aggression || 0;
+                    this._sensors[idx++] = emo.courage || 0;
+                    this._sensors[idx++] = emo.confidence || 0;
                 }
                 
                 this._sensors[idx++] = dist > CONFIG.COMBAT_RANGE ? 1 : 0;
-                
-                // Collision sensor
                 this._sensors[idx++] = this.isColliding ? 1 : 0;
-                this._sensors[idx++] = this.collisionForce / CONFIG.COLLISION_MIN_DISTANCE;
+                this._sensors[idx++] = this.activity.combo / 3;
             }
             
             _startAttack(zone, target) {
@@ -2383,12 +2736,14 @@
                 this.attackTarget = target;
                 this.attackTimer = CONFIG.ATTACK_WINDUP + CONFIG.ATTACK_RECOVERY;
                 this.state = 'attacking';
+                this.activity.lastAction = 0;
             }
             
             _resolveAttack(target) {
                 if (!target || !target.visible) {
                     this._combatEvents.push({ type: 'miss' });
                     this._lastReward = CONFIG.REWARDS.MISS;
+                    this.activity.combo = 0;
                     return;
                 }
                 
@@ -2397,10 +2752,10 @@
                 if (dist > CONFIG.COMBAT_RANGE) {
                     this._combatEvents.push({ type: 'miss' });
                     this._lastReward = CONFIG.REWARDS.MISS;
+                    this.activity.combo = 0;
                     return;
                 }
                 
-                // FIX #28: Use configurable zone miss probability
                 if (target.zone !== this.attackZone && Math.random() < CONFIG.ZONE_MISS_PROBABILITY) {
                     this._combatEvents.push({ type: 'miss' });
                     this._lastReward = CONFIG.REWARDS.MISS;
@@ -2408,18 +2763,35 @@
                 }
                 
                 let damage = CONFIG.ATTACK_DAMAGE[this.attackZone];
+                let blocked = false;
                 
                 if (target.blocking === this.attackZone) {
                     damage *= (1 - CONFIG.BLOCK_REDUCTION[this.attackZone]);
+                    blocked = true;
                     target.stats.blocks++;
                     this._combatEvents.push({ type: 'block' });
                     this._lastReward = CONFIG.REWARDS.BLOCK;
+                    this.activity.combo = 0;
                 } else if (target.blocking) {
                     damage *= (1 - CONFIG.BLOCK_PENALTY);
                     this._lastReward = CONFIG.REWARDS.BLOCK_WRONG;
+                    this.activity.combo++;
+                    this.activity.comboTimer = 2;
                 } else {
                     this._combatEvents.push({ type: 'hit' });
-                    this._lastReward = CONFIG.REWARDS.HIT;
+                    
+                    // Zone-based rewards
+                    if (this.attackZone === 'HIGH') {
+                        this._lastReward = CONFIG.REWARDS.HIT_HIGH;
+                    } else if (this.attackZone === 'MID') {
+                        this._lastReward = CONFIG.REWARDS.HIT_MID;
+                    } else {
+                        this._lastReward = CONFIG.REWARDS.HIT_LOW;
+                    }
+                    
+                    this._lastReward += CONFIG.REWARDS.DEAL_DAMAGE;
+                    this.activity.combo++;
+                    this.activity.comboTimer = 2;
                 }
                 
                 target.health = clamp(target.health - damage, 0, target.maxHealth);
@@ -2468,7 +2840,6 @@
                 this._lastReward = CONFIG.REWARDS.DODGE;
             }
             
-            // FIX #27: Physics with adaptive timestep support
             _applyPhysics(dt) {
                 const clampedDt = Math.min(dt, CONFIG.MAX_FRAME_TIME);
                 
@@ -2511,16 +2882,31 @@
                 this.attackTarget = null;
                 this.visible = true;
                 
-                // Reset collision state
                 this.isColliding = false;
                 this.collisionNormal = { x: 0, y: 0 };
                 this.collisionForce = 0;
+                
+                this.activity = {
+                    moveCount: 0,
+                    attackCount: 0,
+                    blockCount: 0,
+                    lastAction: 0,
+                    combo: 0,
+                    comboTimer: 0,
+                    lastZone: 'MID',
+                    cornerTime: 0,
+                    noActionTime: 0,
+                    onlyBlockTime: 0,
+                    totalAttacks: 0,
+                    totalBlocks: 0
+                };
                 
                 this._sensors.fill(0);
                 this._lastOutput.fill(0);
                 this._combatEvents = [];
                 this._lastReward = 0;
                 this._lastDist = 9999;
+                this._prevHealth = 100;
                 
                 if (this.brain) this.brain.reset();
             }
@@ -2617,8 +3003,9 @@
                 const y = f.y;
                 const r = f.radius;
                 
+                // Glow
                 const glowGrad = ctx.createRadialGradient(x, y, r, x, y, r * 2.4);
-                const glowColor = isAlpha ? 'rgba(61, 139, 255, 0.28)' : 'rgba(239, 69, 103, 0.28)';
+                const glowColor = isAlpha ? 'rgba(61, 139, 255, 0.30)' : 'rgba(239, 69, 103, 0.30)';
                 glowGrad.addColorStop(0, glowColor);
                 glowGrad.addColorStop(1, 'transparent');
                 ctx.fillStyle = glowGrad;
@@ -2626,6 +3013,7 @@
                 ctx.arc(x, y, r * 2.4, 0, Math.PI * 2);
                 ctx.fill();
                 
+                // Body
                 const bodyGrad = ctx.createRadialGradient(x - r/3, y - r/3, 0, x, y, r);
                 bodyGrad.addColorStop(0, isAlpha ? '#5aa3ff' : '#ff8098');
                 bodyGrad.addColorStop(1, f.color);
@@ -2646,7 +3034,8 @@
                     ctx.stroke();
                 }
                 
-                const barWidth = 48;
+                // Health bar
+                const barWidth = 50;
                 const barHeight = 5;
                 const barY = y - r - 14;
                 
@@ -2658,6 +3047,7 @@
                 ctx.fillStyle = healthColor;
                 ctx.fillRect(x - barWidth/2, barY, barWidth * healthPct, barHeight);
                 
+                // State indicator
                 ctx.font = 'bold 11px -apple-system, sans-serif';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
@@ -2667,16 +3057,19 @@
                 else if (f.state === 'blocking') stateIcon = 'BLK';
                 else if (f.dodgeTimer > 0) stateIcon = 'DOD';
                 else if (f.isColliding) stateIcon = 'COL';
+                else if (f.activity.combo >= 2) stateIcon = `${f.activity.combo}x`;
                 
                 if (stateIcon) {
                     ctx.fillStyle = '#fff';
                     ctx.fillText(stateIcon, x, barY - 12);
                 }
                 
+                // Zone
                 ctx.font = 'bold 9px SF Mono, Consolas, monospace';
                 ctx.fillStyle = CONFIG.ZONES[f.zone].color;
                 ctx.fillText(f.zone, x, y + r + 15);
                 
+                // Name
                 ctx.font = 'bold 10px -apple-system, sans-serif';
                 ctx.fillStyle = isAlpha ? '#5aa3ff' : '#ff8098';
                 ctx.fillText(f.name, x, y + r + 28);
@@ -2692,7 +3085,7 @@
                 ctx.beginPath();
                 ctx.moveTo(alpha.x, alpha.y);
                 ctx.lineTo(beta.x, beta.y);
-                ctx.strokeStyle = inRange ? 'rgba(45, 212, 160, 0.38)' : 'rgba(239, 69, 103, 0.28)';
+                ctx.strokeStyle = inRange ? 'rgba(45, 212, 160, 0.40)' : 'rgba(239, 69, 103, 0.30)';
                 ctx.lineWidth = 2;
                 ctx.setLineDash(inRange ? [] : [5, 5]);
                 ctx.stroke();
@@ -2813,14 +3206,14 @@
             
             init() {
                 const brainAlpha = new CortexNetwork({
-                    seed: 'alpha_prod_v33_final',
+                    seed: 'alpha_v331_balanced',
                     lr: CONFIG.LR,
                     gamma: CONFIG.GAMMA,
                     lambda: CONFIG.LAMBDA
                 });
                 
                 const brainBeta = new CortexNetwork({
-                    seed: 'beta_prod_v33_final',
+                    seed: 'beta_v331_balanced',
                     lr: CONFIG.LR,
                     gamma: CONFIG.GAMMA,
                     lambda: CONFIG.LAMBDA
@@ -2869,7 +3262,8 @@
                 this.lastTime = performance.now();
                 requestAnimationFrame((t) => this.loop(t));
                 
-                Logger.info('Neural Fighter Arena v3.3.0 initialized - All 28 issues fixed');
+                Logger.info('Neural Fighter Arena v3.3.1 BALANCED initialized');
+                Logger.info('All fixes applied: Memory overflow, Fear dominance, Passive behavior');
             },
             
             _initEmotionGrids() {
@@ -2929,8 +3323,10 @@
                 
                 removeClass('alpha-indicator', 'active');
                 removeClass('alpha-indicator', 'danger');
+                removeClass('alpha-indicator', 'aggressive');
                 removeClass('beta-indicator', 'active');
                 removeClass('beta-indicator', 'danger');
+                removeClass('beta-indicator', 'aggressive');
                 
                 setText('metric-round', '1');
                 setText('metric-winner', '--');
@@ -2980,6 +3376,7 @@
                 setText('metric-alpha-wins', this.alpha.stats.wins);
                 setText('metric-beta-wins', this.beta.stats.wins);
                 
+                // Learn
                 if (this.alpha.brain !== null) {
                     this.alpha.brain.learn({
                         observation: Array.from(this.alpha._sensors),
@@ -3004,16 +3401,16 @@
                 
                 Logger.combat(`Round ${this.round} ended - ${this.winner} wins`);
                 
-                if (getEl('chk-autotrain') !== null && getEl('chk-autotrain').checked && this.round < 50) {
-                    setTimeout(() => this.nextRound(), 1800);
+                                if (getEl('chk-autotrain') !== null && getEl('chk-autotrain').checked && this.round < 100) {
+                    setTimeout(() => this.nextRound(), 1500);
                 }
             },
             
             train() {
-                Logger.learn('Training session started (5 rounds)');
+                Logger.learn('Training session started (10 rounds)');
                 
                 let roundsDone = 0;
-                const maxRounds = 5;
+                const maxRounds = 10;
                 
                 const runRound = () => {
                     if (roundsDone >= maxRounds) {
@@ -3027,9 +3424,9 @@
                         if (this.roundEnded) {
                             clearInterval(interval);
                             roundsDone++;
-                            setTimeout(runRound, 800);
+                            setTimeout(runRound, 600);
                         }
-                    }, 80);
+                    }, 60);
                 };
                 
                 runRound();
@@ -3038,20 +3435,53 @@
             updateUI() {
                 if (this.alpha === null || this.beta === null) return;
                 
+                // Health
                 setBar('alpha-health-bar', safeNum(this.alpha.health, 0));
                 setBar('beta-health-bar', safeNum(this.beta.health, 0));
                 setText('alpha-health', Math.floor(safeNum(this.alpha.health, 0)));
                 setText('beta-health', Math.floor(safeNum(this.beta.health, 0)));
                 
+                // Zones
                 setText('alpha-zone', this.alpha.zone);
                 setText('beta-zone', this.beta.zone);
                 setText('alpha-block', this.alpha.blocking || '--');
                 setText('beta-block', this.beta.blocking || '--');
                 
-                // Collision state
-                setText('alpha-collision', this.alpha.isColliding ? 'YES' : '--');
-                setText('beta-collision', this.beta.isColliding ? 'YES' : '--');
+                // Combo
+                setText('alpha-combo', safeNum(this.alpha.activity.combo, 0));
+                setText('beta-combo', safeNum(this.beta.activity.combo, 0));
                 
+                // Activity indicators
+                const updateActivityIndicator = (fighter, prefix) => {
+                    const moveDot = getEl(`${prefix}-act-move`);
+                    const attackDot = getEl(`${prefix}-act-attack`);
+                    const defendDot = getEl(`${prefix}-act-defend`);
+                    const label = getEl(`${prefix}-activity-label`);
+                    
+                    if (moveDot !== null) {
+                        moveDot.className = 'activity-dot' + (fighter.activity.moveCount > 0 ? ' active' : '');
+                    }
+                    if (attackDot !== null) {
+                        attackDot.className = 'activity-dot' + (fighter.activity.attackCount > 0 ? ' attacking' : '');
+                    }
+                    if (defendDot !== null) {
+                        defendDot.className = 'activity-dot' + (fighter.activity.blockCount > 0 ? ' defensive' : '');
+                    }
+                    
+                    if (label !== null) {
+                        let status = 'IDLE';
+                        if (fighter.activity.attackCount > 0) status = 'ATK';
+                        else if (fighter.activity.blockCount > 0) status = 'DEF';
+                        else if (fighter.activity.moveCount > 0) status = 'MOV';
+                        if (fighter.activity.combo >= 2) status += ` ${fighter.activity.combo}x`;
+                        label.textContent = status;
+                    }
+                };
+                
+                updateActivityIndicator(this.alpha, 'alpha');
+                updateActivityIndicator(this.beta, 'beta');
+                
+                // Emotions
                 if (this.alpha.brain !== null) {
                     const emo = this.alpha.brain.getEmotions();
                     const emotions = CONFIG.EMOTIONS.slice(0, 8);
@@ -3072,14 +3502,17 @@
                     setText('alpha-gamma', formatNum(this.alpha.brain.gamma, 2));
                     setText('alpha-steps', this.alpha.brain.stats.steps);
                     
-                    const avgTD = this.alpha.brain.stats.tdErrors.length > 0
-                        ? safeDiv(
-                            this.alpha.brain.stats.tdErrors.reduce((a, b) => a + b, 0),
-                            this.alpha.brain.stats.tdErrors.length,
-                            0
-                        )
-                        : 0;
+                    // TD error
+                    let tdSum = 0;
+                    for (let i = 0; i < this.alpha.brain.stats.tdErrors.length; i++) {
+                        tdSum += this.alpha.brain.stats.tdErrors[i];
+                    }
+                    const avgTD = safeDiv(tdSum, this.alpha.brain.stats.tdErrors.length, 0);
                     setText('alpha-td-avg', formatNum(avgTD, 4));
+                    
+                    // Reward tracking
+                    setText('alpha-last-reward', formatNum(this.alpha._lastReward, 2));
+                    setText('alpha-total-reward', formatNum(this.alpha.brain.stats.totalReward, 1));
                 }
                 
                 if (this.beta.brain !== null) {
@@ -3104,11 +3537,34 @@
                     setText('beta-mem-load', `${Math.round(memLoad * 100)}%`);
                 }
                 
-                if (this.alpha.health < 30) addClass('alpha-indicator', 'danger');
-                if (this.beta.health < 30) addClass('beta-indicator', 'danger');
+                // Danger/Aggressive indicators
+                if (this.alpha.health < 30) {
+                    addClass('alpha-indicator', 'danger');
+                } else {
+                    removeClass('alpha-indicator', 'danger');
+                }
+                
+                if (this.beta.health < 30) {
+                    addClass('beta-indicator', 'danger');
+                } else {
+                    removeClass('beta-indicator', 'danger');
+                }
+                
+                // Aggression indicator
+                if (this.alpha.brain && this.alpha.brain.emotions.aggression > 0.5) {
+                    addClass('alpha-indicator', 'aggressive');
+                } else {
+                    removeClass('alpha-indicator', 'aggressive');
+                }
+                
+                if (this.beta.brain && this.beta.brain.emotions.aggression > 0.5) {
+                    addClass('beta-indicator', 'aggressive');
+                } else {
+                    removeClass('beta-indicator', 'aggressive');
+                }
             },
             
-            // FIX #27: Adaptive timestep loop
+            // Adaptive timestep loop
             loop(currentTime) {
                 const rawDt = (currentTime - this.lastTime) / 1000;
                 this.lastTime = currentTime;
@@ -3118,7 +3574,6 @@
                 PerfMonitor.startFrame();
                 
                 if (this.running && !this.paused && !this.roundEnded) {
-                    // Fixed timestep accumulator for consistent physics
                     this.accumulator += dt;
                     
                     while (this.accumulator >= CONFIG.FIXED_TIMESTEP) {
@@ -3147,7 +3602,7 @@
                         this.accumulator -= CONFIG.FIXED_TIMESTEP;
                     }
                     
-                    if (this.frame % 4 === 0) {
+                    if (this.frame % 3 === 0) {
                         this.updateUI();
                     }
                 }
@@ -3166,26 +3621,31 @@
         // ============================================================================
         window.addEventListener('load', () => {
             Game.init();
-            console.log('[CORTEX² v3.3.0] All 28 issues resolved:');
-            console.log('  FIX #1-2: FPS calculation corrected');
-            console.log('  FIX #3-9: NaN/Infinity guards complete');
-            console.log('  FIX #10: Neural ops counting accurate');
-            console.log('  FIX #11-15: Fighter-fighter collision implemented');
-            console.log('  FIX #16: Episodic memory recall active');
-            console.log('  FIX #17: Social memory influence applied');
-            console.log('  FIX #18: Complete eligibility traces for all layers');
-            console.log('  FIX #19: Value head updates for all layers');
-            console.log('  FIX #20: All magic numbers converted to constants');
-            console.log('  FIX #21: Matrix multiplication optimized');
-            console.log('  FIX #22: Consistent DOM null guards');
-            console.log('  FIX #23: Explicit dimension validation');
-            console.log('  FIX #24: Reflex mutation documented');
-            console.log('  FIX #25: External dependencies removed');
-            console.log('  FIX #26: GC tracking complete');
-            console.log('  FIX #27: Adaptive timestep implemented');
-            console.log('  FIX #28: Zone miss probability configurable');
+            window.Game = Game;
+            
+            console.log('%c[CORTEX² v3.3.1 BALANCED]', 'color: #2dd4a0; font-weight: bold; font-size: 14px;');
+            console.log('%c========================================', 'color: #3a8bff;');
+            console.log('%c✓ Memory Overflow Fixed', 'color: #2dd4a0;');
+            console.log('%c✓ Division by Zero Protected', 'color: #2dd4a0;');
+            console.log('%c✓ Gradient Clipping Applied', 'color: #2dd4a0;');
+            console.log('%c✓ Layer Validation Active', 'color: #2dd4a0;');
+            console.log('%c✓ Balanced Reward System', 'color: #2dd4a0;');
+            console.log('%c✓ Fear Dominance Reduced', 'color: #2dd4a0;');
+            console.log('%c✓ Courage Emotion Added', 'color: #2dd4a0;');
+            console.log('%c✓ Passive Behavior Fixed', 'color: #2dd4a0;');
+            console.log('%c✓ Combo System Active', 'color: #2dd4a0;');
+            console.log('%c✓ Activity Tracking Enabled', 'color: #2dd4a0;');
+            console.log('%c========================================', 'color: #3a8bff;');
+            console.log('%cEXPECTED BEHAVIOR:', 'color: #f5b642; font-weight: bold;');
+            console.log('%c  • Fighters actively engage', 'color: #9eb3d8;');
+            console.log('%c  • Mix of offense and defense', 'color: #9eb3d8;');
+            console.log('%c  • Confidence builds on hits', 'color: #9eb3d8;');
+            console.log('%c  • Fear decays quickly', 'color: #9eb3d8;');
+            console.log('%c  • Aggression rewarded', 'color: #9eb3d8;');
+            console.log('%c  • Combos provide bonuses', 'color: #9eb3d8;');
+            console.log('%c  • Passive play penalized', 'color: #9eb3d8;');
         });
     })();
     </script>
 </body>
-    </html>
+</html>
