@@ -937,7 +937,7 @@
                 IN_RANGE: 0.15,
                 TOO_FAR: -0.08,
                 STALLING_PER_SEC: -0.8,
-                ROUND_TIME_LIMIT: 25,
+                ROUND_TIME_LIMIT: 250,
                 ATTACK_INITIATE: 0.80,
                 MISS: -0.08,
                 ATTACK_MISS: -0.10,
@@ -2642,7 +2642,12 @@
                 this.roundTime += dt;
                 
                 if (this.roundTime > CONFIG.REWARDS.ROUND_TIME_LIMIT) {
-                    this.health = 0;
+    // Проверяем, что игра еще не закончена и оба живы
+    if (window.Game && !window.Game.roundEnded && 
+        this === window.Game.alpha && window.Game.beta.health > 0) {
+        window.Game.endRound(null); // null = ничья
+    }
+    this.health = this.health; // не меняем здоровье
                 }
                 
                 if (this.activity.comboTimer > 0) {
