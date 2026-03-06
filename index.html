@@ -879,9 +879,9 @@
             },
             
             // УВЕЛИЧЕННЫЕ ЗНАЧЕНИЯ ДЛЯ АТАК
-            ATTACK_WINDUP: 20,
-            ATTACK_RECOVERY: 25,
-            ATTACK_DAMAGE: { HIGH: 14, MID: 11, LOW: 8 },
+            ATTACK_WINDUP: 30,
+            ATTACK_RECOVERY: 35,
+            ATTACK_DAMAGE: { HIGH: 6, MID: 5, LOW: 4 },
             ATTACK_COOLDOWN: 25,
             ATTACK_CONFIDENCE_THRESHOLD: 0.35,
             ATTACK_RANGE_MULTIPLIER: 1.40,
@@ -2454,8 +2454,8 @@
                 this.vy = 0;
                 this.radius = CONFIG.FIGHTER_RADIUS;
                 
-                this.health = 100;
-                this.maxHealth = 100;
+                this.health = 200;
+                this.maxHealth = 200;
                 this.state = 'idle';
                 this.blocking = null;
                 this.dodgeTimer = 0;
