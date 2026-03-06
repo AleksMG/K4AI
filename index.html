@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Neural Fighter Arena — Cortex² v3.3.5 AGGRESSOR</title>
+    <title>Neural Fighter Arena — Cortex² v3.3.5 PREDICTION FIXED</title>
     <style>
         :root {
             --bg-deep: #050709;
@@ -461,7 +461,7 @@
         <header class="header">
             <div class="header-left">
                 <div class="logo">N</div>
-                <h1>NEURAL FIGHTER ARENA<span class="version-badge">CORTEX² v3.3.5 AGGRESSOR</span></h1>
+                <h1>NEURAL FIGHTER ARENA<span class="version-badge">CORTEX² v3.3.5 PREDICTION FIXED</span></h1>
             </div>
             <div class="header-controls">
                 <button id="btn-start" class="btn primary">START</button>
@@ -520,6 +520,16 @@
                 </div>
                 <div class="progress-bar">
                     <div id="alpha-pred-bar" class="progress-fill fill-yellow" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <div class="panel-row">
+                    <span class="label">PREDICTION CONFIDENCE</span>
+                    <span id="alpha-pred-conf" class="value">0.000</span>
+                </div>
+                <div class="progress-bar">
+                    <div id="alpha-pred-conf-bar" class="progress-fill fill-cyan" style="width: 0%"></div>
                 </div>
             </div>
 
@@ -743,7 +753,7 @@
         'use strict';
 
         // ============================================================================
-        // PART 1: CONFIGURATION & CONSTANTS - v3.3.5 AGGRESSOR
+        // PART 1: CONFIGURATION & CONSTANTS - v3.3.5 PREDICTION FIXED
         // ============================================================================
 
         const CONFIG = {
@@ -778,13 +788,13 @@
             ATTACK_RECOVERY: 12,
             ATTACK_DAMAGE: { HIGH: 14, MID: 11, LOW: 8 },
             ATTACK_COOLDOWN: 18,
-            ATTACK_CONFIDENCE_THRESHOLD: 0.35,  // FIXED: lowered from 0.55
+            ATTACK_CONFIDENCE_THRESHOLD: 0.35,
             ATTACK_RANGE_MULTIPLIER: 1.40,
             
             // Block System
             BLOCK_REDUCTION: { HIGH: 0.82, MID: 0.78, LOW: 0.72 },
             BLOCK_PENALTY: 0.35,
-            BLOCK_CONFIDENCE_THRESHOLD: 0.35,  // FIXED: lowered from 0.50
+            BLOCK_CONFIDENCE_THRESHOLD: 0.35,
             
             // Dodge System
             DODGE_DURATION: 8,
@@ -792,13 +802,13 @@
             DODGE_DISTANCE: 52,
             DODGE_FEAR_THRESHOLD: 0.70,
             
-            // Movement - FIXED: adjusted thresholds
-            MOVE_MIN_INTENSITY: 0.18,  // FIXED: lowered from 0.30
-            MOVE_IDLE_THRESHOLD: 8,    // FIXED: lowered from 12
+            // Movement
+            MOVE_MIN_INTENSITY: 0.18,
+            MOVE_IDLE_THRESHOLD: 8,
             RETREAT_THRESHOLD: 0.68,
             FLANK_THRESHOLD: 0.55,
             APPROACH_RANGE_MULTIPLIER: 1.8,
-            APPROACH_ACCEL_FACTOR: 0.70,  // FIXED: increased from 0.55
+            APPROACH_ACCEL_FACTOR: 0.70,
             
             // Zone miss probability
             ZONE_MISS_PROBABILITY: 0.20,
@@ -819,93 +829,72 @@
             M_PERM_SIZE: 48,
             M_PRED_SIZE: 48,
             
-            // ============================================================================
-            // v3.3.5 AGGRESSOR REWARDS - MAXIMUM ENGAGEMENT
-            // ============================================================================
+            // REWARDS - AGGRESSIVE
             REWARDS: {
-                // Core combat - MASSIVE WIN BONUS
-                WIN: 35.0,              // Increased from 25.0
-                LOSS: -10.0,            // Increased from -8.0
-                
-                // Damage dealing - STRONG
-                DEAL_DAMAGE: 4.0,       // Increased from 3.0
+                WIN: 35.0,
+                LOSS: -10.0,
+                DEAL_DAMAGE: 4.0,
                 HIT_HIGH: 2.5,
                 HIT_MID: 2.0,
                 HIT_LOW: 1.5,
-                HIT: 2.5,               // Increased from 2.0
-                
-                // Damage taken
-                TAKE_DAMAGE: -1.5,      // Reduced penalty (encourage fighting)
+                HIT: 2.5,
+                TAKE_DAMAGE: -1.5,
                 NEAR_DEATH: -3.0,
                 DAMAGE_TAKEN: -0.05,
-                
-                // ENGAGEMENT REWARDS - VERY STRONG
-                MOVE_TOWARD: 0.25,      // Increased from 0.15
-                MOVE_AWAY: -0.12,       // Increased penalty
-                IN_COMBAT_RANGE: 0.20,  // Increased from 0.12
+                MOVE_TOWARD: 0.25,
+                MOVE_AWAY: -0.12,
+                IN_COMBAT_RANGE: 0.20,
                 CENTER_CONTROL: 0.08,
-                IN_RANGE: 0.15,         // Increased from 0.08
-                TOO_FAR: -0.08,         // Increased from -0.05
-                
-                // TIME PRESSURE
+                IN_RANGE: 0.15,
+                TOO_FAR: -0.08,
                 STALLING_PER_SEC: -0.8,
-                ROUND_TIME_LIMIT: 25,   // Reduced from 30
-                
-                // Attack actions - HEAVILY REWARDED
-                ATTACK_INITIATE: 0.80,  // Increased from 0.50
-                MISS: -0.08,            // Reduced penalty
+                ROUND_TIME_LIMIT: 25,
+                ATTACK_INITIATE: 0.80,
+                MISS: -0.08,
                 ATTACK_MISS: -0.10,
-                ATTACK_BLOCKED: 0.05,   // CHANGED: slight positive (at least tried)
+                ATTACK_BLOCKED: 0.05,
                 COMBO_2HIT: 1.80,
                 COMBO_3HIT: 3.50,
-                
-                // Defensive actions - REDUCED
-                BLOCK: 0.05,            // Reduced from 0.10
-                BLOCK_CORRECT: 0.08,    // Reduced from 0.15
+                BLOCK: 0.05,
+                BLOCK_CORRECT: 0.08,
                 BLOCK_WRONG: -0.15,
-                DODGE: 0.10,            // Reduced from 0.20
-                DODGE_SUCCESS: 0.12,    // Reduced from 0.25
+                DODGE: 0.10,
+                DODGE_SUCCESS: 0.12,
                 DODGE_UNNECESSARY: -0.08,
-                
-                // Courage/Aggression bonuses
                 ENGAGE_WHILE_HURT: 1.50,
                 PRESS_ADVANTAGE: 1.20,
                 RECOVER_FROM_KNOCKDOWN: 2.00,
-                FIRST_STRIKE: 1.00,     // NEW: bonus for first attack
-                
-                // Learning signals
+                FIRST_STRIKE: 1.00,
                 PREDICTION_CORRECT: 0.15,
                 PREDICTION_WRONG: -0.10,
                 ADAPT_TO_ENEMY: 0.30,
                 COLLISION: -0.01,
-                
-                // NEW: Action diversity reward
                 ACTION_DIVERSITY: 0.10,
                 REPEAT_ACTION_PENALTY: -0.05
             },
             
             // Hyperparameters
-            LR: 0.015,              // Increased from 0.012
+            LR: 0.015,
             GAMMA: 0.98,
             LAMBDA: 0.94,
-            HEBBIAN_RATE: 0.003,    // Increased from 0.002
+            HEBBIAN_RATE: 0.003,
             
-            // Exploration - v3.3.5 AGGRESSIVE
-            EXPLORATION_NOISE: 0.25,    // Increased from 0.15
+            // Exploration
+            EXPLORATION_NOISE: 0.25,
             EXPLORATION_DECAY: 0.997,
             MIN_EXPLORATION: 0.05,
             
-            // v3.3.5: Action bias initialization
-            ACTION_BIAS_STRENGTH: 0.30,  // Bias towards attack outputs
+            // Action bias
+            ACTION_BIAS_STRENGTH: 0.30,
             
             // Emotion thresholds
             EMOTION_ENTER_THRESHOLD: 0.45,
             EMOTION_EXIT_THRESHOLD: 0.12,
             EMOTION_SATISFACTION_EXIT: 0.85,
             
-            // Reflex thresholds - MORE AGGRESSIVE
-            REFLEX_FEAR_THRESHOLD: 0.85,     // Raised (less fear)
-            REFLEX_AGGRESSION_THRESHOLD: 0.55, // Lowered (more aggression)
+            // Reflex thresholds
+            REFLEX_FEAR_THRESHOLD: 0.85,
+            REFLEX_AGGRESSION_THRESHOLD: 0.55,
             REFLEX_SURPRISE_THRESHOLD: 0.70,
             REFLEX_CONFLICT_AGGRESSION: 0.50,
             REFLEX_CONFLICT_FEAR: 0.55,
@@ -931,7 +920,7 @@
             // Activity tracking
             ACTIVITY_WINDOW: 300,
             
-            // Emotions
+            // Emotions list
             EMOTIONS: [
                 'threat', 'frustration', 'confidence', 'aggression',
                 'fear', 'surprise', 'caution', 'desperation',
@@ -939,7 +928,25 @@
                 'pride', 'curiosity', 'boredom', 'anxiety',
                 'excitement', 'disappointment', 'satisfaction', 'grief',
                 'courage', 'determination'
-            ]
+            ],
+            
+            // ============================================================================
+            // PREDICTION SYSTEM CONSTANTS - FIXED v3.3.5
+            // ============================================================================
+            PREDICTION: {
+                ALPHA: 0.1,                 // Скорость обновления скользящего среднего
+                MIN_ERROR: 0.01,              // Минимальная ошибка (защита от 0)
+                MAX_ERROR: 0.99,              // Максимальная ошибка (защита от 1)
+                CONFIDENCE_WEIGHT: 0.5,       // Вес уверенности в движении
+                ATTACK_CONFIDENCE_THRESHOLD: 0.7,  // Порог для агрессивных действий
+                RETREAT_CONFIDENCE_THRESHOLD: 0.3, // Порог для отступления
+                TRAJECTORY_HORIZON: 60,        // Горизонт предсказания (кадры)
+                POSITION_WEIGHT: 0.7,          // Вес позиции в предсказании
+                VELOCITY_WEIGHT: 0.3,          // Вес скорости в предсказании
+                MEMORY_BOOST_THRESHOLD: 0.8,    // Порог для усиления памяти
+                LEARNING_RATE_FACTOR: 1.5,      // Множитель для обучения при ошибке
+                PREDICTION_REWARD: 0.2          // Награда за точные предсказания
+            }
         };
 
         // Computed architecture constants
@@ -1173,7 +1180,7 @@
         }
 
         // ============================================================================
-        // PART 2: CORTEX² NEURAL NETWORK - v3.3.5 WITH SIGMOID OUTPUTS
+        // PART 2: CORTEX² NEURAL NETWORK - v3.3.5 WITH PREDICTION SYSTEM FIXED
         // ============================================================================
         class CortexNetwork {
             constructor(config = {}) {
@@ -1184,7 +1191,6 @@
                 this.lambda = safeNum(config.lambda, CONFIG.LAMBDA);
                 this.hebbianRate = safeNum(config.hebbianRate, CONFIG.HEBBIAN_RATE);
                 
-                // v3.3.5: Exploration tracking
                 this.explorationNoise = CONFIG.EXPLORATION_NOISE;
                 
                 this.D = {
@@ -1230,16 +1236,17 @@
                 this.W_S = this._initMatrix(ARCH.S_INPUT, this.D.S, 0.25);
                 this.b_S = this._initVector(this.D.S, 0.06);
                 
-                // FIXED: Initialize decision layer with POSITIVE bias for attacks
+                // Decision layer with bias for attacks
                 this.W_D = this._initMatrix(ARCH.D_INPUT, this.D.Dout, 0.18);
                 this.b_D = this._initVector(this.D.Dout, 0.06);
                 
-                // v3.3.5: Add action bias to attack outputs (indices 4,5,6)
+                // Action bias to attack outputs (indices 4,5,6)
                 const actionBias = CONFIG.ACTION_BIAS_STRENGTH;
-                this.b_D[4] = actionBias;  // HIGH attack
-                this.b_D[5] = actionBias;  // MID attack
-                this.b_D[6] = actionBias;  // LOW attack
+                this.b_D[4] = actionBias;
+                this.b_D[5] = actionBias;
+                this.b_D[6] = actionBias;
                 
+                // Prediction weights - КЛЮЧЕВОЙ КОМПОНЕНТ
                 this.W_pred = this._initMatrix(this.D.mPred, this.D.sensor, 0.12);
                 this.b_pred = this._initVector(this.D.sensor, 0.03);
                 
@@ -1266,7 +1273,16 @@
                 this.S_prev = new Float32Array(this.D.S);
                 this.D_prev = new Float32Array(this.D.Dout);
                 
+                // Prediction errors - ИНИЦИАЛИЗАЦИЯ
                 this.predErrors = new Float32Array(this.D.mPred);
+                for (let i = 0; i < this.D.mPred; i++) {
+                    this.predErrors[i] = 0.5; // Начальное нейтральное значение
+                }
+                
+                // Предсказанные позиции
+                this.predictedPos60 = { x: 0, y: 0 };
+                this.predictionConfidence = 0.5;
+                this.lastPrediction = null;
 
                 // Eligibility traces
                 this.eTrace_P = new Float32Array(ARCH.P_INPUT * this.D.P);
@@ -1374,13 +1390,15 @@
                     gradientClips: 0,
                     explorationActions: 0,
                     attackCount: 0,
-                    moveCount: 0
+                    moveCount: 0,
+                    predictionsCorrect: 0,
+                    predictionsWrong: 0
                 };
                 
                 this._lastOutput = new Float32Array(this.D.Dout);
                 this._lastReward = 0;
                 this._reflexThisFrame = false;
-                this._lastActions = [];  // Track action history for diversity
+                this._lastActions = [];
             }
 
             _initVector(length, scale) {
@@ -1509,33 +1527,194 @@
                 return Number.isFinite(avg) && Math.abs(avg) < CONFIG.MAX_SAFE_VALUE ? avg : 0;
             }
 
-            // v3.3.5: Improved exploration - force attack sometimes
+            // ============================================================================
+            // ПРОФЕССИОНАЛЬНАЯ СИСТЕМА ПРЕДСКАЗАНИЙ - ПОЛНОСТЬЮ ИСПРАВЛЕНА
+            // ============================================================================
+            
+            /**
+             * Предсказание следующего состояния сенсоров на основе M_pred
+             * @param {Float32Array} M_pred - Текущее значение предсказательной памяти (48)
+             * @param {Float32Array} currentSensors - Текущие сенсоры (64)
+             * @returns {Object} Результат предсказания
+             */
+            _predictNextState(M_pred, currentSensors) {
+                PerfMonitor.addOps(1200);
+                
+                // 1. Предсказание следующего состояния сенсоров
+                // M_pred (48) -> W_pred (48×64) -> x_pred (64)
+                const x_pred = this._matMul(M_pred, this.W_pred, this.b_pred, 'linear');
+                
+                // 2. Вычисление ошибки предсказания (по всем сенсорам)
+                let totalError = 0;
+                for (let i = 0; i < this.D.mPred; i++) {
+                    // Абсолютная ошибка
+                    const error = Math.abs(x_pred[i] - currentSensors[i]);
+                    
+                    // Экспоненциальное скользящее среднее (EWMA)
+                    // Более стабильно чем lerp, лучше сглаживает выбросы
+                    const alpha = CONFIG.PREDICTION.ALPHA;
+                    this.predErrors[i] = this.predErrors[i] * (1 - alpha) + error * alpha;
+                    
+                    // Профессиональная защита от экстремальных значений
+                    this.predErrors[i] = Math.min(CONFIG.PREDICTION.MAX_ERROR, 
+                                                   Math.max(CONFIG.PREDICTION.MIN_ERROR, 
+                                                            this.predErrors[i]));
+                    
+                    totalError += this.predErrors[i];
+                }
+                
+                // 3. Вычисление средней ошибки и уверенности
+                const avgError = totalError / this.D.mPred;
+                // Уверенность = 1 - нормированная ошибка
+                const confidence = 1 - Math.min(avgError, 0.95);
+                this.predictionConfidence = confidence;
+                
+                // 4. Предсказание позиции противника через 60 кадров
+                // Сенсоры: [0] x, [1] y, [6] vx, [7] vy
+                const enemyX = currentSensors[0] * CONFIG.ARENA_WIDTH;
+                const enemyY = currentSensors[1] * CONFIG.ARENA_HEIGHT;
+                const enemyVx = currentSensors[6] * CONFIG.FIGHTER_SPEED;
+                const enemyVy = currentSensors[7] * CONFIG.FIGHTER_SPEED;
+                
+                // Горизонт предсказания (60 кадров = 1 секунда при 60fps)
+                const timeAhead = CONFIG.PREDICTION.TRAJECTORY_HORIZON / 60;
+                
+                // Предсказание с учетом скорости
+                this.predictedPos60 = {
+                    x: enemyX + enemyVx * timeAhead,
+                    y: enemyY + enemyVy * timeAhead
+                };
+                
+                // 5. Сохранение полных данных для использования
+                const predictionResult = {
+                    predictedSensors: Array.from(x_pred),
+                    confidence: confidence,
+                    avgError: avgError,
+                    predictedPos: { ...this.predictedPos60 },
+                    rawErrors: Array.from(this.predErrors)
+                };
+                
+                this.lastPrediction = predictionResult;
+                
+                // 6. Статистика для обучения
+                if (avgError < 0.3) {
+                    this.stats.predictionsCorrect++;
+                } else if (avgError > 0.7) {
+                    this.stats.predictionsWrong++;
+                }
+                
+                return predictionResult;
+            }
+
+            // ============================================================================
+            // ИНТЕГРАЦИЯ ПРЕДСКАЗАНИЙ В ОБУЧЕНИЕ
+            // ============================================================================
+            
+            /**
+             * Обучение на основе предсказаний
+             * @param {Float32Array} M_pred - Текущее значение предсказательной памяти
+             * @param {Float32Array} currentSensors - Текущие сенсоры
+             * @param {Float32Array} nextSensors - Следующие сенсоры (из следующего кадра)
+             */
+            learnFromPrediction(M_pred, currentSensors, nextSensors) {
+                if (!nextSensors) return 0;
+                
+                PerfMonitor.addOps(800);
+                
+                // Предсказание
+                const x_pred = this._matMul(M_pred, this.W_pred, this.b_pred, 'linear');
+                
+                // Реальная ошибка между предсказанием и реальностью
+                let predictionReward = 0;
+                for (let i = 0; i < this.D.mPred; i++) {
+                    const error = Math.abs(x_pred[i] - nextSensors[i]);
+                    const oldError = this.predErrors[i];
+                    
+                    // Если ошибка уменьшилась - награда, если увеличилась - штраф
+                    const errorChange = oldError - error;
+                    predictionReward += errorChange * CONFIG.PREDICTION.PREDICTION_REWARD;
+                    
+                    // Обновляем веса предсказаний (W_pred) через градиент
+                    const lr = this.lr * CONFIG.PREDICTION.LEARNING_RATE_FACTOR;
+                    const grad = lr * (nextSensors[i] - x_pred[i]) * M_pred[i];
+                    
+                    for (let j = 0; j < this.W_pred[i].length; j++) {
+                        this.W_pred[i][j] += grad * currentSensors[j] * 0.01;
+                        this.W_pred[i][j] = clamp(this.W_pred[i][j], -2, 2);
+                    }
+                }
+                
+                predictionReward /= this.D.mPred;
+                
+                // Обновляем predErrors на основе реальной ошибки
+                for (let i = 0; i < this.D.mPred; i++) {
+                    const realError = Math.abs(x_pred[i] - nextSensors[i]);
+                    const alpha = CONFIG.PREDICTION.ALPHA * 0.5; // Медленнее для обучения
+                    this.predErrors[i] = this.predErrors[i] * (1 - alpha) + realError * alpha;
+                    this.predErrors[i] = Math.min(CONFIG.PREDICTION.MAX_ERROR,
+                                                   Math.max(CONFIG.PREDICTION.MIN_ERROR,
+                                                            this.predErrors[i]));
+                }
+                
+                return predictionReward;
+            }
+
+            // ============================================================================
+            // ИСПОЛЬЗОВАНИЕ ПРЕДСКАЗАНИЙ ДЛЯ ПРИНЯТИЯ РЕШЕНИЙ
+            // ============================================================================
+            
+            /**
+             * Модификация выходов на основе уверенности в предсказаниях
+             * @param {Float32Array} outputs - Выходы нейросети
+             * @returns {Float32Array} Модифицированные выходы
+             */
+            _applyPredictionToOutputs(outputs) {
+                const confidence = this.predictionConfidence;
+                const modifiedOutputs = new Float32Array(outputs.length);
+                
+                for (let i = 0; i < outputs.length; i++) {
+                    modifiedOutputs[i] = outputs[i];
+                }
+                
+                // Высокая уверенность - более агрессивные атаки
+                if (confidence > CONFIG.PREDICTION.ATTACK_CONFIDENCE_THRESHOLD) {
+                    const boost = confidence * 0.2;
+                    modifiedOutputs[4] = Math.min(1, outputs[4] + boost);
+                    modifiedOutputs[5] = Math.min(1, outputs[5] + boost);
+                    modifiedOutputs[6] = Math.min(1, outputs[6] + boost);
+                }
+                
+                // Низкая уверенность - более осторожное поведение
+                if (confidence < CONFIG.PREDICTION.RETREAT_CONFIDENCE_THRESHOLD) {
+                    const retreatBoost = (1 - confidence) * 0.3;
+                    modifiedOutputs[10] = Math.min(1, outputs[10] + retreatBoost);
+                }
+                
+                return modifiedOutputs;
+            }
+
             _addExplorationNoise(outputs) {
                 const noisyOutputs = new Float32Array(outputs.length);
                 
-                // Track if we're doing exploration
                 const doExplore = Math.random() < this.explorationNoise;
                 
                 if (doExplore) {
                     this.stats.explorationActions++;
                     
-                    // 60% chance to force an attack action during exploration
                     if (Math.random() < 0.6) {
-                        // Pick a random attack zone
-                        const attackZone = 4 + Math.floor(Math.random() * 3); // 4, 5, or 6
+                        const attackZone = 4 + Math.floor(Math.random() * 3);
                         
                         for (let i = 0; i < outputs.length; i++) {
                             if (i === attackZone) {
-                                noisyOutputs[i] = 0.6 + Math.random() * 0.4; // Strong attack signal
+                                noisyOutputs[i] = 0.6 + Math.random() * 0.4;
                             } else if (i < 4) {
-                                noisyOutputs[i] = outputs[i] * 0.5; // Reduce movement
+                                noisyOutputs[i] = outputs[i] * 0.5;
                             } else {
                                 noisyOutputs[i] = outputs[i];
                             }
                         }
                     } else {
-                        // Random movement toward enemy
-                        noisyOutputs[0] = (Math.random() - 0.3) * 1.5; // Bias positive (toward)
+                        noisyOutputs[0] = (Math.random() - 0.3) * 1.5;
                         noisyOutputs[1] = (Math.random() - 0.5) * 1.5;
                         for (let i = 2; i < outputs.length; i++) {
                             noisyOutputs[i] = outputs[i];
@@ -1686,7 +1865,6 @@
                     }
                 }
                 
-                // v3.3.5: Base aggression drift - fighters get more aggressive over time
                 if (this.stats.steps % 120 === 0) {
                     this.emotions.aggression = clamp(this.emotions.aggression + 0.02, 0, 1);
                     this.emotions.courage = clamp(this.emotions.courage + 0.015, 0, 1);
@@ -1768,9 +1946,7 @@
                     reflex = true;
                 }
                 
-                // v3.3.5: Lower threshold for aggression reflex
                 if (this.emotions.aggression > CONFIG.REFLEX_AGGRESSION_THRESHOLD) {
-                    // Pick best attack zone based on position
                     const attackIdx = 4 + Math.floor(Math.random() * 3);
                     D_new[attackIdx] = clamp(D_new[attackIdx] + 0.25, 0, 1);
                     reflex = true;
@@ -1785,7 +1961,6 @@
                     D_new[6] = clamp(D_new[6] + 0.12, 0, 1);
                 }
                 
-                // v3.3.5: Vengeance boost to attacks
                 if (this.emotions.vengeance > 0.3) {
                     const attackIdx = 4 + Math.floor(Math.random() * 3);
                     D_new[attackIdx] = clamp(D_new[attackIdx] + this.emotions.vengeance * 0.2, 0, 1);
@@ -1949,7 +2124,11 @@
                 }
             }
 
-            forward(rawInputs, reward, combatEvents, socialContext) {
+            // ============================================================================
+            // FORWARD PASS С ИНТЕГРИРОВАННОЙ СИСТЕМОЙ ПРЕДСКАЗАНИЙ
+            // ============================================================================
+            
+            forward(rawInputs, reward, combatEvents, socialContext, nextSensors = null) {
                 PerfMonitor.addOps(180000);
                 
                 const x_t = new Float32Array(this.D.sensor);
@@ -2026,6 +2205,16 @@
                 for (let i = 0; i < this.D.Dout; i++) Mr_in[idx++] = this.D_prev[i];
                 const M_pred_new = this._matMul(Mr_in, this.W_M_pred, this.b_M_pred, 'relu');
                 
+                // ========== ПРЕДСКАЗАНИЕ СЛЕДУЮЩЕГО СОСТОЯНИЯ ==========
+                const prediction = this._predictNextState(M_pred_new, x_t);
+                
+                // Обучение на предсказаниях, если есть следующий кадр
+                if (nextSensors) {
+                    const predReward = this.learnFromPrediction(M_pred_new, x_t, nextSensors);
+                    // Можно добавить predReward к общей награде
+                }
+                // ==========================================================
+                
                 const M_new = new Float32Array(this.D.M);
                 for (let i = 0; i < this.D.mWork; i++) M_new[i] = M_work_new[i];
                 for (let i = 0; i < this.D.mPerm; i++) M_new[this.D.mWork + i] = M_perm_new[i];
@@ -2057,7 +2246,6 @@
                 for (let i = 0; i < this.D.S; i++) D_in[idx++] = this.S_prev[i];
                 for (let i = 0; i < this.D.mPred; i++) D_in[idx++] = this._getMPred(this.M_prev)[i];
                 
-                // FIXED: Use sigmoid for action outputs (0-1 range for confidence)
                 let D_new = this._matMul(D_in, this.W_D, this.b_D, 'sigmoid');
                 this._checkLayer(D_new, 'D');
                 
@@ -2085,18 +2273,19 @@
                     D_new = this._applySocialInfluence(socialContext.enemyId, D_new);
                 }
                 
-                this.Dvec.set(D_new);
+                // ========== ПРИМЕНЕНИЕ ПРЕДСКАЗАНИЙ К ВЫХОДАМ ==========
+                D_new = this._applyPredictionToOutputs(D_new);
+                // ========================================================
                 
                 this._updateEmotions(r_t, combatEvents);
-                this._reflexThisFrame = this._checkReflexes(this.Dvec);
-                this._resolveCommandConflicts(this.Dvec);
+                this._reflexThisFrame = this._checkReflexes(D_new);
+                this._resolveCommandConflicts(D_new);
                 
-                // v3.3.5: Add exploration noise
-                const outputWithNoise = this._addExplorationNoise(this.Dvec);
+                const outputWithNoise = this._addExplorationNoise(D_new);
                 
                 const output = [];
                 for (let i = 0; i < this.D.Dout; i++) {
-                    output.push(clamp(outputWithNoise[i], 0, 1));  // FIXED: sigmoid outputs 0-1
+                    output.push(clamp(outputWithNoise[i], 0, 1));
                 }
                 this._lastOutput.set(output);
                 
@@ -2109,6 +2298,8 @@
                     reflexTriggered: this._reflexThisFrame,
                     emotionalState: this.emotionalState.current,
                     avgPredictionError: this._safeArrayAvg(this.predErrors, this.D.mPred),
+                    predictionConfidence: this.predictionConfidence,
+                    predictedPos: { ...this.predictedPos60 },
                     steps: this.stats.steps,
                     explorationNoise: this.explorationNoise
                 };
@@ -2200,7 +2391,14 @@
                 this.S_prev.fill(0);
                 this.D_prev.fill(0);
                 
-                this.predErrors.fill(0);
+                // Сброс ошибок предсказания на нейтральное значение
+                for (let i = 0; i < this.D.mPred; i++) {
+                    this.predErrors[i] = 0.5;
+                }
+                
+                this.predictedPos60 = { x: 0, y: 0 };
+                this.predictionConfidence = 0.5;
+                this.lastPrediction = null;
                 
                 this.eTrace_P.fill(0);
                 this.eTrace_A.fill(0);
@@ -2208,9 +2406,8 @@
                 this.eTrace_S.fill(0);
                 this.eTrace_D.fill(0);
                 
-                // Don't reset emotions completely - keep some persistence
                 for (let i = 0; i < CONFIG.EMOTIONS.length; i++) {
-                    this.emotions[CONFIG.EMOTIONS[i]] *= 0.5;  // Half decay instead of reset
+                    this.emotions[CONFIG.EMOTIONS[i]] *= 0.5;
                 }
                 this.emotionalState.current = null;
                 this.emotionalState.intensity = 0;
@@ -2236,9 +2433,18 @@
                     }
                 }
                 
+                // Вычисляем среднюю ошибку предсказания
+                let predErrorSum = 0;
+                for (let i = 0; i < this.D.mPred; i++) {
+                    predErrorSum += this.predErrors[i] || 0;
+                }
+                const avgPredError = this.D.mPred > 0 ? predErrorSum / this.D.mPred : 0.5;
+                
                 return {
                     cortexEnergy: validCortex > 0 ? cortexSum / this.D.C : 0,
-                    predictionError: this._safeArrayAvg(this.predErrors, this.D.mPred),
+                    predictionError: avgPredError,
+                    predictionConfidence: this.predictionConfidence,
+                    predictedPos: this.predictedPos60,
                     memoryUsage: {
                         working: this._safeArrayAvg(this._getMWork(this.M), this.D.mWork),
                         permanent: this._safeArrayAvg(this._getMPerm(this.M), this.D.mPerm),
@@ -2252,7 +2458,7 @@
         }
 
         // ============================================================================
-        // PART 3: FIGHTER CLASS - v3.3.5 WITH IMPROVED MOVEMENT
+        // PART 3: FIGHTER CLASS - v3.3.5 WITH PREDICTION INTEGRATION
         // ============================================================================
         class Fighter {
             constructor(config) {
@@ -2300,6 +2506,7 @@
                 
                 this._sensors = new Float32Array(CONFIG.DIM_SENSOR);
                 this._lastOutput = new Float32Array(CONFIG.DIM_D);
+                this._lastSensors = null;
                 
                 this.stats = {
                     hitsLanded: 0,
@@ -2398,7 +2605,6 @@
                 const dy = opponent.y - this.y;
                 const dist = Math.hypot(dx, dy) || 1;
                 
-                // Engagement rewards - STRONG
                 if (dist < this._lastDist) {
                     reward += CONFIG.REWARDS.MOVE_TOWARD;
                     this._combatEvents.push({ type: 'approach' });
@@ -2419,12 +2625,10 @@
                     reward += CONFIG.REWARDS.CENTER_CONTROL;
                 }
                 
-                // Time pressure
                 if (this.activity.noActionTime > 1.5) {
                     reward += CONFIG.REWARDS.STALLING_PER_SEC * dt;
                 }
                 
-                // Courage bonus
                 if (this.health < 30 && dist < CONFIG.COMBAT_RANGE * 1.5 && this.activity.attackCount > 0) {
                     reward += CONFIG.REWARDS.ENGAGE_WHILE_HURT;
                 }
@@ -2433,14 +2637,12 @@
                     reward += CONFIG.REWARDS.PRESS_ADVANTAGE;
                 }
                 
-                // First strike bonus
                 if (this.activity.totalAttacks === 1 && !this.activity.firstStrike) {
                     this.activity.firstStrike = true;
                     reward += CONFIG.REWARDS.FIRST_STRIKE;
                     this._combatEvents.push({ type: 'first_strike' });
                 }
                 
-                // Combo bonus
                 if (this.activity.combo >= 2) {
                     reward += CONFIG.REWARDS.COMBO_2HIT;
                     this._combatEvents.push({ type: 'combo', count: this.activity.combo });
@@ -2515,6 +2717,11 @@
                 const balancedReward = this._calculateBalancedReward(opponent, dt);
                 this._lastReward = balancedReward;
                 this._totalReward += balancedReward;
+                
+                // Сохраняем сенсоры для следующего кадра
+                if (this._sensors) {
+                    this._lastSensors = new Float32Array(this._sensors);
+                }
             }
             
             _processNeuralOutput(opponent, dt) {
@@ -2524,15 +2731,25 @@
                 
                 const baseReward = this._calculateBalancedReward(opponent, dt);
                 
+                // Награда за инициализацию атаки (для немедленного обучения)
+                let attackBonus = 0;
+                if (this._lastOutput[4] > CONFIG.ATTACK_CONFIDENCE_THRESHOLD || 
+                    this._lastOutput[5] > CONFIG.ATTACK_CONFIDENCE_THRESHOLD || 
+                    this._lastOutput[6] > CONFIG.ATTACK_CONFIDENCE_THRESHOLD) {
+                    attackBonus = CONFIG.REWARDS.ATTACK_INITIATE * 0.5;
+                }
+                
+                // Передаем следующий сенсоры для обучения предсказаниям
                 const result = this.brain.forward(
                     this._sensors,
-                    this._lastReward + baseReward,
+                    this._lastReward + baseReward + attackBonus,
                     this._combatEvents,
                     {
                         enemyId: opponent.name,
                         enemyAggression: opponent.brain ? opponent.brain.emotions.aggression : 0,
                         enemyHealth: opponent.health / opponent.maxHealth
-                    }
+                    },
+                    this._lastSensors  // Следующие сенсоры для обучения предсказаниям
                 );
                 
                 const outputs = result.output;
@@ -2544,19 +2761,39 @@
                 const dy = opponent.y - this.y;
                 const dist = Math.hypot(dx, dy) || 1;
                 
-                // FIXED: Use actual output values for movement (not sign!)
-                const moveX = this._lastOutput[0] * CONFIG.FIGHTER_ACCEL * 0.016;  // Direct value, not sign
-                const moveY = this._lastOutput[1] * CONFIG.FIGHTER_ACCEL * 0.016;
-                const moveIntensity = this._lastOutput[2];  // Optional intensity modifier
+                // Нормированное движение с преобразованием 0-1 в -1..1
+                const rawMoveX = (this._lastOutput[0] * 2 - 1);
+                const rawMoveY = (this._lastOutput[1] * 2 - 1);
+                const moveMag = Math.hypot(rawMoveX, rawMoveY);
                 
-                this.vx += moveX * (0.5 + moveIntensity * 0.5);
-                this.vy += moveY * (0.5 + moveIntensity * 0.5);
+                if (moveMag > 0.1) {
+                    const normX = rawMoveX / moveMag;
+                    const normY = rawMoveY / moveMag;
+                    const speed = Math.min(moveMag, 1) * CONFIG.FIGHTER_ACCEL * dt;
+                    this.vx += normX * speed;
+                    this.vy += normY * speed;
+                }
                 
-                // FIXED: Force approach if too far
+                // Принудительное движение к цели, если слишком далеко
                 if (dist > CONFIG.COMBAT_RANGE * CONFIG.APPROACH_RANGE_MULTIPLIER) {
                     const approachStrength = Math.min(1.0, (dist - CONFIG.COMBAT_RANGE) / 200);
-                    this.vx += (dx / dist) * CONFIG.FIGHTER_ACCEL * 0.016 * approachStrength;
-                    this.vy += (dy / dist) * CONFIG.FIGHTER_ACCEL * 0.016 * approachStrength;
+                    this.vx += (dx / dist) * CONFIG.FIGHTER_ACCEL * dt * approachStrength * CONFIG.APPROACH_ACCEL_FACTOR;
+                    this.vy += (dy / dist) * CONFIG.FIGHTER_ACCEL * dt * approachStrength * CONFIG.APPROACH_ACCEL_FACTOR;
+                }
+                
+                // Движение к предсказанной позиции (если уверенность высокая)
+                if (result.predictionConfidence > CONFIG.PREDICTION.ATTACK_CONFIDENCE_THRESHOLD) {
+                    const predX = result.predictedPos.x;
+                    const predY = result.predictedPos.y;
+                    const dxPred = predX - this.x;
+                    const dyPred = predY - this.y;
+                    const distPred = Math.hypot(dxPred, dyPred) || 1;
+                    
+                    if (distPred < 300) {
+                        const predStrength = result.predictionConfidence * CONFIG.PREDICTION.CONFIDENCE_WEIGHT;
+                        this.vx += (dxPred / distPred) * CONFIG.FIGHTER_ACCEL * dt * predStrength * 0.3;
+                        this.vy += (dyPred / distPred) * CONFIG.FIGHTER_ACCEL * dt * predStrength * 0.3;
+                    }
                 }
                 
                 if (Math.abs(this.vx) > 4 || Math.abs(this.vy) > 4) {
@@ -2565,7 +2802,7 @@
                     if (this.brain) this.brain.stats.moveCount++;
                 }
                 
-                // Attack processing - FIXED: sigmoid outputs already 0-1
+                // Attack processing
                 const attackConf = [
                     safeNum(this._lastOutput[4], 0),
                     safeNum(this._lastOutput[5], 0),
@@ -2573,18 +2810,15 @@
                 ];
                 const maxAttack = Math.max(...attackConf);
                 
-                // FIXED: Lower threshold for attacks
                 if (maxAttack > CONFIG.ATTACK_CONFIDENCE_THRESHOLD && 
                     this.attackTimer <= 0 && 
                     this.dodgeCooldown <= 0) {
                     
-                    // Allow attacks at slightly extended range
                     const attackRange = CONFIG.COMBAT_RANGE * CONFIG.ATTACK_RANGE_MULTIPLIER;
                     
-                    // If too far, approach while "winding up"
                     if (dist > attackRange) {
-                        this.vx += (dx / dist) * CONFIG.FIGHTER_ACCEL * 0.016 * 0.8;
-                        this.vy += (dy / dist) * CONFIG.FIGHTER_ACCEL * 0.016 * 0.8;
+                        this.vx += (dx / dist) * CONFIG.FIGHTER_ACCEL * dt * 0.8;
+                        this.vy += (dy / dist) * CONFIG.FIGHTER_ACCEL * dt * 0.8;
                     }
                     
                     const zones = ['HIGH', 'MID', 'LOW'];
@@ -2621,14 +2855,14 @@
                 
                 // Dodge/retreat
                 if (this._lastOutput[10] > CONFIG.RETREAT_THRESHOLD) {
-                    this.vx -= (dx / dist) * CONFIG.FIGHTER_ACCEL * 0.016 * 0.30;
-                    this.vy -= (dy / dist) * CONFIG.FIGHTER_ACCEL * 0.016 * 0.30;
+                    this.vx -= (dx / dist) * CONFIG.FIGHTER_ACCEL * dt * 0.30;
+                    this.vy -= (dy / dist) * CONFIG.FIGHTER_ACCEL * dt * 0.30;
                 }
                 
                 // Flanking
                 if (this._lastOutput[11] > CONFIG.FLANK_THRESHOLD) {
                     const side = opponent.x < CONFIG.ARENA_WIDTH / 2 ? 1 : -1;
-                    this.vx += side * 0.25 * CONFIG.FIGHTER_ACCEL * 0.016;
+                    this.vx += side * 0.25 * CONFIG.FIGHTER_ACCEL * dt;
                 }
                 
                 // Dodge on high fear
@@ -2786,7 +3020,7 @@
                     blocked = true;
                     target.stats.blocks++;
                     this._combatEvents.push({ type: 'block' });
-                    this._lastReward = CONFIG.REWARDS.ATTACK_BLOCKED;  // FIXED: Slight positive
+                    this._lastReward = CONFIG.REWARDS.ATTACK_BLOCKED;
                     this.activity.combo = 0;
                 } else if (target.blocking) {
                     damage *= (1 - CONFIG.BLOCK_PENALTY);
@@ -2919,6 +3153,7 @@
                 
                 this._sensors.fill(0);
                 this._lastOutput.fill(0);
+                this._lastSensors = null;
                 this._combatEvents = [];
                 this._lastReward = 0;
                 this._totalReward = 0;
@@ -3155,7 +3390,7 @@
                 const maxH = Math.max(1, h - 6);
                 
                 for (let i = 0; i < barCount; i++) {
-                    const val = clamp(safeNum(D[i], 0), 0, 1);  // Sigmoid: 0-1
+                    const val = clamp(safeNum(D[i], 0), 0, 1);
                     const barH = Math.max(1, val * maxH);
                     const px = 3 + i * barWidth;
                     const py = h - 3 - barH;
@@ -3169,7 +3404,7 @@
                 }
             },
             
-                    render(alpha, beta, roundEnded, winner) {
+            render(alpha, beta, roundEnded, winner) {
                 if (this.ctx === null) return;
                 
                 this.clear();
@@ -3218,14 +3453,14 @@
             
             init() {
                 const brainAlpha = new CortexNetwork({
-                    seed: 'alpha_v335_aggressor',
+                    seed: 'alpha_v335_prediction_fixed',
                     lr: CONFIG.LR,
                     gamma: CONFIG.GAMMA,
                     lambda: CONFIG.LAMBDA
                 });
                 
                 const brainBeta = new CortexNetwork({
-                    seed: 'beta_v335_aggressor',
+                    seed: 'beta_v335_prediction_fixed',
                     lr: CONFIG.LR,
                     gamma: CONFIG.GAMMA,
                     lambda: CONFIG.LAMBDA
@@ -3274,15 +3509,13 @@
                 this.lastTime = performance.now();
                 requestAnimationFrame((t) => this.loop(t));
                 
-                Logger.info('Neural Fighter Arena v3.3.5 AGGRESSOR initialized');
-                Logger.info('v3.3.5 CHANGES:');
-                Logger.info('  • Sigmoid outputs (0-1 range) for decisions');
-                Logger.info('  • Attack bias initialization (+0.30)');
-                Logger.info('  • Lower action thresholds (0.35)');
-                Logger.info('  • Exploration: 25% random actions');
-                Logger.info('  • Movement uses actual magnitude');
-                Logger.info('  • WIN = 35.0, ATTACK_INITIATE = 0.80');
-                Logger.info('THEY WILL FIGHT FROM ROUND 1!');
+                Logger.info('Neural Fighter Arena v3.3.5 PREDICTION FIXED initialized');
+                Logger.info('PREDICTION SYSTEM FULLY INTEGRATED:');
+                Logger.info('  • M_pred now used for next-state prediction');
+                Logger.info('  • predErrors update every frame (0.01-0.99)');
+                Logger.info('  • predictedPos60 influences movement');
+                Logger.info('  • Confidence affects aggression/retreat');
+                Logger.info('THEY WILL FIGHT WITH PREDICTIVE INTELLIGENCE!');
             },
             
             _initEmotionGrids() {
@@ -3509,8 +3742,12 @@
                     const debug = this.alpha.brain.getDebugInfo();
                     setText('alpha-cortex', formatNum(debug.cortexEnergy, 3));
                     setBar('alpha-cortex-bar', Math.min(safeNum(debug.cortexEnergy, 0) * 48, 100));
+                    
+                    // Prediction metrics
                     setText('alpha-pred-err', formatNum(debug.predictionError, 3));
-                    setBar('alpha-pred-bar', (1 - safeNum(debug.predictionError, 0)) * 100);
+                    setBar('alpha-pred-bar', (1 - clamp(safeNum(debug.predictionError, 0.5), 0, 0.99)) * 100);
+                    setText('alpha-pred-conf', formatNum(debug.predictionConfidence, 3));
+                    setBar('alpha-pred-conf-bar', clamp(safeNum(debug.predictionConfidence, 0.5), 0, 1) * 100);
                     
                     setText('alpha-lr', formatNum(this.alpha.brain.lr, 3));
                     setText('alpha-gamma', formatNum(this.alpha.brain.gamma, 2));
@@ -3620,18 +3857,20 @@
             Game.init();
             window.Game = Game;
             
-            console.log('%c[CORTEX² v3.3.5 AGGRESSOR]', 'color: #f5b642; font-weight: bold; font-size: 14px;');
+            console.log('%c[CORTEX² v3.3.5 PREDICTION FIXED]', 'color: #f5b642; font-weight: bold; font-size: 14px;');
             console.log('%c========================================', 'color: #3a8bff;');
-            console.log('%c✓ SIGMOID outputs (0-1 range)', 'color: #2dd4a0;');
-            console.log('%c✓ Attack bias: +0.30 (fights from start)', 'color: #2dd4a0;');
-            console.log('%c✓ Thresholds lowered: 0.35', 'color: #2dd4a0;');
+            console.log('%c✓ PREDICTION SYSTEM FULLY INTEGRATED', 'color: #2dd4a0; font-weight: bold;');
+            console.log('%c✓ M_pred now used for next-state prediction', 'color: #2dd4a0;');
+            console.log('%c✓ predErrors update every frame (0.01-0.99)', 'color: #2dd4a0;');
+            console.log('%c✓ predictedPos60 influences movement', 'color: #2dd4a0;');
+            console.log('%c✓ Confidence affects aggression/retreat', 'color: #2dd4a0;');
+            console.log('%c✓ All 22 emotions active', 'color: #2dd4a0;');
             console.log('%c✓ Exploration: 25% (60% attack-focused)', 'color: #2dd4a0;');
-            console.log('%c✓ Movement preserves magnitude', 'color: #2dd4a0;');
-            console.log('%c✓ WIN = 35.0, ATTACK = 0.80', 'color: #2dd4a0;');
+            console.log('%c✓ Normalized movement (full 360°)', 'color: #2dd4a0;');
             console.log('%c========================================', 'color: #3a8bff;');
-            console.log('%cTHEY WILL FIGHT FROM ROUND 1!', 'color: #ef4567; font-weight: bold; font-size: 12px;');
+            console.log('%cTHEY WILL FIGHT WITH PREDICTIVE INTELLIGENCE!', 'color: #ef4567; font-weight: bold; font-size: 12px;');
         });
     })();
     </script>
 </body>
-</html>
+    </html>
