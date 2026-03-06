@@ -1,2753 +1,2407 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Stick Fighter Arena - Neural Learning Evolution</title>
-  <style>
-    /* ========== ПОЛНОСТЬЮ ТВОЙ CSS ========== */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    :root {
-      --bg-dark: #050508;
-      --bg-panel: #0a0a12;
-      --accent-red: #ff2244;
-      --accent-blue: #00ffcc;
-      --accent-gold: #ffaa00;
-      --accent-green: #00ff88;
-      --text: #f0f0f5;
-      --text-dim: #505060;
-      --border: #1a1a25;
-    }
-
-    body {
-      background: var(--bg-dark);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      color: var(--text);
-      overflow: hidden;
-    }
-
-    .game-wrapper {
-      width: 100%;
-      max-width: 1200px;
-      padding: 15px;
-      display: flex;
-      gap: 20px;
-    }
-
-    .game-area {
-      flex: 2;
-    }
-
-    .tournament-panel {
-      flex: 1;
-      background: linear-gradient(180deg, rgba(10,10,18,0.95), rgba(5,5,10,0.98));
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      max-height: 600px;
-      overflow-y: auto;
-      position: relative;
-    }
-
-    .tournament-panel::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
-      animation: scanLine 3s linear infinite;
-    }
-
-    @keyframes scanLine {
-      0%, 100% { opacity: 0.3; }
-      50% { opacity: 1; }
-    }
-
-    .panel-title {
-      font-size: 1.1rem;
-      font-weight: bold;
-      color: var(--accent-gold);
-      text-transform: uppercase;
-      letter-spacing: 3px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid var(--border);
-      text-shadow: 0 0 20px rgba(255, 170, 0, 0.5);
-    }
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-      margin-bottom: 15px;
-    }
-
-    .stat-card {
-      background: linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-      border: 1px solid var(--border);
-      padding: 12px;
-      border-radius: 8px;
-      text-align: center;
-      transition: all 0.3s;
-    }
-
-    .stat-card:hover {
-      border-color: var(--accent-gold);
-      transform: translateY(-2px);
-    }
-
-    .stat-label {
-      font-size: 0.7rem;
-      color: var(--text-dim);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .stat-value {
-      font-size: 1.6rem;
-      font-weight: bold;
-      color: var(--accent-green);
-      text-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
-    }
-
-    .fighter-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .fighter-entry {
-      background: linear-gradient(90deg, rgba(255,255,255,0.03), transparent);
-      border: 1px solid var(--border);
-      padding: 12px;
-      border-radius: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .fighter-entry::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      width: 3px;
-      background: var(--accent-gold);
-      transform: scaleY(0);
-      transition: transform 0.3s;
-    }
-
-    .fighter-entry:hover {
-      border-color: var(--accent-gold);
-      transform: translateX(8px);
-      background: linear-gradient(90deg, rgba(255, 170, 0, 0.1), transparent);
-    }
-
-    .fighter-entry:hover::before {
-      transform: scaleY(1);
-    }
-
-    .fighter-entry.selected {
-      border-color: var(--accent-green);
-      background: linear-gradient(90deg, rgba(0, 255, 136, 0.15), transparent);
-    }
-
-    .fighter-info {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .fighter-name {
-      font-weight: bold;
-      font-size: 0.95rem;
-    }
-
-    .fighter-stats {
-      font-size: 0.7rem;
-      color: var(--text-dim);
-      display: flex;
-      gap: 12px;
-    }
-
-    .fighter-score {
-      font-size: 1.3rem;
-      font-weight: bold;
-      color: var(--accent-gold);
-      text-shadow: 0 0 10px rgba(255, 170, 0, 0.5);
-    }
-
-    .evolution-controls {
-      display: flex;
-      gap: 10px;
-      margin-top: 15px;
-    }
-
-    .evo-btn {
-      flex: 1;
-      padding: 12px;
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--text);
-      cursor: pointer;
-      border-radius: 8px;
-      transition: all 0.3s;
-      font-family: inherit;
-      font-size: 0.85rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .evo-btn:hover {
-      border-color: var(--accent-green);
-      color: var(--accent-green);
-      box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
-    }
-
-    .evo-btn.primary {
-      background: linear-gradient(135deg, var(--accent-green), #00aa55);
-      border: none;
-      color: var(--bg-dark);
-      font-weight: bold;
-    }
-
-    .evo-btn.primary:hover {
-      box-shadow: 0 0 30px rgba(0, 255, 136, 0.5);
-      transform: translateY(-2px);
-    }
-
-    .generation-badge {
-      font-size: 0.85rem;
-      padding: 8px 12px;
-      background: linear-gradient(90deg, rgba(255,170,0,0.1), transparent);
-      border-left: 3px solid var(--accent-gold);
-      border-radius: 0 4px 4px 0;
-      color: var(--accent-gold);
-      text-align: center;
-    }
-
-    /* Menu Screen */
-    .menu-screen {
-      position: fixed;
-      inset: 0;
-      background: radial-gradient(ellipse at center, rgba(10,10,20,0.98), var(--bg-dark));
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
-      transition: opacity 0.6s, visibility 0.6s;
-    }
-
-    .menu-screen.hidden {
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-    }
-
-    .menu-title {
-      font-size: clamp(2.2rem, 6vw, 4rem);
-      font-weight: 900;
-      letter-spacing: 4px;
-      text-transform: uppercase;
-      margin-bottom: 50px;
-      color: transparent;
-      background: linear-gradient(135deg, var(--accent-red), var(--accent-gold), var(--accent-blue));
-      -webkit-background-clip: text;
-      background-clip: text;
-      position: relative;
-      animation: titlePulse 3s ease-in-out infinite;
-    }
-
-    @keyframes titlePulse {
-      0%, 100% { filter: brightness(1); }
-      50% { filter: brightness(1.2); }
-    }
-
-    .fighter-select {
-      display: flex;
-      gap: 50px;
-      margin-bottom: 50px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-
-    .fighter-config {
-      background: linear-gradient(180deg, rgba(20,20,30,0.9), rgba(10,10,15,0.95));
-      border: 1px solid var(--border);
-      padding: 30px;
-      min-width: 300px;
-      border-radius: 12px;
-      position: relative;
-      overflow: hidden;
-      transition: all 0.3s;
-    }
-
-    .fighter-config:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-    }
-
-    .fighter-config::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-    }
-
-    .fighter-config.red::before { background: linear-gradient(90deg, var(--accent-red), transparent); }
-    .fighter-config.blue::before { background: linear-gradient(90deg, transparent, var(--accent-blue)); }
-
-    .fighter-config h3 {
-      font-size: 1.3rem;
-      margin-bottom: 25px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid var(--border);
-      letter-spacing: 2px;
-    }
-
-    .fighter-config.red h3 { color: var(--accent-red); text-shadow: 0 0 20px rgba(255,34,68,0.5); }
-    .fighter-config.blue h3 { color: var(--accent-blue); text-shadow: 0 0 20px rgba(0,255,204,0.5); }
-
-    .config-row {
-      margin-bottom: 18px;
-    }
-
-    .config-row label {
-      display: block;
-      font-size: 0.75rem;
-      color: var(--text-dim);
-      margin-bottom: 8px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .config-row select, .config-row input[type="range"] {
-      width: 100%;
-      background: var(--bg-dark);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 12px;
-      border-radius: 6px;
-      font-family: inherit;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-
-    .config-row select:hover, .config-row select:focus {
-      border-color: var(--accent-gold);
-      outline: none;
-    }
-
-    .config-row input[type="range"] {
-      -webkit-appearance: none;
-      height: 8px;
-      padding: 0;
-      background: var(--border);
-    }
-
-    .config-row input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 18px;
-      height: 18px;
-      background: var(--accent-gold);
-      border-radius: 50%;
-      cursor: pointer;
-      box-shadow: 0 0 15px rgba(255, 170, 0, 0.5);
-    }
-
-    .start-btn {
-      padding: 20px 70px;
-      font-size: 1.4rem;
-      font-weight: bold;
-      text-transform: uppercase;
-      letter-spacing: 4px;
-      background: linear-gradient(135deg, var(--accent-red), #cc1144);
-      border: none;
-      color: white;
-      cursor: pointer;
-      border-radius: 8px;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .start-btn::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-      transform: translateX(-100%);
-      transition: transform 0.5s;
-    }
-
-    .start-btn:hover {
-      transform: translateY(-5px) scale(1.02);
-      box-shadow: 0 15px 40px rgba(255, 34, 68, 0.5);
-    }
-
-    .start-btn:hover::before {
-      transform: translateX(100%);
-    }
-
-    /* Game UI */
-    .game-container {
-      position: relative;
-    }
-
-    .header-ui {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-      gap: 15px;
-    }
-
-    .hp-section {
-      flex: 1;
-    }
-
-    .player-info {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 6px;
-    }
-
-    .player-name {
-      font-weight: bold;
-      font-size: 0.95rem;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-    }
-
-    .player-name.red { color: var(--accent-red); text-shadow: 0 0 15px rgba(255,34,68,0.5); }
-    .player-name.blue { color: var(--accent-blue); text-shadow: 0 0 15px rgba(0,255,204,0.5); }
-
-    .tactic-badge {
-      font-size: 0.65rem;
-      padding: 4px 10px;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      color: var(--text-dim);
-    }
-
-    .hp-bar-bg {
-      height: 20px;
-      background: rgba(0,0,0,0.5);
-      border: 1px solid var(--border);
-      position: relative;
-      overflow: hidden;
-      border-radius: 4px;
-    }
-
-    .hp-bar-fill {
-      height: 100%;
-      transition: width 0.15s ease-out;
-      position: relative;
-    }
-
-    .hp-bar-fill::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, transparent 50%, rgba(0,0,0,0.2) 100%);
-    }
-
-    .hp-bar-fill.red { 
-      background: linear-gradient(90deg, #aa1133, var(--accent-red));
-      box-shadow: 0 0 20px rgba(255, 34, 68, 0.5);
-    }
-    .hp-bar-fill.blue { 
-      background: linear-gradient(90deg, var(--accent-blue), #00aa88);
-      box-shadow: 0 0 20px rgba(0, 255, 204, 0.5);
-    }
-
-    .timer-display {
-      font-size: 2.8rem;
-      font-weight: bold;
-      color: var(--accent-gold);
-      text-shadow: 0 0 30px rgba(255, 170, 0, 0.6);
-      font-variant-numeric: tabular-nums;
-      min-width: 70px;
-      text-align: center;
-      animation: timerGlow 2s ease-in-out infinite;
-    }
-
-    @keyframes timerGlow {
-      0%, 100% { text-shadow: 0 0 20px rgba(255, 170, 0, 0.4); }
-      50% { text-shadow: 0 0 40px rgba(255, 170, 0, 0.8); }
-    }
-
-    .canvas-frame {
-      position: relative;
-      border: 2px solid var(--border);
-      background: #050508;
-      box-shadow: 0 0 60px rgba(0,0,0,0.8), inset 0 0 100px rgba(0,0,0,0.5);
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    #gameCanvas {
-      display: block;
-      width: 100%;
-    }
-
-    .announce-overlay {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.4s;
-      z-index: 10;
-    }
-
-    .announce-overlay.show {
-      opacity: 1;
-    }
-
-    .announce-text {
-      font-size: clamp(3.5rem, 12vw, 6rem);
-      font-weight: 900;
-      text-transform: uppercase;
-      letter-spacing: 8px;
-      animation: announceIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-
-    .announce-text.fight { color: var(--accent-gold); text-shadow: 0 0 50px var(--accent-gold), 0 0 100px var(--accent-gold); }
-    .announce-text.ko { color: var(--accent-red); text-shadow: 0 0 50px var(--accent-red), 0 0 100px var(--accent-red); }
-    .announce-text.win { color: var(--accent-blue); text-shadow: 0 0 50px var(--accent-blue), 0 0 100px var(--accent-blue); }
-
-    @keyframes announceIn {
-      0% { transform: scale(2.5) rotate(-5deg); opacity: 0; }
-      50% { transform: scale(0.95) rotate(1deg); }
-      100% { transform: scale(1) rotate(0); opacity: 1; }
-    }
-
-    .combo-popup {
-      position: absolute;
-      font-size: 2.5rem;
-      font-weight: 900;
-      pointer-events: none;
-      opacity: 0;
-      transform: translateY(0) scale(1);
-      transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      letter-spacing: 2px;
-    }
-
-    .combo-popup.show {
-      opacity: 1;
-      transform: translateY(-40px) scale(1.2);
-    }
-
-    .result-screen {
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(ellipse at center, rgba(5,5,10,0.95), rgba(5,5,8,0.99));
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      opacity: 0;
-      visibility: hidden;
-      transition: all 0.6s;
-      z-index: 20;
-    }
-
-    .result-screen.show {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    .result-title {
-      font-size: 3.5rem;
-      font-weight: 900;
-      margin-bottom: 20px;
-      letter-spacing: 4px;
-      animation: resultIn 0.8s ease-out;
-    }
-
-    @keyframes resultIn {
-      0% { transform: translateY(-50px); opacity: 0; }
-      100% { transform: translateY(0); opacity: 1; }
-    }
-
-    .result-title.red { color: var(--accent-red); text-shadow: 0 0 50px var(--accent-red); }
-    .result-title.blue { color: var(--accent-blue); text-shadow: 0 0 50px var(--accent-blue); }
-
-    .result-stats {
-      display: flex;
-      gap: 60px;
-      margin: 40px 0;
-    }
-
-    .stat-box {
-      text-align: center;
-    }
-
-    .stat-box .stat-value {
-      font-size: 3rem;
-      font-weight: bold;
-      color: var(--accent-gold);
-      text-shadow: 0 0 20px rgba(255, 170, 0, 0.5);
-    }
-
-    .stat-box .stat-label {
-      font-size: 0.8rem;
-      color: var(--text-dim);
-      text-transform: uppercase;
-      margin-top: 8px;
-      letter-spacing: 2px;
-    }
-
-    .btn-row {
-      display: flex;
-      gap: 25px;
-      margin-top: 40px;
-    }
-
-    .game-btn {
-      padding: 14px 40px;
-      font-size: 1rem;
-      font-weight: bold;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--text);
-      cursor: pointer;
-      transition: all 0.3s;
-      font-family: inherit;
-    }
-
-    .game-btn:hover {
-      border-color: var(--accent-gold);
-      color: var(--accent-gold);
-      transform: translateY(-3px);
-      box-shadow: 0 10px 30px rgba(255, 170, 0, 0.2);
-    }
-
-    .game-btn.primary {
-      background: linear-gradient(135deg, var(--accent-red), #aa1133);
-      border: none;
-      color: white;
-    }
-
-    .game-btn.primary:hover {
-      box-shadow: 0 10px 40px rgba(255, 34, 68, 0.5);
-      color: white;
-    }
-
-    @media (max-width: 1000px) {
-      .game-wrapper { flex-direction: column; }
-      .tournament-panel { max-height: 300px; }
-      .fighter-select { gap: 30px; }
-      .fighter-config { min-width: 260px; padding: 20px; }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEURAL FIGHTING EVOLUTION • АБСОЛЮТНЫЙ РЕВРАЙТ</title>
+    <style>
+        /*==================================================
+            NEURAL TYPOGRAPHY & VARIABLES (С НУЛЯ)
+        ==================================================*/
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 24px;
+            --space-6: 32px;
+            
+            --gray-100: #f5f5fa;
+            --gray-200: #e0e0f0;
+            --gray-300: #c0c0d0;
+            --gray-400: #9090a8;
+            --gray-500: #606078;
+            --gray-600: #404058;
+            --gray-700: #2a2a3a;
+            --gray-800: #1a1a28;
+            --gray-900: #0f0f18;
+            --gray-950: #080810;
+            
+            --red-400: #ff6b8b;
+            --red-500: #ff3b5c;
+            --red-600: #e01b3c;
+            --red-700: #b00b2e;
+            
+            --blue-400: #6bc9ff;
+            --blue-500: #3b9eff;
+            --blue-600: #1b7ee0;
+            --blue-700: #0b4eb0;
+            
+            --cyan-400: #5ff0ff;
+            --cyan-500: #2fd0f0;
+            --cyan-600: #1fa0c0;
+            
+            --gold-400: #ffe15f;
+            --gold-500: #ffc12f;
+            --gold-600: #dfa11f;
+            
+            --green-400: #8affb0;
+            --green-500: #5aff80;
+            --green-600: #3acf60;
+            
+            --surface-0: var(--gray-950);
+            --surface-1: var(--gray-900);
+            --surface-2: var(--gray-800);
+            --surface-3: var(--gray-700);
+            
+            --text-primary: var(--gray-200);
+            --text-secondary: var(--gray-400);
+            --text-tertiary: var(--gray-600);
+            
+            --accent-red: var(--red-500);
+            --accent-blue: var(--blue-500);
+            --accent-cyan: var(--cyan-500);
+            --accent-gold: var(--gold-500);
+            --accent-green: var(--green-500);
+            
+            --border-thin: 1px solid var(--gray-700);
+            --border-regular: 2px solid var(--gray-600);
+            --border-thick: 3px solid var(--gray-500);
+            
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.4);
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.5);
+            --shadow-lg: 0 8px 32px rgba(0,0,0,0.6);
+            
+            --glow-red: 0 0 20px rgba(255, 59, 92, 0.3);
+            --glow-blue: 0 0 20px rgba(59, 158, 255, 0.3);
+            --glow-gold: 0 0 30px rgba(255, 193, 47, 0.4);
+            
+            --transition-fast: 0.15s ease;
+            --transition-base: 0.25s ease;
+            --transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            
+            --z-canvas: 1;
+            --z-ui: 10;
+            --z-overlay: 20;
+            --z-modal: 30;
+            --z-toast: 40;
+        }
+
+        body {
+            background-color: var(--surface-0);
+            font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, sans-serif;
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+        }
+
+        /*==================================================
+            ГЛАВНЫЙ КОНТЕЙНЕР (GRID С НУЛЯ)
+        ==================================================*/
+        .app {
+            display: grid;
+            grid-template-columns: 320px 1fr 320px;
+            grid-template-rows: 72px 1fr 240px;
+            grid-template-areas: 
+                "header header header"
+                "left-panel arena right-panel"
+                "footer footer footer";
+            width: 100vw;
+            height: 100vh;
+            gap: var(--space-3);
+            padding: var(--space-3);
+            background: radial-gradient(circle at 20% 30%, #1a1a2e, #0a0a14);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /*==================================================
+            HEADER (С НУЛЯ)
+        ==================================================*/
+        .app-header {
+            grid-area: header;
+            background: linear-gradient(145deg, var(--surface-2), var(--surface-1));
+            border: var(--border-thin);
+            border-radius: 16px;
+            padding: 0 var(--space-5);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(8px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .app-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, 
+                transparent, 
+                var(--accent-gold), 
+                var(--accent-red), 
+                var(--accent-blue), 
+                transparent
+            );
+            animation: scanline 6s linear infinite;
+        }
+
+        @keyframes scanline {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+        }
+
+        .neural-logo {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(145deg, var(--accent-red), var(--accent-blue));
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 24px;
+            color: white;
+            box-shadow: 0 4px 20px rgba(255, 59, 92, 0.4);
+            transform: rotate(5deg);
+            transition: var(--transition-base);
+        }
+
+        .neural-logo:hover {
+            transform: rotate(0deg) scale(1.05);
+            box-shadow: var(--glow-red), var(--glow-blue);
+        }
+
+        .title-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .title-group h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            background: linear-gradient(135deg, var(--text-primary), var(--accent-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.2;
+        }
+
+        .title-group .subtitle {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .genetic-badge {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+        }
+
+        .gen-display {
+            background: var(--surface-3);
+            border: var(--border-thin);
+            border-radius: 40px;
+            padding: var(--space-2) var(--space-5);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--accent-gold);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+            letter-spacing: 2px;
+        }
+
+        .gen-label {
+            font-size: 0.7rem;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            margin-left: var(--space-2);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: var(--space-3);
+        }
+
+        .neural-btn {
+            padding: var(--space-3) var(--space-5);
+            border: var(--border-thin);
+            background: var(--surface-2);
+            color: var(--text-primary);
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: var(--transition-base);
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .neural-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .neural-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .neural-btn.primary {
+            background: linear-gradient(145deg, var(--accent-red), var(--red-700));
+            border-color: var(--accent-red);
+            color: white;
+            box-shadow: var(--glow-red);
+        }
+
+        .neural-btn.secondary {
+            background: linear-gradient(145deg, var(--accent-blue), var(--blue-700));
+            border-color: var(--accent-blue);
+            color: white;
+            box-shadow: var(--glow-blue);
+        }
+
+        /*==================================================
+            ЛЕВАЯ ПАНЕЛЬ (ALPHA) - С НУЛЯ
+        ==================================================*/
+        .panel-left {
+            grid-area: left-panel;
+            background: var(--surface-1);
+            border: var(--border-thin);
+            border-radius: 20px;
+            padding: var(--space-4);
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-4);
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--gray-600) transparent;
+            position: relative;
+            backdrop-filter: blur(4px);
+            border-left: 4px solid var(--accent-red);
+            box-shadow: var(--shadow-md);
+        }
+
+        .panel-left::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .panel-left::-webkit-scrollbar-thumb {
+            background: var(--gray-600);
+            border-radius: 4px;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: var(--space-3);
+            border-bottom: var(--border-thin);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--accent-red);
+        }
+
+        .panel-header span:first-child {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .status-led {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--gray-600);
+            transition: var(--transition-base);
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        .status-led.active {
+            background: var(--accent-green);
+            box-shadow: 0 0 15px var(--accent-green);
+            animation: pulse 1.5s infinite;
+        }
+
+        .status-led.danger {
+            background: var(--accent-red);
+            box-shadow: 0 0 15px var(--accent-red);
+            animation: pulse 0.8s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .stat-group {
+            background: var(--surface-2);
+            border-radius: 16px;
+            padding: var(--space-4);
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-4);
+            border: var(--border-thin);
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+        }
+
+        .stat-value {
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent-gold);
+        }
+
+        .progress-container {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-2);
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+        }
+
+        .progress-track {
+            height: 8px;
+            background: var(--surface-3);
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.2s linear;
+        }
+
+        .fill-red { background: linear-gradient(90deg, var(--red-600), var(--accent-red)); }
+        .fill-blue { background: linear-gradient(90deg, var(--blue-600), var(--accent-blue)); }
+        .fill-green { background: linear-gradient(90deg, var(--green-600), var(--accent-green)); }
+        .fill-gold { background: linear-gradient(90deg, var(--gold-600), var(--accent-gold)); }
+
+        .emotion-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-3);
+            margin-top: var(--space-2);
+        }
+
+        .emotion-item {
+            background: var(--surface-3);
+            padding: var(--space-3);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-2);
+        }
+
+        .emotion-name {
+            font-size: 0.7rem;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+        }
+
+        .emotion-bar {
+            height: 4px;
+            background: var(--surface-2);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .emotion-fill {
+            height: 100%;
+            background: var(--accent-cyan);
+            transition: width 0.15s;
+        }
+
+        .activity-monitor {
+            display: flex;
+            gap: var(--space-2);
+            padding: var(--space-3);
+            background: var(--surface-3);
+            border-radius: 40px;
+            justify-content: center;
+        }
+
+        .activity-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--gray-600);
+            transition: var(--transition-fast);
+        }
+
+        .activity-dot.active {
+            background: var(--accent-green);
+            box-shadow: 0 0 12px var(--accent-green);
+        }
+
+        .activity-dot.attack {
+            background: var(--accent-red);
+            box-shadow: 0 0 12px var(--accent-red);
+        }
+
+        .activity-dot.defend {
+            background: var(--accent-blue);
+            box-shadow: 0 0 12px var(--accent-blue);
+        }
+
+        /*==================================================
+            АРЕНА - ПОЛНОСТЬЮ НОВАЯ
+        ==================================================*/
+        .arena-container {
+            grid-area: arena;
+            position: relative;
+            border-radius: 24px;
+            overflow: hidden;
+            border: var(--border-regular);
+            box-shadow: var(--shadow-lg), inset 0 0 80px rgba(0,0,0,0.6);
+        }
+
+        #arena-canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            background: #050510;
+        }
+
+        .hud-overlay {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: var(--space-6);
+            pointer-events: none;
+            z-index: var(--z-ui);
+        }
+
+        .combo-display {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--accent-gold);
+            text-shadow: 0 0 20px var(--accent-gold);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: var(--transition-slow);
+        }
+
+        .combo-display.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .ko-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: var(--z-overlay);
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition-slow);
+        }
+
+        .ko-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .ko-text {
+            font-size: 6rem;
+            font-weight: 900;
+            color: var(--accent-red);
+            text-shadow: 0 0 50px var(--accent-red);
+            animation: koPulse 0.5s infinite alternate;
+        }
+
+        @keyframes koPulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
+        }
+
+        .winner-screen {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(145deg, rgba(10,10,20,0.95), rgba(5,5,10,0.98));
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: var(--z-modal);
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition-slow);
+        }
+
+        .winner-screen.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .winner-title {
+            font-size: 4rem;
+            font-weight: 900;
+            margin-bottom: var(--space-6);
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .winner-title.red { color: var(--accent-red); text-shadow: 0 0 40px var(--accent-red); }
+        .winner-title.blue { color: var(--accent-blue); text-shadow: 0 0 40px var(--accent-blue); }
+
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /*==================================================
+            ПРАВАЯ ПАНЕЛЬ (BETA) - С НУЛЯ
+        ==================================================*/
+        .panel-right {
+            grid-area: right-panel;
+            background: var(--surface-1);
+            border: var(--border-thin);
+            border-radius: 20px;
+            padding: var(--space-4);
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-4);
+            overflow-y: auto;
+            border-right: 4px solid var(--accent-blue);
+            box-shadow: var(--shadow-md);
+        }
+
+        .neural-viz {
+            background: var(--surface-3);
+            border-radius: 16px;
+            padding: var(--space-3);
+            height: 180px;
+            position: relative;
+        }
+
+        #neural-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .viz-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: var(--space-2);
+            font-size: 0.6rem;
+            color: var(--text-tertiary);
+        }
+
+        .log-container {
+            background: var(--surface-3);
+            border-radius: 16px;
+            padding: var(--space-3);
+            height: 200px;
+            overflow-y: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .log-entry {
+            padding: var(--space-2);
+            border-left: 3px solid transparent;
+            background: rgba(0,0,0,0.2);
+            border-radius: 4px;
+            animation: logSlide 0.2s ease-out;
+        }
+
+        @keyframes logSlide {
+            from { transform: translateX(-10px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .log-entry.attack { border-color: var(--accent-red); }
+        .log-entry.learn { border-color: var(--accent-green); }
+        .log-entry.move { border-color: var(--accent-blue); }
+
+        /*==================================================
+            ФУТЕР (СТАТИСТИКА И ЭВОЛЮЦИЯ) - С НУЛЯ
+        ==================================================*/
+        .app-footer {
+            grid-area: footer;
+            display: grid;
+            grid-template-columns: 380px 1fr 300px;
+            gap: var(--space-3);
+        }
+
+        .evolution-panel {
+            background: var(--surface-1);
+            border: var(--border-thin);
+            border-radius: 20px;
+            padding: var(--space-4);
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-3);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-3);
+        }
+
+        .stat-card {
+            background: var(--surface-2);
+            border-radius: 16px;
+            padding: var(--space-3);
+            text-align: center;
+            border: var(--border-thin);
+            transition: var(--transition-base);
+        }
+
+        .stat-card:hover {
+            border-color: var(--accent-gold);
+            transform: translateY(-2px);
+        }
+
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--accent-gold);
+            line-height: 1;
+        }
+
+        .stat-card .label {
+            font-size: 0.7rem;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            margin-top: var(--space-2);
+        }
+
+        .fighter-table {
+            background: var(--surface-2);
+            border-radius: 16px;
+            padding: var(--space-3);
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-2);
+            overflow-y: auto;
+            max-height: 160px;
+        }
+
+        .fighter-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-2) var(--space-3);
+            background: var(--surface-3);
+            border-radius: 30px;
+            border: var(--border-thin);
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+
+        .fighter-row:hover {
+            border-color: var(--accent-gold);
+            transform: translateX(4px);
+        }
+
+        .fighter-row.selected {
+            border-color: var(--accent-green);
+            background: linear-gradient(90deg, var(--surface-3), rgba(90, 255, 128, 0.1));
+        }
+
+        .fighter-name {
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        .fighter-stats {
+            display: flex;
+            gap: var(--space-3);
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+
+        .fighter-score {
+            font-weight: 700;
+            color: var(--accent-gold);
+        }
+
+        .action-log {
+            background: var(--surface-2);
+            border: var(--border-thin);
+            border-radius: 20px;
+            padding: var(--space-4);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: var(--space-3);
+            border-bottom: var(--border-thin);
+            font-weight: 600;
+            color: var(--accent-cyan);
+        }
+
+        .log-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: var(--space-3) 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: var(--space-2);
+            justify-content: flex-end;
+        }
+
+        /*==================================================
+            МЕНЮ ВЫБОРА (НОВОЕ)
+        ==================================================*/
+        .selection-menu {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at center, var(--surface-1), var(--surface-0));
+            z-index: var(--z-modal);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition-slow);
+            backdrop-filter: blur(20px);
+        }
+
+        .selection-menu.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .menu-title {
+            font-size: 4rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            margin-bottom: var(--space-8);
+            background: linear-gradient(135deg, var(--accent-red), var(--accent-gold), var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 4px;
+        }
+
+        .fighter-selector {
+            display: flex;
+            gap: var(--space-8);
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .selector-card {
+            background: var(--surface-2);
+            border: var(--border-regular);
+            border-radius: 32px;
+            padding: var(--space-6);
+            min-width: 340px;
+            transition: var(--transition-base);
+        }
+
+        .selector-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .selector-card.red { border-color: var(--accent-red); }
+        .selector-card.blue { border-color: var(--accent-blue); }
+
+        .card-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: var(--space-5);
+            padding-bottom: var(--space-3);
+            border-bottom: var(--border-thin);
+        }
+
+        .card-title.red { color: var(--accent-red); }
+        .card-title.blue { color: var(--accent-blue); }
+
+        .selector-row {
+            margin-bottom: var(--space-4);
+        }
+
+        .selector-row label {
+            display: block;
+            font-size: 0.7rem;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            margin-bottom: var(--space-2);
+            letter-spacing: 1px;
+        }
+
+        .selector-row select {
+            width: 100%;
+            padding: var(--space-3);
+            background: var(--surface-3);
+            border: var(--border-thin);
+            color: var(--text-primary);
+            border-radius: 12px;
+            font-family: inherit;
+            cursor: pointer;
+        }
+
+        .fight-btn {
+            padding: var(--space-5) var(--space-8);
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(145deg, var(--accent-red), var(--red-700));
+            border: none;
+            color: white;
+            border-radius: 60px;
+            cursor: pointer;
+            margin-top: var(--space-8);
+            box-shadow: var(--glow-red);
+            transition: var(--transition-base);
+            letter-spacing: 2px;
+        }
+
+        .fight-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 40px var(--accent-red);
+        }
+    </style>
 </head>
 <body>
-  <!-- Menu Screen -->
-  <div class="menu-screen" id="menuScreen">
-    <h1 class="menu-title">Stick Fighter Arena - Neural Learning</h1>
-    
-    <div class="fighter-select">
-      <div class="fighter-config red">
-        <h3>Scorpion - Red</h3>
-        <div class="config-row">
-          <label>Fighter Type</label>
-          <select id="fighterType1">
-            <option value="neural">Deep Neural Net</option>
-            <option value="classic">Classic AI</option>
-          </select>
+    <div class="selection-menu" id="menu">
+        <h1 class="menu-title">NEURAL EVOLUTION</h1>
+        <div class="fighter-selector">
+            <div class="selector-card red">
+                <div class="card-title red">ALPHA</div>
+                <div class="selector-row">
+                    <label>Тип</label>
+                    <select id="alpha-type">
+                        <option value="neural">🧠 НЕЙРОСЕТЬ</option>
+                        <option value="classic">⚙️ КЛАССИЧЕСКИЙ</option>
+                    </select>
+                </div>
+                <div class="selector-row" id="alpha-classic">
+                    <label>СТИЛЬ</label>
+                    <select id="alpha-style">
+                        <option value="balanced">СБАЛАНСИРОВАННЫЙ</option>
+                        <option value="aggressive">АГРЕССИВНЫЙ</option>
+                        <option value="defensive">ЗАЩИТНЫЙ</option>
+                        <option value="counter">КОНТРАТАКУЮЩИЙ</option>
+                    </select>
+                </div>
+                <div class="selector-row" id="alpha-neural" style="display:none">
+                    <label>МОЗГ</label>
+                    <select id="alpha-brain"></select>
+                </div>
+            </div>
+            <div class="selector-card blue">
+                <div class="card-title blue">BETA</div>
+                <div class="selector-row">
+                    <label>Тип</label>
+                    <select id="beta-type">
+                        <option value="neural">🧠 НЕЙРОСЕТЬ</option>
+                        <option value="classic">⚙️ КЛАССИЧЕСКИЙ</option>
+                    </select>
+                </div>
+                <div class="selector-row" id="beta-classic">
+                    <label>СТИЛЬ</label>
+                    <select id="beta-style">
+                        <option value="balanced">СБАЛАНСИРОВАННЫЙ</option>
+                        <option value="aggressive">АГРЕССИВНЫЙ</option>
+                        <option value="defensive">ЗАЩИТНЫЙ</option>
+                        <option value="counter">КОНТРАТАКУЮЩИЙ</option>
+                    </select>
+                </div>
+                <div class="selector-row" id="beta-neural" style="display:none">
+                    <label>МОЗГ</label>
+                    <select id="beta-brain"></select>
+                </div>
+            </div>
         </div>
-        <div class="config-row" id="classicControls1">
-          <label>Combat Style</label>
-          <select id="style1">
-            <option value="balanced">Balanced</option>
-            <option value="aggressor">Aggressor</option>
-            <option value="counter">Counter Fighter</option>
-            <option value="combo">Combo Master</option>
-            <option value="defensive">Defensive</option>
-          </select>
-          <label style="margin-top:12px;">Aggression</label>
-          <input type="range" id="aggression1" min="0" max="1" step="0.1" value="0.5">
-        </div>
-        <div class="config-row" id="neuralControls1" style="display: none;">
-          <label>Select Fighter Brain</label>
-          <select id="neuralFighter1" class="neural-select"></select>
-        </div>
-      </div>
-
-      <div class="fighter-config blue">
-        <h3>Frost - Blue</h3>
-        <div class="config-row">
-          <label>Fighter Type</label>
-          <select id="fighterType2">
-            <option value="neural">Deep Neural Net</option>
-            <option value="classic">Classic AI</option>
-          </select>
-        </div>
-        <div class="config-row" id="classicControls2">
-          <label>Combat Style</label>
-          <select id="style2">
-            <option value="balanced">Balanced</option>
-            <option value="aggressor">Aggressor</option>
-            <option value="counter">Counter Fighter</option>
-            <option value="combo">Combo Master</option>
-            <option value="defensive">Defensive</option>
-          </select>
-          <label style="margin-top:12px;">Aggression</label>
-          <input type="range" id="aggression2" min="0" max="1" step="0.1" value="0.5">
-        </div>
-        <div class="config-row" id="neuralControls2" style="display: none;">
-          <label>Select Fighter Brain</label>
-          <select id="neuralFighter2" class="neural-select"></select>
-        </div>
-      </div>
+        <button class="fight-btn" id="start-fight">НАЧАТЬ БОЙ</button>
     </div>
 
-    <button class="start-btn" id="startBtn">Start Fight</button>
-  </div>
+    <div class="app">
+        <header class="app-header">
+            <div class="logo-container">
+                <div class="neural-logo">Ψ</div>
+                <div class="title-group">
+                    <h1>NEURAL FIGHTING EVOLUTION</h1>
+                    <span class="subtitle">DEEP Q-LEARNING • ГЕНЕТИЧЕСКИЙ АЛГОРИТМ</span>
+                </div>
+            </div>
+            <div class="genetic-badge">
+                <div class="gen-display" id="gen-display">1</div>
+                <span class="gen-label">ПОКОЛЕНИЕ</span>
+            </div>
+            <div class="header-actions">
+                <button class="neural-btn" id="btn-speed">СКОРОСТЬ x1</button>
+                <button class="neural-btn primary" id="btn-pause">ПАУЗА</button>
+                <button class="neural-btn secondary" id="btn-menu">МЕНЮ</button>
+            </div>
+        </header>
 
-  <!-- Game Screen with Tournament Panel -->
-  <div class="game-wrapper">
-    <div class="game-area">
-      <div class="game-container">
-        <div class="header-ui">
-          <div class="hp-section">
-            <div class="player-info">
-              <span class="player-name red" id="fighterName1">Scorpion</span>
-              <span class="tactic-badge" id="tactic1">Neural</span>
+        <aside class="panel-left">
+            <div class="panel-header">
+                <span>
+                    <span class="status-led" id="alpha-led"></span>
+                    ALPHA [КРАСНЫЙ]
+                </span>
+                <span id="alpha-status">БОЙ</span>
             </div>
-            <div class="hp-bar-bg">
-              <div class="hp-bar-fill red" id="hp1" style="width: 100%"></div>
-            </div>
-          </div>
-          <div class="timer-display" id="timer">99</div>
-          <div class="hp-section">
-            <div class="player-info" style="justify-content: flex-end;">
-              <span class="tactic-badge" id="tactic2">Neural</span>
-              <span class="player-name blue" id="fighterName2">Frost</span>
-            </div>
-            <div class="hp-bar-bg">
-              <div class="hp-bar-fill blue" id="hp2" style="width: 100%"></div>
-            </div>
-          </div>
-        </div>
 
-        <div class="canvas-frame">
-          <canvas id="gameCanvas" width="900" height="420"></canvas>
-          <div class="announce-overlay" id="announce">
-            <div class="announce-text" id="announceText"></div>
-          </div>
-          <div class="combo-popup" id="combo1"></div>
-          <div class="combo-popup" id="combo2"></div>
-          <div class="result-screen" id="resultScreen">
-            <div class="result-title" id="resultTitle">WINNER</div>
-            <div class="result-stats">
-              <div class="stat-box">
-                <div class="stat-value" id="finalHits1">0</div>
-                <div class="stat-label">Hits Red</div>
-              </div>
-              <div class="stat-box">
-                <div class="stat-value" id="maxCombo1">0</div>
-                <div class="stat-label">Max Combo</div>
-              </div>
-              <div class="stat-box">
-                <div class="stat-value" id="finalHits2">0</div>
-                <div class="stat-label">Hits Blue</div>
-              </div>
-              <div class="stat-box">
-                <div class="stat-value" id="maxCombo2">0</div>
-                <div class="stat-label">Max Combo</div>
-              </div>
+            <div class="stat-group">
+                <div class="stat-row">
+                    <span class="stat-label">ЗДОРОВЬЕ</span>
+                    <span class="stat-value" id="alpha-hp">100</span>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-track">
+                        <div class="progress-fill fill-red" id="alpha-hp-bar" style="width:100%"></div>
+                    </div>
+                </div>
+
+                <div class="stat-row">
+                    <span class="stat-label">ЭМОЦИЯ</span>
+                    <span class="stat-value" id="alpha-emotion">НЕЙТРАЛЬНО</span>
+                </div>
+
+                <div class="emotion-grid" id="alpha-emotions"></div>
+
+                <div class="stat-row">
+                    <span class="stat-label">ЭНЕРГИЯ КОРЫ</span>
+                    <span class="stat-value" id="alpha-cortex">0.00</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill fill-blue" id="alpha-cortex-bar" style="width:0%"></div>
+                </div>
+
+                <div class="stat-row">
+                    <span class="stat-label">ОШИБКА</span>
+                    <span class="stat-value" id="alpha-error">0.000</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill fill-gold" id="alpha-error-bar" style="width:0%"></div>
+                </div>
+
+                <div class="activity-monitor">
+                    <div class="activity-dot" id="alpha-move"></div>
+                    <div class="activity-dot" id="alpha-attack"></div>
+                    <div class="activity-dot" id="alpha-defend"></div>
+                    <span style="margin-left:var(--space-2); font-size:0.7rem;" id="alpha-action">ОЖИДАНИЕ</span>
+                </div>
+
+                <div class="stat-row">
+                    <span class="stat-label">НАГРАДА</span>
+                    <span class="stat-value" id="alpha-reward">0.00</span>
+                </div>
             </div>
-            <div class="btn-row">
-              <button class="game-btn primary" id="rematchBtn">Rematch</button>
-              <button class="game-btn" id="menuBtn">Menu</button>
+        </aside>
+
+        <main class="arena-container">
+            <canvas id="arena-canvas" width="960" height="640"></canvas>
+            <div class="hud-overlay">
+                <div class="combo-display" id="combo-left"></div>
+                <div class="combo-display" id="combo-right"></div>
             </div>
-          </div>
-        </div>
-      </div>
+            <div class="ko-overlay" id="ko-overlay">
+                <div class="ko-text">K.O.</div>
+            </div>
+            <div class="winner-screen" id="winner-screen">
+                <div class="winner-title" id="winner-title"></div>
+                <div style="display:flex; gap:40px; margin-top:30px;">
+                    <div>
+                        <div style="font-size:2rem; color:var(--accent-gold)" id="winner-hits1">0</div>
+                        <div style="font-size:0.8rem">УДАРОВ</div>
+                    </div>
+                    <div>
+                        <div style="font-size:2rem; color:var(--accent-gold)" id="winner-combo1">0</div>
+                        <div style="font-size:0.8rem">МАКС КОМБО</div>
+                    </div>
+                    <div>
+                        <div style="font-size:2rem; color:var(--accent-gold)" id="winner-hits2">0</div>
+                        <div style="font-size:0.8rem">УДАРОВ</div>
+                    </div>
+                    <div>
+                        <div style="font-size:2rem; color:var(--accent-gold)" id="winner-combo2">0</div>
+                        <div style="font-size:0.8rem">МАКС КОМБО</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <aside class="panel-right">
+            <div class="panel-header" style="color:var(--accent-blue)">
+                <span>
+                    <span class="status-led" id="beta-led"></span>
+                    BETA [СИНИЙ]
+                </span>
+                <span id="beta-status">БОЙ</span>
+            </div>
+
+            <div class="stat-group">
+                <div class="stat-row">
+                    <span class="stat-label">ЗДОРОВЬЕ</span>
+                    <span class="stat-value" id="beta-hp">100</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill fill-blue" id="beta-hp-bar" style="width:100%"></div>
+                </div>
+
+                <div class="stat-row">
+                    <span class="stat-label">ЭМОЦИЯ</span>
+                    <span class="stat-value" id="beta-emotion">НЕЙТРАЛЬНО</span>
+                </div>
+
+                <div class="emotion-grid" id="beta-emotions"></div>
+
+                <div class="stat-row">
+                    <span class="stat-label">УГРОЗА</span>
+                    <span class="stat-value" id="beta-threat">0.00</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill fill-red" id="beta-threat-bar" style="width:0%"></div>
+                </div>
+
+                <div class="activity-monitor">
+                    <div class="activity-dot" id="beta-move"></div>
+                    <div class="activity-dot" id="beta-attack"></div>
+                    <div class="activity-dot" id="beta-defend"></div>
+                    <span style="margin-left:var(--space-2); font-size:0.7rem;" id="beta-action">ОЖИДАНИЕ</span>
+                </div>
+            </div>
+
+            <div class="neural-viz">
+                <canvas id="neural-canvas"></canvas>
+                <div class="viz-labels">
+                    <span>ВХОД (32)</span>
+                    <span>СКРЫТЫЙ 1 (64)</span>
+                    <span>СКРЫТЫЙ 2 (32)</span>
+                    <span>ВЫХОД (12)</span>
+                </div>
+            </div>
+
+            <div class="log-container" id="log-messages"></div>
+        </aside>
+
+        <footer class="app-footer">
+            <div class="evolution-panel">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="value" id="stat-gen">1</div>
+                        <div class="label">ПОКОЛЕНИЕ</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value" id="stat-pop">8</div>
+                        <div class="label">БОЙЦОВ</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value" id="stat-avg">0</div>
+                        <div class="label">СРЕДНИЙ УРОН</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value" id="stat-max">0</div>
+                        <div class="label">МАКС КОМБО</div>
+                    </div>
+                </div>
+                <div class="fighter-table" id="fighter-table"></div>
+                <div style="display:flex; gap:var(--space-2); justify-content:space-between;">
+                    <button class="neural-btn" style="flex:1" id="btn-evolve">ЭВОЛЮЦИЯ</button>
+                    <button class="neural-btn primary" style="flex:1" id="btn-tournament">ТУРНИР</button>
+                </div>
+            </div>
+
+            <div class="action-log">
+                <div class="log-header">
+                    <span>🧠 НЕЙРОННЫЙ ЛОГ</span>
+                    <span id="learning-rate">LR: 0.015</span>
+                </div>
+                <div class="log-messages" id="neural-log"></div>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:var(--space-3);">
+                <button class="neural-btn">СОХРАНИТЬ</button>
+                <button class="neural-btn">ЗАГРУЗИТЬ</button>
+                <button class="neural-btn secondary">ЭКСПОРТ</button>
+            </div>
+        </footer>
     </div>
 
-    <!-- Tournament Panel -->
-    <div class="tournament-panel">
-      <div class="panel-title">Neural Evolution</div>
-      
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-label">Generation</div>
-          <div class="stat-value" id="genCount">1</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Fighters</div>
-          <div class="stat-value" id="fighterCount">8</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Avg Hits</div>
-          <div class="stat-value" id="avgHits">0</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Max Combo</div>
-          <div class="stat-value" id="globalMaxCombo">0</div>
-        </div>
-      </div>
+    <script>
+        (function() {
+            'use strict';
 
-      <div class="generation-badge" id="generationInfo">
-        Generation #1 - Elite 4
-      </div>
+            //==================================================
+            // ГЛУБОКАЯ НЕЙРОСЕТЬ С Q-LEARNING (С НУЛЯ)
+            //==================================================
+            class DeepNeuralNetwork {
+                constructor(inputSize = 32, hidden1Size = 64, hidden2Size = 32, outputSize = 12) {
+                    this.inputSize = inputSize;
+                    this.hidden1Size = hidden1Size;
+                    this.hidden2Size = hidden2Size;
+                    this.outputSize = outputSize;
+                    
+                    // ИНИЦИАЛИЗАЦИЯ ВЕСОВ (XAVIER)
+                    this.W1 = this._initWeights(hidden1Size, inputSize);
+                    this.b1 = new Float32Array(hidden1Size);
+                    this.W2 = this._initWeights(hidden2Size, hidden1Size);
+                    this.b2 = new Float32Array(hidden2Size);
+                    this.W3 = this._initWeights(outputSize, hidden2Size);
+                    this.b3 = new Float32Array(outputSize);
+                    
+                    // ПАМЯТЬ ДЛЯ ОБУЧЕНИЯ
+                    this.memory = [];
+                    this.memoryCapacity = 2000;
+                    
+                    // ГИПЕРПАРАМЕТРЫ
+                    this.learningRate = 0.015;
+                    this.discountFactor = 0.97;
+                    this.epsilon = 0.25;
+                    this.epsilonMin = 0.05;
+                    this.epsilonDecay = 0.9995;
+                    
+                    // ПАМЯТЬ КОМБО
+                    this.comboMemory = new Map(); // последовательность -> награда
+                    
+                    // КЭШ ПОСЛЕДНЕГО ПРОХОДА
+                    this._lastInput = null;
+                    this._lastHidden1 = null;
+                    this._lastHidden2 = null;
+                    
+                    // СТАТИСТИКА
+                    this.stats = {
+                        steps: 0,
+                        totalReward: 0,
+                        avgReward: 0,
+                        explorationCount: 0
+                    };
+                }
 
-      <div class="fighter-list" id="fighterList"></div>
+                _initWeights(rows, cols) {
+                    const scale = Math.sqrt(2.0 / (rows + cols));
+                    const w = [];
+                    for (let i = 0; i < rows; i++) {
+                        const row = new Float32Array(cols);
+                        for (let j = 0; j < cols; j++) {
+                            row[j] = (Math.random() * 2 - 1) * scale;
+                        }
+                        w.push(row);
+                    }
+                    return w;
+                }
 
-      <div class="evolution-controls">
-        <button class="evo-btn" id="newGenBtn">New Generation</button>
-        <button class="evo-btn primary" id="tournamentBtn">Tournament</button>
-      </div>
-      <button class="evo-btn" id="saveBrainsBtn">Save Champions</button>
-    </div>
-  </div>
+                _relu(x) { return Math.max(0, x); }
+                
+                _sigmoid(x) { return 1 / (1 + Math.exp(-x)); }
 
-  <script>
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
+                _softmax(arr) {
+                    const max = Math.max(...arr);
+                    const exps = arr.map(x => Math.exp(x - max));
+                    const sum = exps.reduce((a, b) => a + b, 0);
+                    return exps.map(x => x / sum);
+                }
 
-    // ========== НОВАЯ НЕЙРОСЕТЬ С ОБУЧЕНИЕМ ==========
-    class NeuralNetwork {
-      constructor(inputSize = 32, hidden1Size = 64, hidden2Size = 32, outputSize = 12) {
-        this.inputSize = inputSize;
-        this.hidden1Size = hidden1Size;
-        this.hidden2Size = hidden2Size;
-        this.outputSize = outputSize;
-        
-        // Xavier/He initialization
-        this.W1 = this.randomMatrix(hidden1Size, inputSize, inputSize);
-        this.b1 = new Array(hidden1Size).fill(0.1);
-        this.W2 = this.randomMatrix(hidden2Size, hidden1Size, hidden1Size);
-        this.b2 = new Array(hidden2Size).fill(0.1);
-        this.W3 = this.randomMatrix(outputSize, hidden2Size, hidden2Size);
-        this.b3 = new Array(outputSize).fill(0.1);
-        
-        // ===== НОВОЕ: ПАМЯТЬ ДЛЯ ОБУЧЕНИЯ =====
-        this.memory = [];                // Replay buffer
-        this.memorySize = 1000;           // Храним 1000 ситуаций
-        this.learningRate = 0.01;         // Скорость обучения
-        this.discountFactor = 0.95;       // Важность будущих наград
-        this.epsilon = 0.2;                // Exploration rate
-        this.epsilonDecay = 0.999;         // Уменьшаем exploration
-        
-        // ===== НОВОЕ: ПАМЯТЬ КОМБО =====
-        this.comboMemory = [];             // Запоминаем успешные комбо
-        this.minComboReward = 3;            // Минимальная награда для запоминания
-        
-        // Кэш для обратного распространения
-        this.lastInput = null;
-        this.lastH1 = null;
-        this.lastH2 = null;
-        this.lastOutput = null;
-      }
+                forward(input) {
+                    if (!input || input.length !== this.inputSize) return new Float32Array(this.outputSize);
+                    
+                    this._lastInput = input;
+                    
+                    // СКРЫТЫЙ СЛОЙ 1
+                    const h1 = new Float32Array(this.hidden1Size);
+                    for (let i = 0; i < this.hidden1Size; i++) {
+                        let sum = this.b1[i];
+                        for (let j = 0; j < this.inputSize; j++) {
+                            sum += this.W1[i][j] * input[j];
+                        }
+                        h1[i] = this._relu(sum);
+                    }
+                    this._lastHidden1 = h1;
 
-      randomMatrix(rows, cols, fanIn) {
-        const matrix = [];
-        const scale = Math.sqrt(2.0 / fanIn);
-        for (let i = 0; i < rows; i++) {
-          matrix[i] = [];
-          for (let j = 0; j < cols; j++) {
-            matrix[i][j] = (Math.random() * 2 - 1) * scale;
-          }
-        }
-        return matrix;
-      }
+                    // СКРЫТЫЙ СЛОЙ 2
+                    const h2 = new Float32Array(this.hidden2Size);
+                    for (let i = 0; i < this.hidden2Size; i++) {
+                        let sum = this.b2[i];
+                        for (let j = 0; j < this.hidden1Size; j++) {
+                            sum += this.W2[i][j] * h1[j];
+                        }
+                        h2[i] = this._relu(sum);
+                    }
+                    this._lastHidden2 = h2;
 
-      relu(x) { return Math.max(0, x); }
-      
-      softmax(arr) {
-        const max = Math.max(...arr);
-        const exps = arr.map(x => Math.exp(x - max));
-        const sum = exps.reduce((a, b) => a + b);
-        return exps.map(x => x / sum);
-      }
+                    // ВЫХОДНОЙ СЛОЙ
+                    const output = new Float32Array(this.outputSize);
+                    for (let i = 0; i < this.outputSize; i++) {
+                        let sum = this.b3[i];
+                        for (let j = 0; j < this.hidden2Size; j++) {
+                            sum += this.W3[i][j] * h2[j];
+                        }
+                        output[i] = sum;
+                    }
 
-      forward(input) {
-        this.lastInput = input;
-        
-        // Layer 1
-        this.lastH1 = [];
-        for (let i = 0; i < this.hidden1Size; i++) {
-          let sum = this.b1[i];
-          for (let j = 0; j < this.inputSize; j++) {
-            sum += this.W1[i][j] * input[j];
-          }
-          this.lastH1[i] = this.relu(sum);
-        }
+                    return this._softmax(output);
+                }
 
-        // Layer 2
-        this.lastH2 = [];
-        for (let i = 0; i < this.hidden2Size; i++) {
-          let sum = this.b2[i];
-          for (let j = 0; j < this.hidden1Size; j++) {
-            sum += this.W2[i][j] * this.lastH1[j];
-          }
-          this.lastH2[i] = this.relu(sum);
-        }
+                chooseAction(state) {
+                    this.stats.steps++;
+                    
+                    if (Math.random() < this.epsilon) {
+                        this.stats.explorationCount++;
+                        return Math.floor(Math.random() * this.outputSize);
+                    } else {
+                        const qValues = this.forward(state);
+                        let best = 0;
+                        for (let i = 1; i < qValues.length; i++) {
+                            if (qValues[i] > qValues[best]) best = i;
+                        }
+                        return best;
+                    }
+                }
 
-        // Output
-        this.lastOutput = [];
-        for (let i = 0; i < this.outputSize; i++) {
-          let sum = this.b3[i];
-          for (let j = 0; j < this.hidden2Size; j++) {
-            sum += this.W3[i][j] * this.lastH2[j];
-          }
-          this.lastOutput[i] = sum;
-        }
+                remember(state, action, reward, nextState, done = false) {
+                    this.memory.push({
+                        state: Array.from(state),
+                        action,
+                        reward,
+                        nextState: Array.from(nextState),
+                        done
+                    });
+                    
+                    if (this.memory.length > this.memoryCapacity) {
+                        this.memory.shift();
+                    }
+                    
+                    this.stats.totalReward += reward;
+                    this.stats.avgReward = this.stats.avgReward * 0.95 + reward * 0.05;
+                    
+                    this.epsilon = Math.max(this.epsilonMin, this.epsilon * this.epsilonDecay);
+                }
 
-        return this.softmax(this.lastOutput);
-      }
+                learn(batchSize = 64) {
+                    if (this.memory.length < batchSize) return 0;
+                    
+                    let totalError = 0;
+                    
+                    for (let _ = 0; _ < 3; _++) { // 3 прохода по батчу
+                        const indices = new Set();
+                        while (indices.size < batchSize) {
+                            indices.add(Math.floor(Math.random() * this.memory.length));
+                        }
+                        
+                        for (const idx of indices) {
+                            const exp = this.memory[idx];
+                            
+                            const currentQ = this.forward(exp.state)[exp.action];
+                            
+                            let targetQ;
+                            if (exp.done) {
+                                targetQ = exp.reward;
+                            } else {
+                                const nextQ = this.forward(exp.nextState);
+                                const maxNextQ = Math.max(...nextQ);
+                                targetQ = exp.reward + this.discountFactor * maxNextQ;
+                            }
+                            
+                            const error = targetQ - currentQ;
+                            totalError += Math.abs(error);
+                            
+                            this._backward(exp.state, exp.action, error);
+                        }
+                    }
+                    
+                    return totalError / batchSize;
+                }
 
-      // ===== НОВОЕ: ВЫБОР ДЕЙСТВИЯ (ε-greedy) =====
-      chooseAction(state) {
-        if (Math.random() < this.epsilon) {
-          // Exploration: случайное действие
-          return Math.floor(Math.random() * this.outputSize);
-        } else {
-          // Exploitation: лучшее действие
-          const output = this.forward(state);
-          let best = 0;
-          for (let i = 1; i < output.length; i++) {
-            if (output[i] > output[best]) best = i;
-          }
-          return best;
-        }
-      }
+                _backward(state, action, error) {
+                    const grad = error * this.learningRate;
+                    
+                    // ГРАДИЕНТ ДЛЯ ВЫХОДНОГО СЛОЯ
+                    for (let i = 0; i < this.hidden2Size; i++) {
+                        this.W3[action][i] += grad * this._lastHidden2[i];
+                    }
+                    this.b3[action] += grad;
+                    
+                    // ГРАДИЕНТ ДЛЯ СКРЫТОГО СЛОЯ 2
+                    const gradH2 = new Float32Array(this.hidden2Size);
+                    for (let i = 0; i < this.hidden2Size; i++) {
+                        gradH2[i] = grad * this.W3[action][i] * (this._lastHidden2[i] > 0 ? 1 : 0.1);
+                    }
+                    
+                    for (let i = 0; i < this.hidden2Size; i++) {
+                        for (let j = 0; j < this.hidden1Size; j++) {
+                            this.W2[i][j] += gradH2[i] * this._lastHidden1[j] * 0.5;
+                        }
+                        this.b2[i] += gradH2[i] * 0.5;
+                    }
+                }
 
-      // ===== НОВОЕ: ЗАПОМИНАНИЕ ОПЫТА =====
-      remember(state, action, reward, nextState, done = false) {
-        this.memory.push({
-          state: [...state],
-          action,
-          reward,
-          nextState: [...nextState],
-          done
-        });
-        
-        if (this.memory.length > this.memorySize) {
-          this.memory.shift();
-        }
-        
-        // Уменьшаем exploration
-        this.epsilon *= this.epsilonDecay;
-        this.epsilon = Math.max(0.05, this.epsilon);
-      }
+                rememberCombo(sequence, reward) {
+                    if (sequence.length < 2 || reward < 2) return;
+                    const key = sequence.join(',');
+                    const current = this.comboMemory.get(key) || 0;
+                    this.comboMemory.set(key, current + reward);
+                    
+                    // ОГРАНИЧЕНИЕ РАЗМЕРА
+                    if (this.comboMemory.size > 50) {
+                        const smallest = Array.from(this.comboMemory.entries())
+                            .sort((a, b) => a[1] - b[1])[0][0];
+                        this.comboMemory.delete(smallest);
+                    }
+                }
 
-      // ===== НОВОЕ: ОБУЧЕНИЕ НА ОПЫТЕ (Q-learning) =====
-      learn(batchSize = 32) {
-        if (this.memory.length < batchSize) return;
-        
-        // Берем случайный batch из памяти
-        const batch = [];
-        for (let i = 0; i < batchSize; i++) {
-          const idx = Math.floor(Math.random() * this.memory.length);
-          batch.push(this.memory[idx]);
-        }
-        
-        for (const exp of batch) {
-          // Текущее Q-значение
-          const currentQ = this.forward(exp.state)[exp.action];
-          
-          // Целевое Q-значение (Bellman equation)
-          let targetQ;
-          if (exp.done) {
-            targetQ = exp.reward;
-          } else {
-            const nextQ = this.forward(exp.nextState);
-            const maxNextQ = Math.max(...nextQ);
-            targetQ = exp.reward + this.discountFactor * maxNextQ;
-          }
-          
-          // Ошибка
-          const error = targetQ - currentQ;
-          
-          // Обратное распространение
-          this.backward(exp.state, exp.action, error);
-        }
-      }
+                suggestCombo(lastAction) {
+                    if (lastAction === undefined || lastAction === null) return null;
+                    
+                    let bestCombo = null;
+                    let bestReward = 0;
+                    
+                    for (const [seq, reward] of this.comboMemory.entries()) {
+                        const parts = seq.split(',').map(Number);
+                        if (parts[0] === lastAction && parts.length > 1 && reward > bestReward) {
+                            bestReward = reward;
+                            bestCombo = parts[1];
+                        }
+                    }
+                    
+                    return bestCombo;
+                }
 
-      // ===== НОВОЕ: ОБРАТНОЕ РАСПРОСТРАНЕНИЕ =====
-      backward(state, action, error) {
-        const outputGrad = error * this.learningRate;
-        
-        // Обновляем W3 и b3
-        for (let i = 0; i < this.hidden2Size; i++) {
-          this.W3[action][i] += outputGrad * this.lastH2[i];
-        }
-        this.b3[action] += outputGrad;
-        
-        // Градиент для скрытого слоя 2
-        const hidden2Grad = [];
-        for (let i = 0; i < this.hidden2Size; i++) {
-          hidden2Grad[i] = outputGrad * this.W3[action][i] * (this.lastH2[i] > 0 ? 1 : 0.01);
-        }
-        
-        // Обновляем W2 и b2
-        for (let i = 0; i < this.hidden2Size; i++) {
-          for (let j = 0; j < this.hidden1Size; j++) {
-            this.W2[i][j] += hidden2Grad[i] * this.lastH1[j] * 0.5;
-          }
-          this.b2[i] += hidden2Grad[i] * 0.5;
-        }
-      }
+                crossover(other) {
+                    const child = new DeepNeuralNetwork();
+                    
+                    for (let i = 0; i < this.W1.length; i++) {
+                        for (let j = 0; j < this.W1[i].length; j++) {
+                            child.W1[i][j] = Math.random() < 0.5 ? this.W1[i][j] : other.W1[i][j];
+                        }
+                    }
+                    
+                    for (let i = 0; i < this.W2.length; i++) {
+                        for (let j = 0; j < this.W2[i].length; j++) {
+                            child.W2[i][j] = Math.random() < 0.5 ? this.W2[i][j] : other.W2[i][j];
+                        }
+                    }
+                    
+                    for (let i = 0; i < this.W3.length; i++) {
+                        for (let j = 0; j < this.W3[i].length; j++) {
+                            child.W3[i][j] = Math.random() < 0.5 ? this.W3[i][j] : other.W3[i][j];
+                        }
+                    }
+                    
+                    // НАСЛЕДОВАНИЕ КОМБО
+                    for (const [seq, reward] of this.comboMemory) {
+                        child.comboMemory.set(seq, reward);
+                    }
+                    for (const [seq, reward] of other.comboMemory) {
+                        child.comboMemory.set(seq, reward);
+                    }
+                    
+                    child.mutate(0.05);
+                    return child;
+                }
 
-      // ===== НОВОЕ: ЗАПОМИНАНИЕ УДАЧНЫХ КОМБО =====
-      rememberCombo(sequence, reward) {
-        if (sequence.length < 2 || reward < this.minComboReward) return;
-        
-        this.comboMemory.push({
-          sequence: [...sequence],
-          reward,
-          count: 1
-        });
-        
-        // Оставляем только лучшие комбо
-        this.comboMemory.sort((a, b) => b.reward - a.reward);
-        if (this.comboMemory.length > 20) {
-          this.comboMemory.pop();
-        }
-      }
+                mutate(rate) {
+                    for (let i = 0; i < this.W1.length; i++) {
+                        for (let j = 0; j < this.W1[i].length; j++) {
+                            if (Math.random() < rate) {
+                                this.W1[i][j] += (Math.random() - 0.5) * 0.3;
+                            }
+                        }
+                    }
+                    
+                    for (let i = 0; i < this.W2.length; i++) {
+                        for (let j = 0; j < this.W2[i].length; j++) {
+                            if (Math.random() < rate) {
+                                this.W2[i][j] += (Math.random() - 0.5) * 0.3;
+                            }
+                        }
+                    }
+                    
+                    for (let i = 0; i < this.W3.length; i++) {
+                        for (let j = 0; j < this.W3[i].length; j++) {
+                            if (Math.random() < rate) {
+                                this.W3[i][j] += (Math.random() - 0.5) * 0.3;
+                            }
+                        }
+                    }
+                }
 
-      // ===== НОВОЕ: ПРЕДЛОЖЕНИЕ КОМБО =====
-      suggestCombo(lastActions) {
-        if (lastActions.length < 1 || this.comboMemory.length === 0) return null;
-        
-        const lastMove = lastActions[lastActions.length - 1];
-        const possible = this.comboMemory.filter(c => c.sequence[0] === lastMove);
-        
-        if (possible.length === 0) return null;
-        
-        // Выбираем лучшее комбо
-        possible.sort((a, b) => b.reward - a.reward);
-        return possible[0].sequence[1];
-      }
+                clone() {
+                    const clone = new DeepNeuralNetwork();
+                    
+                    for (let i = 0; i < this.W1.length; i++) {
+                        for (let j = 0; j < this.W1[i].length; j++) {
+                            clone.W1[i][j] = this.W1[i][j];
+                        }
+                    }
+                    
+                    for (let i = 0; i < this.W2.length; i++) {
+                        for (let j = 0; j < this.W2[i].length; j++) {
+                            clone.W2[i][j] = this.W2[i][j];
+                        }
+                    }
+                    
+                    for (let i = 0; i < this.W3.length; i++) {
+                        for (let j = 0; j < this.W3[i].length; j++) {
+                            clone.W3[i][j] = this.W3[i][j];
+                        }
+                    }
+                    
+                    clone.b1 = new Float32Array(this.b1);
+                    clone.b2 = new Float32Array(this.b2);
+                    clone.b3 = new Float32Array(this.b3);
+                    
+                    for (const [seq, reward] of this.comboMemory) {
+                        clone.comboMemory.set(seq, reward);
+                    }
+                    
+                    return clone;
+                }
 
-      crossover(other) {
-        const child = new NeuralNetwork();
-        
-        for(let i=0; i<this.W1.length; i++) {
-          for(let j=0; j<this.W1[i].length; j++) {
-            child.W1[i][j] = Math.random() < 0.5 ? this.W1[i][j] : other.W1[i][j];
-          }
-        }
-        
-        for(let i=0; i<this.W2.length; i++) {
-          for(let j=0; j<this.W2[i].length; j++) {
-            child.W2[i][j] = Math.random() < 0.5 ? this.W2[i][j] : other.W2[i][j];
-          }
-        }
-        
-        for(let i=0; i<this.W3.length; i++) {
-          for(let j=0; j<this.W3[i].length; j++) {
-            child.W3[i][j] = Math.random() < 0.5 ? this.W3[i][j] : other.W3[i][j];
-          }
-        }
-        
-        // Наследуем комбо память
-        child.comboMemory = [...this.comboMemory, ...other.comboMemory]
-          .sort((a, b) => b.reward - a.reward)
-          .slice(0, 20);
-        
-        child.mutate(0.05);
-        return child;
-      }
+                toJSON() {
+                    return {
+                        W1: this.W1.map(r => Array.from(r)),
+                        b1: Array.from(this.b1),
+                        W2: this.W2.map(r => Array.from(r)),
+                        b2: Array.from(this.b2),
+                        W3: this.W3.map(r => Array.from(r)),
+                        b3: Array.from(this.b3),
+                        comboMemory: Array.from(this.comboMemory.entries())
+                    };
+                }
 
-      mutate(rate) {
-        for(let i=0; i<this.W1.length; i++) {
-          for(let j=0; j<this.W1[i].length; j++) {
-            if (Math.random() < rate) {
-              this.W1[i][j] += (Math.random() - 0.5) * 0.3;
+                fromJSON(json) {
+                    this.W1 = json.W1.map(r => new Float32Array(r));
+                    this.b1 = new Float32Array(json.b1);
+                    this.W2 = json.W2.map(r => new Float32Array(r));
+                    this.b2 = new Float32Array(json.b2);
+                    this.W3 = json.W3.map(r => new Float32Array(r));
+                    this.b3 = new Float32Array(json.b3);
+                    
+                    this.comboMemory.clear();
+                    if (json.comboMemory) {
+                        for (const [seq, reward] of json.comboMemory) {
+                            this.comboMemory.set(seq, reward);
+                        }
+                    }
+                }
             }
-          }
-        }
-        
-        for(let i=0; i<this.W2.length; i++) {
-          for(let j=0; j<this.W2[i].length; j++) {
-            if (Math.random() < rate) {
-              this.W2[i][j] += (Math.random() - 0.5) * 0.3;
+
+            //==================================================
+            // АТАКИ (ФИКСИРОВАННЫЙ УРОН)
+            //==================================================
+            const ATTACKS = [
+                { name: 'JAB', damage: 4, startup: 6, active: 4, recovery: 8, level: 0 },     // 0
+                { name: 'STRAIGHT', damage: 7, startup: 8, active: 5, recovery: 10, level: 0 },// 1
+                { name: 'HOOK', damage: 9, startup: 10, active: 6, recovery: 12, level: 1 },   // 2
+                { name: 'UPPERCUT', damage: 11, startup: 12, active: 6, recovery: 14, level: 1 }, // 3
+                { name: 'LOW KICK', damage: 5, startup: 8, active: 5, recovery: 10, level: 2 }, // 4
+                { name: 'MID KICK', damage: 8, startup: 10, active: 6, recovery: 12, level: 1 }, // 5
+                { name: 'HIGH KICK', damage: 10, startup: 12, active: 7, recovery: 14, level: 0 }, // 6
+                { name: 'SWEEP', damage: 4, startup: 14, active: 8, recovery: 16, level: 2 }, // 7
+                { name: 'SPIN KICK', damage: 13, startup: 16, active: 9, recovery: 18, level: 1 } // 8
+            ];
+
+            //==================================================
+            // БАЗОВЫЙ КЛАСС БОЙЦА
+            //==================================================
+            class BaseFighter {
+                constructor(x, y, color, name, isRed) {
+                    this.x = x;
+                    this.y = y;
+                    this.vx = 0;
+                    this.vy = 0;
+                    this.color = color;
+                    this.name = name;
+                    this.isRed = isRed;
+                    
+                    this.hp = 100;
+                    this.maxHp = 100;
+                    
+                    this.state = 'idle';
+                    this.frame = 0;
+                    this.attackFrame = 0;
+                    this.currentAttack = null;
+                    this.attackPhase = null;
+                    this.hitStun = 0;
+                    this.blockStun = 0;
+                    this.invincible = 0;
+                    
+                    this.hitCount = 0;
+                    this.comboCount = 0;
+                    this.maxCombo = 0;
+                    this.lastHitTime = 0;
+                    
+                    this.facing = 1; // 1 = вправо, -1 = влево
+                }
+
+                updateBase() {
+                    if (this.hitStun > 0) this.hitStun--;
+                    if (this.blockStun > 0) this.blockStun--;
+                    if (this.invincible > 0) this.invincible--;
+                    
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    
+                    // ГРАНИЦЫ
+                    this.x = Math.max(50, Math.min(910, this.x));
+                    this.y = Math.max(50, Math.min(590, this.y));
+                    
+                    // ФИЗИКА
+                    this.vx *= 0.92;
+                    this.vy *= 0.92;
+                    
+                    this.frame++;
+                }
+
+                takeHit(attacker, attackIndex) {
+                    if (this.invincible > 0) return false;
+                    
+                    const attack = ATTACKS[attackIndex];
+                    if (!attack) return false;
+                    
+                    this.hp = Math.max(0, this.hp - attack.damage);
+                    this.hitStun = 10;
+                    this.invincible = 15;
+                    
+                    const dir = attacker.x < this.x ? 1 : -1;
+                    this.vx += dir * 5;
+                    this.vy -= 2;
+                    
+                    attacker.hitCount++;
+                    attacker.comboCount++;
+                    if (attacker.comboCount > attacker.maxCombo) {
+                        attacker.maxCombo = attacker.comboCount;
+                    }
+                    attacker.lastHitTime = performance.now();
+                    
+                    return true;
+                }
+
+                startAttack(index) {
+                    if (index < 0 || index >= ATTACKS.length) return;
+                    
+                    this.state = 'attacking';
+                    this.currentAttack = index;
+                    this.attackFrame = 0;
+                    this.attackPhase = 'startup';
+                }
+
+                getHitbox() {
+                    if (this.state !== 'attacking' || this.attackPhase !== 'active') return null;
+                    
+                    const attack = ATTACKS[this.currentAttack];
+                    const dir = this.facing;
+                    
+                    return {
+                        x: this.x + dir * 45,
+                        y: this.y - 30,
+                        w: 30,
+                        h: 30
+                    };
+                }
+
+                getHurtbox() {
+                    return {
+                        x: this.x,
+                        y: this.y - 40,
+                        w: 30,
+                        h: 60
+                    };
+                }
             }
-          }
-        }
-        
-        for(let i=0; i<this.W3.length; i++) {
-          for(let j=0; j<this.W3[i].length; j++) {
-            if (Math.random() < rate) {
-              this.W3[i][j] += (Math.random() - 0.5) * 0.3;
+
+            //==================================================
+            // НЕЙРОННЫЙ БОЕЦ
+            //==================================================
+            class NeuralFighter extends BaseFighter {
+                constructor(x, y, color, name, isRed, brain = null) {
+                    super(x, y, color, name, isRed);
+                    this.brain = brain || new DeepNeuralNetwork();
+                    
+                    this.lastState = null;
+                    this.lastAction = null;
+                    this.lastReward = 0;
+                    this.totalReward = 0;
+                    
+                    this.actionHistory = [];
+                    this.actionTimer = 0;
+                }
+
+                getSensors(opponent) {
+                    const dx = opponent.x - this.x;
+                    const dy = opponent.y - this.y;
+                    const dist = Math.hypot(dx, dy);
+                    
+                    return [
+                        this.hp / 100,                          // 0
+                        opponent.hp / 100,                       // 1
+                        this.x / 960,                            // 2
+                        opponent.x / 960,                         // 3
+                        this.y / 640,                             // 4
+                        opponent.y / 640,                         // 5
+                        this.vx / 10,                             // 6
+                        this.vy / 10,                             // 7
+                        opponent.vx / 10,                         // 8
+                        opponent.vy / 10,                         // 9
+                        dist / 600,                               // 10
+                        Math.atan2(dy, dx) / Math.PI,            // 11
+                        this.facing,                              // 12
+                        (opponent.x > this.x ? 1 : -1) === this.facing ? 1 : 0, // 13
+                        this.state === 'attacking' ? 1 : 0,       // 14
+                        this.attackPhase === 'active' ? 1 : 0,    // 15
+                        opponent.state === 'attacking' ? 1 : 0,   // 16
+                        opponent.attackPhase === 'active' ? 1 : 0, // 17
+                        this.hitStun > 0 ? 1 : 0,                 // 18
+                        opponent.hitStun > 0 ? 1 : 0,             // 19
+                        this.comboCount / 10,                     // 20
+                        opponent.comboCount / 10,                 // 21
+                        (performance.now() % 1000) / 1000,        // 22
+                        this.actionHistory.length > 0 ? this.actionHistory[0] / 12 : 0, // 23
+                        this.actionHistory.length > 1 ? this.actionHistory[1] / 12 : 0, // 24
+                        this.actionHistory.length > 2 ? this.actionHistory[2] / 12 : 0, // 25
+                        this.actionHistory.length > 3 ? this.actionHistory[3] / 12 : 0, // 26
+                        this.actionHistory.length > 4 ? this.actionHistory[4] / 12 : 0, // 27
+                        Math.random(),                            // 28
+                        Math.sin(this.frame * 0.1),               // 29
+                        Math.cos(this.frame * 0.1),               // 30
+                        (this.x + this.y) / 2000                   // 31
+                    ];
+                }
+
+                update(opponent, dt = 1) {
+                    this.updateBase();
+                    
+                    // АТАКА
+                    if (this.state === 'attacking') {
+                        this.attackFrame++;
+                        const attack = ATTACKS[this.currentAttack];
+                        
+                        if (this.attackFrame < attack.startup) {
+                            this.attackPhase = 'startup';
+                        } else if (this.attackFrame < attack.startup + attack.active) {
+                            this.attackPhase = 'active';
+                        } else if (this.attackFrame < attack.startup + attack.active + attack.recovery) {
+                            this.attackPhase = 'recovery';
+                        } else {
+                            this.state = 'idle';
+                            this.attackPhase = null;
+                            this.currentAttack = null;
+                        }
+                    }
+                    
+                    // УПРАВЛЕНИЕ
+                    if (this.hitStun <= 0 && this.state !== 'attacking') {
+                        this._decide(opponent);
+                    }
+                    
+                    // ЛИЦОМ К ПРОТИВНИКУ
+                    if (this.state === 'idle') {
+                        this.facing = opponent.x > this.x ? 1 : -1;
+                    }
+                    
+                    // ОБУЧЕНИЕ
+                    if (this.lastState && this.lastAction !== null && this.frame % 10 === 0) {
+                        const nextState = this.getSensors(opponent);
+                        this.brain.remember(this.lastState, this.lastAction, this.lastReward, nextState);
+                        this.totalReward += this.lastReward;
+                        this.lastReward = 0;
+                        
+                        if (this.frame % 30 === 0) {
+                            const avgError = this.brain.learn(32);
+                            if (avgError > 0) {
+                                log('learn', `${this.name} ошибка: ${avgError.toFixed(4)}`);
+                            }
+                        }
+                    }
+                }
+
+                _decide(opponent) {
+                    this.actionTimer--;
+                    
+                    if (this.actionTimer <= 0) {
+                        const state = this.getSensors(opponent);
+                        this.lastState = state;
+                        
+                        // ПРОВЕРКА КОМБО
+                        if (this.actionHistory.length > 0) {
+                            const lastMove = this.actionHistory[this.actionHistory.length - 1];
+                            const combo = this.brain.suggestCombo(lastMove);
+                            if (combo !== null && combo < 9 && Math.random() < 0.6) {
+                                this.lastAction = combo;
+                                this.startAttack(combo);
+                                this.actionHistory.push(combo);
+                                this.actionTimer = 5;
+                                return;
+                            }
+                        }
+                        
+                        // ВЫБОР ДЕЙСТВИЯ
+                        const action = this.brain.chooseAction(state);
+                        this.lastAction = action;
+                        this.actionHistory.push(action);
+                        if (this.actionHistory.length > 10) this.actionHistory.shift();
+                        
+                        if (action < 9) {
+                            this.startAttack(action);
+                        } else if (action === 9) {
+                            // ДВИЖЕНИЕ ВПЕРЕД
+                            this.vx += this.facing * 2;
+                        } else if (action === 10) {
+                            // ДВИЖЕНИЕ НАЗАД
+                            this.vx -= this.facing * 2;
+                        } else if (action === 11) {
+                            // БЛОК
+                            // В РЕАЛИЗАЦИИ
+                        }
+                        
+                        this.actionTimer = 8;
+                    }
+                }
             }
-          }
-        }
-      }
 
-      clone() {
-        const cl = new NeuralNetwork();
-        for(let i=0; i<this.W1.length; i++) {
-          for(let j=0; j<this.W1[i].length; j++) cl.W1[i][j] = this.W1[i][j];
-        }
-        for(let i=0; i<this.W2.length; i++) {
-          for(let j=0; j<this.W2[i].length; j++) cl.W2[i][j] = this.W2[i][j];
-        }
-        for(let i=0; i<this.W3.length; i++) {
-          for(let j=0; j<this.W3[i].length; j++) cl.W3[i][j] = this.W3[i][j];
-        }
-        cl.b1 = [...this.b1]; cl.b2 = [...this.b2]; cl.b3 = [...this.b3];
-        cl.comboMemory = [...this.comboMemory];
-        return cl;
-      }
+            //==================================================
+            // ПОПУЛЯЦИЯ И ЭВОЛЮЦИЯ
+            //==================================================
+            class Population {
+                constructor(size = 8) {
+                    this.size = size;
+                    this.generation = 1;
+                    this.fighters = [];
+                    this.history = [];
+                    
+                    for (let i = 0; i < size; i++) {
+                        this.fighters.push({
+                            id: i,
+                            name: `NEURAL #${i+1}`,
+                            brain: new DeepNeuralNetwork(),
+                            wins: 0,
+                            losses: 0,
+                            hits: 0,
+                            maxCombo: 0,
+                            generation: 1
+                        });
+                    }
+                }
 
-      toJSON() { 
-        return { 
-          W1: this.W1, b1: this.b1, W2: this.W2, b2: this.b2, W3: this.W3, b3: this.b3,
-          comboMemory: this.comboMemory 
-        }; 
-      }
-      
-      fromJSON(json) { 
-        this.W1 = json.W1; this.b1 = json.b1; this.W2 = json.W2; this.b2 = json.b2; 
-        this.W3 = json.W3; this.b3 = json.b3; this.comboMemory = json.comboMemory || [];
-      }
-    }
+                runTournament() {
+                    for (const f of this.fighters) {
+                        f.wins = 0;
+                        f.losses = 0;
+                        f.hits = 0;
+                        f.maxCombo = 0;
+                    }
+                    
+                    for (let i = 0; i < this.fighters.length; i++) {
+                        for (let j = i + 1; j < this.fighters.length; j++) {
+                            const result = this._simulateFight(this.fighters[i], this.fighters[j]);
+                            
+                            if (result.winner === 0) {
+                                this.fighters[i].wins++;
+                                this.fighters[j].losses++;
+                            } else {
+                                this.fighters[j].wins++;
+                                this.fighters[i].losses++;
+                            }
+                            
+                            this.fighters[i].hits += result.hits1;
+                            this.fighters[j].hits += result.hits2;
+                            
+                            if (result.combo1 > this.fighters[i].maxCombo) {
+                                this.fighters[i].maxCombo = result.combo1;
+                            }
+                            if (result.combo2 > this.fighters[j].maxCombo) {
+                                this.fighters[j].maxCombo = result.combo2;
+                            }
+                        }
+                    }
+                    
+                    this.fighters.sort((a, b) => b.wins - a.wins);
+                    
+                    this.history.push({
+                        gen: this.generation,
+                        best: this.fighters[0].name,
+                        wins: this.fighters[0].wins,
+                        avgHits: this.fighters.reduce((s, f) => s + f.hits, 0) / this.fighters.length
+                    });
+                    
+                    this._evolve();
+                }
 
-    // === CONFIGURATION ===
-    const CONFIG = {
-      RANGE: 55,
-      JUST_DEFEND_WINDOW: 180,
-      BLOCK_COOLDOWN: 400,
-      COMBO_WINDOW: 800,
-      JUMP_FORCE: -12,
-      GRAVITY: 0.6,
-      DASH_SPEED: 9,
-      GROUND_Y: 320
-    };
+                _simulateFight(f1, f2) {
+                    const fighter1 = new NeuralFighter(300, 320, '#ff3b5c', f1.name, true, f1.brain.clone());
+                    const fighter2 = new NeuralFighter(660, 320, '#3b9eff', f2.name, false, f2.brain.clone());
+                    
+                    let hits1 = 0, hits2 = 0, combo1 = 0, combo2 = 0;
+                    
+                    for (let i = 0; i < 600; i++) {
+                        fighter1.update(fighter2);
+                        fighter2.update(fighter1);
+                        
+                        // ХИТЫ
+                        if (fighter1.state === 'attacking' && fighter1.attackPhase === 'active') {
+                            const hb = fighter1.getHitbox();
+                            const hb2 = fighter2.getHurtbox();
+                            if (hb && hb2 && Math.abs(hb.x - hb2.x) < 30 && Math.abs(hb.y - hb2.y) < 40) {
+                                if (fighter2.takeHit(fighter1, fighter1.currentAttack)) {
+                                    hits1++;
+                                    if (fighter1.comboCount > combo1) combo1 = fighter1.comboCount;
+                                }
+                            }
+                        }
+                        
+                        if (fighter2.state === 'attacking' && fighter2.attackPhase === 'active') {
+                            const hb = fighter2.getHitbox();
+                            const hb1 = fighter1.getHurtbox();
+                            if (hb && hb1 && Math.abs(hb.x - hb1.x) < 30 && Math.abs(hb.y - hb1.y) < 40) {
+                                if (fighter1.takeHit(fighter2, fighter2.currentAttack)) {
+                                    hits2++;
+                                    if (fighter2.comboCount > combo2) combo2 = fighter2.comboCount;
+                                }
+                            }
+                        }
+                    }
+                    
+                    const winner = hits1 > hits2 ? 0 : 1;
+                    return { winner, hits1, hits2, combo1, combo2 };
+                }
 
-    // === ATTACK DATABASE ===
-    const ATTACKS = {
-      jab: { name: 'Jab', damage: 4, startup: 6, active: 3, recovery: 8, hitstun: 12, knockback: 2, level: 'high', move: 'hand' },
-      straight: { name: 'Straight', damage: 7, startup: 10, active: 4, recovery: 12, hitstun: 16, knockback: 4, level: 'high', move: 'hand' },
-      hook: { name: 'Hook', damage: 9, startup: 12, active: 5, recovery: 14, hitstun: 18, knockback: 5, level: 'mid', move: 'hand' },
-      uppercut: { name: 'Uppercut', damage: 11, startup: 14, active: 5, recovery: 18, hitstun: 22, knockback: 3, level: 'mid', launch: true, move: 'hand' },
-      lowKick: { name: 'Low Kick', damage: 5, startup: 10, active: 4, recovery: 12, hitstun: 14, knockback: 3, level: 'low', move: 'leg' },
-      midKick: { name: 'Mid Kick', damage: 8, startup: 13, active: 5, recovery: 16, hitstun: 18, knockback: 6, level: 'mid', move: 'leg' },
-      highKick: { name: 'High Kick', damage: 10, startup: 15, active: 6, recovery: 20, hitstun: 20, knockback: 7, level: 'high', move: 'leg' },
-      sweep: { name: 'Sweep', damage: 4, startup: 14, active: 6, recovery: 18, hitstun: 25, knockback: 2, level: 'low', trip: true, move: 'leg' },
-      spinKick: { name: 'Spin Kick', damage: 13, startup: 18, active: 8, recovery: 24, hitstun: 24, knockback: 10, level: 'mid', spin: true, move: 'leg' }
-    };
+                _evolve() {
+                    const elite = this.fighters.slice(0, 2);
+                    const newFighters = [];
+                    
+                    elite.forEach(e => {
+                        newFighters.push({
+                            id: newFighters.length,
+                            name: `ELITE #${e.id+1}`,
+                            brain: e.brain.clone(),
+                            wins: 0,
+                            losses: 0,
+                            hits: 0,
+                            maxCombo: 0,
+                            generation: this.generation + 1
+                        });
+                    });
+                    
+                    for (let i = 0; i < this.size - 2; i++) {
+                        const p1 = elite[Math.floor(Math.random() * elite.length)];
+                        const p2 = elite[Math.floor(Math.random() * elite.length)];
+                        const childBrain = p1.brain.crossover(p2.brain);
+                        
+                        newFighters.push({
+                            id: newFighters.length,
+                            name: `CHILD #${i+1}`,
+                            brain: childBrain,
+                            wins: 0,
+                            losses: 0,
+                            hits: 0,
+                            maxCombo: 0,
+                            generation: this.generation + 1
+                        });
+                    }
+                    
+                    this.fighters = newFighters;
+                    this.generation++;
+                }
 
-    // === COMBO SEQUENCES ===
-    const COMBOS = {
-      basic: ['jab', 'straight'],
-      boxer: ['jab', 'jab', 'straight', 'hook'],
-      kickboxer: ['lowKick', 'midKick', 'highKick'],
-      finisher: ['jab', 'hook', 'uppercut'],
-      heavy: ['straight', 'spinKick'],
-      trip: ['lowKick', 'sweep']
-    };
-
-    // === AI STYLES ===
-    const AI_STYLES = {
-      balanced: { preferredRange: [50, 90], comboChance: 0.4, whiffPunish: 0.5, defensiveReaction: 0.4 },
-      aggressor: { preferredRange: [30, 60], comboChance: 0.6, whiffPunish: 0.3, defensiveReaction: 0.2 },
-      counter: { preferredRange: [60, 100], comboChance: 0.5, whiffPunish: 0.8, defensiveReaction: 0.7 },
-      combo: { preferredRange: [40, 70], comboChance: 0.85, whiffPunish: 0.4, defensiveReaction: 0.3 },
-      defensive: { preferredRange: [70, 120], comboChance: 0.3, whiffPunish: 0.6, defensiveReaction: 0.8 }
-    };
-
-    // === BASE FIGHTER CLASS ===
-    class BaseFighter {
-      constructor(x, facingRight, color, name) {
-        this.x = x;
-        this.y = CONFIG.GROUND_Y;
-        this.vx = 0;
-        this.vy = 0;
-        this.facingRight = facingRight;
-        this.color = color;
-        this.name = name;
-        
-        this.hp = 100;
-        this.maxHp = 100;
-        this.state = 'idle';
-        this.grounded = true;
-        
-        this.currentAttack = null;
-        this.attackFrame = 0;
-        this.attackPhase = 'none';
-        this.hasHit = false;
-        
-        this.blocking = false;
-        this.blockTimer = 0;
-        this.justDefended = false;
-        this.blockCooldown = 0;
-        
-        this.hitstun = 0;
-        this.invincible = 0;
-        this.knockedDown = false;
-        this.getUpTimer = 0;
-        
-        this.animFrame = 0;
-        this.spinAngle = 0;
-        this.energyPulse = 0;
-        
-        this.hitCount = 0;
-        this.comboCount = 0;
-        this.maxCombo = 0;
-        this.lastHitTime = 0;
-        this.damageDealt = 0;
-        this.fightsWon = 0;
-        this.fightsLost = 0;
-      }
-
-      updateBase() {
-        if (this.hitstun > 0) this.hitstun--;
-        if (this.invincible > 0) this.invincible--;
-        if (this.blockCooldown > 0) this.blockCooldown--;
-        
-        this.energyPulse += 0.1;
-        
-        if (this.knockedDown) {
-          this.getUpTimer--;
-          if (this.getUpTimer <= 0) {
-            this.knockedDown = false;
-            this.state = 'idle';
-          }
-        }
-        
-        if (this.state === 'attacking') {
-          this.attackFrame++;
-          const atk = ATTACKS[this.currentAttack];
-          const totalFrames = atk.startup + atk.active + atk.recovery;
-          
-          if (this.attackFrame <= atk.startup) {
-            this.attackPhase = 'startup';
-          } else if (this.attackFrame <= atk.startup + atk.active) {
-            this.attackPhase = 'active';
-          } else {
-            this.attackPhase = 'recovery';
-            this.hasHit = false;
-          }
-          
-          if (atk.spin) {
-            const progress = this.attackFrame / totalFrames;
-            this.spinAngle = progress * Math.PI * 2 * (this.facingRight ? 1 : -1);
-          }
-          
-          if (this.attackFrame > totalFrames) {
-            this.state = 'idle';
-            this.currentAttack = null;
-            this.attackPhase = 'none';
-            this.spinAngle = 0;
-          }
-        }
-        
-        this.x += this.vx;
-        this.y += this.vy;
-        this.vx *= 0.88;
-        
-        if (!this.grounded) {
-          this.vy += CONFIG.GRAVITY;
-        }
-        
-        if (this.y >= CONFIG.GROUND_Y) {
-          this.y = CONFIG.GROUND_Y;
-          this.vy = 0;
-          this.grounded = true;
-        }
-        
-        this.x = Math.max(40, Math.min(860, this.x));
-        this.animFrame++;
-      }
-
-      resolveCollision(opponent) {
-        const minDist = 45;
-        const dx = opponent.x - this.x;
-        const dist = Math.abs(dx);
-        
-        if (dist < minDist && dist > 0) {
-          const overlap = minDist - dist;
-          const push = dx > 0 ? -1 : 1;
-          this.x += push * overlap * 0.5;
-          opponent.x -= push * overlap * 0.5;
-        }
-      }
-
-      startAttack(name) {
-        const atk = ATTACKS[name];
-        if (!atk) return;
-        
-        this.state = 'attacking';
-        this.currentAttack = name;
-        this.attackFrame = 0;
-        this.attackPhase = 'startup';
-        this.hasHit = false;
-        this.vx *= 0.3;
-        this.blocking = false;
-        
-        this.x += (this.facingRight ? 1 : -1) * 5;
-      }
-
-      getHitbox() {
-        if (this.state !== 'attacking' || this.attackPhase !== 'active') return null;
-        
-        const atk = ATTACKS[this.currentAttack];
-        const dir = this.facingRight ? 1 : -1;
-        
-        let y = this.y - 50;
-        if (atk.level === 'high') y = this.y - 75;
-        if (atk.level === 'low') y = this.y - 15;
-        
-        return { x: this.x + dir * CONFIG.RANGE, y: y, w: 30, h: 20 };
-      }
-
-      getHurtbox() {
-        return { x: this.x, y: this.y - 45, w: 35, h: 70 };
-      }
-
-      takeHit(attacker, attack) {
-        if (this.invincible > 0) return false;
-        
-        if (this.blocking && this.blockTimer < CONFIG.JUST_DEFEND_WINDOW && !this.justDefended) {
-          this.justDefended = true;
-          this.blocking = false;
-          this.blockTimer = 0;
-          
-          spawnEffect('parry', this.x, this.y - 50, '#ffffff');
-          shake(3, 5);
-          this.invincible = 15;
-          return false;
-        }
-        
-        const dir = attacker.facingRight ? 1 : -1;
-        this.hp = Math.max(0, this.hp - attack.damage);
-        this.hitstun = attack.hitstun;
-        this.invincible = 10;
-        this.vx = dir * attack.knockback;
-        
-        if (attack.launch) {
-          this.vy = -8;
-          this.grounded = false;
-        }
-        
-        if (attack.trip) {
-          this.knockedDown = true;
-          this.getUpTimer = 50;
-          this.vx = dir * 5;
-        }
-        
-        spawnParticles(this.x, this.y - 50, this.color, attack.damage > 8 ? 15 : 8);
-        spawnEffect('hit', this.x, this.y - 50, this.color);
-        spawnEffect('spark', this.x + dir * 30, this.y - 50, '#ffffff');
-        
-        if (attack.damage > 10) {
-          shake(8, 12);
-          game.slowmo = 10;
-        }
-        
-        // Награда атакующему (НЕ ЗА УРОН, А ЗА ПОПАДАНИЕ!)
-        attacker.lastReward += 2;
-        
-        // Награда за комбо
-        attacker.comboCount++;
-        if (attacker.comboCount >= 2) {
-          attacker.lastReward += attacker.comboCount * 2;
-        }
-        
-        attacker.maxCombo = Math.max(attacker.maxCombo, attacker.comboCount);
-        attacker.lastHitTime = game.frame;
-        
-        // Урон не растет - он фиксирован!
-        attacker.damageDealt += attack.damage; // просто статистика
-        
-        return true;
-      }
-
-      draw() {
-        ctx.save();
-        
-        // Energy aura
-        const pulseScale = 1 + Math.sin(this.energyPulse) * 0.05;
-        ctx.strokeStyle = this.color;
-        ctx.lineWidth = 1;
-        ctx.globalAlpha = 0.15;
-        ctx.beginPath();
-        ctx.arc(this.x, this.y - 50, 50 * pulseScale, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.globalAlpha = 1;
-        
-        // Dash trail
-        if (Math.abs(this.vx) > 5) {
-          for (let i = 1; i <= 3; i++) {
-            ctx.globalAlpha = 0.3 / i;
-            ctx.strokeStyle = this.color;
-            ctx.lineWidth = 3;
-            this.drawBody(this.x - this.vx * i * 2, this.y, 0, 0);
-          }
-          ctx.globalAlpha = 1;
-        }
-        
-        if (this.hitstun > 0 && Math.floor(this.hitstun / 3) % 2 === 0) {
-          ctx.globalAlpha = 0.5;
-        }
-        if (this.invincible > 0 && Math.floor(this.invincible / 2) % 2 === 0) {
-          ctx.globalAlpha = 0.3;
-        }
-        
-        if (this.knockedDown) {
-          this.drawKnockedDown();
-          ctx.restore();
-          return;
-        }
-        
-        ctx.strokeStyle = this.color;
-        ctx.lineWidth = 4;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-        ctx.shadowColor = this.color;
-        ctx.shadowBlur = 20;
-        
-        if (this.spinAngle !== 0) {
-          ctx.translate(this.x, this.y - 50);
-          ctx.rotate(this.spinAngle);
-          ctx.translate(-this.x, -(this.y - 50));
-        }
-        
-        this.drawBody(this.x, this.y, this.animFrame, this.blocking ? 15 : 0);
-        
-        if (this.blocking) {
-          ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.arc(this.x, this.y - 50, 38, 0, Math.PI * 2);
-          ctx.stroke();
-        }
-        
-        if (this.state === 'attacking' && this.attackPhase === 'active') {
-          this.drawAttackEffect();
-        }
-        
-        ctx.restore();
-      }
-      
-      drawBody(x, y, frame, crouch) {
-        const breathe = Math.sin(frame * 0.08) * 2;
-        const headY = y - 80 + crouch + breathe;
-        
-        // Head
-        ctx.beginPath();
-        ctx.arc(x, headY, 15, 0, Math.PI * 2);
-        ctx.stroke();
-        
-        // Body
-        ctx.beginPath();
-        ctx.moveTo(x, headY + 15);
-        ctx.lineTo(x, y - 25 + crouch);
-        ctx.stroke();
-        
-        this.drawLimbs(x, y, crouch, breathe, frame);
-      }
-      
-      drawLimbs(x, y, crouch, breathe, frame) {
-        const dir = this.facingRight ? 1 : -1;
-        const shoulderY = y - 70 + crouch;
-        const hipY = y - 25 + crouch;
-        
-        if (this.state === 'attacking') {
-          const atk = ATTACKS[this.currentAttack];
-          const extend = this.attackPhase === 'active' ? 1 : (this.attackPhase === 'startup' ? 0.5 : 0.2);
-          
-          if (atk.move === 'hand') {
-            let targetY = y - 55;
-            if (atk.level === 'high') targetY = y - 75;
-            if (atk.level === 'low') targetY = y - 30;
-            
-            ctx.beginPath();
-            ctx.moveTo(x, shoulderY);
-            ctx.lineTo(x + dir * CONFIG.RANGE * extend, targetY);
-            ctx.stroke();
-            
-            ctx.beginPath();
-            ctx.moveTo(x, shoulderY);
-            ctx.lineTo(x - dir * 15, shoulderY + 20);
-            ctx.stroke();
-          } else {
-            ctx.beginPath();
-            ctx.moveTo(x, shoulderY);
-            ctx.lineTo(x - dir * 18, shoulderY + 18);
-            ctx.lineTo(x - dir * 12, shoulderY + 30);
-            ctx.stroke();
-            
-            ctx.beginPath();
-            ctx.moveTo(x, shoulderY);
-            ctx.lineTo(x + dir * 12, shoulderY + 20);
-            ctx.stroke();
-          }
-          
-          if (atk.move === 'leg') {
-            let kickY = y - 50;
-            if (atk.level === 'high') kickY = y - 70;
-            if (atk.level === 'low') kickY = y - 10;
-            
-            ctx.beginPath();
-            ctx.moveTo(x, hipY);
-            ctx.lineTo(x + dir * CONFIG.RANGE * extend, kickY);
-            ctx.stroke();
-            
-            ctx.beginPath();
-            ctx.moveTo(x, hipY);
-            ctx.lineTo(x - dir * 12, y);
-            ctx.stroke();
-          } else {
-            ctx.beginPath();
-            ctx.moveTo(x, hipY);
-            ctx.lineTo(x - 10, y);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(x, hipY);
-            ctx.lineTo(x + 10, y);
-            ctx.stroke();
-          }
-        } else if (this.blocking) {
-          ctx.beginPath();
-          ctx.moveTo(x, shoulderY);
-          ctx.lineTo(x + dir * 8, y - 60 + crouch);
-          ctx.moveTo(x, shoulderY);
-          ctx.lineTo(x - dir * 8, y - 60 + crouch);
-          ctx.stroke();
-          
-          ctx.beginPath();
-          ctx.moveTo(x, hipY);
-          ctx.lineTo(x - 12, y);
-          ctx.moveTo(x, hipY);
-          ctx.lineTo(x + 12, y);
-          ctx.stroke();
-        } else {
-          const sway = Math.sin(frame * 0.1) * 3;
-          
-          ctx.beginPath();
-          ctx.moveTo(x, shoulderY);
-          ctx.quadraticCurveTo(x + dir * 18 + sway, shoulderY + 15, x + dir * 12, shoulderY + 25);
-          ctx.stroke();
-          
-          ctx.beginPath();
-          ctx.moveTo(x, shoulderY);
-          ctx.quadraticCurveTo(x - dir * 18 - sway, shoulderY + 15, x - dir * 12, shoulderY + 25);
-          ctx.stroke();
-          
-          ctx.beginPath();
-          ctx.moveTo(x, hipY);
-          ctx.lineTo(x - 10 - sway, y);
-          ctx.stroke();
-          
-          ctx.beginPath();
-          ctx.moveTo(x, hipY);
-          ctx.lineTo(x + 10 + sway, y);
-          ctx.stroke();
-        }
-      }
-
-      drawAttackEffect() {
-        const atk = ATTACKS[this.currentAttack];
-        if (!atk) return;
-        
-        ctx.globalAlpha = 0.6 + Math.random() * 0.3;
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2;
-        ctx.shadowBlur = 30;
-        ctx.shadowColor = '#ffffff';
-        
-        // Attack arc
-        ctx.beginPath();
-        ctx.arc(this.x, this.y - 50, CONFIG.RANGE + 10, 
-          this.facingRight ? -0.6 : Math.PI + 0.6,
-          this.facingRight ? 0.6 : Math.PI - 0.6
-        );
-        ctx.stroke();
-        
-        // Impact spark
-        const sparkX = this.x + (this.facingRight ? 1 : -1) * CONFIG.RANGE;
-        for (let i = 0; i < 4; i++) {
-          const angle = Math.random() * Math.PI * 2;
-          const dist = 10 + Math.random() * 15;
-          ctx.beginPath();
-          ctx.moveTo(sparkX, this.y - 50);
-          ctx.lineTo(sparkX + Math.cos(angle) * dist, this.y - 50 + Math.sin(angle) * dist);
-          ctx.stroke();
-        }
-        
-        ctx.globalAlpha = 1;
-      }
-
-      drawKnockedDown() {
-        const dir = this.facingRight ? 1 : -1;
-        
-        ctx.strokeStyle = this.color;
-        ctx.lineWidth = 4;
-        ctx.shadowColor = this.color;
-        ctx.shadowBlur = 15;
-        
-        ctx.translate(this.x + dir * 10, this.y - 20);
-        ctx.rotate(dir * 0.3);
-        
-        ctx.beginPath();
-        ctx.arc(dir * 25, -5, 14, 0, Math.PI * 2);
-        ctx.stroke();
-        
-        ctx.beginPath();
-        ctx.moveTo(dir * 11, -5);
-        ctx.lineTo(-dir * 25, 5);
-        ctx.stroke();
-        
-        ctx.beginPath();
-        ctx.moveTo(dir * 5, 0);
-        ctx.lineTo(dir * 20, 18);
-        ctx.moveTo(-dir * 15, 5);
-        ctx.lineTo(-dir * 30, 20);
-        ctx.moveTo(dir * 5, -10);
-        ctx.lineTo(dir * 22, -15);
-        ctx.moveTo(-dir * 12, -2);
-        ctx.lineTo(-dir * 28, -18);
-        ctx.stroke();
-      }
-    }
-
-    // === NEURAL FIGHTER ===
-    class NeuralFighter extends BaseFighter {
-      constructor(x, facingRight, color, name, brain = null) {
-        super(x, facingRight, color, name);
-        this.brain = brain || new NeuralNetwork();
-        this.actionTimer = 0;
-        this.currentAction = 'idle';
-        this.actionHistory = [];
-        this.lastState = null;
-        this.lastAction = null;
-        this.lastReward = 0;
-        this.totalReward = 0;
-      }
-
-      getSensors(opponent) {
-        const dx = opponent.x - this.x;
-        const dy = opponent.y - this.y;
-        const dist = Math.abs(dx);
-        
-        return [
-          this.hp / 100,
-          opponent.hp / 100,
-          this.x / 900,
-          opponent.x / 900,
-          (this.y - CONFIG.GROUND_Y) / 100,
-          (opponent.y - CONFIG.GROUND_Y) / 100,
-          this.vx / 10,
-          this.vy / 10,
-          opponent.vx / 10,
-          opponent.vy / 10,
-          dist / 500,
-          Math.atan2(dy, dx) / Math.PI,
-          this.facingRight ? 1 : 0,
-          (opponent.x > this.x) === this.facingRight ? 1 : 0,
-          this.state === 'attacking' ? 1 : 0,
-          this.attackPhase === 'active' ? 1 : 0,
-          opponent.state === 'attacking' ? 1 : 0,
-          opponent.attackPhase === 'active' ? 1 : 0,
-          this.hitstun > 0 ? 1 : 0,
-          opponent.hitstun > 0 ? 1 : 0,
-          this.blocking ? 1 : 0,
-          opponent.blocking ? 1 : 0,
-          this.grounded ? 0 : 1,
-          opponent.grounded ? 0 : 1,
-          this.comboCount / 5,
-          opponent.comboCount / 5,
-          game.timer / 99,
-          this.actionHistory.length > 0 ? this.actionHistory[this.actionHistory.length-1] / 12 : 0,
-          this.actionHistory.length > 1 ? this.actionHistory[this.actionHistory.length-2] / 12 : 0,
-          this.actionHistory.length > 2 ? this.actionHistory[this.actionHistory.length-3] / 12 : 0,
-          this.actionHistory.length > 3 ? this.actionHistory[this.actionHistory.length-4] / 12 : 0,
-          Math.random()
-        ];
-      }
-
-      update(opponent) {
-        this.updateBase();
-        
-        if (this.hitstun <= 0 && !this.knockedDown && this.state === 'idle') {
-          this.runNeuralAI(opponent);
-        }
-        
-        this.resolveCollision(opponent);
-        
-        if (this.state === 'idle' && this.hitstun <= 0 && !this.knockedDown) {
-          this.facingRight = opponent.x > this.x;
-        }
-        
-        // Учимся каждые 10 кадров
-        if (game.frame % 10 === 0 && this.brain.memory.length > 32) {
-          this.brain.learn(32);
-        }
-      }
-
-      runNeuralAI(opponent) {
-        this.actionTimer--;
-        
-        if (this.actionTimer <= 0) {
-          const sensors = this.getSensors(opponent);
-          
-          // Сохраняем состояние ДО действия
-          this.lastState = sensors;
-          
-          // Выбираем действие (ε-greedy)
-          const actionIndex = this.brain.chooseAction(sensors);
-          
-          // Пытаемся продолжить комбо
-          const combo = this.brain.suggestCombo(this.actionHistory);
-          if (combo !== null && Math.random() < 0.7) {
-            const attackKeys = Object.keys(ATTACKS);
-            const comboIndex = attackKeys.indexOf(combo);
-            if (comboIndex !== -1 && comboIndex < 9) {
-              this.executeDecision(comboIndex, opponent);
-              this.lastAction = comboIndex;
-              this.actionHistory.push(comboIndex);
-              this.actionTimer = 5 + Math.floor(Math.random() * 10);
-              return;
+                getFighter(index) {
+                    return this.fighters[index];
+                }
             }
-          }
-          
-          // Обычное действие
-          this.executeDecision(actionIndex, opponent);
-          this.lastAction = actionIndex;
-          this.actionHistory.push(actionIndex);
-          if (this.actionHistory.length > 10) this.actionHistory.shift();
-          
-          this.actionTimer = 5 + Math.floor(Math.random() * 10);
-        }
-      }
 
-      executeDecision(index, opponent) {
-        const attackKeys = Object.keys(ATTACKS);
-        const dir = opponent.x > this.x ? 1 : -1;
-        
-        if (index < 9) {
-          this.startAttack(attackKeys[index]);
-        } else if (index === 9) {
-          if (Math.abs(opponent.x - this.x) > 150) {
-            this.vx = dir * CONFIG.DASH_SPEED;
-          } else {
-            this.vx = dir * 3;
-          }
-        } else if (index === 10) {
-          if (this.grounded) {
-             this.vy = CONFIG.JUMP_FORCE;
-             this.vx = -dir * 4;
-          }
-        } else if (index === 11) {
-          if (this.blockCooldown <= 0) {
-            this.blocking = true;
-            this.blockTimer = 0;
-            this.justDefended = false;
-            setTimeout(() => {
-              if (!this.justDefended) {
-                this.blocking = false;
-                this.blockCooldown = CONFIG.BLOCK_COOLDOWN;
-              }
-            }, CONFIG.JUST_DEFEND_WINDOW);
-          }
-        }
-      }
-
-      // Запоминаем результат действия
-      rememberReward() {
-        if (this.lastState && this.lastAction !== null) {
-          const nextState = this.getSensors(fighter2); // текущее состояние после действия
-          this.brain.remember(this.lastState, this.lastAction, this.lastReward, nextState);
-          this.totalReward += this.lastReward;
-          this.lastReward = 0;
-        }
-      }
-    }
-
-    // === CLASSIC FIGHTER ===
-    class ClassicFighter extends BaseFighter {
-      constructor(x, facingRight, color, name, style, aggression) {
-        super(x, facingRight, color, name);
-        this.aiStyle = AI_STYLES[style];
-        this.aiAggression = parseFloat(aggression);
-        this.aiThinkTimer = 0;
-        this.aiAction = null;
-        this.currentCombo = null;
-        this.comboStep = 0;
-        this.whiffDetected = false;
-        this.lastOpponentState = 'idle';
-      }
-
-      update(opponent) {
-        this.updateBase();
-        
-        // Combo continuation
-        if (this.currentCombo && this.state === 'idle') {
-          if (this.comboStep < this.currentCombo.length) {
-            const nextAttack = this.currentCombo[this.comboStep];
-            this.startAttack(nextAttack);
-            this.comboStep++;
-          } else {
-            this.currentCombo = null;
-            this.comboStep = 0;
-          }
-        }
-        
-        if (this.hitstun <= 0 && !this.knockedDown && this.state === 'idle') {
-          this.runAI(opponent);
-        }
-        
-        this.resolveCollision(opponent);
-        
-        if (this.state === 'idle' && this.hitstun <= 0 && !this.knockedDown) {
-          this.facingRight = opponent.x > this.x;
-        }
-      }
-
-      runAI(opponent) {
-        this.aiThinkTimer--;
-        
-        if (opponent.state === 'attacking' && opponent.attackPhase === 'recovery') {
-          if (this.lastOpponentState === 'active') {
-            this.whiffDetected = true;
-          }
-        }
-        this.lastOpponentState = opponent.attackPhase;
-        
-        if (this.aiThinkTimer <= 0) {
-          this.aiThinkTimer = 3 + Math.floor(Math.random() * 4);
-          
-          const dist = Math.abs(this.x - opponent.x);
-          const inRange = dist < CONFIG.RANGE + 15;
-          const opponentAttacking = opponent.state === 'attacking' && opponent.attackPhase === 'active';
-          const opponentRecovery = opponent.state === 'attacking' && opponent.attackPhase === 'recovery';
-          
-          let action = 'idle';
-          
-          if (this.whiffDetected && opponentRecovery && Math.random() < this.aiStyle.whiffPunish) {
-            action = 'punish';
-            this.whiffDetected = false;
-          } else if (opponentAttacking && Math.random() < this.aiStyle.defensiveReaction) {
-            action = 'react';
-          } else if (inRange && this.hitstun <= 0) {
-            if (Math.random() < this.aiAggression) {
-              if (Math.random() < this.aiStyle.comboChance && !this.currentCombo) {
-                action = 'startCombo';
-              } else {
-                action = 'attack';
-              }
-            } else if (Math.random() < 0.3) {
-              action = 'backdash';
-            }
-          } else {
-            const [minRange, maxRange] = this.aiStyle.preferredRange;
+            //==================================================
+            // ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
+            //==================================================
+            const canvas = document.getElementById('arena-canvas');
+            const ctx = canvas.getContext('2d');
+            const neuralCanvas = document.getElementById('neural-canvas');
+            const neuralCtx = neuralCanvas.getContext('2d');
             
-            if (dist < minRange) {
-              action = Math.random() < 0.6 ? 'backdash' : 'attack';
-            } else if (dist > maxRange) {
-              action = Math.random() < 0.7 ? 'forward' : 'idle';
-            } else {
-              action = Math.random() < 0.3 ? 'forward' : 'idle';
-            }
-          }
-          
-          this.aiAction = action;
-        }
-        
-        this.executeAIAction(opponent);
-      }
-
-      executeAIAction(opponent) {
-        const moveSpeed = 3;
-        const dir = opponent.x > this.x ? 1 : -1;
-        
-        switch (this.aiAction) {
-          case 'forward':
-            if (Math.abs(opponent.x - this.x) > 150 && this.grounded) {
-                this.vx = dir * CONFIG.DASH_SPEED;
-            } else {
-                this.vx = dir * moveSpeed;
-            }
-            break;
+            let population = new Population(8);
+            let fighter1 = null;
+            let fighter2 = null;
+            let gameRunning = false;
+            let gamePaused = false;
+            let gameSpeed = 1;
+            let frameCount = 0;
+            let lastTimestamp = 0;
             
-          case 'backdash':
-            if (this.grounded) {
-                this.vx = -dir * moveSpeed * 1.2;
-                if (Math.random() < 0.3) this.vy = CONFIG.JUMP_FORCE;
+            const particles = [];
+            const effects = [];
+
+            //==================================================
+            // ФУНКЦИИ ОТРИСОВКИ
+            //==================================================
+            function drawBackground() {
+                const grad = ctx.createLinearGradient(0, 0, 0, 640);
+                grad.addColorStop(0, '#080814');
+                grad.addColorStop(0.5, '#0f0f20');
+                grad.addColorStop(1, '#1a1a2e');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, 960, 640);
+                
+                // СЕТКА
+                ctx.strokeStyle = 'rgba(60, 90, 140, 0.1)';
+                ctx.lineWidth = 1;
+                for (let i = 0; i < 20; i++) {
+                    ctx.beginPath();
+                    ctx.moveTo(i * 48, 0);
+                    ctx.lineTo(i * 48, 640);
+                    ctx.stroke();
+                }
+                for (let i = 0; i < 14; i++) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, i * 48);
+                    ctx.lineTo(960, i * 48);
+                    ctx.stroke();
+                }
             }
-            break;
-            
-          case 'attack':
-            this.pickSingleAttack(opponent);
-            this.aiAction = null;
-            break;
-            
-          case 'startCombo':
-            this.startCombo();
-            this.aiAction = null;
-            break;
-            
-          case 'punish':
-            this.startAttack('uppercut');
-            this.aiAction = null;
-            this.whiffDetected = false;
-            break;
-            
-          case 'react':
-            this.attemptJustDefend();
-            this.aiAction = null;
-            break;
-        }
-      }
 
-      pickSingleAttack(opponent) {
-        const attacks = ['jab', 'straight', 'hook', 'lowKick', 'midKick'];
-        const attack = attacks[Math.floor(Math.random() * attacks.length)];
-        this.startAttack(attack);
-      }
-
-      startCombo() {
-        const comboNames = Object.keys(COMBOS);
-        const combo = COMBOS[comboNames[Math.floor(Math.random() * comboNames.length)]];
-        this.currentCombo = [...combo];
-        this.comboStep = 0;
-      }
-
-      attemptJustDefend() {
-        if (this.blockCooldown > 0) return;
-        
-        this.blocking = true;
-        this.blockTimer = 0;
-        this.justDefended = false;
-        
-        setTimeout(() => {
-          if (!this.justDefended) {
-            this.blocking = false;
-            this.blockCooldown = CONFIG.BLOCK_COOLDOWN;
-          }
-        }, CONFIG.JUST_DEFEND_WINDOW);
-      }
-    }
-
-    // === GAME STATE ===
-    const game = {
-      running: false,
-      timer: 99,
-      round: 1,
-      frame: 0,
-      slowmo: 0,
-      shake: { x: 0, y: 0, time: 0 }
-    };
-
-    const particles = [];
-    const effects = [];
-    const bgParticles = [];
-    const bgLines = [];
-
-    // Initialize background elements
-    for (let i = 0; i < 40; i++) {
-      bgParticles.push({
-        x: Math.random() * 900,
-        y: Math.random() * 420,
-        size: 1 + Math.random() * 2,
-        speed: 0.2 + Math.random() * 0.5,
-        opacity: 0.2 + Math.random() * 0.4
-      });
-    }
-
-    for (let i = 0; i < 15; i++) {
-      bgLines.push({
-        y: Math.random() * 420,
-        speed: 0.5 + Math.random() * 1,
-        opacity: 0.1 + Math.random() * 0.2
-      });
-    }
-
-    // === EFFECTS ===
-    function spawnParticles(x, y, color, count) {
-      for (let i = 0; i < count; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const speed = 3 + Math.random() * 7;
-        particles.push({
-          x, y,
-          vx: Math.cos(angle) * speed,
-          vy: Math.sin(angle) * speed - 4,
-          life: 1,
-          color,
-          size: 2 + Math.random() * 5,
-          type: 'circle'
-        });
-      }
-    }
-
-    function spawnEffect(type, x, y, color) {
-      effects.push({ type, x, y, life: 1, color, frame: 0 });
-    }
-
-    function shake(intensity, duration) {
-      game.shake = { x: intensity, y: intensity, time: duration };
-    }
-
-    function updateEffects() {
-      for (let i = particles.length - 1; i >= 0; i--) {
-        const p = particles[i];
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vy += 0.25;
-        p.life -= 0.025;
-        if (p.life <= 0) particles.splice(i, 1);
-      }
-      
-      for (let i = effects.length - 1; i >= 0; i--) {
-        effects[i].life -= 0.04;
-        effects[i].frame++;
-        if (effects[i].life <= 0) effects.splice(i, 1);
-      }
-      
-      if (game.shake.time > 0) {
-        game.shake.time--;
-        game.shake.x = (Math.random() - 0.5) * game.shake.x;
-        game.shake.y = (Math.random() - 0.5) * game.shake.y;
-      }
-    }
-
-    function drawEffects() {
-      // Particles
-      for (const p of particles) {
-        ctx.globalAlpha = p.life;
-        ctx.fillStyle = p.color;
-        ctx.shadowColor = p.color;
-        ctx.shadowBlur = 10;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.shadowBlur = 0;
-      ctx.globalAlpha = 1;
-      
-      // Effects
-      for (const e of effects) {
-        ctx.globalAlpha = e.life;
-        ctx.strokeStyle = e.color;
-        ctx.lineWidth = 3;
-        ctx.shadowColor = e.color;
-        ctx.shadowBlur = 15;
-        
-        if (e.type === 'hit') {
-          const size = 45 + (1 - e.life) * 30;
-          ctx.beginPath();
-          for (let i = 0; i < 8; i++) {
-            const a = (i / 8) * Math.PI * 2 + e.frame * 0.1;
-            const r = i % 2 === 0 ? size : size * 0.3;
-            const px = e.x + Math.cos(a) * r;
-            const py = e.y + Math.sin(a) * r;
-            i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
-          }
-          ctx.closePath();
-          ctx.stroke();
-        } else if (e.type === 'parry') {
-          ctx.beginPath();
-          ctx.arc(e.x, e.y, 35 * (2 - e.life), 0, Math.PI * 2);
-          ctx.stroke();
-        } else if (e.type === 'spark') {
-          for (let i = 0; i < 6; i++) {
-            const angle = (i / 6) * Math.PI * 2 + e.frame * 0.2;
-            const dist = 15 + (1 - e.life) * 25;
-            ctx.beginPath();
-            ctx.moveTo(e.x, e.y);
-            ctx.lineTo(e.x + Math.cos(angle) * dist, e.y + Math.sin(angle) * dist);
-            ctx.stroke();
-          }
-        }
-      }
-      ctx.shadowBlur = 0;
-      ctx.globalAlpha = 1;
-    }
-
-    // === BACKGROUND ===
-    function drawBackground() {
-      // Base gradient
-      const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-      grad.addColorStop(0, '#03030a');
-      grad.addColorStop(0.5, '#080815');
-      grad.addColorStop(1, '#0a0a18');
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
-      // Grid
-      ctx.strokeStyle = 'rgba(40, 60, 100, 0.08)';
-      ctx.lineWidth = 1;
-      
-      const gridSize = 60;
-      const offsetX = (game.frame * 0.3) % gridSize;
-      
-      for (let x = -offsetX; x < canvas.width; x += gridSize) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvas.height);
-        ctx.stroke();
-      }
-      
-      for (let y = 0; y < canvas.height; y += gridSize) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(canvas.width, y);
-        ctx.stroke();
-      }
-      
-      // Horizontal scan lines
-      for (const line of bgLines) {
-        line.y += line.speed;
-        if (line.y > canvas.height) line.y = -10;
-        
-        ctx.globalAlpha = line.opacity;
-        ctx.strokeStyle = '#00ffcc';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(0, line.y);
-        ctx.lineTo(canvas.width, line.y);
-        ctx.stroke();
-      }
-      ctx.globalAlpha = 1;
-      
-      // Floating particles
-      for (const p of bgParticles) {
-        p.y -= p.speed;
-        if (p.y < 0) {
-          p.y = canvas.height;
-          p.x = Math.random() * canvas.width;
-        }
-        
-        ctx.globalAlpha = p.opacity;
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.globalAlpha = 1;
-      
-      // Moon
-      ctx.fillStyle = '#ffffee';
-      ctx.shadowColor = '#ffffdd';
-      ctx.shadowBlur = 50;
-      ctx.beginPath();
-      ctx.arc(780, 50, 25, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.shadowBlur = 0;
-      
-      // Silhouette mountains
-      ctx.fillStyle = '#060610';
-      ctx.beginPath();
-      ctx.moveTo(0, 320);
-      ctx.lineTo(150, 240);
-      ctx.lineTo(300, 280);
-      ctx.lineTo(500, 200);
-      ctx.lineTo(700, 260);
-      ctx.lineTo(900, 220);
-      ctx.lineTo(900, 420);
-      ctx.lineTo(0, 420);
-      ctx.fill();
-      
-      // Ground
-      const groundGrad = ctx.createLinearGradient(0, 320, 0, 420);
-      groundGrad.addColorStop(0, '#0a0a14');
-      groundGrad.addColorStop(1, '#050508');
-      ctx.fillStyle = groundGrad;
-      ctx.fillRect(0, 320, canvas.width, 100);
-      
-      // Ground lines
-      ctx.strokeStyle = 'rgba(0, 255, 200, 0.05)';
-      ctx.lineWidth = 1;
-      for (let i = 0; i < 12; i++) {
-        const y = 325 + i * 8;
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(canvas.width, y);
-        ctx.stroke();
-      }
-      
-      // Center line
-      ctx.strokeStyle = 'rgba(255, 170, 0, 0.15)';
-      ctx.setLineDash([10, 10]);
-      ctx.beginPath();
-      ctx.moveTo(450, 320);
-      ctx.lineTo(450, 420);
-      ctx.stroke();
-      ctx.setLineDash([]);
-    }
-
-    // === COLLISION ===
-    function checkHit(attacker, defender) {
-      if (attacker.state !== 'attacking' || attacker.attackPhase !== 'active') return false;
-      if (attacker.hasHit) return false;
-      
-      const hitbox = attacker.getHitbox();
-      const hurtbox = defender.getHurtbox();
-      
-      if (!hitbox || !hurtbox) return false;
-      
-      const dx = Math.abs(hitbox.x - hurtbox.x);
-      const dy = Math.abs(hitbox.y - hurtbox.y);
-      
-      return dx < (hitbox.w + hurtbox.w) / 2 && dy < (hitbox.h + hurtbox.h) / 2;
-    }
-
-    // === UI ===
-    function updateUI() {
-      if (fighter1) document.getElementById('hp1').style.width = `${fighter1.hp}%`;
-      if (fighter2) document.getElementById('hp2').style.width = `${fighter2.hp}%`;
-      document.getElementById('timer').textContent = Math.ceil(game.timer);
-      
-      if (fighter1 && fighter1.comboCount > 2) showCombo(1, fighter1.comboCount, fighter1.color);
-      if (fighter2 && fighter2.comboCount > 2) showCombo(2, fighter2.comboCount, fighter2.color);
-    }
-
-    function showCombo(side, count, color) {
-      const el = document.getElementById('combo' + side);
-      el.textContent = count + ' COMBO!';
-      el.style.color = color;
-      el.style.textShadow = `0 0 20px ${color}`;
-      el.style.left = side === 1 ? '20%' : '80%';
-      el.classList.add('show');
-      setTimeout(() => el.classList.remove('show'), 600);
-    }
-
-    function announce(text, type) {
-      const el = document.getElementById('announce');
-      const textEl = document.getElementById('announceText');
-      textEl.textContent = text;
-      textEl.className = 'announce-text ' + type;
-      el.classList.add('show');
-      setTimeout(() => el.classList.remove('show'), 1800);
-    }
-
-    function showResult(winner) {
-      const screen = document.getElementById('resultScreen');
-      const title = document.getElementById('resultTitle');
-      
-      title.textContent = winner.name.toUpperCase() + ' WINS';
-      title.className = 'result-title ' + (winner.color === '#ff2244' ? 'red' : 'blue');
-      
-      document.getElementById('finalHits1').textContent = fighter1.hitCount;
-      document.getElementById('maxCombo1').textContent = fighter1.maxCombo;
-      document.getElementById('finalHits2').textContent = fighter2.hitCount;
-      document.getElementById('maxCombo2').textContent = fighter2.maxCombo;
-      
-      tournament.updateUI();
-      screen.classList.add('show');
-    }
-
-    // === TOURNAMENT SYSTEM ===
-    class Tournament {
-      constructor() {
-        this.fighters = [];
-        this.generation = 1;
-        this.populationSize = 8;
-        this.champions = [];
-        this.generationHistory = [];
-        
-        this.loadFromStorage();
-        if(this.fighters.length === 0) this.initPopulation();
-      }
-
-      initPopulation() {
-        this.fighters = [];
-        for (let i = 0; i < this.populationSize; i++) {
-          const brain = new NeuralNetwork();
-          const fighter = {
-            id: i,
-            name: `Neural #${i + 1}`,
-            brain: brain,
-            wins: 0,
-            losses: 0,
-            hits: 0,
-            maxCombo: 0,
-            generation: this.generation
-          };
-          this.fighters.push(fighter);
-        }
-        this.updateUI();
-      }
-
-      runTournament() {
-        this.fighters.forEach(f => {
-          f.wins = 0;
-          f.losses = 0;
-          f.hits = 0;
-          f.maxCombo = 0;
-        });
-
-        for (let i = 0; i < this.fighters.length; i++) {
-          for (let j = i + 1; j < this.fighters.length; j++) {
-            const result = this.simulateFight(this.fighters[i], this.fighters[j]);
-            
-            if (result.winner === i) {
-              this.fighters[i].wins++;
-              this.fighters[j].losses++;
-            } else {
-              this.fighters[j].wins++;
-              this.fighters[i].losses++;
+            function drawFighter(f) {
+                if (!f) return;
+                
+                ctx.save();
+                ctx.translate(f.x, f.y);
+                ctx.scale(f.facing, 1);
+                
+                // ЦВЕТ
+                ctx.strokeStyle = f.color;
+                ctx.lineWidth = 4;
+                ctx.lineCap = 'round';
+                ctx.shadowColor = f.color;
+                ctx.shadowBlur = 20;
+                
+                // ГОЛОВА
+                ctx.beginPath();
+                ctx.arc(0, -50, 15, 0, Math.PI * 2);
+                ctx.stroke();
+                
+                // ТЕЛО
+                ctx.beginPath();
+                ctx.moveTo(0, -35);
+                ctx.lineTo(0, 20);
+                ctx.stroke();
+                
+                // РУКИ
+                if (f.state === 'attacking' && f.attackPhase === 'active') {
+                    ctx.beginPath();
+                    ctx.moveTo(0, -30);
+                    ctx.lineTo(40, -40);
+                    ctx.stroke();
+                } else {
+                    ctx.beginPath();
+                    ctx.moveTo(0, -30);
+                    ctx.lineTo(20, -15);
+                    ctx.stroke();
+                }
+                
+                ctx.beginPath();
+                ctx.moveTo(0, -30);
+                ctx.lineTo(-20, -15);
+                ctx.stroke();
+                
+                // НОГИ
+                ctx.beginPath();
+                ctx.moveTo(0, 20);
+                ctx.lineTo(15, 45);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(0, 20);
+                ctx.lineTo(-15, 45);
+                ctx.stroke();
+                
+                ctx.restore();
+                
+                // HP BAR
+                ctx.fillStyle = '#1a1a2a';
+                ctx.fillRect(f.x - 30, f.y - 80, 60, 8);
+                ctx.fillStyle = f.color;
+                ctx.fillRect(f.x - 30, f.y - 80, 60 * (f.hp / 100), 8);
             }
-            
-            this.fighters[i].hits += result.hits1;
-            this.fighters[j].hits += result.hits2;
-            
-            this.fighters[i].maxCombo = Math.max(this.fighters[i].maxCombo, result.combo1);
-            this.fighters[j].maxCombo = Math.max(this.fighters[j].maxCombo, result.combo2);
-          }
-        }
 
-        this.fighters.sort((a, b) => b.wins - a.wins);
-        
-        // Сохраняем историю
-        this.generationHistory.push({
-          gen: this.generation,
-          best: this.fighters[0].name,
-          wins: this.fighters[0].wins,
-          avgHits: this.fighters.reduce((a, f) => a + f.hits, 0) / this.fighters.length
-        });
-        
-        if (this.fighters.length > 0) {
-          this.champions.push({
-            name: this.fighters[0].name,
-            wins: this.fighters[0].wins,
-            generation: this.generation
-          });
-        }
-        
-        this.evolve();
-        return this.fighters;
-      }
-
-      simulateFight(f1, f2) {
-        const fighter1 = new NeuralFighter(250, true, '#ff2244', f1.name, f1.brain.clone());
-        const fighter2 = new NeuralFighter(650, false, '#00ffcc', f2.name, f2.brain.clone());
-        
-        let hits1 = 0;
-        let hits2 = 0;
-        let combo1 = 0;
-        let combo2 = 0;
-        
-        for (let i = 0; i < 600; i++) {
-          fighter1.update(fighter2);
-          fighter2.update(fighter1);
-          
-          if (checkHit(fighter1, fighter2)) {
-            if (fighter2.takeHit(fighter1, ATTACKS[fighter1.currentAttack])) {
-              fighter1.hasHit = true;
-              hits1++;
-              combo1 = Math.max(combo1, fighter1.comboCount);
+            function drawNeuralNetwork(brain) {
+                if (!brain || !neuralCtx) return;
+                
+                neuralCanvas.width = neuralCanvas.clientWidth;
+                neuralCanvas.height = neuralCanvas.clientHeight;
+                
+                const w = neuralCanvas.width;
+                const h = neuralCanvas.height;
+                
+                neuralCtx.clearRect(0, 0, w, h);
+                
+                const layers = [32, 64, 32, 12];
+                const layerX = [30, w * 0.4, w * 0.6, w - 30];
+                
+                // СОЕДИНЕНИЯ
+                neuralCtx.strokeStyle = 'rgba(100, 200, 255, 0.15)';
+                neuralCtx.lineWidth = 1;
+                
+                for (let l = 0; l < 3; l++) {
+                    for (let i = 0; i < layers[l]; i++) {
+                        const y1 = (i + 1) / (layers[l] + 1) * h;
+                        for (let j = 0; j < layers[l+1]; j++) {
+                            const y2 = (j + 1) / (layers[l+1] + 1) * h;
+                            neuralCtx.beginPath();
+                            neuralCtx.moveTo(layerX[l], y1);
+                            neuralCtx.lineTo(layerX[l+1], y2);
+                            neuralCtx.stroke();
+                        }
+                    }
+                }
+                
+                // НЕЙРОНЫ
+                for (let l = 0; l < layers.length; l++) {
+                    for (let i = 0; i < layers[l]; i++) {
+                        const y = (i + 1) / (layers[l] + 1) * h;
+                        
+                        neuralCtx.beginPath();
+                        neuralCtx.arc(layerX[l], y, 4, 0, Math.PI * 2);
+                        
+                        if (l === 3) {
+                            neuralCtx.fillStyle = '#ffaa00';
+                        } else if (l === 0) {
+                            neuralCtx.fillStyle = '#3b9eff';
+                        } else {
+                            neuralCtx.fillStyle = '#6b6b9f';
+                        }
+                        
+                        neuralCtx.fill();
+                        neuralCtx.strokeStyle = '#ffffff';
+                        neuralCtx.lineWidth = 1;
+                        neuralCtx.stroke();
+                    }
+                }
             }
-          }
-          
-          if (checkHit(fighter2, fighter1)) {
-            if (fighter1.takeHit(fighter2, ATTACKS[fighter2.currentAttack])) {
-              fighter2.hasHit = true;
-              hits2++;
-              combo2 = Math.max(combo2, fighter2.comboCount);
+
+            function log(type, msg) {
+                const logEl = document.getElementById('neural-log');
+                if (!logEl) return;
+                
+                const entry = document.createElement('div');
+                entry.className = `log-entry ${type}`;
+                entry.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+                logEl.appendChild(entry);
+                
+                while (logEl.children.length > 50) {
+                    logEl.removeChild(logEl.firstChild);
+                }
             }
-          }
-        }
-        
-        const winner = hits1 > hits2 ? 0 : 1;
-        
-        return { winner, hits1, hits2, combo1, combo2 };
-      }
 
-      evolve() {
-        const elite = this.fighters.slice(0, 2);
-        const newFighters = [];
-        
-        // Сохраняем элиту
-        elite.forEach(e => {
-          newFighters.push({
-            id: newFighters.length,
-            name: `Elite #${e.id + 1}`,
-            brain: e.brain.clone(),
-            wins: 0,
-            losses: 0,
-            hits: 0,
-            maxCombo: 0,
-            generation: this.generation + 1
-          });
-        });
-        
-        // Создаем детей от элиты
-        for (let i = 0; i < this.populationSize - 2; i++) {
-          const parent1 = elite[Math.floor(Math.random() * elite.length)];
-          const parent2 = elite[Math.floor(Math.random() * elite.length)];
-          
-          const childBrain = parent1.brain.crossover(parent2.brain);
-          
-          newFighters.push({
-            id: newFighters.length,
-            name: `Neural #${i + 3}`,
-            brain: childBrain,
-            wins: 0,
-            losses: 0,
-            hits: 0,
-            maxCombo: 0,
-            generation: this.generation + 1
-          });
-        }
-        
-        this.fighters = newFighters;
-        this.generation++;
-        
-        this.updateUI();
-      }
-
-      updateUI() {
-        document.getElementById('genCount').textContent = this.generation;
-        document.getElementById('fighterCount').textContent = this.fighters.length;
-        
-        let totalHits = 0;
-        let maxCombo = 0;
-        this.fighters.forEach(f => {
-          totalHits += f.hits;
-          maxCombo = Math.max(maxCombo, f.maxCombo);
-        });
-        
-        document.getElementById('avgHits').textContent = Math.round(totalHits / this.fighters.length);
-        document.getElementById('globalMaxCombo').textContent = maxCombo;
-        document.getElementById('generationInfo').textContent = `Generation #${this.generation} - Elite ${this.fighters.length}`;
-        
-        const list = document.getElementById('fighterList');
-        list.innerHTML = '';
-        
-        this.fighters.forEach((f, index) => {
-          const div = document.createElement('div');
-          div.className = 'fighter-entry' + (index < 2 ? ' selected' : '');
-          div.innerHTML = `
-            <div class="fighter-info">
-              <span class="fighter-name">${f.name}</span>
-              <div class="fighter-stats">
-                <span>W:${f.wins}</span>
-                <span>L:${f.losses}</span>
-                <span>HITS:${f.hits}</span>
-              </div>
-            </div>
-            <div class="fighter-score">${f.wins * 100}</div>
-          `;
-          list.appendChild(div);
-        });
-        
-        this.updateNeuralSelect();
-      }
-
-      updateNeuralSelect() {
-        const select1 = document.getElementById('neuralFighter1');
-        const select2 = document.getElementById('neuralFighter2');
-        
-        select1.innerHTML = '';
-        select2.innerHTML = '';
-        
-        this.fighters.forEach((f, index) => {
-          const option1 = document.createElement('option');
-          option1.value = index;
-          option1.textContent = `${f.name} (W:${f.wins})`;
-          select1.appendChild(option1);
-          
-          const option2 = document.createElement('option');
-          option2.value = index;
-          option2.textContent = `${f.name} (W:${f.wins})`;
-          select2.appendChild(option2);
-        });
-      }
-
-      saveToStorage() {
-        const data = {
-          generation: this.generation,
-          fighters: this.fighters.map(f => ({
-            name: f.name,
-            brain: f.brain.toJSON(),
-            wins: f.wins,
-            generation: f.generation
-          })),
-          champions: this.champions,
-          history: this.generationHistory
-        };
-        localStorage.setItem('neuralTournament', JSON.stringify(data));
-      }
-
-      loadFromStorage() {
-        const data = localStorage.getItem('neuralTournament');
-        if (data) {
-          const parsed = JSON.parse(data);
-          this.generation = parsed.generation;
-          this.champions = parsed.champions || [];
-          this.generationHistory = parsed.history || [];
-          
-          this.fighters = parsed.fighters.map((f, i) => {
-            const brain = new NeuralNetwork();
-            brain.fromJSON(f.brain);
-            return {
-              id: i,
-              name: f.name,
-              brain: brain,
-              wins: f.wins,
-              losses: 0,
-              hits: 0,
-              maxCombo: 0,
-              generation: f.generation
-            };
-          });
-          
-          this.updateUI();
-        }
-      }
-    }
-
-    // === GAME INIT ===
-    let fighter1 = null;
-    let fighter2 = null;
-    let f1Index = 0;
-    let f2Index = 1;
-    let timerInterval = null;
-    let tournament = null;
-
-    tournament = new Tournament();
-
-    function initGame() {
-      const type1 = document.getElementById('fighterType1').value;
-      const type2 = document.getElementById('fighterType2').value;
-      
-      if (type1 === 'neural') {
-        f1Index = parseInt(document.getElementById('neuralFighter1').value) || 0;
-        const neuralData = tournament.fighters[f1Index];
-        const brain = neuralData.brain.clone();
-        fighter1 = new NeuralFighter(250, true, '#ff2244', neuralData.name, brain);
-        document.getElementById('fighterName1').textContent = neuralData.name;
-        document.getElementById('tactic1').textContent = 'Neural';
-      } else {
-        const style1 = document.getElementById('style1').value;
-        const aggr1 = document.getElementById('aggression1').value;
-        fighter1 = new ClassicFighter(250, true, '#ff2244', 'Scorpion', style1, aggr1);
-        document.getElementById('fighterName1').textContent = 'Scorpion';
-        document.getElementById('tactic1').textContent = style1.toUpperCase();
-      }
-      
-      if (type2 === 'neural') {
-        f2Index = parseInt(document.getElementById('neuralFighter2').value) || 1;
-        const neuralData = tournament.fighters[f2Index];
-        const brain = neuralData.brain.clone();
-        fighter2 = new NeuralFighter(650, false, '#00ffcc', neuralData.name, brain);
-        document.getElementById('fighterName2').textContent = neuralData.name;
-        document.getElementById('tactic2').textContent = 'Neural';
-      } else {
-        const style2 = document.getElementById('style2').value;
-        const aggr2 = document.getElementById('aggression2').value;
-        fighter2 = new ClassicFighter(650, false, '#00ffcc', 'Frost', style2, aggr2);
-        document.getElementById('fighterName2').textContent = 'Frost';
-        document.getElementById('tactic2').textContent = style2.toUpperCase();
-      }
-      
-      game.running = false;
-      game.timer = 99;
-      game.frame = 0;
-      
-      particles.length = 0;
-      effects.length = 0;
-      
-      document.getElementById('resultScreen').classList.remove('show');
-      document.getElementById('hp1').style.width = '100%';
-      document.getElementById('hp2').style.width = '100%';
-    }
-
-    function startFight() {
-      initGame();
-      
-      document.getElementById('menuScreen').classList.add('hidden');
-      
-      setTimeout(() => announce('ROUND ' + game.round, 'fight'), 500);
-      setTimeout(() => announce('FIGHT!', 'fight'), 1500);
-      setTimeout(() => {
-        game.running = true;
-        if (timerInterval) clearInterval(timerInterval);
-        timerInterval = setInterval(() => {
-          if (game.running && game.timer > 0) {
-            game.timer -= 1;
-            if (game.timer <= 0) {
-              endRound(fighter1.hp >= fighter2.hp ? fighter1 : fighter2);
+            //==================================================
+            // ИНИЦИАЛИЗАЦИЯ
+            //==================================================
+            function initGame() {
+                const alphaType = document.getElementById('alpha-type').value;
+                const betaType = document.getElementById('beta-type').value;
+                
+                if (alphaType === 'neural') {
+                    const idx = document.getElementById('alpha-brain').value || 0;
+                    const f = population.getFighter(parseInt(idx));
+                    fighter1 = new NeuralFighter(300, 320, '#ff3b5c', f.name, true, f.brain.clone());
+                } else {
+                    fighter1 = new BaseFighter(300, 320, '#ff3b5c', 'CLASSIC RED', true);
+                }
+                
+                if (betaType === 'neural') {
+                    const idx = document.getElementById('beta-brain').value || 1;
+                    const f = population.getFighter(parseInt(idx));
+                    fighter2 = new NeuralFighter(660, 320, '#3b9eff', f.name, false, f.brain.clone());
+                } else {
+                    fighter2 = new BaseFighter(660, 320, '#3b9eff', 'CLASSIC BLUE', false);
+                }
+                
+                gameRunning = true;
+                gamePaused = false;
+                
+                document.getElementById('menu').classList.add('hidden');
+                
+                updateUI();
             }
-          }
-        }, 1000);
-      }, 2000);
-    }
 
-    function endRound(winner) {
-      game.running = false;
-      if (timerInterval) clearInterval(timerInterval);
-      
-      // Финальные награды
-      if (fighter1 instanceof NeuralFighter) {
-        fighter1.brain.remember(
-          fighter1.lastState || new Array(32).fill(0),
-          fighter1.lastAction || 0,
-          winner === fighter1 ? 100 : -50,
-          new Array(32).fill(0),
-          true
-        );
-        fighter1.brain.learn(32);
-      }
-      
-      if (fighter2 instanceof NeuralFighter) {
-        fighter2.brain.remember(
-          fighter2.lastState || new Array(32).fill(0),
-          fighter2.lastAction || 0,
-          winner === fighter2 ? 100 : -50,
-          new Array(32).fill(0),
-          true
-        );
-        fighter2.brain.learn(32);
-      }
-      
-      setTimeout(() => announce('K.O.!', 'ko'), 300);
-      setTimeout(() => showResult(winner), 1500);
-    }
-
-    // === GAME LOOP ===
-    function gameLoop() {
-      requestAnimationFrame(gameLoop);
-      
-      if (game.running) {
-        if (game.slowmo > 0) {
-          game.slowmo--;
-          if (game.frame % 3 !== 0) return;
-        }
-        
-        if (fighter1 && fighter2) {
-          fighter1.update(fighter2);
-          fighter2.update(fighter1);
-          
-          // Запоминаем награды
-          if (fighter1 instanceof NeuralFighter) fighter1.rememberReward();
-          if (fighter2 instanceof NeuralFighter) fighter2.rememberReward();
-          
-          if (game.frame - fighter1.lastHitTime > CONFIG.COMBO_WINDOW / 16) fighter1.comboCount = 0;
-          if (game.frame - fighter2.lastHitTime > CONFIG.COMBO_WINDOW / 16) fighter2.comboCount = 0;
-          
-          if (checkHit(fighter1, fighter2)) {
-            if (fighter2.takeHit(fighter1, ATTACKS[fighter1.currentAttack])) {
-              fighter1.hasHit = true;
+            function updateUI() {
+                if (!fighter1 || !fighter2) return;
+                
+                document.getElementById('alpha-hp').textContent = Math.floor(fighter1.hp);
+                document.getElementById('alpha-hp-bar').style.width = fighter1.hp + '%';
+                
+                document.getElementById('beta-hp').textContent = Math.floor(fighter2.hp);
+                document.getElementById('beta-hp-bar').style.width = fighter2.hp + '%';
+                
+                document.getElementById('stat-gen').textContent = population.generation;
+                
+                if (fighter1 instanceof NeuralFighter && fighter1.brain) {
+                    document.getElementById('alpha-error').textContent = 
+                        (fighter1.brain.stats.avgReward * 0.1).toFixed(3);
+                }
+                
+                // ТАБЛИЦА БОЙЦОВ
+                const table = document.getElementById('fighter-table');
+                table.innerHTML = '';
+                
+                population.fighters.slice(0, 8).forEach((f, idx) => {
+                    const row = document.createElement('div');
+                    row.className = 'fighter-row' + (idx < 2 ? ' selected' : '');
+                    row.innerHTML = `
+                        <span class="fighter-name">${f.name}</span>
+                        <span class="fighter-stats">
+                            <span>🏆${f.wins}</span>
+                            <span>⚔️${f.hits}</span>
+                            <span>🔥${f.maxCombo}</span>
+                        </span>
+                    `;
+                    table.appendChild(row);
+                });
             }
-          }
-          
-          if (checkHit(fighter2, fighter1)) {
-            if (fighter1.takeHit(fighter2, ATTACKS[fighter2.currentAttack])) {
-              fighter2.hasHit = true;
+
+            function gameLoop(now) {
+                requestAnimationFrame(gameLoop);
+                
+                if (!gameRunning || gamePaused) return;
+                
+                const dt = Math.min(0.05, (now - (lastTimestamp || now)) / 1000) * gameSpeed;
+                lastTimestamp = now;
+                
+                for (let s = 0; s < (gameSpeed > 1 ? 2 : 1); s++) {
+                    if (fighter1 && fighter2) {
+                        fighter1.update(fighter2, dt);
+                        fighter2.update(fighter1, dt);
+                        
+                        // ХИТЫ
+                        if (fighter1.state === 'attacking' && fighter1.attackPhase === 'active') {
+                            const hb = fighter1.getHitbox();
+                            const hb2 = fighter2.getHurtbox();
+                            if (hb && hb2 && Math.abs(hb.x - hb2.x) < 30 && Math.abs(hb.y - hb2.y) < 40) {
+                                if (fighter2.takeHit(fighter1, fighter1.currentAttack)) {
+                                    if (fighter1 instanceof NeuralFighter) {
+                                        fighter1.lastReward += 2;
+                                        if (fighter1.comboCount > 2) {
+                                            fighter1.lastReward += fighter1.comboCount;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                        if (fighter2.state === 'attacking' && fighter2.attackPhase === 'active') {
+                            const hb = fighter2.getHitbox();
+                            const hb1 = fighter1.getHurtbox();
+                            if (hb && hb1 && Math.abs(hb.x - hb1.x) < 30 && Math.abs(hb.y - hb1.y) < 40) {
+                                if (fighter1.takeHit(fighter2, fighter2.currentAttack)) {
+                                    if (fighter2 instanceof NeuralFighter) {
+                                        fighter2.lastReward += 2;
+                                        if (fighter2.comboCount > 2) {
+                                            fighter2.lastReward += fighter2.comboCount;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // ПРОВЕРКА СМЕРТИ
+                        if (fighter1.hp <= 0 || fighter2.hp <= 0) {
+                            const winner = fighter1.hp <= 0 ? fighter2 : fighter1;
+                            
+                            if (fighter1 instanceof NeuralFighter) {
+                                fighter1.brain.remember(
+                                    fighter1.lastState || new Array(32).fill(0),
+                                    fighter1.lastAction || 0,
+                                    winner === fighter1 ? 50 : -25,
+                                    fighter1.getSensors(fighter2),
+                                    true
+                                );
+                                fighter1.brain.learn(32);
+                            }
+                            
+                            if (fighter2 instanceof NeuralFighter) {
+                                fighter2.brain.remember(
+                                    fighter2.lastState || new Array(32).fill(0),
+                                    fighter2.lastAction || 0,
+                                    winner === fighter2 ? 50 : -25,
+                                    fighter2.getSensors(fighter1),
+                                    true
+                                );
+                                fighter2.brain.learn(32);
+                            }
+                            
+                            document.getElementById('winner-title').textContent = winner.name + ' WINS';
+                            document.getElementById('winner-title').className = 
+                                'winner-title ' + (winner === fighter1 ? 'red' : 'blue');
+                            
+                            document.getElementById('winner-hits1').textContent = fighter1.hitCount;
+                            document.getElementById('winner-hits2').textContent = fighter2.hitCount;
+                            document.getElementById('winner-combo1').textContent = fighter1.maxCombo;
+                            document.getElementById('winner-combo2').textContent = fighter2.maxCombo;
+                            
+                            document.getElementById('winner-screen').classList.add('show');
+                            gameRunning = false;
+                        }
+                    }
+                }
+                
+                // ОТРИСОВКА
+                drawBackground();
+                
+                if (fighter1) drawFighter(fighter1);
+                if (fighter2) drawFighter(fighter2);
+                
+                if (fighter1 instanceof NeuralFighter) {
+                    drawNeuralNetwork(fighter1.brain);
+                }
+                
+                updateUI();
+                
+                frameCount++;
             }
-          }
-          
-          if (fighter1.hp <= 0 || fighter2.hp <= 0) {
-            endRound(fighter1.hp <= 0 ? fighter2 : fighter1);
-          }
-        }
-        
-        updateEffects();
-        updateUI();
-      }
-      
-      ctx.save();
-      if (game.shake.time > 0) {
-        ctx.translate(game.shake.x, game.shake.y);
-      }
-      
-      drawBackground();
-      drawEffects();
-      
-      if (fighter1 && fighter2) {
-        const sorted = [fighter1, fighter2].sort((a, b) => a.y - b.y);
-        sorted.forEach(f => f.draw());
-      }
-      
-      ctx.restore();
-      
-      game.frame++;
-    }
 
-    // === EVENT LISTENERS ===
-    document.getElementById('startBtn').addEventListener('click', startFight);
-    
-    document.getElementById('rematchBtn').addEventListener('click', () => {
-      game.round++;
-      startFight();
-    });
-    
-    document.getElementById('menuBtn').addEventListener('click', () => {
-      game.round = 1;
-      document.getElementById('menuScreen').classList.remove('hidden');
-      document.getElementById('resultScreen').classList.remove('show');
-    });
+            //==================================================
+            // СОБЫТИЯ
+            //==================================================
+            document.getElementById('start-fight').addEventListener('click', () => {
+                initGame();
+            });
 
-    document.getElementById('fighterType1').addEventListener('change', (e) => {
-      const classic = document.getElementById('classicControls1');
-      const neural = document.getElementById('neuralControls1');
-      if (e.target.value === 'neural') {
-        classic.style.display = 'none';
-        neural.style.display = 'block';
-      } else {
-        classic.style.display = 'block';
-        neural.style.display = 'none';
-      }
-    });
+            document.getElementById('btn-speed').addEventListener('click', (e) => {
+                if (gameSpeed === 1) {
+                    gameSpeed = 2;
+                    e.target.textContent = 'СКОРОСТЬ x2';
+                } else if (gameSpeed === 2) {
+                    gameSpeed = 4;
+                    e.target.textContent = 'СКОРОСТЬ x4';
+                } else {
+                    gameSpeed = 1;
+                    e.target.textContent = 'СКОРОСТЬ x1';
+                }
+            });
 
-    document.getElementById('fighterType2').addEventListener('change', (e) => {
-      const classic = document.getElementById('classicControls2');
-      const neural = document.getElementById('neuralControls2');
-      if (e.target.value === 'neural') {
-        classic.style.display = 'none';
-        neural.style.display = 'block';
-      } else {
-        classic.style.display = 'block';
-        neural.style.display = 'none';
-      }
-    });
+            document.getElementById('btn-pause').addEventListener('click', (e) => {
+                gamePaused = !gamePaused;
+                e.target.textContent = gamePaused ? 'ПРОДОЛЖИТЬ' : 'ПАУЗА';
+            });
 
-    document.getElementById('newGenBtn').addEventListener('click', () => {
-      tournament.evolve();
-    });
+            document.getElementById('btn-menu').addEventListener('click', () => {
+                gameRunning = false;
+                document.getElementById('menu').classList.remove('hidden');
+                document.getElementById('winner-screen').classList.remove('show');
+            });
 
-    document.getElementById('tournamentBtn').addEventListener('click', () => {
-      tournament.runTournament();
-      announce('TOURNAMENT COMPLETE!', 'fight');
-    });
+            document.getElementById('btn-evolve').addEventListener('click', () => {
+                population.runTournament();
+                log('learn', `НОВОЕ ПОКОЛЕНИЕ #${population.generation}`);
+                updateUI();
+            });
 
-    document.getElementById('saveBrainsBtn').addEventListener('click', () => {
-      tournament.saveToStorage();
-      announce('CHAMPIONS SAVED!', 'fight');
-    });
+            document.getElementById('btn-tournament').addEventListener('click', () => {
+                population.runTournament();
+                log('learn', `ТУРНИР ЗАВЕРШЕН • ПОКОЛЕНИЕ ${population.generation}`);
+                updateUI();
+            });
 
-    // Start
-    initGame();
-    gameLoop();
-  </script>
+            // ПЕРЕКЛЮЧЕНИЕ ТИПОВ
+            document.getElementById('alpha-type').addEventListener('change', (e) => {
+                const classic = document.getElementById('alpha-classic');
+                const neural = document.getElementById('alpha-neural');
+                if (e.target.value === 'neural') {
+                    classic.style.display = 'none';
+                    neural.style.display = 'block';
+                    
+                    const select = document.getElementById('alpha-brain');
+                    select.innerHTML = '';
+                    population.fighters.forEach((f, i) => {
+                        const opt = document.createElement('option');
+                        opt.value = i;
+                        opt.textContent = f.name;
+                        select.appendChild(opt);
+                    });
+                } else {
+                    classic.style.display = 'block';
+                    neural.style.display = 'none';
+                }
+            });
+
+            document.getElementById('beta-type').addEventListener('change', (e) => {
+                const classic = document.getElementById('beta-classic');
+                const neural = document.getElementById('beta-neural');
+                if (e.target.value === 'neural') {
+                    classic.style.display = 'none';
+                    neural.style.display = 'block';
+                    
+                    const select = document.getElementById('beta-brain');
+                    select.innerHTML = '';
+                    population.fighters.forEach((f, i) => {
+                        const opt = document.createElement('option');
+                        opt.value = i;
+                        opt.textContent = f.name;
+                        select.appendChild(opt);
+                    });
+                } else {
+                    classic.style.display = 'block';
+                    neural.style.display = 'none';
+                }
+            });
+
+            // ЗАПУСК
+            requestAnimationFrame(gameLoop);
+            log('info', 'NEURAL EVOLUTION INITIALIZED');
+        })();
+    </script>
 </body>
   </html>
