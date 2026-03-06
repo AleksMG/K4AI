@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Neural Fighter Arena — Cortex² v3.3.1 [BALANCED]</title>
+    <title>Neural Fighter Arena — Cortex² v3.3.5 AGGRESSOR</title>
     <style>
         :root {
             --bg-deep: #050709;
@@ -108,7 +108,7 @@
         .version-badge {
             font-size: 0.7rem;
             font-weight: 600;
-            color: var(--accent-green);
+            color: var(--accent-yellow);
             background: var(--bg-secondary);
             padding: 3px 8px;
             border-radius: 5px;
@@ -244,11 +244,6 @@
             background: var(--accent-red);
             box-shadow: 0 0 10px var(--accent-red);
             animation: statusPulse 0.6s ease-in-out infinite;
-        }
-
-        .status-indicator.aggressive {
-            background: var(--accent-orange);
-            box-shadow: 0 0 10px var(--accent-orange);
         }
 
         @keyframes statusPulse {
@@ -450,7 +445,6 @@
         .log-entry.combat { border-color: var(--accent-red); }
         .log-entry.learn { border-color: var(--accent-green); }
         .log-entry.warn { border-color: var(--accent-yellow); }
-        .log-entry.reward { border-color: var(--accent-orange); }
 
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -467,13 +461,13 @@
         <header class="header">
             <div class="header-left">
                 <div class="logo">N</div>
-                <h1>NEURAL FIGHTER ARENA<span class="version-badge">CORTEX² v3.3.1 BALANCED</span></h1>
+                <h1>NEURAL FIGHTER ARENA<span class="version-badge">CORTEX² v3.3.5 AGGRESSOR</span></h1>
             </div>
             <div class="header-controls">
                 <button id="btn-start" class="btn primary">START</button>
                 <button id="btn-pause" class="btn" disabled>PAUSE</button>
                 <button id="btn-reset" class="btn">RESET</button>
-                <button id="btn-train" class="btn">TRAIN 10</button>
+                <button id="btn-train" class="btn">TRAIN 50</button>
                 <label class="checkbox-wrap">
                     <input type="checkbox" id="chk-autotrain">
                     AUTO TRAIN
@@ -749,7 +743,7 @@
         'use strict';
 
         // ============================================================================
-        // PART 1: CONFIGURATION & CONSTANTS - BALANCED REWARD SYSTEM
+        // PART 1: CONFIGURATION & CONSTANTS - v3.3.5 AGGRESSOR
         // ============================================================================
 
         const CONFIG = {
@@ -780,35 +774,34 @@
             },
             
             // Attack System
-            ATTACK_WINDUP: 12,
-            ATTACK_RECOVERY: 16,
-            ATTACK_DAMAGE: { HIGH: 13, MID: 10, LOW: 7 },
-            ATTACK_COOLDOWN: 22,
-            ATTACK_CONFIDENCE_THRESHOLD: 0.55,
-            ATTACK_RANGE_MULTIPLIER: 1.30,
+            ATTACK_WINDUP: 10,
+            ATTACK_RECOVERY: 12,
+            ATTACK_DAMAGE: { HIGH: 14, MID: 11, LOW: 8 },
+            ATTACK_COOLDOWN: 18,
+            ATTACK_CONFIDENCE_THRESHOLD: 0.35,  // FIXED: lowered from 0.55
+            ATTACK_RANGE_MULTIPLIER: 1.40,
             
             // Block System
-            BLOCK_REDUCTION: { HIGH: 0.85, MID: 0.80, LOW: 0.74 },
-            BLOCK_PENALTY: 0.32,
-            BLOCK_CONFIDENCE_THRESHOLD: 0.50,
-            BLOCK_RELEASE_THRESHOLD: 0.25,
+            BLOCK_REDUCTION: { HIGH: 0.82, MID: 0.78, LOW: 0.72 },
+            BLOCK_PENALTY: 0.35,
+            BLOCK_CONFIDENCE_THRESHOLD: 0.35,  // FIXED: lowered from 0.50
             
             // Dodge System
-            DODGE_DURATION: 10,
-            DODGE_COOLDOWN: 38,
-            DODGE_DISTANCE: 48,
+            DODGE_DURATION: 8,
+            DODGE_COOLDOWN: 35,
+            DODGE_DISTANCE: 52,
             DODGE_FEAR_THRESHOLD: 0.70,
             
-            // Movement
-            MOVE_MIN_INTENSITY: 0.30,
-            MOVE_IDLE_THRESHOLD: 12,
-            RETREAT_THRESHOLD: 0.75,
-            FLANK_THRESHOLD: 0.65,
-            APPROACH_RANGE_MULTIPLIER: 2.0,
-            APPROACH_ACCEL_FACTOR: 0.55,
+            // Movement - FIXED: adjusted thresholds
+            MOVE_MIN_INTENSITY: 0.18,  // FIXED: lowered from 0.30
+            MOVE_IDLE_THRESHOLD: 8,    // FIXED: lowered from 12
+            RETREAT_THRESHOLD: 0.68,
+            FLANK_THRESHOLD: 0.55,
+            APPROACH_RANGE_MULTIPLIER: 1.8,
+            APPROACH_ACCEL_FACTOR: 0.70,  // FIXED: increased from 0.55
             
             // Zone miss probability
-            ZONE_MISS_PROBABILITY: 0.25,
+            ZONE_MISS_PROBABILITY: 0.20,
             
             // Neural Network Dimensions
             DIM_P: 32,
@@ -827,91 +820,101 @@
             M_PRED_SIZE: 48,
             
             // ============================================================================
-            // BALANCED REWARD SYSTEM - FIX FOR PASSIVE BEHAVIOR
+            // v3.3.5 AGGRESSOR REWARDS - MAXIMUM ENGAGEMENT
             // ============================================================================
             REWARDS: {
-                // === CORE COMBAT REWARDS (Strong signals) ===
-                WIN: 10.0,
-                LOSS: -10.0,
+                // Core combat - MASSIVE WIN BONUS
+                WIN: 35.0,              // Increased from 25.0
+                LOSS: -10.0,            // Increased from -8.0
                 
-                // Damage dealing (encourage aggression)
-                DEAL_DAMAGE: 2.5,
-                HIT_HIGH: 1.8,
-                HIT_MID: 1.2,
-                HIT_LOW: 0.8,
-                HIT: 1.5,  // Base hit reward
+                // Damage dealing - STRONG
+                DEAL_DAMAGE: 4.0,       // Increased from 3.0
+                HIT_HIGH: 2.5,
+                HIT_MID: 2.0,
+                HIT_LOW: 1.5,
+                HIT: 2.5,               // Increased from 2.0
                 
-                // Damage taken (punish getting hit)
-                TAKE_DAMAGE: -2.0,
-                NEAR_DEATH: -5.0,
-                DAMAGE_TAKEN: -0.08,
+                // Damage taken
+                TAKE_DAMAGE: -1.5,      // Reduced penalty (encourage fighting)
+                NEAR_DEATH: -3.0,
+                DAMAGE_TAKEN: -0.05,
                 
-                // === POSITIONING REWARDS (Encourage engagement) ===
-                MOVE_TOWARD: 0.20,
-                MOVE_AWAY: -0.12,
-                IN_COMBAT_RANGE: 0.10,
-                CENTER_CONTROL: 0.05,
-                IN_RANGE: 0.04,
-                TOO_FAR: -0.02,
+                // ENGAGEMENT REWARDS - VERY STRONG
+                MOVE_TOWARD: 0.25,      // Increased from 0.15
+                MOVE_AWAY: -0.12,       // Increased penalty
+                IN_COMBAT_RANGE: 0.20,  // Increased from 0.12
+                CENTER_CONTROL: 0.08,
+                IN_RANGE: 0.15,         // Increased from 0.08
+                TOO_FAR: -0.08,         // Increased from -0.05
                 
-                // === DEFENSIVE ACTIONS (Balanced, not dominant) ===
-                BLOCK: 0.50,
-                BLOCK_CORRECT: 0.60,
-                BLOCK_WRONG: -0.40,
-                DODGE: 0.60,
-                DODGE_SUCCESS: 0.80,
-                DODGE_UNNECESSARY: -0.30,
+                // TIME PRESSURE
+                STALLING_PER_SEC: -0.8,
+                ROUND_TIME_LIMIT: 25,   // Reduced from 30
                 
-                // === ATTACK ACTIONS (Encourage trying) ===
-                ATTACK_INITIATE: 0.50,
-                MISS: -0.20,
-                ATTACK_MISS: -0.25,
-                ATTACK_BLOCKED: -0.15,
-                COMBO_2HIT: 1.0,
-                COMBO_3HIT: 2.0,
+                // Attack actions - HEAVILY REWARDED
+                ATTACK_INITIATE: 0.80,  // Increased from 0.50
+                MISS: -0.08,            // Reduced penalty
+                ATTACK_MISS: -0.10,
+                ATTACK_BLOCKED: 0.05,   // CHANGED: slight positive (at least tried)
+                COMBO_2HIT: 1.80,
+                COMBO_3HIT: 3.50,
                 
-                // === COURAGE BONUS (Anti-fear system) ===
-                ENGAGE_WHILE_HURT: 1.0,
-                PRESS_ADVANTAGE: 0.80,
-                RECOVER_FROM_KNOCKDOWN: 1.5,
+                // Defensive actions - REDUCED
+                BLOCK: 0.05,            // Reduced from 0.10
+                BLOCK_CORRECT: 0.08,    // Reduced from 0.15
+                BLOCK_WRONG: -0.15,
+                DODGE: 0.10,            // Reduced from 0.20
+                DODGE_SUCCESS: 0.12,    // Reduced from 0.25
+                DODGE_UNNECESSARY: -0.08,
                 
-                // === PUNISHMENTS (Discourage passive play) ===
-                STAY_IN_CORNER: -0.08,
-                NO_ACTION_5SEC: -1.5,
-                ONLY_BLOCK_3SEC: -1.0,
-                RUN_AWAY_WHILE_WINNING: -2.5,
-                BLOCK_WRONG_ZONE: -0.08,
+                // Courage/Aggression bonuses
+                ENGAGE_WHILE_HURT: 1.50,
+                PRESS_ADVANTAGE: 1.20,
+                RECOVER_FROM_KNOCKDOWN: 2.00,
+                FIRST_STRIKE: 1.00,     // NEW: bonus for first attack
                 
-                // === LEARNING SIGNALS ===
-                PREDICTION_CORRECT: 0.30,
-                PREDICTION_WRONG: -0.20,
-                ADAPT_TO_ENEMY: 0.50,
-                COLLISION: -0.02
+                // Learning signals
+                PREDICTION_CORRECT: 0.15,
+                PREDICTION_WRONG: -0.10,
+                ADAPT_TO_ENEMY: 0.30,
+                COLLISION: -0.01,
+                
+                // NEW: Action diversity reward
+                ACTION_DIVERSITY: 0.10,
+                REPEAT_ACTION_PENALTY: -0.05
             },
             
             // Hyperparameters
-            LR: 0.012,
+            LR: 0.015,              // Increased from 0.012
             GAMMA: 0.98,
             LAMBDA: 0.94,
-            HEBBIAN_RATE: 0.002,
+            HEBBIAN_RATE: 0.003,    // Increased from 0.002
+            
+            // Exploration - v3.3.5 AGGRESSIVE
+            EXPLORATION_NOISE: 0.25,    // Increased from 0.15
+            EXPLORATION_DECAY: 0.997,
+            MIN_EXPLORATION: 0.05,
+            
+            // v3.3.5: Action bias initialization
+            ACTION_BIAS_STRENGTH: 0.30,  // Bias towards attack outputs
             
             // Emotion thresholds
-            EMOTION_ENTER_THRESHOLD: 0.50,
-            EMOTION_EXIT_THRESHOLD: 0.15,
+            EMOTION_ENTER_THRESHOLD: 0.45,
+            EMOTION_EXIT_THRESHOLD: 0.12,
             EMOTION_SATISFACTION_EXIT: 0.85,
             
-            // Reflex thresholds
-            REFLEX_FEAR_THRESHOLD: 0.75,
-            REFLEX_AGGRESSION_THRESHOLD: 0.70,
-            REFLEX_SURPRISE_THRESHOLD: 0.65,
-            REFLEX_CONFLICT_AGGRESSION: 0.60,
-            REFLEX_CONFLICT_FEAR: 0.40,
-            REFLEX_VENGEANCE_BOOST: 0.50,
-            REFLEX_DESPERATION_THRESHOLD: 0.70,
-            REFLEX_DESPERATION_RANDOM: 0.20,
+            // Reflex thresholds - MORE AGGRESSIVE
+            REFLEX_FEAR_THRESHOLD: 0.85,     // Raised (less fear)
+            REFLEX_AGGRESSION_THRESHOLD: 0.55, // Lowered (more aggression)
+            REFLEX_SURPRISE_THRESHOLD: 0.70,
+            REFLEX_CONFLICT_AGGRESSION: 0.50,
+            REFLEX_CONFLICT_FEAR: 0.55,
+            REFLEX_VENGEANCE_BOOST: 0.40,
+            REFLEX_DESPERATION_THRESHOLD: 0.75,
+            REFLEX_DESPERATION_RANDOM: 0.25,
             
             // Social thresholds
-            SOCIAL_AGGRESSION_THRESHOLD: 0.60,
+            SOCIAL_AGGRESSION_THRESHOLD: 0.55,
             
             // UI
             LOG_MAX: 150,
@@ -959,7 +962,6 @@
         const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
         const lerp = (a, b, t) => a + (b - a) * clamp(t, 0, 1);
         
-        // Complete safeNum with Infinity check
         const safeNum = (v, fallback = 0) => {
             if (typeof v !== 'number') return fallback;
             if (!Number.isFinite(v)) return fallback;
@@ -967,7 +969,6 @@
             return v;
         };
         
-        // Safe division
         const safeDiv = (numerator, denominator, fallback = 0) => {
             const num = safeNum(numerator, 0);
             const den = safeNum(denominator, 0);
@@ -978,7 +979,6 @@
             return result;
         };
         
-        // Format number for display
         const formatNum = (v, decimals = 3) => {
             const n = safeNum(v, 0);
             if (Math.abs(n) >= 1e6) {
@@ -1020,12 +1020,6 @@
             const el = getEl(id);
             if (el === null) return;
             el.classList.remove(cls);
-        };
-
-        const hasClass = (id, cls) => {
-            const el = getEl(id);
-            if (el === null) return false;
-            return el.classList.contains(cls);
         };
 
         // Float32Array Pool
@@ -1095,8 +1089,7 @@
             info(msg) { this.log(msg, 'info'); },
             combat(msg) { this.log(msg, 'combat'); },
             learn(msg) { this.log(msg, 'learn'); },
-            warn(msg) { this.log(msg, 'warn'); },
-            reward(msg) { this.log(msg, 'reward'); }
+            warn(msg) { this.log(msg, 'warn'); }
         };
 
         // ============================================================================
@@ -1180,7 +1173,7 @@
         }
 
         // ============================================================================
-        // PART 2: CORTEX² NEURAL NETWORK - WITH GRADIENT CLIPPING
+        // PART 2: CORTEX² NEURAL NETWORK - v3.3.5 WITH SIGMOID OUTPUTS
         // ============================================================================
         class CortexNetwork {
             constructor(config = {}) {
@@ -1190,6 +1183,9 @@
                 this.gamma = safeNum(config.gamma, CONFIG.GAMMA);
                 this.lambda = safeNum(config.lambda, CONFIG.LAMBDA);
                 this.hebbianRate = safeNum(config.hebbianRate, CONFIG.HEBBIAN_RATE);
+                
+                // v3.3.5: Exploration tracking
+                this.explorationNoise = CONFIG.EXPLORATION_NOISE;
                 
                 this.D = {
                     P: CONFIG.DIM_P,
@@ -1234,8 +1230,15 @@
                 this.W_S = this._initMatrix(ARCH.S_INPUT, this.D.S, 0.25);
                 this.b_S = this._initVector(this.D.S, 0.06);
                 
-                this.W_D = this._initMatrix(ARCH.D_INPUT, this.D.Dout, 0.15);
+                // FIXED: Initialize decision layer with POSITIVE bias for attacks
+                this.W_D = this._initMatrix(ARCH.D_INPUT, this.D.Dout, 0.18);
                 this.b_D = this._initVector(this.D.Dout, 0.06);
+                
+                // v3.3.5: Add action bias to attack outputs (indices 4,5,6)
+                const actionBias = CONFIG.ACTION_BIAS_STRENGTH;
+                this.b_D[4] = actionBias;  // HIGH attack
+                this.b_D[5] = actionBias;  // MID attack
+                this.b_D[6] = actionBias;  // LOW attack
                 
                 this.W_pred = this._initMatrix(this.D.mPred, this.D.sensor, 0.12);
                 this.b_pred = this._initVector(this.D.sensor, 0.03);
@@ -1307,42 +1310,30 @@
                     this.emotionalState.momentum[CONFIG.EMOTIONS[i]] = 0;
                 }
                 
-                // BALANCED EMOTION CONFIG - FIX FOR FEAR DOMINANCE
+                // Emotion config
                 this.emotionConfig = {
-                    // FEAR - Decays FASTER so they don't stay scared
-                    fear: { baseDuration: 90, decay: 0.90 },
-                    
-                    // AGGRESSION - STRONGER and lasts longer
+                    fear: { baseDuration: 100, decay: 0.93 },
                     aggression: { baseDuration: 180, decay: 0.97 },
-                    
-                    // CONFIDENCE - Builds up faster
                     confidence: { baseDuration: 200, decay: 0.98 },
-                    
-                    // FRUSTRATION - Don't let it accumulate
-                    frustration: { baseDuration: 120, decay: 0.92 },
-                    
-                    // COURAGE - Counter to fear
-                    courage: { baseDuration: 150, decay: 0.96 },
-                    
-                    // CAUTION - Reduced influence
+                    frustration: { baseDuration: 130, decay: 0.92 },
+                    courage: { baseDuration: 160, decay: 0.96 },
                     caution: { baseDuration: 100, decay: 0.93 },
-                    
-                    desperation: { baseDuration: 150, decay: 0.94 },
-                    vengeance: { baseDuration: 200, decay: 0.97 },
+                    desperation: { baseDuration: 160, decay: 0.93 },
+                    vengeance: { baseDuration: 220, decay: 0.97 },
                     pride: { baseDuration: 180, decay: 0.97 },
-                    satisfaction: { baseDuration: 150, decay: 0.97 },
-                    shame: { baseDuration: 120, decay: 0.93 },
-                    curiosity: { baseDuration: 140, decay: 0.97 },
-                    boredom: { baseDuration: 200, decay: 0.98 },
-                    empathy: { baseDuration: 100, decay: 0.96 },
-                    loyalty: { baseDuration: 200, decay: 0.98 },
+                    satisfaction: { baseDuration: 150, decay: 0.96 },
+                    shame: { baseDuration: 100, decay: 0.92 },
+                    curiosity: { baseDuration: 160, decay: 0.96 },
+                    boredom: { baseDuration: 220, decay: 0.98 },
+                    empathy: { baseDuration: 90, decay: 0.94 },
+                    loyalty: { baseDuration: 220, decay: 0.98 },
                     anxiety: { baseDuration: 100, decay: 0.93 },
-                    excitement: { baseDuration: 80, decay: 0.91 },
-                    disappointment: { baseDuration: 120, decay: 0.95 },
-                    grief: { baseDuration: 180, decay: 0.97 },
-                    threat: { baseDuration: 70, decay: 0.95 },
+                    excitement: { baseDuration: 80, decay: 0.90 },
+                    disappointment: { baseDuration: 120, decay: 0.94 },
+                    grief: { baseDuration: 180, decay: 0.95 },
+                    threat: { baseDuration: 80, decay: 0.94 },
                     surprise: { baseDuration: 50, decay: 0.88 },
-                    determination: { baseDuration: 160, decay: 0.97 }
+                    determination: { baseDuration: 180, decay: 0.97 }
                 };
                 
                 this.emotionMemory = {
@@ -1380,12 +1371,16 @@
                     memoryRecalls: 0,
                     socialInfluences: 0,
                     validationErrors: 0,
-                    gradientClips: 0
+                    gradientClips: 0,
+                    explorationActions: 0,
+                    attackCount: 0,
+                    moveCount: 0
                 };
                 
                 this._lastOutput = new Float32Array(this.D.Dout);
                 this._lastReward = 0;
                 this._reflexThisFrame = false;
+                this._lastActions = [];  // Track action history for diversity
             }
 
             _initVector(length, scale) {
@@ -1437,7 +1432,6 @@
                 return exps;
             }
 
-            // LAYER VALIDATION - FIX FOR MEMORY OVERFLOW
             _checkLayer(arr, name) {
                 if (!arr) return false;
                 let hasError = false;
@@ -1478,7 +1472,6 @@
                         sum += safeNum(vec[j]) * safeNum(mat[j][i]);
                     }
                     
-                    // Clamp sum before activation
                     sum = clamp(sum, -100, 100);
                     
                     switch (activation) {
@@ -1496,7 +1489,6 @@
             _getMPerm(m) { return m.subarray(this.D.mWork, this.D.mWork + this.D.mPerm); }
             _getMPred(m) { return m.subarray(this.D.mWork + this.D.mPerm, this.D.M); }
 
-            // SAFE MEMORY CALCULATION - FIX FOR INFINITY DISPLAY
             _safeArrayAvg(arr, divisor) {
                 if (!arr || arr.length === 0 || divisor === 0) return 0;
                 
@@ -1515,6 +1507,54 @@
                 
                 const avg = sum / divisor;
                 return Number.isFinite(avg) && Math.abs(avg) < CONFIG.MAX_SAFE_VALUE ? avg : 0;
+            }
+
+            // v3.3.5: Improved exploration - force attack sometimes
+            _addExplorationNoise(outputs) {
+                const noisyOutputs = new Float32Array(outputs.length);
+                
+                // Track if we're doing exploration
+                const doExplore = Math.random() < this.explorationNoise;
+                
+                if (doExplore) {
+                    this.stats.explorationActions++;
+                    
+                    // 60% chance to force an attack action during exploration
+                    if (Math.random() < 0.6) {
+                        // Pick a random attack zone
+                        const attackZone = 4 + Math.floor(Math.random() * 3); // 4, 5, or 6
+                        
+                        for (let i = 0; i < outputs.length; i++) {
+                            if (i === attackZone) {
+                                noisyOutputs[i] = 0.6 + Math.random() * 0.4; // Strong attack signal
+                            } else if (i < 4) {
+                                noisyOutputs[i] = outputs[i] * 0.5; // Reduce movement
+                            } else {
+                                noisyOutputs[i] = outputs[i];
+                            }
+                        }
+                    } else {
+                        // Random movement toward enemy
+                        noisyOutputs[0] = (Math.random() - 0.3) * 1.5; // Bias positive (toward)
+                        noisyOutputs[1] = (Math.random() - 0.5) * 1.5;
+                        for (let i = 2; i < outputs.length; i++) {
+                            noisyOutputs[i] = outputs[i];
+                        }
+                    }
+                } else {
+                    for (let i = 0; i < outputs.length; i++) {
+                        noisyOutputs[i] = outputs[i];
+                    }
+                }
+                
+                return noisyOutputs;
+            }
+            
+            decayExploration() {
+                this.explorationNoise = Math.max(
+                    CONFIG.MIN_EXPLORATION,
+                    this.explorationNoise * CONFIG.EXPLORATION_DECAY
+                );
             }
 
             _recallEpisodicMemory(currentState) {
@@ -1564,7 +1604,6 @@
                 return modifiedOutputs;
             }
 
-            // BALANCED EMOTION UPDATE
             _updateEmotions(reward, events) {
                 if (events && events.length) {
                     for (let i = 0; i < events.length; i++) {
@@ -1580,40 +1619,41 @@
                                 break;
                                 
                             case 'damage':
-                                this.emotions.fear = clamp(this.emotions.fear + 0.06, 0, 1);
-                                this.emotions.frustration = clamp(this.emotions.frustration + 0.05, 0, 1);
-                                this.emotions.satisfaction = clamp(this.emotions.satisfaction - 0.12, -1, 1);
-                                // Courage counteracts fear when taking damage
+                                this.emotions.fear = clamp(this.emotions.fear + 0.04, 0, 1);
+                                this.emotions.frustration = clamp(this.emotions.frustration + 0.03, 0, 1);
+                                this.emotions.satisfaction = clamp(this.emotions.satisfaction - 0.08, -1, 1);
                                 this.emotions.courage = clamp(this.emotions.courage + 0.04, 0, 1);
+                                this.emotions.vengeance = clamp(this.emotions.vengeance + 0.05, 0, 1);
                                 
                                 if (e.damage > 15) {
-                                    this.emotionMemory.trauma = clamp(this.emotionMemory.trauma + 0.02, 0, 1);
+                                    this.emotionMemory.trauma = clamp(this.emotionMemory.trauma + 0.015, 0, 1);
                                 }
                                 break;
                                 
                             case 'block':
-                                this.emotions.confidence = clamp(this.emotions.confidence + 0.03, 0, 1);
+                                this.emotions.confidence = clamp(this.emotions.confidence + 0.02, 0, 1);
                                 this.emotions.caution = clamp(this.emotions.caution + 0.02, 0, 1);
                                 break;
                                 
                             case 'dodge':
-                                this.emotions.confidence = clamp(this.emotions.confidence + 0.05, 0, 1);
-                                this.emotions.excitement = clamp(this.emotions.excitement + 0.06, 0, 1);
+                                this.emotions.confidence = clamp(this.emotions.confidence + 0.04, 0, 1);
+                                this.emotions.excitement = clamp(this.emotions.excitement + 0.04, 0, 1);
                                 break;
                                 
                             case 'miss':
-                                this.emotions.frustration = clamp(this.emotions.frustration + 0.02, 0, 1);
+                                this.emotions.frustration = clamp(this.emotions.frustration + 0.015, 0, 1);
                                 break;
                                 
                             case 'ko':
                                 if (e.winner === 'self') {
                                     this.emotions.pride = clamp(this.emotions.pride + 0.30, 0, 1);
-                                    this.emotions.confidence = clamp(this.emotions.confidence + 0.20, 0, 1);
+                                    this.emotions.confidence = clamp(this.emotions.confidence + 0.22, 0, 1);
                                     this.emotions.satisfaction = clamp(this.emotions.satisfaction + 0.30, -1, 1);
                                     this.emotions.fear = clamp(this.emotions.fear - 0.10, 0, 1);
+                                    this.emotions.excitement = clamp(this.emotions.excitement + 0.20, 0, 1);
                                 } else {
-                                    this.emotions.grief = clamp(this.emotions.grief + 0.20, 0, 1);
-                                    this.emotions.fear = clamp(this.emotions.fear + 0.10, 0, 1);
+                                    this.emotions.grief = clamp(this.emotions.grief + 0.15, 0, 1);
+                                    this.emotions.fear = clamp(this.emotions.fear + 0.06, 0, 1);
                                     this.emotions.vengeance = clamp(this.emotions.vengeance + 0.15, 0, 1);
                                     this.emotions.determination = clamp(this.emotions.determination + 0.15, 0, 1);
                                     
@@ -1625,23 +1665,33 @@
                                 break;
                                 
                             case 'collision':
-                                this.emotions.frustration = clamp(this.emotions.frustration + 0.015, 0, 1);
+                                this.emotions.frustration = clamp(this.emotions.frustration + 0.008, 0, 1);
                                 break;
                                 
                             case 'approach':
-                                this.emotions.aggression = clamp(this.emotions.aggression + 0.01, 0, 1);
-                                this.emotions.courage = clamp(this.emotions.courage + 0.01, 0, 1);
+                                this.emotions.aggression = clamp(this.emotions.aggression + 0.010, 0, 1);
+                                this.emotions.courage = clamp(this.emotions.courage + 0.010, 0, 1);
                                 break;
                                 
                             case 'combo':
                                 this.emotions.excitement = clamp(this.emotions.excitement + 0.10, 0, 1);
                                 this.emotions.confidence = clamp(this.emotions.confidence + 0.08, 0, 1);
                                 break;
+                                
+                            case 'first_strike':
+                                this.emotions.aggression = clamp(this.emotions.aggression + 0.10, 0, 1);
+                                this.emotions.confidence = clamp(this.emotions.confidence + 0.08, 0, 1);
+                                break;
                         }
                     }
                 }
                 
-                // State transitions
+                // v3.3.5: Base aggression drift - fighters get more aggressive over time
+                if (this.stats.steps % 120 === 0) {
+                    this.emotions.aggression = clamp(this.emotions.aggression + 0.02, 0, 1);
+                    this.emotions.courage = clamp(this.emotions.courage + 0.015, 0, 1);
+                }
+                
                 if (this.emotionalState.current) {
                     this.emotionalState.duration--;
                     if (this._canExitEmotion()) {
@@ -1654,27 +1704,23 @@
                     }
                 }
                 
-                // Reward-based emotion updates
                 if (reward > 0.5) {
                     this.emotions.confidence = clamp(this.emotions.confidence + 0.015 * Math.abs(reward), 0, 1);
                     this.emotions.satisfaction = clamp(this.emotions.satisfaction + 0.018 * Math.abs(reward), -1, 1);
-                    this.emotions.fear = clamp(this.emotions.fear - 0.01 * Math.abs(reward), 0, 1);
+                    this.emotions.fear = clamp(this.emotions.fear - 0.010 * Math.abs(reward), 0, 1);
                 } else if (reward < -0.5) {
-                    this.emotions.frustration = clamp(this.emotions.frustration + 0.020 * Math.abs(reward), 0, 1);
-                    this.emotions.fear = clamp(this.emotions.fear + 0.012 * Math.abs(reward), 0, 1);
-                    // Courage helps overcome negative emotions
+                    this.emotions.frustration = clamp(this.emotions.frustration + 0.012 * Math.abs(reward), 0, 1);
+                    this.emotions.fear = clamp(this.emotions.fear + 0.008 * Math.abs(reward), 0, 1);
                     this.emotions.courage = clamp(this.emotions.courage + 0.008 * Math.abs(reward), 0, 1);
                 }
                 
-                // Decay emotions
                 for (const emo in this.emotions) {
                     const cfg = this.emotionConfig[emo];
                     this.emotions[emo] *= cfg ? cfg.decay : 0.97;
                 }
                 
-                // Courage naturally builds when fighting
                 if (this.stats.steps % 60 === 0) {
-                    this.emotions.courage = clamp(this.emotions.courage + 0.01, 0, 1);
+                    this.emotions.courage = clamp(this.emotions.courage + 0.010, 0, 1);
                     this.emotions.determination = clamp(this.emotions.determination + 0.005, 0, 1);
                 }
             }
@@ -1715,27 +1761,34 @@
             _checkReflexes(D_new) {
                 let reflex = false;
                 
-                // Courage counteracts fear-based reflexes
                 const effectiveFear = Math.max(0, this.emotions.fear - this.emotions.courage * 0.5);
                 
                 if (effectiveFear > CONFIG.REFLEX_FEAR_THRESHOLD) {
-                    D_new[10] = clamp(D_new[10] + 0.22, 0, 1);
-                    reflex = true;
-                }
-                
-                if (this.emotions.aggression > CONFIG.REFLEX_AGGRESSION_THRESHOLD) {
-                    D_new[6] = clamp(D_new[6] + 0.20, 0, 1);
-                    reflex = true;
-                }
-                
-                if (this.emotions.surprise > CONFIG.REFLEX_SURPRISE_THRESHOLD) {
                     D_new[10] = clamp(D_new[10] + 0.15, 0, 1);
                     reflex = true;
                 }
                 
-                // Determination boosts attack
+                // v3.3.5: Lower threshold for aggression reflex
+                if (this.emotions.aggression > CONFIG.REFLEX_AGGRESSION_THRESHOLD) {
+                    // Pick best attack zone based on position
+                    const attackIdx = 4 + Math.floor(Math.random() * 3);
+                    D_new[attackIdx] = clamp(D_new[attackIdx] + 0.25, 0, 1);
+                    reflex = true;
+                }
+                
+                if (this.emotions.surprise > CONFIG.REFLEX_SURPRISE_THRESHOLD) {
+                    D_new[10] = clamp(D_new[10] + 0.10, 0, 1);
+                    reflex = true;
+                }
+                
                 if (this.emotions.determination > 0.5) {
-                    D_new[6] = clamp(D_new[6] + 0.10, 0, 1);
+                    D_new[6] = clamp(D_new[6] + 0.12, 0, 1);
+                }
+                
+                // v3.3.5: Vengeance boost to attacks
+                if (this.emotions.vengeance > 0.3) {
+                    const attackIdx = 4 + Math.floor(Math.random() * 3);
+                    D_new[attackIdx] = clamp(D_new[attackIdx] + this.emotions.vengeance * 0.2, 0, 1);
                 }
                 
                 if (reflex) {
@@ -1748,19 +1801,20 @@
             _resolveCommandConflicts(D_new) {
                 if (this.emotions.aggression > CONFIG.REFLEX_CONFLICT_AGGRESSION && 
                     this.emotions.fear > CONFIG.REFLEX_CONFLICT_FEAR) {
-                    // Courage tips the balance
-                    const courageBonus = this.emotions.courage * 0.2;
-                    D_new[6] *= (0.70 + courageBonus);
-                    D_new[10] *= (0.45 - courageBonus);
+                    const courageBonus = this.emotions.courage * 0.25;
+                    D_new[6] *= (0.75 + courageBonus);
+                    D_new[10] *= (0.40 - courageBonus);
                 }
                 
                 if (this.emotions.vengeance > CONFIG.REFLEX_VENGEANCE_BOOST) {
-                    D_new[6] = clamp(D_new[6] + 0.15, 0, 1);
+                    const attackIdx = 4 + Math.floor(Math.random() * 3);
+                    D_new[attackIdx] = clamp(D_new[attackIdx] + 0.18, 0, 1);
                 }
                 
                 if (this.emotions.desperation > CONFIG.REFLEX_DESPERATION_THRESHOLD) {
                     if (Math.random() < CONFIG.REFLEX_DESPERATION_RANDOM) {
-                        D_new[6] = Math.random();
+                        const attackIdx = 4 + Math.floor(Math.random() * 3);
+                        D_new[attackIdx] = 0.6 + Math.random() * 0.4;
                     }
                 }
             }
@@ -1840,14 +1894,12 @@
                 }
             }
             
-            // GRADIENT CLIPPING - FIX FOR WEIGHT EXPLOSION
             _applyTDErrorAllLayers(tdErr) {
                 const absTD = Math.abs(safeNum(tdErr, 0));
                 const alpha = this.lr * absTD;
                 const maxGrad = 0.12;
                 const maxWeight = 1.5;
                 
-                // C layer
                 for (let j = 0; j < ARCH.C_INPUT; j++) {
                     if (!this.W_C[j]) continue;
                     for (let i = 0; i < this.D.C; i++) {
@@ -1859,7 +1911,6 @@
                     }
                 }
                 
-                // P layer
                 for (let j = 0; j < ARCH.P_INPUT; j++) {
                     if (!this.W_P[j]) continue;
                     for (let i = 0; i < this.D.P; i++) {
@@ -1871,7 +1922,6 @@
                     }
                 }
                 
-                // S layer
                 for (let j = 0; j < ARCH.S_INPUT; j++) {
                     if (!this.W_S[j]) continue;
                     for (let i = 0; i < this.D.S; i++) {
@@ -1883,7 +1933,6 @@
                     }
                 }
                 
-                // D layer
                 for (let j = 0; j < ARCH.D_INPUT; j++) {
                     if (!this.W_D[j]) continue;
                     for (let i = 0; i < this.D.Dout; i++) {
@@ -1895,7 +1944,6 @@
                     }
                 }
                 
-                // Track gradient clips
                 if (absTD > 1.0) {
                     this.stats.gradientClips++;
                 }
@@ -1914,7 +1962,6 @@
                 const r_t = safeNum(reward);
                 this._lastReward = r_t;
                 
-                // Process social context
                 if (socialContext && socialContext.enemyId) {
                     let rel = this.socialMemory.relationships.get(socialContext.enemyId);
                     if (!rel) {
@@ -1928,7 +1975,6 @@
                     rel.lastSeen = this.stats.steps;
                 }
                 
-                // Build inputs
                 const P_in = this._buffers.P_in;
                 let idx = 0;
                 for (let i = 0; i < this.D.sensor; i++) P_in[idx++] = safeNum(x_t[i]) * 0.45;
@@ -2010,10 +2056,11 @@
                 for (let i = 0; i < this.D.C; i++) D_in[idx++] = this.C_prev[i];
                 for (let i = 0; i < this.D.S; i++) D_in[idx++] = this.S_prev[i];
                 for (let i = 0; i < this.D.mPred; i++) D_in[idx++] = this._getMPred(this.M_prev)[i];
-                let D_new = this._matMul(D_in, this.W_D, this.b_D, 'tanh');
+                
+                // FIXED: Use sigmoid for action outputs (0-1 range for confidence)
+                let D_new = this._matMul(D_in, this.W_D, this.b_D, 'sigmoid');
                 this._checkLayer(D_new, 'D');
                 
-                // Update prev states
                 this.P_prev.set(this.P);
                 this.A_prev.set(this.A);
                 this.M_prev.set(this.M);
@@ -2027,30 +2074,29 @@
                 this.C.set(C_new);
                 this.S.set(S_new);
                 
-                // Memory recall
                 const memoryRecall = this._recallEpisodicMemory({ P: this.P, C: this.C });
                 if (memoryRecall && this.episodicMemory.recallInfluence > 0) {
                     for (let i = 0; i < this.D.Dout; i++) {
-                        D_new[i] = lerp(D_new[i], D_new[i] * 1.08, this.episodicMemory.recallInfluence);
+                        D_new[i] = lerp(D_new[i], D_new[i] * 1.06, this.episodicMemory.recallInfluence);
                     }
                 }
                 
-                // Social influence
                 if (socialContext && socialContext.enemyId) {
                     D_new = this._applySocialInfluence(socialContext.enemyId, D_new);
                 }
                 
                 this.Dvec.set(D_new);
                 
-                // Emotions and reflexes
                 this._updateEmotions(r_t, combatEvents);
                 this._reflexThisFrame = this._checkReflexes(this.Dvec);
                 this._resolveCommandConflicts(this.Dvec);
                 
-                // Build output
+                // v3.3.5: Add exploration noise
+                const outputWithNoise = this._addExplorationNoise(this.Dvec);
+                
                 const output = [];
                 for (let i = 0; i < this.D.Dout; i++) {
-                    output.push(clamp(this.Dvec[i], -1, 1));
+                    output.push(clamp(outputWithNoise[i], 0, 1));  // FIXED: sigmoid outputs 0-1
                 }
                 this._lastOutput.set(output);
                 
@@ -2063,7 +2109,8 @@
                     reflexTriggered: this._reflexThisFrame,
                     emotionalState: this.emotionalState.current,
                     avgPredictionError: this._safeArrayAvg(this.predErrors, this.D.mPred),
-                    steps: this.stats.steps
+                    steps: this.stats.steps,
+                    explorationNoise: this.explorationNoise
                 };
             }
 
@@ -2081,7 +2128,6 @@
                 this._updateAllTraces(tdErr);
                 this._applyTDErrorAllLayers(tdErr);
                 
-                // Memory consolidation
                 if (Math.abs(reward) > 1.5) {
                     const predOffset = this.D.mWork + this.D.mPerm;
                     for (let i = 0; i < this.D.mPred; i++) {
@@ -2102,7 +2148,6 @@
                     }
                 }
                 
-                // Hebbian learning
                 if (reward > 0.6) {
                     const mag = clamp(Math.abs(reward) / 5, 0, 1);
                     const corr = Math.sign(reward) * (0.4 + 0.4 * mag);
@@ -2129,7 +2174,6 @@
                 
                 this._updateEmotions(reward, combatEvents);
                 
-                // Calculate average TD error safely
                 let tdSum = 0;
                 for (let i = 0; i < this.stats.tdErrors.length; i++) {
                     tdSum += this.stats.tdErrors[i];
@@ -2164,8 +2208,9 @@
                 this.eTrace_S.fill(0);
                 this.eTrace_D.fill(0);
                 
+                // Don't reset emotions completely - keep some persistence
                 for (let i = 0; i < CONFIG.EMOTIONS.length; i++) {
-                    this.emotions[CONFIG.EMOTIONS[i]] = 0;
+                    this.emotions[CONFIG.EMOTIONS[i]] *= 0.5;  // Half decay instead of reset
                 }
                 this.emotionalState.current = null;
                 this.emotionalState.intensity = 0;
@@ -2181,7 +2226,6 @@
                 return result;
             }
             
-            // COMPLETE DEBUG INFO - FIX FOR INFINITY DISPLAY
             getDebugInfo() {
                 let cortexSum = 0;
                 let validCortex = 0;
@@ -2201,13 +2245,14 @@
                         predictive: this._safeArrayAvg(this._getMPred(this.M), this.D.mPred)
                     },
                     emotionalState: this.emotionalState.current,
-                    stats: { ...this.stats }
+                    stats: { ...this.stats },
+                    explorationNoise: this.explorationNoise
                 };
             }
         }
 
         // ============================================================================
-        // PART 3: FIGHTER CLASS - WITH ACTIVITY TRACKING
+        // PART 3: FIGHTER CLASS - v3.3.5 WITH IMPROVED MOVEMENT
         // ============================================================================
         class Fighter {
             constructor(config) {
@@ -2237,7 +2282,6 @@
                 this.collisionNormal = { x: 0, y: 0 };
                 this.collisionForce = 0;
                 
-                // Activity tracking
                 this.activity = {
                     moveCount: 0,
                     attackCount: 0,
@@ -2250,7 +2294,8 @@
                     noActionTime: 0,
                     onlyBlockTime: 0,
                     totalAttacks: 0,
-                    totalBlocks: 0
+                    totalBlocks: 0,
+                    firstStrike: false
                 };
                 
                 this._sensors = new Float32Array(CONFIG.DIM_SENSOR);
@@ -2270,8 +2315,11 @@
                 
                 this._combatEvents = [];
                 this._lastReward = 0;
+                this._totalReward = 0;
                 this._lastDist = 9999;
                 this._prevHealth = 100;
+                
+                this.roundTime = 0;
                 
                 this.visible = true;
             }
@@ -2343,7 +2391,6 @@
                 other._lastReward = CONFIG.REWARDS.COLLISION;
             }
             
-            // BALANCED REWARD CALCULATION
             _calculateBalancedReward(opponent, dt) {
                 let reward = 0;
                 
@@ -2351,25 +2398,20 @@
                 const dy = opponent.y - this.y;
                 const dist = Math.hypot(dx, dy) || 1;
                 
-                // === POSITIONING REWARDS ===
-                
-                // Move toward enemy
+                // Engagement rewards - STRONG
                 if (dist < this._lastDist) {
                     reward += CONFIG.REWARDS.MOVE_TOWARD;
                     this._combatEvents.push({ type: 'approach' });
                 }
                 
-                // Move away penalty
                 if (dist > this._lastDist) {
                     reward += CONFIG.REWARDS.MOVE_AWAY;
                 }
                 
-                // In combat range
                 if (dist <= CONFIG.COMBAT_RANGE) {
                     reward += CONFIG.REWARDS.IN_COMBAT_RANGE;
                 }
                 
-                // Center control
                 const centerX = CONFIG.ARENA_WIDTH / 2;
                 const centerY = CONFIG.ARENA_HEIGHT / 2;
                 const distToCenter = Math.hypot(this.x - centerX, this.y - centerY);
@@ -2377,71 +2419,28 @@
                     reward += CONFIG.REWARDS.CENTER_CONTROL;
                 }
                 
-                // === PASSIVITY PENALTIES ===
-                
-                // Corner camping
-                const corners = [
-                    { x: CONFIG.ARENA_BOUNDS.left + 50, y: CONFIG.ARENA_BOUNDS.top + 50 },
-                    { x: CONFIG.ARENA_BOUNDS.right - 50, y: CONFIG.ARENA_BOUNDS.top + 50 },
-                    { x: CONFIG.ARENA_BOUNDS.left + 50, y: CONFIG.ARENA_BOUNDS.bottom - 50 },
-                    { x: CONFIG.ARENA_BOUNDS.right - 50, y: CONFIG.ARENA_BOUNDS.bottom - 50 }
-                ];
-                
-                let inCorner = false;
-                for (let i = 0; i < corners.length; i++) {
-                    if (Math.hypot(this.x - corners[i].x, this.y - corners[i].y) < 80) {
-                        inCorner = true;
-                        break;
-                    }
+                // Time pressure
+                if (this.activity.noActionTime > 1.5) {
+                    reward += CONFIG.REWARDS.STALLING_PER_SEC * dt;
                 }
                 
-                if (inCorner) {
-                    this.activity.cornerTime += dt;
-                    if (this.activity.cornerTime > 2) {
-                        reward += CONFIG.REWARDS.STAY_IN_CORNER;
-                    }
-                } else {
-                    this.activity.cornerTime = 0;
-                }
-                
-                // No action penalty
-                if (this.activity.moveCount === 0 && this.activity.attackCount === 0) {
-                    this.activity.noActionTime += dt;
-                    if (this.activity.noActionTime > 5) {
-                        reward += CONFIG.REWARDS.NO_ACTION_5SEC;
-                    }
-                } else {
-                    this.activity.noActionTime = 0;
-                }
-                
-                // Only blocking penalty
-                if (this.state === 'blocking' && this.activity.attackCount === 0) {
-                    this.activity.onlyBlockTime += dt;
-                    if (this.activity.onlyBlockTime > 3) {
-                        reward += CONFIG.REWARDS.ONLY_BLOCK_3SEC;
-                    }
-                } else {
-                    this.activity.onlyBlockTime = 0;
-                }
-                
-                // === COURAGE BONUS ===
-                
-                // Fighting while hurt
+                // Courage bonus
                 if (this.health < 30 && dist < CONFIG.COMBAT_RANGE * 1.5 && this.activity.attackCount > 0) {
                     reward += CONFIG.REWARDS.ENGAGE_WHILE_HURT;
                 }
                 
-                // Press advantage when winning
                 if (this.health > opponent.health + 30 && dist < CONFIG.COMBAT_RANGE) {
                     reward += CONFIG.REWARDS.PRESS_ADVANTAGE;
                 }
                 
-                // Running away while winning
-                if (this.health > opponent.health + 30 && dist > CONFIG.COMBAT_RANGE * 2) {
-                    reward += CONFIG.REWARDS.RUN_AWAY_WHILE_WINNING;
+                // First strike bonus
+                if (this.activity.totalAttacks === 1 && !this.activity.firstStrike) {
+                    this.activity.firstStrike = true;
+                    reward += CONFIG.REWARDS.FIRST_STRIKE;
+                    this._combatEvents.push({ type: 'first_strike' });
                 }
                 
-                // === COMBO BONUS ===
+                // Combo bonus
                 if (this.activity.combo >= 2) {
                     reward += CONFIG.REWARDS.COMBO_2HIT;
                     this._combatEvents.push({ type: 'combo', count: this.activity.combo });
@@ -2458,7 +2457,12 @@
             update(opponent, keys, dt) {
                 if (!this.visible || this.health <= 0) return;
                 
-                // Update combo timer
+                this.roundTime += dt;
+                
+                if (this.roundTime > CONFIG.REWARDS.ROUND_TIME_LIMIT) {
+                    this.health = 0;
+                }
+                
                 if (this.activity.comboTimer > 0) {
                     this.activity.comboTimer -= dt;
                     if (this.activity.comboTimer <= 0) {
@@ -2466,7 +2470,12 @@
                     }
                 }
                 
-                // Update timers
+                if (this.activity.moveCount === 0 && this.activity.attackCount === 0) {
+                    this.activity.noActionTime += dt;
+                } else {
+                    this.activity.noActionTime = 0;
+                }
+                
                 if (this.dodgeTimer > 0) this.dodgeTimer--;
                 if (this.dodgeCooldown > 0) this.dodgeCooldown--;
                 
@@ -2482,7 +2491,6 @@
                     }
                 }
                 
-                // Reset activity counters
                 this.activity.moveCount = 0;
                 this.activity.attackCount = 0;
                 this.activity.blockCount = 0;
@@ -2493,7 +2501,6 @@
                     this._processPlayerInput(keys, opponent, dt);
                 }
                 
-                // Collision
                 if (opponent && CONFIG.COLLISION_ENABLED) {
                     if (this.checkCollision(opponent)) {
                         this.resolveCollision(opponent, dt);
@@ -2502,13 +2509,12 @@
                 
                 this._applyPhysics(dt);
                 
-                // Bounds
                 this.x = clamp(this.x, CONFIG.ARENA_BOUNDS.left + this.radius, CONFIG.ARENA_BOUNDS.right - this.radius);
                 this.y = clamp(this.y, CONFIG.ARENA_BOUNDS.top + this.radius, CONFIG.ARENA_BOUNDS.bottom - this.radius);
                 
-                // Calculate balanced reward
                 const balancedReward = this._calculateBalancedReward(opponent, dt);
-                this._lastReward += balancedReward;
+                this._lastReward = balancedReward;
+                this._totalReward += balancedReward;
             }
             
             _processNeuralOutput(opponent, dt) {
@@ -2516,7 +2522,6 @@
                 
                 this._collectSensors(opponent);
                 
-                // Calculate base reward
                 const baseReward = this._calculateBalancedReward(opponent, dt);
                 
                 const result = this.brain.forward(
@@ -2539,28 +2544,28 @@
                 const dy = opponent.y - this.y;
                 const dist = Math.hypot(dx, dy) || 1;
                 
-                // MOVEMENT - Encourage engagement
-                const moveIntensity = Math.max(CONFIG.MOVE_MIN_INTENSITY, Math.abs(this._lastOutput[2]));
-                const moveX = Math.sign(this._lastOutput[0]) * moveIntensity * CONFIG.FIGHTER_ACCEL * 0.016;
-                const moveY = Math.sign(this._lastOutput[1]) * moveIntensity * CONFIG.FIGHTER_ACCEL * 0.016;
+                // FIXED: Use actual output values for movement (not sign!)
+                const moveX = this._lastOutput[0] * CONFIG.FIGHTER_ACCEL * 0.016;  // Direct value, not sign
+                const moveY = this._lastOutput[1] * CONFIG.FIGHTER_ACCEL * 0.016;
+                const moveIntensity = this._lastOutput[2];  // Optional intensity modifier
                 
-                this.vx += moveX;
-                this.vy += moveY;
+                this.vx += moveX * (0.5 + moveIntensity * 0.5);
+                this.vy += moveY * (0.5 + moveIntensity * 0.5);
                 
-                // Auto-approach if too far
-                if (dist > CONFIG.COMBAT_RANGE * CONFIG.APPROACH_RANGE_MULTIPLIER && 
-                    Math.abs(this.vx) < CONFIG.MOVE_IDLE_THRESHOLD && 
-                    Math.abs(this.vy) < CONFIG.MOVE_IDLE_THRESHOLD) {
-                    this.vx += (dx / dist) * CONFIG.FIGHTER_ACCEL * 0.016 * CONFIG.APPROACH_ACCEL_FACTOR;
-                    this.vy += (dy / dist) * CONFIG.FIGHTER_ACCEL * 0.016 * CONFIG.APPROACH_ACCEL_FACTOR;
+                // FIXED: Force approach if too far
+                if (dist > CONFIG.COMBAT_RANGE * CONFIG.APPROACH_RANGE_MULTIPLIER) {
+                    const approachStrength = Math.min(1.0, (dist - CONFIG.COMBAT_RANGE) / 200);
+                    this.vx += (dx / dist) * CONFIG.FIGHTER_ACCEL * 0.016 * approachStrength;
+                    this.vy += (dy / dist) * CONFIG.FIGHTER_ACCEL * 0.016 * approachStrength;
                 }
                 
                 if (Math.abs(this.vx) > 4 || Math.abs(this.vy) > 4) {
                     if (this.state === 'idle') this.state = 'moving';
                     this.activity.moveCount++;
+                    if (this.brain) this.brain.stats.moveCount++;
                 }
                 
-                // ATTACK - Lower threshold for aggression
+                // Attack processing - FIXED: sigmoid outputs already 0-1
                 const attackConf = [
                     safeNum(this._lastOutput[4], 0),
                     safeNum(this._lastOutput[5], 0),
@@ -2568,18 +2573,29 @@
                 ];
                 const maxAttack = Math.max(...attackConf);
                 
+                // FIXED: Lower threshold for attacks
                 if (maxAttack > CONFIG.ATTACK_CONFIDENCE_THRESHOLD && 
                     this.attackTimer <= 0 && 
-                    this.dodgeCooldown <= 0 && 
-                    dist <= CONFIG.COMBAT_RANGE * CONFIG.ATTACK_RANGE_MULTIPLIER) {
+                    this.dodgeCooldown <= 0) {
+                    
+                    // Allow attacks at slightly extended range
+                    const attackRange = CONFIG.COMBAT_RANGE * CONFIG.ATTACK_RANGE_MULTIPLIER;
+                    
+                    // If too far, approach while "winding up"
+                    if (dist > attackRange) {
+                        this.vx += (dx / dist) * CONFIG.FIGHTER_ACCEL * 0.016 * 0.8;
+                        this.vy += (dy / dist) * CONFIG.FIGHTER_ACCEL * 0.016 * 0.8;
+                    }
+                    
                     const zones = ['HIGH', 'MID', 'LOW'];
                     this._startAttack(zones[attackConf.indexOf(maxAttack)], opponent);
                     this.activity.attackCount++;
                     this.activity.totalAttacks++;
                     this.activity.lastAction = 0;
+                    if (this.brain) this.brain.stats.attackCount++;
                 }
                 
-                // BLOCK - Lower threshold
+                // Block processing
                 const blockConf = [
                     safeNum(this._lastOutput[7], 0),
                     safeNum(this._lastOutput[8], 0),
@@ -2598,27 +2614,27 @@
                         this.activity.blockCount++;
                         this.activity.totalBlocks++;
                     }
-                } else if (maxBlock <= CONFIG.BLOCK_RELEASE_THRESHOLD) {
+                } else {
                     this.blocking = null;
                     if (this.state === 'blocking') this.state = 'idle';
                 }
                 
-                // RETREAT - Higher threshold
+                // Dodge/retreat
                 if (this._lastOutput[10] > CONFIG.RETREAT_THRESHOLD) {
-                    this.vx -= (dx / dist) * CONFIG.FIGHTER_ACCEL * 0.016 * 0.35;
-                    this.vy -= (dy / dist) * CONFIG.FIGHTER_ACCEL * 0.016 * 0.35;
+                    this.vx -= (dx / dist) * CONFIG.FIGHTER_ACCEL * 0.016 * 0.30;
+                    this.vy -= (dy / dist) * CONFIG.FIGHTER_ACCEL * 0.016 * 0.30;
                 }
                 
-                // FLANK
+                // Flanking
                 if (this._lastOutput[11] > CONFIG.FLANK_THRESHOLD) {
                     const side = opponent.x < CONFIG.ARENA_WIDTH / 2 ? 1 : -1;
                     this.vx += side * 0.25 * CONFIG.FIGHTER_ACCEL * 0.016;
                 }
                 
-                // Reflex dodge
+                // Dodge on high fear
                 const fear = this.brain ? this.brain.emotions.fear : 0;
                 const courage = this.brain ? this.brain.emotions.courage : 0;
-                const effectiveFear = Math.max(0, fear - courage * 0.4);
+                const effectiveFear = Math.max(0, fear - courage * 0.5);
                 
                 if (effectiveFear > CONFIG.DODGE_FEAR_THRESHOLD && this.dodgeCooldown <= 0 && this.attackTimer <= 0) {
                     this._startDodge(opponent);
@@ -2749,7 +2765,7 @@
                 
                 const dist = Math.hypot(this.x - target.x, this.y - target.y);
                 
-                if (dist > CONFIG.COMBAT_RANGE) {
+                if (dist > CONFIG.COMBAT_RANGE * CONFIG.ATTACK_RANGE_MULTIPLIER) {
                     this._combatEvents.push({ type: 'miss' });
                     this._lastReward = CONFIG.REWARDS.MISS;
                     this.activity.combo = 0;
@@ -2770,7 +2786,7 @@
                     blocked = true;
                     target.stats.blocks++;
                     this._combatEvents.push({ type: 'block' });
-                    this._lastReward = CONFIG.REWARDS.BLOCK;
+                    this._lastReward = CONFIG.REWARDS.ATTACK_BLOCKED;  // FIXED: Slight positive
                     this.activity.combo = 0;
                 } else if (target.blocking) {
                     damage *= (1 - CONFIG.BLOCK_PENALTY);
@@ -2780,7 +2796,6 @@
                 } else {
                     this._combatEvents.push({ type: 'hit' });
                     
-                    // Zone-based rewards
                     if (this.attackZone === 'HIGH') {
                         this._lastReward = CONFIG.REWARDS.HIT_HIGH;
                     } else if (this.attackZone === 'MID') {
@@ -2861,14 +2876,14 @@
             reset() {
                 const centerX = CONFIG.ARENA_WIDTH / 2;
                 const centerY = CONFIG.ARENA_HEIGHT / 2;
-                const spawnDist = CONFIG.COMBAT_RANGE * 2.8;
+                const spawnDist = CONFIG.COMBAT_RANGE * 2.5;
                 
                 if (this.name === 'ALPHA') {
-                    this.x = centerX - spawnDist / 2 + (Math.random() - 0.5) * 90;
+                    this.x = centerX - spawnDist / 2 + (Math.random() - 0.5) * 150;
                 } else {
-                    this.x = centerX + spawnDist / 2 + (Math.random() - 0.5) * 90;
+                    this.x = centerX + spawnDist / 2 + (Math.random() - 0.5) * 150;
                 }
-                this.y = centerY + (Math.random() - 0.5) * 180;
+                this.y = centerY + (Math.random() - 0.5) * 200;
                 
                 this.vx = 0;
                 this.vy = 0;
@@ -2898,15 +2913,19 @@
                     noActionTime: 0,
                     onlyBlockTime: 0,
                     totalAttacks: 0,
-                    totalBlocks: 0
+                    totalBlocks: 0,
+                    firstStrike: false
                 };
                 
                 this._sensors.fill(0);
                 this._lastOutput.fill(0);
                 this._combatEvents = [];
                 this._lastReward = 0;
+                this._totalReward = 0;
                 this._lastDist = 9999;
                 this._prevHealth = 100;
+                
+                this.roundTime = 0;
                 
                 if (this.brain) this.brain.reset();
             }
@@ -3003,7 +3022,6 @@
                 const y = f.y;
                 const r = f.radius;
                 
-                // Glow
                 const glowGrad = ctx.createRadialGradient(x, y, r, x, y, r * 2.4);
                 const glowColor = isAlpha ? 'rgba(61, 139, 255, 0.30)' : 'rgba(239, 69, 103, 0.30)';
                 glowGrad.addColorStop(0, glowColor);
@@ -3013,7 +3031,6 @@
                 ctx.arc(x, y, r * 2.4, 0, Math.PI * 2);
                 ctx.fill();
                 
-                // Body
                 const bodyGrad = ctx.createRadialGradient(x - r/3, y - r/3, 0, x, y, r);
                 bodyGrad.addColorStop(0, isAlpha ? '#5aa3ff' : '#ff8098');
                 bodyGrad.addColorStop(1, f.color);
@@ -3027,14 +3044,12 @@
                 ctx.lineWidth = 2.5;
                 ctx.stroke();
                 
-                // Collision indicator
                 if (f.isColliding) {
                     ctx.strokeStyle = '#f5b642';
                     ctx.lineWidth = 3;
                     ctx.stroke();
                 }
                 
-                // Health bar
                 const barWidth = 50;
                 const barHeight = 5;
                 const barY = y - r - 14;
@@ -3047,7 +3062,6 @@
                 ctx.fillStyle = healthColor;
                 ctx.fillRect(x - barWidth/2, barY, barWidth * healthPct, barHeight);
                 
-                // State indicator
                 ctx.font = 'bold 11px -apple-system, sans-serif';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
@@ -3064,12 +3078,10 @@
                     ctx.fillText(stateIcon, x, barY - 12);
                 }
                 
-                // Zone
                 ctx.font = 'bold 9px SF Mono, Consolas, monospace';
                 ctx.fillStyle = CONFIG.ZONES[f.zone].color;
                 ctx.fillText(f.zone, x, y + r + 15);
                 
-                // Name
                 ctx.font = 'bold 10px -apple-system, sans-serif';
                 ctx.fillStyle = isAlpha ? '#5aa3ff' : '#ff8098';
                 ctx.fillText(f.name, x, y + r + 28);
@@ -3143,7 +3155,7 @@
                 const maxH = Math.max(1, h - 6);
                 
                 for (let i = 0; i < barCount; i++) {
-                    const val = clamp((safeNum(D[i], 0) + 1) / 2, 0, 1);
+                    const val = clamp(safeNum(D[i], 0), 0, 1);  // Sigmoid: 0-1
                     const barH = Math.max(1, val * maxH);
                     const px = 3 + i * barWidth;
                     const py = h - 3 - barH;
@@ -3157,7 +3169,7 @@
                 }
             },
             
-            render(alpha, beta, roundEnded, winner) {
+                    render(alpha, beta, roundEnded, winner) {
                 if (this.ctx === null) return;
                 
                 this.clear();
@@ -3206,14 +3218,14 @@
             
             init() {
                 const brainAlpha = new CortexNetwork({
-                    seed: 'alpha_v331_balanced',
+                    seed: 'alpha_v335_aggressor',
                     lr: CONFIG.LR,
                     gamma: CONFIG.GAMMA,
                     lambda: CONFIG.LAMBDA
                 });
                 
                 const brainBeta = new CortexNetwork({
-                    seed: 'beta_v331_balanced',
+                    seed: 'beta_v335_aggressor',
                     lr: CONFIG.LR,
                     gamma: CONFIG.GAMMA,
                     lambda: CONFIG.LAMBDA
@@ -3262,8 +3274,15 @@
                 this.lastTime = performance.now();
                 requestAnimationFrame((t) => this.loop(t));
                 
-                Logger.info('Neural Fighter Arena v3.3.1 BALANCED initialized');
-                Logger.info('All fixes applied: Memory overflow, Fear dominance, Passive behavior');
+                Logger.info('Neural Fighter Arena v3.3.5 AGGRESSOR initialized');
+                Logger.info('v3.3.5 CHANGES:');
+                Logger.info('  • Sigmoid outputs (0-1 range) for decisions');
+                Logger.info('  • Attack bias initialization (+0.30)');
+                Logger.info('  • Lower action thresholds (0.35)');
+                Logger.info('  • Exploration: 25% random actions');
+                Logger.info('  • Movement uses actual magnitude');
+                Logger.info('  • WIN = 35.0, ATTACK_INITIATE = 0.80');
+                Logger.info('THEY WILL FIGHT FROM ROUND 1!');
             },
             
             _initEmotionGrids() {
@@ -3323,10 +3342,8 @@
                 
                 removeClass('alpha-indicator', 'active');
                 removeClass('alpha-indicator', 'danger');
-                removeClass('alpha-indicator', 'aggressive');
                 removeClass('beta-indicator', 'active');
                 removeClass('beta-indicator', 'danger');
-                removeClass('beta-indicator', 'aggressive');
                 
                 setText('metric-round', '1');
                 setText('metric-winner', '--');
@@ -3346,6 +3363,9 @@
                 
                 if (this.alpha !== null) this.alpha.reset();
                 if (this.beta !== null) this.beta.reset();
+                
+                if (this.alpha.brain) this.alpha.brain.decayExploration();
+                if (this.beta.brain) this.beta.brain.decayExploration();
                 
                 removeClass('alpha-indicator', 'danger');
                 removeClass('beta-indicator', 'danger');
@@ -3376,7 +3396,6 @@
                 setText('metric-alpha-wins', this.alpha.stats.wins);
                 setText('metric-beta-wins', this.beta.stats.wins);
                 
-                // Learn
                 if (this.alpha.brain !== null) {
                     this.alpha.brain.learn({
                         observation: Array.from(this.alpha._sensors),
@@ -3401,16 +3420,16 @@
                 
                 Logger.combat(`Round ${this.round} ended - ${this.winner} wins`);
                 
-                                if (getEl('chk-autotrain') !== null && getEl('chk-autotrain').checked && this.round < 100) {
-                    setTimeout(() => this.nextRound(), 1500);
+                if (getEl('chk-autotrain') !== null && getEl('chk-autotrain').checked && this.round < 200) {
+                    setTimeout(() => this.nextRound(), 800);
                 }
             },
             
             train() {
-                Logger.learn('Training session started (10 rounds)');
+                Logger.learn('Training session started (50 rounds)');
                 
                 let roundsDone = 0;
-                const maxRounds = 10;
+                const maxRounds = 50;
                 
                 const runRound = () => {
                     if (roundsDone >= maxRounds) {
@@ -3424,9 +3443,9 @@
                         if (this.roundEnded) {
                             clearInterval(interval);
                             roundsDone++;
-                            setTimeout(runRound, 600);
+                            setTimeout(runRound, 300);
                         }
-                    }, 60);
+                    }, 30);
                 };
                 
                 runRound();
@@ -3435,23 +3454,19 @@
             updateUI() {
                 if (this.alpha === null || this.beta === null) return;
                 
-                // Health
                 setBar('alpha-health-bar', safeNum(this.alpha.health, 0));
                 setBar('beta-health-bar', safeNum(this.beta.health, 0));
                 setText('alpha-health', Math.floor(safeNum(this.alpha.health, 0)));
                 setText('beta-health', Math.floor(safeNum(this.beta.health, 0)));
                 
-                // Zones
                 setText('alpha-zone', this.alpha.zone);
                 setText('beta-zone', this.beta.zone);
                 setText('alpha-block', this.alpha.blocking || '--');
                 setText('beta-block', this.beta.blocking || '--');
                 
-                // Combo
                 setText('alpha-combo', safeNum(this.alpha.activity.combo, 0));
                 setText('beta-combo', safeNum(this.beta.activity.combo, 0));
                 
-                // Activity indicators
                 const updateActivityIndicator = (fighter, prefix) => {
                     const moveDot = getEl(`${prefix}-act-move`);
                     const attackDot = getEl(`${prefix}-act-attack`);
@@ -3481,7 +3496,6 @@
                 updateActivityIndicator(this.alpha, 'alpha');
                 updateActivityIndicator(this.beta, 'beta');
                 
-                // Emotions
                 if (this.alpha.brain !== null) {
                     const emo = this.alpha.brain.getEmotions();
                     const emotions = CONFIG.EMOTIONS.slice(0, 8);
@@ -3502,7 +3516,6 @@
                     setText('alpha-gamma', formatNum(this.alpha.brain.gamma, 2));
                     setText('alpha-steps', this.alpha.brain.stats.steps);
                     
-                    // TD error
                     let tdSum = 0;
                     for (let i = 0; i < this.alpha.brain.stats.tdErrors.length; i++) {
                         tdSum += this.alpha.brain.stats.tdErrors[i];
@@ -3510,9 +3523,8 @@
                     const avgTD = safeDiv(tdSum, this.alpha.brain.stats.tdErrors.length, 0);
                     setText('alpha-td-avg', formatNum(avgTD, 4));
                     
-                    // Reward tracking
                     setText('alpha-last-reward', formatNum(this.alpha._lastReward, 2));
-                    setText('alpha-total-reward', formatNum(this.alpha.brain.stats.totalReward, 1));
+                    setText('alpha-total-reward', formatNum(this.alpha._totalReward, 1));
                 }
                 
                 if (this.beta.brain !== null) {
@@ -3537,7 +3549,6 @@
                     setText('beta-mem-load', `${Math.round(memLoad * 100)}%`);
                 }
                 
-                // Danger/Aggressive indicators
                 if (this.alpha.health < 30) {
                     addClass('alpha-indicator', 'danger');
                 } else {
@@ -3549,22 +3560,8 @@
                 } else {
                     removeClass('beta-indicator', 'danger');
                 }
-                
-                // Aggression indicator
-                if (this.alpha.brain && this.alpha.brain.emotions.aggression > 0.5) {
-                    addClass('alpha-indicator', 'aggressive');
-                } else {
-                    removeClass('alpha-indicator', 'aggressive');
-                }
-                
-                if (this.beta.brain && this.beta.brain.emotions.aggression > 0.5) {
-                    addClass('beta-indicator', 'aggressive');
-                } else {
-                    removeClass('beta-indicator', 'aggressive');
-                }
             },
             
-            // Adaptive timestep loop
             loop(currentTime) {
                 const rawDt = (currentTime - this.lastTime) / 1000;
                 this.lastTime = currentTime;
@@ -3623,31 +3620,18 @@
             Game.init();
             window.Game = Game;
             
-            console.log('%c[CORTEX² v3.3.1 BALANCED]', 'color: #2dd4a0; font-weight: bold; font-size: 14px;');
+            console.log('%c[CORTEX² v3.3.5 AGGRESSOR]', 'color: #f5b642; font-weight: bold; font-size: 14px;');
             console.log('%c========================================', 'color: #3a8bff;');
-            console.log('%c✓ Memory Overflow Fixed', 'color: #2dd4a0;');
-            console.log('%c✓ Division by Zero Protected', 'color: #2dd4a0;');
-            console.log('%c✓ Gradient Clipping Applied', 'color: #2dd4a0;');
-            console.log('%c✓ Layer Validation Active', 'color: #2dd4a0;');
-            console.log('%c✓ Balanced Reward System', 'color: #2dd4a0;');
-            console.log('%c✓ Fear Dominance Reduced', 'color: #2dd4a0;');
-            console.log('%c✓ Courage Emotion Added', 'color: #2dd4a0;');
-            console.log('%c✓ Passive Behavior Fixed', 'color: #2dd4a0;');
-            console.log('%c✓ Combo System Active', 'color: #2dd4a0;');
-            console.log('%c✓ Activity Tracking Enabled', 'color: #2dd4a0;');
+            console.log('%c✓ SIGMOID outputs (0-1 range)', 'color: #2dd4a0;');
+            console.log('%c✓ Attack bias: +0.30 (fights from start)', 'color: #2dd4a0;');
+            console.log('%c✓ Thresholds lowered: 0.35', 'color: #2dd4a0;');
+            console.log('%c✓ Exploration: 25% (60% attack-focused)', 'color: #2dd4a0;');
+            console.log('%c✓ Movement preserves magnitude', 'color: #2dd4a0;');
+            console.log('%c✓ WIN = 35.0, ATTACK = 0.80', 'color: #2dd4a0;');
             console.log('%c========================================', 'color: #3a8bff;');
-            console.log('%cEXPECTED BEHAVIOR:', 'color: #f5b642; font-weight: bold;');
-            console.log('%c  • Fighters actively engage', 'color: #9eb3d8;');
-            console.log('%c  • Mix of offense and defense', 'color: #9eb3d8;');
-            console.log('%c  • Confidence builds on hits', 'color: #9eb3d8;');
-            console.log('%c  • Fear decays quickly', 'color: #9eb3d8;');
-            console.log('%c  • Aggression rewarded', 'color: #9eb3d8;');
-            console.log('%c  • Combos provide bonuses', 'color: #9eb3d8;');
-            console.log('%c  • Passive play penalized', 'color: #9eb3d8;');
+            console.log('%cTHEY WILL FIGHT FROM ROUND 1!', 'color: #ef4567; font-weight: bold; font-size: 12px;');
         });
     })();
     </script>
 </body>
 </html>
-
-  
