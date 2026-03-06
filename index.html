@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Neural Fighter Arena — Cortex² v3.3.5 PREDICTION FIXED</title>
+    <title>Neural Fighter Arena — Cortex² v3.3.6 PROFESSIONAL</title>
     <style>
         :root {
             --bg-deep: #050709;
@@ -35,6 +35,8 @@
             --accent-cyan: #22d3ee;
             --accent-purple: #a78bfa;
             --accent-orange: #f59e0b;
+            --victory-glow: rgba(45, 212, 160, 0.7);
+            --defeat-glow: rgba(239, 69, 103, 0.3);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -198,6 +200,7 @@
             overflow-y: auto;
             scrollbar-width: thin;
             scrollbar-color: var(--border-accent) transparent;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
         }
 
         .panel-left {
@@ -208,6 +211,26 @@
         .panel-right {
             border-right: 4px solid var(--accent-red);
             box-shadow: inset -3px 0 18px -3px var(--accent-red-glow);
+        }
+
+        .panel-left.victory {
+            border-color: var(--accent-green);
+            box-shadow: inset 3px 0 30px -3px var(--victory-glow), 0 0 20px var(--victory-glow);
+        }
+
+        .panel-right.victory {
+            border-color: var(--accent-green);
+            box-shadow: inset -3px 0 30px -3px var(--victory-glow), 0 0 20px var(--victory-glow);
+        }
+
+        .panel-left.defeat {
+            border-color: var(--accent-red);
+            box-shadow: inset 3px 0 30px -3px var(--defeat-glow);
+        }
+
+        .panel-right.defeat {
+            border-color: var(--accent-red);
+            box-shadow: inset -3px 0 30px -3px var(--defeat-glow);
         }
 
         .panel-header {
@@ -223,6 +246,7 @@
 
         .panel-header.blue { color: var(--accent-blue); }
         .panel-header.red { color: var(--accent-red); }
+        .panel-header.green { color: var(--accent-green); }
 
         .status-indicator {
             display: inline-block;
@@ -461,7 +485,7 @@
         <header class="header">
             <div class="header-left">
                 <div class="logo">N</div>
-                <h1>NEURAL FIGHTER ARENA<span class="version-badge">CORTEX² v3.3.5 PREDICTION FIXED</span></h1>
+                <h1>NEURAL FIGHTER ARENA<span class="version-badge">CORTEX² v3.3.6 PROFESSIONAL</span></h1>
             </div>
             <div class="header-controls">
                 <button id="btn-start" class="btn primary">START</button>
@@ -479,7 +503,8 @@
             <canvas id="arena-canvas" width="960" height="640"></canvas>
         </main>
 
-        <aside class="panel panel-left">
+        <!-- ALPHA PANEL (BLUE) - ПОЛНАЯ СИММЕТРИЧНАЯ ИНФОРМАЦИЯ -->
+        <aside class="panel panel-left" id="panel-alpha">
             <div class="panel-header blue">
                 <span><span class="status-indicator" id="alpha-indicator"></span>ALPHA [CORTEX²]</span>
                 <span id="alpha-status" class="value">IDLE</span>
@@ -563,6 +588,25 @@
 
             <div class="panel-section">
                 <div class="panel-row">
+                    <span class="label">WORKING MEM</span>
+                    <span id="alpha-mem-work" class="value mono">0.000</span>
+                </div>
+                <div class="panel-row">
+                    <span class="label">PERMANENT MEM</span>
+                    <span id="alpha-mem-perm" class="value mono">0.000</span>
+                </div>
+                <div class="panel-row">
+                    <span class="label">PREDICTIVE MEM</span>
+                    <span id="alpha-mem-pred" class="value mono">0.000</span>
+                </div>
+                <div class="panel-row">
+                    <span class="label">MEMORY LOAD</span>
+                    <span id="alpha-mem-load" class="value mono">0%</span>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <div class="panel-row">
                     <span class="label">LAST REWARD</span>
                     <span id="alpha-last-reward" class="value">0.00</span>
                 </div>
@@ -576,6 +620,13 @@
                 <div class="viz-label">CORTEX ACTIVATION MAP (256)</div>
                 <div class="viz-container" style="height: 85px;">
                     <canvas id="cortex-canvas-alpha"></canvas>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <div class="viz-label">OUTPUT ACTIONS (16)</div>
+                <div class="viz-container" style="height: 65px;">
+                    <canvas id="output-canvas-alpha"></canvas>
                 </div>
             </div>
 
@@ -599,7 +650,8 @@
             </div>
         </aside>
 
-        <aside class="panel panel-right">
+        <!-- BETA PANEL (RED) - ПОЛНАЯ СИММЕТРИЧНАЯ ИНФОРМАЦИЯ -->
+        <aside class="panel panel-right" id="panel-beta">
             <div class="panel-header red">
                 <span><span class="status-indicator" id="beta-indicator"></span>BETA [CORTEX²]</span>
                 <span id="beta-status" class="value">IDLE</span>
@@ -625,21 +677,31 @@
 
             <div class="panel-section">
                 <div class="panel-row">
-                    <span class="label">THREAT LEVEL</span>
-                    <span id="beta-threat" class="value">0.000</span>
+                    <span class="label">CORTEX ENERGY</span>
+                    <span id="beta-cortex" class="value">0.000</span>
                 </div>
                 <div class="progress-bar">
-                    <div id="beta-threat-bar" class="progress-fill fill-red" style="width: 0%"></div>
+                    <div id="beta-cortex-bar" class="progress-fill fill-blue" style="width: 0%"></div>
                 </div>
             </div>
 
             <div class="panel-section">
                 <div class="panel-row">
-                    <span class="label">AGGRESSION</span>
-                    <span id="beta-aggression" class="value">0.000</span>
+                    <span class="label">PREDICTION ERROR</span>
+                    <span id="beta-pred-err" class="value">0.000</span>
                 </div>
                 <div class="progress-bar">
-                    <div id="beta-agg-bar" class="progress-fill fill-orange" style="width: 0%"></div>
+                    <div id="beta-pred-bar" class="progress-fill fill-yellow" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <div class="panel-row">
+                    <span class="label">PREDICTION CONFIDENCE</span>
+                    <span id="beta-pred-conf" class="value">0.000</span>
+                </div>
+                <div class="progress-bar">
+                    <div id="beta-pred-conf-bar" class="progress-fill fill-cyan" style="width: 0%"></div>
                 </div>
             </div>
 
@@ -691,9 +753,46 @@
             </div>
 
             <div class="panel-section">
+                <div class="panel-row">
+                    <span class="label">LAST REWARD</span>
+                    <span id="beta-last-reward" class="value">0.00</span>
+                </div>
+                <div class="panel-row">
+                    <span class="label">TOTAL REWARD</span>
+                    <span id="beta-total-reward" class="value">0.00</span>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <div class="viz-label">CORTEX ACTIVATION MAP (256)</div>
+                <div class="viz-container" style="height: 85px;">
+                    <canvas id="cortex-canvas-beta"></canvas>
+                </div>
+            </div>
+
+            <div class="panel-section">
                 <div class="viz-label">OUTPUT ACTIONS (16)</div>
                 <div class="viz-container" style="height: 65px;">
                     <canvas id="output-canvas-beta"></canvas>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <div class="panel-row">
+                    <span class="label">LEARNING RATE</span>
+                    <span id="beta-lr" class="value mono">0.012</span>
+                </div>
+                <div class="panel-row">
+                    <span class="label">GAMMA</span>
+                    <span id="beta-gamma" class="value mono">0.98</span>
+                </div>
+                <div class="panel-row">
+                    <span class="label">STEPS</span>
+                    <span id="beta-steps" class="value mono">0</span>
+                </div>
+                <div class="panel-row">
+                    <span class="label">TD ERROR AVG</span>
+                    <span id="beta-td-avg" class="value mono">0.000</span>
                 </div>
             </div>
         </aside>
@@ -753,56 +852,49 @@
         'use strict';
 
         // ============================================================================
-        // PART 1: CONFIGURATION & CONSTANTS - v3.3.5 PREDICTION FIXED
+        // CONFIGURATION v3.3.6 PROFESSIONAL - ПОЛНОСТЬЮ СИММЕТРИЧНАЯ
         // ============================================================================
 
         const CONFIG = {
-            // Arena
             ARENA_WIDTH: 960,
             ARENA_HEIGHT: 640,
             ARENA_BOUNDS: { left: 40, right: 920, top: 40, bottom: 600 },
             
-            // Fighter Physics
             FIGHTER_RADIUS: 18,
             FIGHTER_SPEED: 185,
             FIGHTER_ACCEL: 850,
             FIGHTER_FRICTION: 0.86,
             COMBAT_RANGE: 52,
             
-            // Fighter-Fighter Collision
             COLLISION_ENABLED: true,
             COLLISION_REPULSION_FORCE: 280,
             COLLISION_OVERLAP_CORRECTION: 0.7,
             COLLISION_MIN_DISTANCE: 36,
             COLLISION_PUSH_FACTOR: 0.45,
             
-            // Combat Zones
             ZONES: {
                 HIGH: { yMin: 40, yMax: 200, color: '#ef4567', name: 'HIGH' },
                 MID: { yMin: 200, yMax: 440, color: '#f5b642', name: 'MID' },
                 LOW: { yMin: 440, yMax: 600, color: '#22d3ee', name: 'LOW' }
             },
             
-            // Attack System
-            ATTACK_WINDUP: 10,
-            ATTACK_RECOVERY: 12,
+            // УВЕЛИЧЕННЫЕ ЗНАЧЕНИЯ ДЛЯ АТАК
+            ATTACK_WINDUP: 20,
+            ATTACK_RECOVERY: 25,
             ATTACK_DAMAGE: { HIGH: 14, MID: 11, LOW: 8 },
-            ATTACK_COOLDOWN: 18,
+            ATTACK_COOLDOWN: 25,
             ATTACK_CONFIDENCE_THRESHOLD: 0.35,
             ATTACK_RANGE_MULTIPLIER: 1.40,
             
-            // Block System
             BLOCK_REDUCTION: { HIGH: 0.82, MID: 0.78, LOW: 0.72 },
             BLOCK_PENALTY: 0.35,
             BLOCK_CONFIDENCE_THRESHOLD: 0.35,
             
-            // Dodge System
             DODGE_DURATION: 8,
             DODGE_COOLDOWN: 35,
             DODGE_DISTANCE: 52,
             DODGE_FEAR_THRESHOLD: 0.70,
             
-            // Movement
             MOVE_MIN_INTENSITY: 0.18,
             MOVE_IDLE_THRESHOLD: 8,
             RETREAT_THRESHOLD: 0.68,
@@ -810,7 +902,6 @@
             APPROACH_RANGE_MULTIPLIER: 1.8,
             APPROACH_ACCEL_FACTOR: 0.70,
             
-            // Zone miss probability
             ZONE_MISS_PROBABILITY: 0.20,
             
             // Neural Network Dimensions
@@ -824,12 +915,10 @@
             NUM_HEADS: 4,
             HEAD_DIM: 16,
             
-            // Memory partitions
             M_WORK_SIZE: 48,
             M_PERM_SIZE: 48,
             M_PRED_SIZE: 48,
             
-            // REWARDS - AGGRESSIVE
             REWARDS: {
                 WIN: 35.0,
                 LOSS: -10.0,
@@ -873,26 +962,21 @@
                 REPEAT_ACTION_PENALTY: -0.05
             },
             
-            // Hyperparameters
             LR: 0.015,
             GAMMA: 0.98,
             LAMBDA: 0.94,
             HEBBIAN_RATE: 0.003,
             
-            // Exploration
             EXPLORATION_NOISE: 0.25,
             EXPLORATION_DECAY: 0.997,
             MIN_EXPLORATION: 0.05,
             
-            // Action bias
             ACTION_BIAS_STRENGTH: 0.30,
             
-            // Emotion thresholds
             EMOTION_ENTER_THRESHOLD: 0.45,
             EMOTION_EXIT_THRESHOLD: 0.12,
             EMOTION_SATISFACTION_EXIT: 0.85,
             
-            // Reflex thresholds
             REFLEX_FEAR_THRESHOLD: 0.85,
             REFLEX_AGGRESSION_THRESHOLD: 0.55,
             REFLEX_SURPRISE_THRESHOLD: 0.70,
@@ -902,25 +986,19 @@
             REFLEX_DESPERATION_THRESHOLD: 0.75,
             REFLEX_DESPERATION_RANDOM: 0.25,
             
-            // Social thresholds
             SOCIAL_AGGRESSION_THRESHOLD: 0.55,
             
-            // UI
             LOG_MAX: 150,
             FPS_SAMPLE: 30,
             
-            // Adaptive timestep
             ADAPTIVE_TIMESTEP: true,
             MAX_FRAME_TIME: 0.05,
             FIXED_TIMESTEP: 0.01667,
             
-            // Memory tracking
             MAX_SAFE_VALUE: 1e10,
             
-            // Activity tracking
             ACTIVITY_WINDOW: 300,
             
-            // Emotions list
             EMOTIONS: [
                 'threat', 'frustration', 'confidence', 'aggression',
                 'fear', 'surprise', 'caution', 'desperation',
@@ -930,26 +1008,23 @@
                 'courage', 'determination'
             ],
             
-            // ============================================================================
-            // PREDICTION SYSTEM CONSTANTS - FIXED v3.3.5
-            // ============================================================================
+            // УСИЛЕННАЯ СИСТЕМА ПРЕДСКАЗАНИЙ
             PREDICTION: {
-                ALPHA: 0.1,                 // Скорость обновления скользящего среднего
-                MIN_ERROR: 0.01,              // Минимальная ошибка (защита от 0)
-                MAX_ERROR: 0.99,              // Максимальная ошибка (защита от 1)
-                CONFIDENCE_WEIGHT: 0.5,       // Вес уверенности в движении
-                ATTACK_CONFIDENCE_THRESHOLD: 0.7,  // Порог для агрессивных действий
-                RETREAT_CONFIDENCE_THRESHOLD: 0.3, // Порог для отступления
-                TRAJECTORY_HORIZON: 60,        // Горизонт предсказания (кадры)
-                POSITION_WEIGHT: 0.7,          // Вес позиции в предсказании
-                VELOCITY_WEIGHT: 0.3,          // Вес скорости в предсказании
-                MEMORY_BOOST_THRESHOLD: 0.8,    // Порог для усиления памяти
-                LEARNING_RATE_FACTOR: 1.5,      // Множитель для обучения при ошибке
-                PREDICTION_REWARD: 0.2          // Награда за точные предсказания
+                ALPHA: 0.15,
+                MIN_ERROR: 0.01,
+                MAX_ERROR: 0.98,
+                CONFIDENCE_WEIGHT: 0.6,
+                ATTACK_CONFIDENCE_THRESHOLD: 0.65,
+                RETREAT_CONFIDENCE_THRESHOLD: 0.35,
+                TRAJECTORY_HORIZON: 60,
+                POSITION_WEIGHT: 0.7,
+                VELOCITY_WEIGHT: 0.3,
+                MEMORY_BOOST_THRESHOLD: 0.8,
+                LEARNING_RATE_FACTOR: 2.0,
+                PREDICTION_REWARD: 0.25
             }
         };
 
-        // Computed architecture constants
         const ARCH = {
             P_INPUT: CONFIG.DIM_SENSOR + CONFIG.DIM_C + CONFIG.DIM_S + CONFIG.M_PERM_SIZE,
             A_INPUT: CONFIG.DIM_P + CONFIG.M_WORK_SIZE + 64 + CONFIG.DIM_D,
@@ -994,42 +1069,28 @@
             return n.toFixed(decimals);
         };
 
-        // DOM helpers
-        const domCache = new Map();
-        const getEl = (id) => {
-            if (!domCache.has(id)) {
-                const el = document.getElementById(id);
-                domCache.set(id, el || null);
-            }
-            return domCache.get(id);
-        };
+        const getEl = (id) => document.getElementById(id);
         
         const setText = (id, text) => {
             const el = getEl(id);
-            if (el === null) return;
-            el.textContent = String(text);
+            if (el) el.textContent = String(text);
         };
         
         const setBar = (id, percent) => {
             const el = getEl(id);
-            if (el === null) return;
-            const safePercent = safeNum(percent, 0);
-            el.style.width = `${clamp(safePercent, 0, 100)}%`;
+            if (el) el.style.width = `${clamp(percent, 0, 100)}%`;
         };
 
         const addClass = (id, cls) => {
             const el = getEl(id);
-            if (el === null) return;
-            el.classList.add(cls);
+            if (el) el.classList.add(cls);
         };
 
         const removeClass = (id, cls) => {
             const el = getEl(id);
-            if (el === null) return;
-            el.classList.remove(cls);
+            if (el) el.classList.remove(cls);
         };
 
-        // Float32Array Pool
         const ArrayPool = {
             _pools: new Map(),
             totalAllocations: 0,
@@ -1069,11 +1130,10 @@
             }
         };
 
-        // Logger
         const Logger = {
             log(msg, category = 'info') {
                 const container = getEl('log-content');
-                if (container === null) return;
+                if (!container) return;
                 
                 const entry = document.createElement('div');
                 entry.className = `log-entry ${category}`;
@@ -1099,9 +1159,6 @@
             warn(msg) { this.log(msg, 'warn'); }
         };
 
-        // ============================================================================
-        // PERFORMANCE MONITOR
-        // ============================================================================
         const PerfMonitor = {
             frameStart: 0,
             sampleStart: 0,
@@ -1151,9 +1208,6 @@
             }
         };
 
-        // ============================================================================
-        // SEEDED RNG
-        // ============================================================================
         class SeededRNG {
             constructor(seed) {
                 if (typeof seed === 'string') {
@@ -1180,7 +1234,7 @@
         }
 
         // ============================================================================
-        // PART 2: CORTEX² NEURAL NETWORK - v3.3.5 WITH PREDICTION SYSTEM FIXED
+        // CORTEX² NEURAL NETWORK v3.3.6 - ПРОФЕССИОНАЛЬНАЯ ВЕРСИЯ
         // ============================================================================
         class CortexNetwork {
             constructor(config = {}) {
@@ -1208,7 +1262,6 @@
                     mPred: CONFIG.M_PRED_SIZE
                 };
 
-                // Weight initialization
                 this.W_P = this._initMatrix(ARCH.P_INPUT, this.D.P, 0.25);
                 this.b_P = this._initVector(this.D.P, 0.06);
                 
@@ -1236,18 +1289,16 @@
                 this.W_S = this._initMatrix(ARCH.S_INPUT, this.D.S, 0.25);
                 this.b_S = this._initVector(this.D.S, 0.06);
                 
-                // Decision layer with bias for attacks
                 this.W_D = this._initMatrix(ARCH.D_INPUT, this.D.Dout, 0.18);
                 this.b_D = this._initVector(this.D.Dout, 0.06);
                 
-                // Action bias to attack outputs (indices 4,5,6)
                 const actionBias = CONFIG.ACTION_BIAS_STRENGTH;
                 this.b_D[4] = actionBias;
                 this.b_D[5] = actionBias;
                 this.b_D[6] = actionBias;
                 
-                // Prediction weights - КЛЮЧЕВОЙ КОМПОНЕНТ
-                this.W_pred = this._initMatrix(this.D.mPred, this.D.sensor, 0.12);
+                // Prediction weights
+                this.W_pred = this._initMatrix(this.D.mPred, this.D.sensor, 0.25); // УВЕЛИЧЕНО
                 this.b_pred = this._initVector(this.D.sensor, 0.03);
                 
                 this.W_V = this._initVector(this.D.C, 0.06);
@@ -1258,7 +1309,6 @@
                 this.W_V_S = this._initVector(this.D.S, 0.04);
                 this.W_V_D = this._initVector(this.D.Dout, 0.04);
 
-                // State vectors
                 this.P = new Float32Array(this.D.P);
                 this.A = new Float32Array(this.D.A);
                 this.M = new Float32Array(this.D.M);
@@ -1273,25 +1323,21 @@
                 this.S_prev = new Float32Array(this.D.S);
                 this.D_prev = new Float32Array(this.D.Dout);
                 
-                // Prediction errors - ИНИЦИАЛИЗАЦИЯ
                 this.predErrors = new Float32Array(this.D.mPred);
                 for (let i = 0; i < this.D.mPred; i++) {
-                    this.predErrors[i] = 0.5; // Начальное нейтральное значение
+                    this.predErrors[i] = 0.5;
                 }
                 
-                // Предсказанные позиции
                 this.predictedPos60 = { x: 0, y: 0 };
                 this.predictionConfidence = 0.5;
                 this.lastPrediction = null;
 
-                // Eligibility traces
                 this.eTrace_P = new Float32Array(ARCH.P_INPUT * this.D.P);
                 this.eTrace_A = new Float32Array(ARCH.A_INPUT * this.D.A);
                 this.eTrace_C = new Float32Array(ARCH.C_INPUT * this.D.C);
                 this.eTrace_S = new Float32Array(ARCH.S_INPUT * this.D.S);
                 this.eTrace_D = new Float32Array(ARCH.D_INPUT * this.D.Dout);
 
-                // Pre-allocated buffers
                 this._buffers = {
                     P_in: new Float32Array(ARCH.P_INPUT),
                     A_in: new Float32Array(ARCH.A_INPUT),
@@ -1308,7 +1354,6 @@
                     output: new Float32Array(this.D.Dout)
                 };
 
-                // Emotions
                 this.emotions = {};
                 for (let i = 0; i < CONFIG.EMOTIONS.length; i++) {
                     this.emotions[CONFIG.EMOTIONS[i]] = 0;
@@ -1326,7 +1371,6 @@
                     this.emotionalState.momentum[CONFIG.EMOTIONS[i]] = 0;
                 }
                 
-                // Emotion config
                 this.emotionConfig = {
                     fear: { baseDuration: 100, decay: 0.93 },
                     aggression: { baseDuration: 180, decay: 0.97 },
@@ -1360,7 +1404,6 @@
                     killer: null
                 };
 
-                // Episodic memory
                 this.episodicMemory = {
                     events: [],
                     maxEvents: 200,
@@ -1370,7 +1413,6 @@
                     recallInfluence: 0.08
                 };
 
-                // Social memory
                 this.socialMemory = {
                     relationships: new Map(),
                     reputation: 0,
@@ -1527,35 +1569,18 @@
                 return Number.isFinite(avg) && Math.abs(avg) < CONFIG.MAX_SAFE_VALUE ? avg : 0;
             }
 
-            // ============================================================================
-            // ПРОФЕССИОНАЛЬНАЯ СИСТЕМА ПРЕДСКАЗАНИЙ - ПОЛНОСТЬЮ ИСПРАВЛЕНА
-            // ============================================================================
-            
-            /**
-             * Предсказание следующего состояния сенсоров на основе M_pred
-             * @param {Float32Array} M_pred - Текущее значение предсказательной памяти (48)
-             * @param {Float32Array} currentSensors - Текущие сенсоры (64)
-             * @returns {Object} Результат предсказания
-             */
             _predictNextState(M_pred, currentSensors) {
                 PerfMonitor.addOps(1200);
                 
-                // 1. Предсказание следующего состояния сенсоров
-                // M_pred (48) -> W_pred (48×64) -> x_pred (64)
                 const x_pred = this._matMul(M_pred, this.W_pred, this.b_pred, 'linear');
                 
-                // 2. Вычисление ошибки предсказания (по всем сенсорам)
                 let totalError = 0;
                 for (let i = 0; i < this.D.mPred; i++) {
-                    // Абсолютная ошибка
                     const error = Math.abs(x_pred[i] - currentSensors[i]);
                     
-                    // Экспоненциальное скользящее среднее (EWMA)
-                    // Более стабильно чем lerp, лучше сглаживает выбросы
                     const alpha = CONFIG.PREDICTION.ALPHA;
                     this.predErrors[i] = this.predErrors[i] * (1 - alpha) + error * alpha;
                     
-                    // Профессиональная защита от экстремальных значений
                     this.predErrors[i] = Math.min(CONFIG.PREDICTION.MAX_ERROR, 
                                                    Math.max(CONFIG.PREDICTION.MIN_ERROR, 
                                                             this.predErrors[i]));
@@ -1563,29 +1588,22 @@
                     totalError += this.predErrors[i];
                 }
                 
-                // 3. Вычисление средней ошибки и уверенности
                 const avgError = totalError / this.D.mPred;
-                // Уверенность = 1 - нормированная ошибка
                 const confidence = 1 - Math.min(avgError, 0.95);
                 this.predictionConfidence = confidence;
                 
-                // 4. Предсказание позиции противника через 60 кадров
-                // Сенсоры: [0] x, [1] y, [6] vx, [7] vy
                 const enemyX = currentSensors[0] * CONFIG.ARENA_WIDTH;
                 const enemyY = currentSensors[1] * CONFIG.ARENA_HEIGHT;
                 const enemyVx = currentSensors[6] * CONFIG.FIGHTER_SPEED;
                 const enemyVy = currentSensors[7] * CONFIG.FIGHTER_SPEED;
                 
-                // Горизонт предсказания (60 кадров = 1 секунда при 60fps)
                 const timeAhead = CONFIG.PREDICTION.TRAJECTORY_HORIZON / 60;
                 
-                // Предсказание с учетом скорости
                 this.predictedPos60 = {
                     x: enemyX + enemyVx * timeAhead,
                     y: enemyY + enemyVy * timeAhead
                 };
                 
-                // 5. Сохранение полных данных для использования
                 const predictionResult = {
                     predictedSensors: Array.from(x_pred),
                     confidence: confidence,
@@ -1596,7 +1614,6 @@
                 
                 this.lastPrediction = predictionResult;
                 
-                // 6. Статистика для обучения
                 if (avgError < 0.3) {
                     this.stats.predictionsCorrect++;
                 } else if (avgError > 0.7) {
@@ -1606,50 +1623,36 @@
                 return predictionResult;
             }
 
-            // ============================================================================
-            // ИНТЕГРАЦИЯ ПРЕДСКАЗАНИЙ В ОБУЧЕНИЕ
-            // ============================================================================
-            
-            /**
-             * Обучение на основе предсказаний
-             * @param {Float32Array} M_pred - Текущее значение предсказательной памяти
-             * @param {Float32Array} currentSensors - Текущие сенсоры
-             * @param {Float32Array} nextSensors - Следующие сенсоры (из следующего кадра)
-             */
             learnFromPrediction(M_pred, currentSensors, nextSensors) {
                 if (!nextSensors) return 0;
                 
                 PerfMonitor.addOps(800);
                 
-                // Предсказание
                 const x_pred = this._matMul(M_pred, this.W_pred, this.b_pred, 'linear');
                 
-                // Реальная ошибка между предсказанием и реальностью
                 let predictionReward = 0;
                 for (let i = 0; i < this.D.mPred; i++) {
                     const error = Math.abs(x_pred[i] - nextSensors[i]);
                     const oldError = this.predErrors[i];
                     
-                    // Если ошибка уменьшилась - награда, если увеличилась - штраф
                     const errorChange = oldError - error;
                     predictionReward += errorChange * CONFIG.PREDICTION.PREDICTION_REWARD;
                     
-                    // Обновляем веса предсказаний (W_pred) через градиент
+                    // УСИЛЕННОЕ ОБУЧЕНИЕ
                     const lr = this.lr * CONFIG.PREDICTION.LEARNING_RATE_FACTOR;
-                    const grad = lr * (nextSensors[i] - x_pred[i]) * M_pred[i];
+                    const grad = lr * (nextSensors[i] - x_pred[i]) * M_pred[i] * 0.1;
                     
                     for (let j = 0; j < this.W_pred[i].length; j++) {
-                        this.W_pred[i][j] += grad * currentSensors[j] * 0.01;
+                        this.W_pred[i][j] += grad * currentSensors[j] * 0.02;
                         this.W_pred[i][j] = clamp(this.W_pred[i][j], -2, 2);
                     }
                 }
                 
                 predictionReward /= this.D.mPred;
                 
-                // Обновляем predErrors на основе реальной ошибки
                 for (let i = 0; i < this.D.mPred; i++) {
                     const realError = Math.abs(x_pred[i] - nextSensors[i]);
-                    const alpha = CONFIG.PREDICTION.ALPHA * 0.5; // Медленнее для обучения
+                    const alpha = CONFIG.PREDICTION.ALPHA * 0.5;
                     this.predErrors[i] = this.predErrors[i] * (1 - alpha) + realError * alpha;
                     this.predErrors[i] = Math.min(CONFIG.PREDICTION.MAX_ERROR,
                                                    Math.max(CONFIG.PREDICTION.MIN_ERROR,
@@ -1659,15 +1662,6 @@
                 return predictionReward;
             }
 
-            // ============================================================================
-            // ИСПОЛЬЗОВАНИЕ ПРЕДСКАЗАНИЙ ДЛЯ ПРИНЯТИЯ РЕШЕНИЙ
-            // ============================================================================
-            
-            /**
-             * Модификация выходов на основе уверенности в предсказаниях
-             * @param {Float32Array} outputs - Выходы нейросети
-             * @returns {Float32Array} Модифицированные выходы
-             */
             _applyPredictionToOutputs(outputs) {
                 const confidence = this.predictionConfidence;
                 const modifiedOutputs = new Float32Array(outputs.length);
@@ -1676,7 +1670,6 @@
                     modifiedOutputs[i] = outputs[i];
                 }
                 
-                // Высокая уверенность - более агрессивные атаки
                 if (confidence > CONFIG.PREDICTION.ATTACK_CONFIDENCE_THRESHOLD) {
                     const boost = confidence * 0.2;
                     modifiedOutputs[4] = Math.min(1, outputs[4] + boost);
@@ -1684,7 +1677,6 @@
                     modifiedOutputs[6] = Math.min(1, outputs[6] + boost);
                 }
                 
-                // Низкая уверенность - более осторожное поведение
                 if (confidence < CONFIG.PREDICTION.RETREAT_CONFIDENCE_THRESHOLD) {
                     const retreatBoost = (1 - confidence) * 0.3;
                     modifiedOutputs[10] = Math.min(1, outputs[10] + retreatBoost);
@@ -2124,10 +2116,6 @@
                 }
             }
 
-            // ============================================================================
-            // FORWARD PASS С ИНТЕГРИРОВАННОЙ СИСТЕМОЙ ПРЕДСКАЗАНИЙ
-            // ============================================================================
-            
             forward(rawInputs, reward, combatEvents, socialContext, nextSensors = null) {
                 PerfMonitor.addOps(180000);
                 
@@ -2205,15 +2193,11 @@
                 for (let i = 0; i < this.D.Dout; i++) Mr_in[idx++] = this.D_prev[i];
                 const M_pred_new = this._matMul(Mr_in, this.W_M_pred, this.b_M_pred, 'relu');
                 
-                // ========== ПРЕДСКАЗАНИЕ СЛЕДУЮЩЕГО СОСТОЯНИЯ ==========
                 const prediction = this._predictNextState(M_pred_new, x_t);
                 
-                // Обучение на предсказаниях, если есть следующий кадр
                 if (nextSensors) {
                     const predReward = this.learnFromPrediction(M_pred_new, x_t, nextSensors);
-                    // Можно добавить predReward к общей награде
                 }
-                // ==========================================================
                 
                 const M_new = new Float32Array(this.D.M);
                 for (let i = 0; i < this.D.mWork; i++) M_new[i] = M_work_new[i];
@@ -2273,9 +2257,7 @@
                     D_new = this._applySocialInfluence(socialContext.enemyId, D_new);
                 }
                 
-                // ========== ПРИМЕНЕНИЕ ПРЕДСКАЗАНИЙ К ВЫХОДАМ ==========
                 D_new = this._applyPredictionToOutputs(D_new);
-                // ========================================================
                 
                 this._updateEmotions(r_t, combatEvents);
                 this._reflexThisFrame = this._checkReflexes(D_new);
@@ -2391,7 +2373,6 @@
                 this.S_prev.fill(0);
                 this.D_prev.fill(0);
                 
-                // Сброс ошибок предсказания на нейтральное значение
                 for (let i = 0; i < this.D.mPred; i++) {
                     this.predErrors[i] = 0.5;
                 }
@@ -2433,7 +2414,6 @@
                     }
                 }
                 
-                // Вычисляем среднюю ошибку предсказания
                 let predErrorSum = 0;
                 for (let i = 0; i < this.D.mPred; i++) {
                     predErrorSum += this.predErrors[i] || 0;
@@ -2458,7 +2438,7 @@
         }
 
         // ============================================================================
-        // PART 3: FIGHTER CLASS - v3.3.5 WITH PREDICTION INTEGRATION
+        // FIGHTER CLASS - v3.3.6 С ИСПРАВЛЕННЫМ ДВИЖЕНИЕМ
         // ============================================================================
         class Fighter {
             constructor(config) {
@@ -2718,7 +2698,6 @@
                 this._lastReward = balancedReward;
                 this._totalReward += balancedReward;
                 
-                // Сохраняем сенсоры для следующего кадра
                 if (this._sensors) {
                     this._lastSensors = new Float32Array(this._sensors);
                 }
@@ -2731,7 +2710,6 @@
                 
                 const baseReward = this._calculateBalancedReward(opponent, dt);
                 
-                // Награда за инициализацию атаки (для немедленного обучения)
                 let attackBonus = 0;
                 if (this._lastOutput[4] > CONFIG.ATTACK_CONFIDENCE_THRESHOLD || 
                     this._lastOutput[5] > CONFIG.ATTACK_CONFIDENCE_THRESHOLD || 
@@ -2739,7 +2717,6 @@
                     attackBonus = CONFIG.REWARDS.ATTACK_INITIATE * 0.5;
                 }
                 
-                // Передаем следующий сенсоры для обучения предсказаниям
                 const result = this.brain.forward(
                     this._sensors,
                     this._lastReward + baseReward + attackBonus,
@@ -2749,7 +2726,7 @@
                         enemyAggression: opponent.brain ? opponent.brain.emotions.aggression : 0,
                         enemyHealth: opponent.health / opponent.maxHealth
                     },
-                    this._lastSensors  // Следующие сенсоры для обучения предсказаниям
+                    this._lastSensors
                 );
                 
                 const outputs = result.output;
@@ -2761,27 +2738,27 @@
                 const dy = opponent.y - this.y;
                 const dist = Math.hypot(dx, dy) || 1;
                 
-                // Нормированное движение с преобразованием 0-1 в -1..1
+                // ИСПРАВЛЕННОЕ ДВИЖЕНИЕ - ПОЛНЫЙ 360°
                 const rawMoveX = (this._lastOutput[0] * 2 - 1);
                 const rawMoveY = (this._lastOutput[1] * 2 - 1);
+                const moveIntensity = this._lastOutput[2];
+                
                 const moveMag = Math.hypot(rawMoveX, rawMoveY);
                 
                 if (moveMag > 0.1) {
                     const normX = rawMoveX / moveMag;
                     const normY = rawMoveY / moveMag;
-                    const speed = Math.min(moveMag, 1) * CONFIG.FIGHTER_ACCEL * dt;
+                    const speed = Math.min(moveMag, 1) * CONFIG.FIGHTER_ACCEL * dt * (0.5 + moveIntensity * 0.5);
                     this.vx += normX * speed;
                     this.vy += normY * speed;
                 }
                 
-                // Принудительное движение к цели, если слишком далеко
                 if (dist > CONFIG.COMBAT_RANGE * CONFIG.APPROACH_RANGE_MULTIPLIER) {
                     const approachStrength = Math.min(1.0, (dist - CONFIG.COMBAT_RANGE) / 200);
                     this.vx += (dx / dist) * CONFIG.FIGHTER_ACCEL * dt * approachStrength * CONFIG.APPROACH_ACCEL_FACTOR;
                     this.vy += (dy / dist) * CONFIG.FIGHTER_ACCEL * dt * approachStrength * CONFIG.APPROACH_ACCEL_FACTOR;
                 }
                 
-                // Движение к предсказанной позиции (если уверенность высокая)
                 if (result.predictionConfidence > CONFIG.PREDICTION.ATTACK_CONFIDENCE_THRESHOLD) {
                     const predX = result.predictedPos.x;
                     const predY = result.predictedPos.y;
@@ -2802,7 +2779,6 @@
                     if (this.brain) this.brain.stats.moveCount++;
                 }
                 
-                // Attack processing
                 const attackConf = [
                     safeNum(this._lastOutput[4], 0),
                     safeNum(this._lastOutput[5], 0),
@@ -2829,7 +2805,6 @@
                     if (this.brain) this.brain.stats.attackCount++;
                 }
                 
-                // Block processing
                 const blockConf = [
                     safeNum(this._lastOutput[7], 0),
                     safeNum(this._lastOutput[8], 0),
@@ -2853,19 +2828,16 @@
                     if (this.state === 'blocking') this.state = 'idle';
                 }
                 
-                // Dodge/retreat
                 if (this._lastOutput[10] > CONFIG.RETREAT_THRESHOLD) {
                     this.vx -= (dx / dist) * CONFIG.FIGHTER_ACCEL * dt * 0.30;
                     this.vy -= (dy / dist) * CONFIG.FIGHTER_ACCEL * dt * 0.30;
                 }
                 
-                // Flanking
                 if (this._lastOutput[11] > CONFIG.FLANK_THRESHOLD) {
                     const side = opponent.x < CONFIG.ARENA_WIDTH / 2 ? 1 : -1;
                     this.vx += side * 0.25 * CONFIG.FIGHTER_ACCEL * dt;
                 }
                 
-                // Dodge on high fear
                 const fear = this.brain ? this.brain.emotions.fear : 0;
                 const courage = this.brain ? this.brain.emotions.courage : 0;
                 const effectiveFear = Math.max(0, fear - courage * 0.5);
@@ -3167,34 +3139,54 @@
         }
 
         // ============================================================================
-        // PART 4: RENDERER
+        // RENDERER - С ДВУМЯ ПОЛНОЦЕННЫМИ ВИЗУАЛИЗАЦИЯМИ
         // ============================================================================
         const Renderer = {
             canvas: null,
             ctx: null,
             cortexCanvasAlpha: null,
             cortexCtxAlpha: null,
+            outputCanvasAlpha: null,
+            outputCtxAlpha: null,
+            cortexCanvasBeta: null,
+            cortexCtxBeta: null,
             outputCanvasBeta: null,
             outputCtxBeta: null,
             
             init() {
                 this.canvas = getEl('arena-canvas');
-                if (this.canvas !== null) {
+                if (this.canvas) {
                     this.ctx = this.canvas.getContext('2d');
                     this.canvas.width = CONFIG.ARENA_WIDTH;
                     this.canvas.height = CONFIG.ARENA_HEIGHT;
                 }
                 
                 this.cortexCanvasAlpha = getEl('cortex-canvas-alpha');
-                if (this.cortexCanvasAlpha !== null && this.cortexCanvasAlpha.parentElement !== null) {
+                if (this.cortexCanvasAlpha && this.cortexCanvasAlpha.parentElement) {
                     const parent = this.cortexCanvasAlpha.parentElement;
                     this.cortexCanvasAlpha.width = Math.max(1, parent.clientWidth - 8);
                     this.cortexCanvasAlpha.height = Math.max(1, parent.clientHeight - 8);
                     this.cortexCtxAlpha = this.cortexCanvasAlpha.getContext('2d');
                 }
                 
+                this.outputCanvasAlpha = getEl('output-canvas-alpha');
+                if (this.outputCanvasAlpha && this.outputCanvasAlpha.parentElement) {
+                    const parent = this.outputCanvasAlpha.parentElement;
+                    this.outputCanvasAlpha.width = Math.max(1, parent.clientWidth - 8);
+                    this.outputCanvasAlpha.height = Math.max(1, parent.clientHeight - 8);
+                    this.outputCtxAlpha = this.outputCanvasAlpha.getContext('2d');
+                }
+                
+                this.cortexCanvasBeta = getEl('cortex-canvas-beta');
+                if (this.cortexCanvasBeta && this.cortexCanvasBeta.parentElement) {
+                    const parent = this.cortexCanvasBeta.parentElement;
+                    this.cortexCanvasBeta.width = Math.max(1, parent.clientWidth - 8);
+                    this.cortexCanvasBeta.height = Math.max(1, parent.clientHeight - 8);
+                    this.cortexCtxBeta = this.cortexCanvasBeta.getContext('2d');
+                }
+                
                 this.outputCanvasBeta = getEl('output-canvas-beta');
-                if (this.outputCanvasBeta !== null && this.outputCanvasBeta.parentElement !== null) {
+                if (this.outputCanvasBeta && this.outputCanvasBeta.parentElement) {
                     const parent = this.outputCanvasBeta.parentElement;
                     this.outputCanvasBeta.width = Math.max(1, parent.clientWidth - 8);
                     this.outputCanvasBeta.height = Math.max(1, parent.clientHeight - 8);
@@ -3203,12 +3195,11 @@
             },
             
             clear() {
-                if (this.ctx === null) return;
-                this.ctx.clearRect(0, 0, CONFIG.ARENA_WIDTH, CONFIG.ARENA_HEIGHT);
+                if (this.ctx) this.ctx.clearRect(0, 0, CONFIG.ARENA_WIDTH, CONFIG.ARENA_HEIGHT);
             },
             
             drawArena() {
-                if (this.ctx === null) return;
+                if (!this.ctx) return;
                 const ctx = this.ctx;
                 const w = CONFIG.ARENA_WIDTH;
                 const h = CONFIG.ARENA_HEIGHT;
@@ -3250,7 +3241,7 @@
             },
             
             drawFighter(f, isAlpha) {
-                if (f === null || !f.visible || this.ctx === null) return;
+                if (!f || !f.visible || !this.ctx) return;
                 
                 const ctx = this.ctx;
                 const x = f.x;
@@ -3323,7 +3314,7 @@
             },
             
             drawConnectionLine(alpha, beta) {
-                if (alpha === null || beta === null || !alpha.visible || !beta.visible || this.ctx === null) return;
+                if (!alpha || !beta || !alpha.visible || !beta.visible || !this.ctx) return;
                 
                 const ctx = this.ctx;
                 const dist = Math.hypot(alpha.x - beta.x, alpha.y - beta.y);
@@ -3344,12 +3335,11 @@
                 ctx.fillText(`${Math.round(dist)}px`, (alpha.x + beta.x) / 2, (alpha.y + beta.y) / 2 - 10);
             },
             
-            drawCortexViz(fighter) {
-                if (fighter === null || fighter.brain === null || this.cortexCtxAlpha === null || this.cortexCanvasAlpha === null) return;
+            drawCortexViz(fighter, ctx, canvas) {
+                if (!fighter || !fighter.brain || !ctx || !canvas) return;
                 
-                const ctx = this.cortexCtxAlpha;
-                const w = Math.max(1, this.cortexCanvasAlpha.width);
-                const h = Math.max(1, this.cortexCanvasAlpha.height);
+                const w = Math.max(1, canvas.width);
+                const h = Math.max(1, canvas.height);
                 
                 ctx.fillStyle = '#060810';
                 ctx.fillRect(0, 0, w, h);
@@ -3374,12 +3364,11 @@
                 }
             },
             
-            drawOutputViz(fighter) {
-                if (fighter === null || fighter.brain === null || this.outputCtxBeta === null || this.outputCanvasBeta === null) return;
+            drawOutputViz(fighter, ctx, canvas) {
+                if (!fighter || !fighter.brain || !ctx || !canvas) return;
                 
-                const ctx = this.outputCtxBeta;
-                const w = Math.max(1, this.outputCanvasBeta.width);
-                const h = Math.max(1, this.outputCanvasBeta.height);
+                const w = Math.max(1, canvas.width);
+                const h = Math.max(1, canvas.height);
                 
                 ctx.fillStyle = '#060810';
                 ctx.fillRect(0, 0, w, h);
@@ -3405,15 +3394,17 @@
             },
             
             render(alpha, beta, roundEnded, winner) {
-                if (this.ctx === null) return;
+                if (!this.ctx) return;
                 
                 this.clear();
                 this.drawArena();
                 this.drawConnectionLine(alpha, beta);
                 this.drawFighter(alpha, true);
                 this.drawFighter(beta, false);
-                this.drawCortexViz(alpha);
-                this.drawOutputViz(beta);
+                this.drawCortexViz(alpha, this.cortexCtxAlpha, this.cortexCanvasAlpha);
+                this.drawOutputViz(alpha, this.outputCtxAlpha, this.outputCanvasAlpha);
+                this.drawCortexViz(beta, this.cortexCtxBeta, this.cortexCanvasBeta);
+                this.drawOutputViz(beta, this.outputCtxBeta, this.outputCanvasBeta);
                 
                 if (roundEnded) {
                     this.ctx.fillStyle = 'rgba(6, 8, 14, 0.88)';
@@ -3436,7 +3427,7 @@
         };
 
         // ============================================================================
-        // PART 5: GAME ENGINE
+        // GAME ENGINE - С ПОЛНОСТЬЮ СИММЕТРИЧНЫМ UI
         // ============================================================================
         const Game = {
             alpha: null,
@@ -3453,14 +3444,14 @@
             
             init() {
                 const brainAlpha = new CortexNetwork({
-                    seed: 'alpha_v335_prediction_fixed',
+                    seed: 'alpha_v336_professional',
                     lr: CONFIG.LR,
                     gamma: CONFIG.GAMMA,
                     lambda: CONFIG.LAMBDA
                 });
                 
                 const brainBeta = new CortexNetwork({
-                    seed: 'beta_v335_prediction_fixed',
+                    seed: 'beta_v336_professional',
                     lr: CONFIG.LR,
                     gamma: CONFIG.GAMMA,
                     lambda: CONFIG.LAMBDA
@@ -3498,7 +3489,7 @@
                 getEl('btn-train').addEventListener('click', () => this.train());
                 getEl('btn-clear-log').addEventListener('click', () => {
                     const log = getEl('log-content');
-                    if (log !== null) log.innerHTML = '';
+                    if (log) log.innerHTML = '';
                 });
                 
                 this._initEmotionGrids();
@@ -3509,13 +3500,13 @@
                 this.lastTime = performance.now();
                 requestAnimationFrame((t) => this.loop(t));
                 
-                Logger.info('Neural Fighter Arena v3.3.5 PREDICTION FIXED initialized');
-                Logger.info('PREDICTION SYSTEM FULLY INTEGRATED:');
-                Logger.info('  • M_pred now used for next-state prediction');
-                Logger.info('  • predErrors update every frame (0.01-0.99)');
-                Logger.info('  • predictedPos60 influences movement');
-                Logger.info('  • Confidence affects aggression/retreat');
-                Logger.info('THEY WILL FIGHT WITH PREDICTIVE INTELLIGENCE!');
+                Logger.info('Neural Fighter Arena v3.3.6 PROFESSIONAL initialized');
+                Logger.info('SYMMETRIC UI ACTIVATED:');
+                Logger.info('  • Both panels have identical metrics');
+                Logger.info('  • Prediction error visible for both agents');
+                Logger.info('  • Cortex maps for both agents');
+                Logger.info('  • Output visualizations for both agents');
+                Logger.info('  • Winner panel highlighting');
             },
             
             _initEmotionGrids() {
@@ -3523,7 +3514,7 @@
                 
                 ['alpha', 'beta'].forEach(agent => {
                     const container = getEl(`${agent}-emotions`);
-                    if (container === null) return;
+                    if (!container) return;
                     
                     container.innerHTML = '';
                     for (let i = 0; i < emotions.length; i++) {
@@ -3570,13 +3561,17 @@
                 this.roundEnded = false;
                 this.winner = null;
                 
-                if (this.alpha !== null) this.alpha.reset();
-                if (this.beta !== null) this.beta.reset();
+                if (this.alpha) this.alpha.reset();
+                if (this.beta) this.beta.reset();
                 
                 removeClass('alpha-indicator', 'active');
                 removeClass('alpha-indicator', 'danger');
                 removeClass('beta-indicator', 'active');
                 removeClass('beta-indicator', 'danger');
+                
+                // Сброс подсветки панелей
+                getEl('panel-alpha').classList.remove('victory', 'defeat');
+                getEl('panel-beta').classList.remove('victory', 'defeat');
                 
                 setText('metric-round', '1');
                 setText('metric-winner', '--');
@@ -3594,14 +3589,18 @@
                 this.roundEnded = false;
                 this.winner = null;
                 
-                if (this.alpha !== null) this.alpha.reset();
-                if (this.beta !== null) this.beta.reset();
+                if (this.alpha) this.alpha.reset();
+                if (this.beta) this.beta.reset();
                 
                 if (this.alpha.brain) this.alpha.brain.decayExploration();
                 if (this.beta.brain) this.beta.brain.decayExploration();
                 
                 removeClass('alpha-indicator', 'danger');
                 removeClass('beta-indicator', 'danger');
+                
+                // Сброс подсветки панелей
+                getEl('panel-alpha').classList.remove('victory', 'defeat');
+                getEl('panel-beta').classList.remove('victory', 'defeat');
                 
                 setText('metric-round', this.round);
                 setText('metric-winner', '--');
@@ -3614,22 +3613,35 @@
                 this.running = false;
                 this.winner = winner.name;
                 
+                // Обновление статусов
                 setText('alpha-status', winner === this.alpha ? 'VICTORY' : 'DEFEAT');
                 setText('beta-status', winner === this.beta ? 'VICTORY' : 'DEFEAT');
                 setText('metric-winner', this.winner);
                 
+                // Подсветка панелей
+                const panelAlpha = getEl('panel-alpha');
+                const panelBeta = getEl('panel-beta');
+                
                 if (winner === this.alpha) {
                     this.alpha.stats.wins++;
                     this.beta.stats.losses++;
+                    panelAlpha.classList.add('victory');
+                    panelAlpha.classList.remove('defeat');
+                    panelBeta.classList.add('defeat');
+                    panelBeta.classList.remove('victory');
                 } else {
                     this.beta.stats.wins++;
                     this.alpha.stats.losses++;
+                    panelBeta.classList.add('victory');
+                    panelBeta.classList.remove('defeat');
+                    panelAlpha.classList.add('defeat');
+                    panelAlpha.classList.remove('victory');
                 }
                 
                 setText('metric-alpha-wins', this.alpha.stats.wins);
                 setText('metric-beta-wins', this.beta.stats.wins);
                 
-                if (this.alpha.brain !== null) {
+                if (this.alpha.brain) {
                     this.alpha.brain.learn({
                         observation: Array.from(this.alpha._sensors),
                         action: Array.from(this.alpha._lastOutput),
@@ -3640,7 +3652,7 @@
                     });
                 }
                 
-                if (this.beta.brain !== null) {
+                if (this.beta.brain) {
                     this.beta.brain.learn({
                         observation: Array.from(this.beta._sensors),
                         action: Array.from(this.beta._lastOutput),
@@ -3653,7 +3665,7 @@
                 
                 Logger.combat(`Round ${this.round} ended - ${this.winner} wins`);
                 
-                if (getEl('chk-autotrain') !== null && getEl('chk-autotrain').checked && this.round < 200) {
+                if (getEl('chk-autotrain') && getEl('chk-autotrain').checked && this.round < 200) {
                     setTimeout(() => this.nextRound(), 800);
                 }
             },
@@ -3685,20 +3697,25 @@
             },
             
             updateUI() {
-                if (this.alpha === null || this.beta === null) return;
+                if (!this.alpha || !this.beta) return;
                 
+                // ALPHA
                 setBar('alpha-health-bar', safeNum(this.alpha.health, 0));
-                setBar('beta-health-bar', safeNum(this.beta.health, 0));
                 setText('alpha-health', Math.floor(safeNum(this.alpha.health, 0)));
-                setText('beta-health', Math.floor(safeNum(this.beta.health, 0)));
-                
                 setText('alpha-zone', this.alpha.zone);
-                setText('beta-zone', this.beta.zone);
                 setText('alpha-block', this.alpha.blocking || '--');
-                setText('beta-block', this.beta.blocking || '--');
-                
                 setText('alpha-combo', safeNum(this.alpha.activity.combo, 0));
+                setText('alpha-last-reward', formatNum(this.alpha._lastReward, 2));
+                setText('alpha-total-reward', formatNum(this.alpha._totalReward, 1));
+                
+                // BETA
+                setBar('beta-health-bar', safeNum(this.beta.health, 0));
+                setText('beta-health', Math.floor(safeNum(this.beta.health, 0)));
+                setText('beta-zone', this.beta.zone);
+                setText('beta-block', this.beta.blocking || '--');
                 setText('beta-combo', safeNum(this.beta.activity.combo, 0));
+                setText('beta-last-reward', formatNum(this.beta._lastReward, 2));
+                setText('beta-total-reward', formatNum(this.beta._totalReward, 1));
                 
                 const updateActivityIndicator = (fighter, prefix) => {
                     const moveDot = getEl(`${prefix}-act-move`);
@@ -3706,17 +3723,11 @@
                     const defendDot = getEl(`${prefix}-act-defend`);
                     const label = getEl(`${prefix}-activity-label`);
                     
-                    if (moveDot !== null) {
-                        moveDot.className = 'activity-dot' + (fighter.activity.moveCount > 0 ? ' active' : '');
-                    }
-                    if (attackDot !== null) {
-                        attackDot.className = 'activity-dot' + (fighter.activity.attackCount > 0 ? ' attacking' : '');
-                    }
-                    if (defendDot !== null) {
-                        defendDot.className = 'activity-dot' + (fighter.activity.blockCount > 0 ? ' defensive' : '');
-                    }
+                    if (moveDot) moveDot.className = 'activity-dot' + (fighter.activity.moveCount > 0 ? ' active' : '');
+                    if (attackDot) attackDot.className = 'activity-dot' + (fighter.activity.attackCount > 0 ? ' attacking' : '');
+                    if (defendDot) defendDot.className = 'activity-dot' + (fighter.activity.blockCount > 0 ? ' defensive' : '');
                     
-                    if (label !== null) {
+                    if (label) {
                         let status = 'IDLE';
                         if (fighter.activity.attackCount > 0) status = 'ATK';
                         else if (fighter.activity.blockCount > 0) status = 'DEF';
@@ -3729,7 +3740,8 @@
                 updateActivityIndicator(this.alpha, 'alpha');
                 updateActivityIndicator(this.beta, 'beta');
                 
-                if (this.alpha.brain !== null) {
+                // ALPHA NEURAL METRICS
+                if (this.alpha.brain) {
                     const emo = this.alpha.brain.getEmotions();
                     const emotions = CONFIG.EMOTIONS.slice(0, 8);
                     for (let i = 0; i < emotions.length; i++) {
@@ -3743,11 +3755,21 @@
                     setText('alpha-cortex', formatNum(debug.cortexEnergy, 3));
                     setBar('alpha-cortex-bar', Math.min(safeNum(debug.cortexEnergy, 0) * 48, 100));
                     
-                    // Prediction metrics
                     setText('alpha-pred-err', formatNum(debug.predictionError, 3));
                     setBar('alpha-pred-bar', (1 - clamp(safeNum(debug.predictionError, 0.5), 0, 0.99)) * 100);
                     setText('alpha-pred-conf', formatNum(debug.predictionConfidence, 3));
                     setBar('alpha-pred-conf-bar', clamp(safeNum(debug.predictionConfidence, 0.5), 0, 1) * 100);
+                    
+                    setText('alpha-mem-work', formatNum(debug.memoryUsage.working, 3));
+                    setText('alpha-mem-perm', formatNum(debug.memoryUsage.permanent, 3));
+                    setText('alpha-mem-pred', formatNum(debug.memoryUsage.predictive, 3));
+                    
+                    const memLoad = Math.max(
+                        safeNum(debug.memoryUsage.working, 0),
+                        safeNum(debug.memoryUsage.permanent, 0),
+                        safeNum(debug.memoryUsage.predictive, 0)
+                    );
+                    setText('alpha-mem-load', `${Math.round(memLoad * 100)}%`);
                     
                     setText('alpha-lr', formatNum(this.alpha.brain.lr, 3));
                     setText('alpha-gamma', formatNum(this.alpha.brain.gamma, 2));
@@ -3759,21 +3781,28 @@
                     }
                     const avgTD = safeDiv(tdSum, this.alpha.brain.stats.tdErrors.length, 0);
                     setText('alpha-td-avg', formatNum(avgTD, 4));
-                    
-                    setText('alpha-last-reward', formatNum(this.alpha._lastReward, 2));
-                    setText('alpha-total-reward', formatNum(this.alpha._totalReward, 1));
                 }
                 
-                if (this.beta.brain !== null) {
+                // BETA NEURAL METRICS
+                if (this.beta.brain) {
                     const emo = this.beta.brain.getEmotions();
+                    const emotions = CONFIG.EMOTIONS.slice(0, 8);
+                    for (let i = 0; i < emotions.length; i++) {
+                        setBar(`beta-${emotions[i]}-bar`, safeNum(emo[emotions[i]], 0) * 100);
+                    }
+                    
                     setText('beta-emotion', this.beta.brain.emotionalState.current || 'NEUTRAL');
-                    setText('beta-threat', formatNum(emo.threat, 3));
-                    setBar('beta-threat-bar', safeNum(emo.threat, 0) * 100);
-                    setText('beta-aggression', formatNum(emo.aggression, 3));
-                    setBar('beta-agg-bar', safeNum(emo.aggression, 0) * 100);
                     setText('beta-reflex', this.beta.brain._reflexThisFrame ? 'ACTIVE' : '--');
                     
                     const debug = this.beta.brain.getDebugInfo();
+                    setText('beta-cortex', formatNum(debug.cortexEnergy, 3));
+                    setBar('beta-cortex-bar', Math.min(safeNum(debug.cortexEnergy, 0) * 48, 100));
+                    
+                    setText('beta-pred-err', formatNum(debug.predictionError, 3));
+                    setBar('beta-pred-bar', (1 - clamp(safeNum(debug.predictionError, 0.5), 0, 0.99)) * 100);
+                    setText('beta-pred-conf', formatNum(debug.predictionConfidence, 3));
+                    setBar('beta-pred-conf-bar', clamp(safeNum(debug.predictionConfidence, 0.5), 0, 1) * 100);
+                    
                     setText('beta-mem-work', formatNum(debug.memoryUsage.working, 3));
                     setText('beta-mem-perm', formatNum(debug.memoryUsage.permanent, 3));
                     setText('beta-mem-pred', formatNum(debug.memoryUsage.predictive, 3));
@@ -3784,8 +3813,20 @@
                         safeNum(debug.memoryUsage.predictive, 0)
                     );
                     setText('beta-mem-load', `${Math.round(memLoad * 100)}%`);
+                    
+                    setText('beta-lr', formatNum(this.beta.brain.lr, 3));
+                    setText('beta-gamma', formatNum(this.beta.brain.gamma, 2));
+                    setText('beta-steps', this.beta.brain.stats.steps);
+                    
+                    let tdSum = 0;
+                    for (let i = 0; i < this.beta.brain.stats.tdErrors.length; i++) {
+                        tdSum += this.beta.brain.stats.tdErrors[i];
+                    }
+                    const avgTD = safeDiv(tdSum, this.beta.brain.stats.tdErrors.length, 0);
+                    setText('beta-td-avg', formatNum(avgTD, 4));
                 }
                 
+                // Индикаторы опасности
                 if (this.alpha.health < 30) {
                     addClass('alpha-indicator', 'danger');
                 } else {
@@ -3811,7 +3852,7 @@
                     this.accumulator += dt;
                     
                     while (this.accumulator >= CONFIG.FIXED_TIMESTEP) {
-                        if (this.alpha !== null && this.beta !== null) {
+                        if (this.alpha && this.beta) {
                             if (this.alpha.isPlayer) {
                                 this.alpha.update(this.beta, this.keys, CONFIG.FIXED_TIMESTEP);
                             } else {
@@ -3857,18 +3898,17 @@
             Game.init();
             window.Game = Game;
             
-            console.log('%c[CORTEX² v3.3.5 PREDICTION FIXED]', 'color: #f5b642; font-weight: bold; font-size: 14px;');
+            console.log('%c[CORTEX² v3.3.6 PROFESSIONAL]', 'color: #f5b642; font-weight: bold; font-size: 14px;');
             console.log('%c========================================', 'color: #3a8bff;');
-            console.log('%c✓ PREDICTION SYSTEM FULLY INTEGRATED', 'color: #2dd4a0; font-weight: bold;');
-            console.log('%c✓ M_pred now used for next-state prediction', 'color: #2dd4a0;');
-            console.log('%c✓ predErrors update every frame (0.01-0.99)', 'color: #2dd4a0;');
-            console.log('%c✓ predictedPos60 influences movement', 'color: #2dd4a0;');
-            console.log('%c✓ Confidence affects aggression/retreat', 'color: #2dd4a0;');
-            console.log('%c✓ All 22 emotions active', 'color: #2dd4a0;');
-            console.log('%c✓ Exploration: 25% (60% attack-focused)', 'color: #2dd4a0;');
-            console.log('%c✓ Normalized movement (full 360°)', 'color: #2dd4a0;');
+            console.log('%c✓ SYMMETRIC UI - both agents have identical metrics', 'color: #2dd4a0;');
+            console.log('%c✓ Prediction error visible for both agents', 'color: #2dd4a0;');
+            console.log('%c✓ Cortex maps for both agents', 'color: #2dd4a0;');
+            console.log('%c✓ Output visualizations for both agents', 'color: #2dd4a0;');
+            console.log('%c✓ Winner panel highlighting (green glow)', 'color: #2dd4a0;');
+            console.log('%c✓ Fixed movement (full 360°)', 'color: #2dd4a0;');
+            console.log('%c✓ Attack timing normalized', 'color: #2dd4a0;');
             console.log('%c========================================', 'color: #3a8bff;');
-            console.log('%cTHEY WILL FIGHT WITH PREDICTIVE INTELLIGENCE!', 'color: #ef4567; font-weight: bold; font-size: 12px;');
+            console.log('%cPROFESSIONAL VERSION READY', 'color: #ef4567; font-weight: bold; font-size: 12px;');
         });
     })();
     </script>
