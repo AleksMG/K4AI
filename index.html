@@ -85,12 +85,11 @@
             background: var(--color-bg-primary);
             font-family: var(--font-family);
             color: var(--color-text-primary);
-            overflow: hidden;
-            height: 100vh;
+            overflow: visible;
+            height: auto;
+            min-height: 100vh;
             width: 100vw;
-            position: fixed;
-            top: 0;
-            left: 0;
+            position: relative;
             margin: 0;
             padding: 0;
         }
@@ -473,6 +472,98 @@
             image-rendering: pixelated;
             image-rendering: crisp-edges;
             cursor: none;
+        }
+
+        /* ========================================
+           WINNER SCREEN - ИСПРАВЛЕНО
+           ======================================== */
+        .winner-screen {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            background: rgba(10,12,18,0.98);
+            backdrop-filter: blur(20px);
+            z-index: 10000 !important;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            padding: 20px 15px !important;
+            text-align: center;
+            box-sizing: border-box;
+            
+            /* КРИТИЧЕСКИ ВАЖНО - принудительный скролл */
+            overflow-y: scroll !important;
+            -webkit-overflow-scrolling: touch !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+            
+            pointer-events: auto;
+        }
+
+        .winner-screen.visible {
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+
+        .winner-title {
+            font-size: 2.2rem;
+            font-weight: 900;
+            margin: 10px 0 20px 0;
+            text-transform: uppercase;
+            animation: winGlow 2s ease-in-out infinite;
+            text-shadow: 0 0 30px currentColor;
+            line-height: 1.2;
+            width: 100%;
+            flex-shrink: 0;
+        }
+
+        @keyframes winGlow {
+            0%, 100% { filter: brightness(1); transform: scale(1); }
+            50% { filter: brightness(1.4); transform: scale(1.05); }
+        }
+
+        .winner-stats {
+            width: 100%;
+            max-width: 450px;
+            margin: 0 0 20px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 5px 10px;
+            flex-shrink: 0;
+        }
+
+        .winner-stat {
+            width: 100%;
+            text-align: center;
+            padding: 15px;
+            background: var(--color-bg-tertiary);
+            border-radius: var(--border-radius-md);
+            border: 1px solid var(--color-border);
+            flex-shrink: 0;
+        }
+
+        .winner-stat-value {
+            font-size: 1.8rem;
+            font-weight: 900;
+            font-family: var(--font-mono);
+            margin-bottom: 5px;
+        }
+
+        .winner-stat-label {
+            font-size: 1rem;
+            color: var(--color-text-secondary);
+        }
+
+        #rematchBtn {
+            margin: 10px auto 20px auto;
+            width: 180px;
+            flex-shrink: 0;
+            padding: 12px 20px;
         }
 
         /* ========================================
@@ -865,7 +956,7 @@
         }
 
         /* ========================================
-           МЕДИА-ЗАПРОСЫ ДЛЯ МОБИЛЬНЫХ
+           МЕДИА-ЗАПРОСЫ
            ======================================== */
         @media (max-width: 1024px) {
             .app {
@@ -877,312 +968,84 @@
                 padding: 5px;
                 gap: 5px;
             }
-
             .header {
                 position: sticky;
                 top: 0;
                 z-index: 100;
                 flex-shrink: 0;
             }
-
             .arena {
                 height: 40vh;
                 min-height: 300px;
                 flex-shrink: 0;
             }
-
             .panel-left,
             .panel-right {
                 max-height: 350px;
                 overflow-y: auto;
             }
-
             .footer {
                 display: flex;
                 flex-direction: column;
                 gap: 10px;
                 padding-bottom: 20px;
             }
-
             .footer > .panel {
                 width: 100%;
             }
-
             .footer-actions {
                 flex-direction: row;
                 flex-wrap: wrap;
                 justify-content: center;
                 gap: 8px;
             }
-
             .footer-actions .btn {
                 min-width: 120px;
-            }
-
-            .winner-title {
-                font-size: 2.5rem;
-            }
-
-            .winner-stats {
-                max-height: 45vh;
             }
         }
 
         @media (max-width: 768px) {
             .winner-title {
                 font-size: 2rem;
-                margin: 15px 0 20px 0 !important;
             }
-
-            .winner-stats {
-                max-height: 50vh;
-                gap: 10px !important;
-            }
-
-            .winner-stat {
-                padding: 15px;
-            }
-
             .winner-stat-value {
-                font-size: 1.5rem;
+                font-size: 1.6rem;
             }
         }
 
         @media (max-width: 480px) {
             .winner-title {
-                font-size: 1.8rem !important;
-                margin: 10px 0 15px 0 !important;
+                font-size: 1.8rem;
             }
-
-            .winner-stats {
-                max-height: 55vh !important;
-                gap: 8px !important;
-                padding: 5px !important;
-            }
-
             .winner-stat {
-                padding: 12px !important;
+                padding: 12px;
             }
-
             .winner-stat-value {
-                font-size: 1.2rem !important;
+                font-size: 1.4rem;
             }
-
             .winner-stat-label {
-                font-size: 0.75rem !important;
+                font-size: 0.9rem;
             }
-
             #rematchBtn {
-                width: 160px !important;
-                padding: 10px !important;
-                font-size: 0.875rem !important;
+                width: 160px;
+                padding: 10px;
             }
         }
 
         @media (max-width: 360px) {
             .winner-title {
-                font-size: 1.5rem !important;
+                font-size: 1.5rem;
             }
-
-            .winner-stats {
-                max-height: 60vh !important;
-            }
-
             .winner-stat {
-                padding: 10px !important;
+                padding: 10px;
             }
-
             .winner-stat-value {
-                font-size: 1rem !important;
+                font-size: 1.2rem;
             }
-
             #rematchBtn {
-                width: 140px !important;
+                width: 140px;
             }
         }
-        /* ========================================
-   WINNER SCREEN - ВЕРТИКАЛЬНЫЙ СКРОЛЛИНГ
-   ======================================== */
-.winner-screen {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(10,12,18,0.98);
-    backdrop-filter: blur(20px);
-    z-index: 10000;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
-    padding: 20px 15px;
-    text-align: center;
-    box-sizing: border-box;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: flex-start !important;
-}
-
-.winner-screen.visible {
-    opacity: 1 !important;
-    visibility: visible !important;
-}
-    
-    /* ВАЖНО: вертикальный скроллинг */
-    overflow-y: auto !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: flex-start !important;
-}
-
-.winner-screen.visible {
-    opacity: 1 !important;
-    visibility: visible !important;
-    pointer-events: auto !important;
-}
-
-.winner-title {
-    font-size: 2rem;
-    font-weight: 900;
-    margin: 10px 0 15px 0 !important;
-    text-transform: uppercase;
-    animation: winGlow 2s ease-in-out infinite;
-    text-shadow: 0 0 30px currentColor;
-    line-height: 1.1;
-    width: 100%;
-    flex-shrink: 0;
-}
-
-@keyframes winGlow {
-    0%, 100% { filter: brightness(1); transform: scale(1); }
-    50% { filter: brightness(1.4); transform: scale(1.05); }
-}
-
-.winner-stats {
-    width: 100%;
-    max-width: 400px;
-    margin: 0 0 15px 0 !important;
-    
-    /* ВАЖНО: вертикальный список */
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 10px !important;
-    
-    /* ВАЖНО: скроллинг если много */
-    padding: 8px !important;
-    flex-shrink: 1;
-}
-
-.winner-stat {
-    width: 100%;
-    text-align: center;
-    padding: 12px;
-    background: var(--color-bg-tertiary);
-    border-radius: var(--border-radius-md);
-    border: 1px solid var(--color-border);
-    flex-shrink: 0;
-}
-
-.winner-stat-value {
-    font-size: 1.5rem;
-    font-weight: 900;
-    font-family: var(--font-mono);
-    margin-bottom: 5px;
-}
-
-.winner-stat-label {
-    font-size: 0.9rem;
-    color: var(--color-text-secondary);
-}
-
-#rematchBtn {
-    margin: 10px auto 20px auto !important;
-    width: 180px !important;
-    flex-shrink: 0;
-    padding: 10px 15px !important;
-}
-
-/* МОБИЛЬНЫЕ ТЕЛЕФОНЫ */
-@media (max-width: 768px) {
-    .winner-title {
-        font-size: 1.8rem;
-        margin: 8px 0 12px 0 !important;
-    }
-    
-    .winner-stats {
-        max-height: 65vh;
-        gap: 8px !important;
-        padding: 5px !important;
-    }
-    
-    .winner-stat {
-        padding: 10px;
-    }
-    
-    .winner-stat-value {
-        font-size: 1.3rem;
-    }
-    
-    .winner-stat-label {
-        font-size: 0.8rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .winner-title {
-        font-size: 1.5rem;
-        margin: 5px 0 10px 0 !important;
-    }
-    
-    .winner-stats {
-        max-height: 70vh;
-        gap: 6px !important;
-    }
-    
-    .winner-stat {
-        padding: 8px;
-    }
-    
-    .winner-stat-value {
-        font-size: 1.2rem;
-    }
-    
-    .winner-stat-label {
-        font-size: 0.75rem;
-    }
-    
-    #rematchBtn {
-        width: 150px !important;
-        padding: 8px 12px !important;
-        font-size: 0.9rem !important;
-    }
-}
-
-@media (max-width: 360px) {
-    .winner-title {
-        font-size: 1.3rem;
-    }
-    
-    .winner-stats {
-        max-height: 75vh;
-    }
-    
-    .winner-stat {
-        padding: 6px;
-    }
-    
-    .winner-stat-value {
-        font-size: 1.1rem;
-    }
-    
-    #rematchBtn {
-        width: 130px !important;
-    }
-}
     </style>
 </head>
 <body>
@@ -1475,11 +1338,11 @@
          * NEURAL FIGHTER PRO - Professional Production Build
          * 
          * FIXES APPLIED:
-         * 1. Stamina and energy limits REMOVED from movement and jump - neural network can now move freely
-         * 2. Added fallback actions - if an attack fails, try moving or jumping instead
-         * 3. Evolution persistence - fighters now learn across multiple fights
-         * 4. Proper attack variety - removed bias toward specific attacks
-         * 5. DQN learning rate adjusted for faster convergence
+         * 1. Stamina and energy limits REMOVED from movement and jump
+         * 2. Added fallback actions
+         * 3. Evolution persistence
+         * 4. Proper attack variety
+         * 5. DQN learning rate adjusted
          * 6. FIXED: GEN now persists between fights
          * 7. FIXED: Neural network now moves toward opponent
          * 8. FIXED: Winner screen now has VERTICAL SCROLLING
