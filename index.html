@@ -1378,6 +1378,8 @@
          * 4. Defense properly manages duration and state transitions
          * 5. Emotion grid updates use correct DOM element selection
          * 6. State machine properly handles all transitions
+         * 7. FIXED: Damage application now works correctly
+         * 8. FIXED: Collision detection prevents fighters from passing through each other
          */
         (function() {
             'use strict';
@@ -1405,7 +1407,8 @@
                     dashCooldown: 45,
                     jumpForce: -16,
                     doubleJumpForce: -13,
-                    airControl: 0.7
+                    airControl: 0.7,
+                    collisionPushForce: 0.5
                 },
                 
                 fighter: {
@@ -1420,7 +1423,8 @@
                     blockstunBase: 4,
                     knockdownThreshold: 0,
                     invincibilityFrames: 15,
-                    defenseDuration: 30
+                    defenseDuration: 30,
+                    minDistance: 70
                 },
                 
                 combat: {
@@ -2366,15 +2370,15 @@
                     this.frame = 0;
                     this.animationFrame = 0;
                     this.attackTimer = 0;
-                    this.attackFrame = 0; // Current frame of attack animation
+                    this.attackFrame = 0;
                     this.attackData = null;
                     this.hitstun = 0;
                     this.blockstun = 0;
                     this.invincible = 0;
                     this.knockdownTimer = 0;
                     this.attackCooldown = 0;
-                    this.blockTimer = 0; // FIX: Initialize block timer
-                    this.defenseTimer = 0; // Timer for defense duration
+                    this.blockTimer = 0;
+                    this.defenseTimer = 0;
                     this.comboTimer = 0;
                     
                     // Combat Systems
@@ -2506,6 +2510,25 @@
                     ];
                 }
                 
+                // FIX: Added collision handling method
+                _handleCollision(opponent) {
+                    const minDist = Config.fighter.minDistance;
+                    const dx = opponent.x - this.x;
+                    const dist = Math.abs(dx);
+                    
+                    if (dist < minDist) {
+                        const overlap = minDist - dist;
+                        const direction = dx > 0 ? 1 : -1;
+                        
+                        // Don't push if either fighter is in a special state
+                        if (this.state !== 'attack' && this.state !== 'hit' && this.state !== 'knockdown' && 
+                            opponent.state !== 'attack' && opponent.state !== 'hit' && opponent.state !== 'knockdown') {
+                            this.x -= direction * overlap * 0.5;
+                            opponent.x += direction * overlap * 0.5;
+                        }
+                    }
+                }
+                
                 update(opponent, input, arenaBounds, deltaTime = 1) {
                     // Handle knockdown recovery
                     if (this.knockdownTimer > 0) {
@@ -2553,9 +2576,8 @@
                         this.attackTimer -= deltaTime;
                         
                         // Create/update hitbox only during active frames
-                        if (this.attackData && this.hitbox) {
+                        if (this.attackData) {
                             const attack = this.attackData;
-                            const totalFrames = attack.startup + attack.active + attack.recovery;
                             
                             // Determine current phase
                             if (this.attackFrame < attack.startup) {
@@ -2587,6 +2609,11 @@
                     
                     // Boundary collision
                     this._handleBoundaries(arenaBounds);
+                    
+                    // FIX: Handle collision with opponent
+                    if (opponent) {
+                        this._handleCollision(opponent);
+                    }
                     
                     // Ground collision
                     if (this.y >= arenaBounds.floorY) {
@@ -2748,12 +2775,12 @@
                     // Check resources
                     if (this.energy < attack.energy) return false;
                     
-                    // Execute attack - FIX: Initialize attack frame properly
+                    // Execute attack
                     this.state = 'attack';
                     this.subState = attack.name;
                     this.attackData = attack;
                     this.attackTimer = attack.startup + attack.active + attack.recovery;
-                    this.attackFrame = 0; // Reset frame counter
+                    this.attackFrame = 0;
                     this.currentAttack = attackId;
                     this.energy -= attack.energy;
                     this.attacksThrown++;
@@ -2793,7 +2820,6 @@
                     this.currentDefense = defenseType;
                     this.energy -= defenseType.energyCost;
                     
-                    // FIX: Set defense duration based on type
                     if (defenseType.name === 'Dodge') {
                         this.defenseTimer = defenseType.duration || 10;
                         this.invincible = defenseType.duration || 10;
@@ -2806,6 +2832,7 @@
                     return true;
                 }
                 
+                // FIX: Fixed damage application
                 takeDamage(attacker, attack) {
                     if (this.invincible > 0) return { hit: false, damage: 0 };
                     
@@ -2817,12 +2844,13 @@
                         const def = this.currentDefense;
                         
                         if (def.name === 'Block') {
-                            if (attack.type === 'light' || attack.type === 'medium') {
-                                damage *= def.damageMod;
-                                hitstun *= def.hitstunMod;
-                                this.blockstun = def.blockstun || Config.combat.blockstunBase;
-                                defended = true;
-                            }
+                            // Block reduces damage but doesn't nullify it
+                            damage *= def.damageMod;
+                            hitstun *= def.hitstunMod;
+                            this.blockstun = def.blockstun || Config.combat.blockstunBase;
+                            defended = true;
+                            // Apply damage immediately for block
+                            this.hp = Utils.clamp(this.hp - damage, 0, this.maxHp);
                         } else if (def.name === 'Dodge') {
                             damage = 0;
                             defended = true;
@@ -2831,17 +2859,21 @@
                                 damage = 0;
                                 defended = true;
                                 attacker.hitstun = 10;
+                            } else {
+                                defended = false;
                             }
                         } else if (def.name === 'Crouch') {
                             if (attack.overhead) {
                                 damage = 0;
                                 defended = true;
+                            } else {
+                                defended = false;
                             }
                         }
                     }
                     
-                    // Apply damage
-                    if (!defended || damage > 0) {
+                    // Apply damage if not defended or defense failed
+                    if (!defended) {
                         this.hp = Utils.clamp(this.hp - damage, 0, this.maxHp);
                         this.hitstun = hitstun;
                         this.damageTaken += damage;
@@ -2906,7 +2938,7 @@
                         hb.y + hb.h > hbOpp.y - Config.combat.hitboxTolerance;
                     
                     if (collision) {
-                        this.hitbox = null; // Clear to prevent multiple hits
+                        this.hitbox = null;
                         return true;
                     }
                     
@@ -3368,7 +3400,7 @@
                 }
                 
                 render(f1, f2) {
-                                        this.clear();
+                    this.clear();
                     this.drawGrid();
                     const arenaBounds = this.drawArena();
                     
@@ -3597,7 +3629,6 @@
                     updateDot(el[`${prefix}Special`], fighter.superMeter >= Config.combat.superMeterCost, 'dot-special');
                     updateDot(el[`${prefix}Combo`], fighter.comboCount > 1, 'dot-special');
                     
-                    // Emotions
                     const emotionContainer = el[`${prefix}Emotions`];
                     if (emotionContainer) {
                         emotionNames.forEach(emotion => {
@@ -4176,4 +4207,4 @@
         })();
     </script>
 </body>
-</html>
+    </html>
