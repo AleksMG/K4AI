@@ -75,41 +75,352 @@
             --border-radius-xl: 32px;
         }
 
-        @media (max-width: 1200px) {
-            :root {
-                --panel-width: 280px;
-            }
-        }
+        /* ========================================
+   АДАПТИВНОСТЬ ДЛЯ ВСЕХ УСТРОЙСТВ
+   ======================================== */
 
-        @media (max-width: 1024px) {
-            :root {
-                --header-height: 64px;
-                --footer-height: 240px;
-                --panel-width: 100%;
-                --font-size-xxl: 1.5rem;
-                --font-size-xxxl: 2rem;
-            }
-        }
+/* От 4K до 1920px */
+@media (min-width: 1921px) {
+    :root {
+        --header-height: 100px;
+        --footer-height: 350px;
+        --panel-width: 400px;
+        --font-size-xxxl: 4rem;
+        --font-size-xxl: 2.5rem;
+        --font-size-xl: 2rem;
+        --spacing-lg: 32px;
+    }
+}
 
-        @media (max-width: 768px) {
-            :root {
-                --header-height: 56px;
-                --footer-height: 220px;
-                --spacing-md: 12px;
-                --spacing-lg: 16px;
-            }
-        }
+/* Десктоп 1920px */
+@media (max-width: 1920px) and (min-width: 1441px) {
+    :root {
+        --header-height: 80px;
+        --footer-height: 300px;
+        --panel-width: 350px;
+    }
+}
 
-        @media (max-width: 480px) {
-            :root {
-                --header-height: 52px;
-                --footer-height: 200px;
-                --spacing-sm: 6px;
-                --spacing-md: 10px;
-                --font-size-sm: 0.8rem;
-                --font-size-md: 0.9rem;
-            }
-        }
+/* Ноутбуки 1440px */
+@media (max-width: 1440px) and (min-width: 1025px) {
+    :root {
+        --header-height: 70px;
+        --footer-height: 280px;
+        --panel-width: 300px;
+        --font-size-lg: 1.1rem;
+    }
+}
+
+/* Планшеты горизонтально 1024px */
+@media (max-width: 1024px) and (min-width: 769px) {
+    :root {
+        --header-height: 60px;
+        --footer-height: 260px;
+        --panel-width: 280px;
+        --font-size-lg: 1rem;
+    }
+}
+
+/* Планшеты вертикально 768px */
+@media (max-width: 768px) and (min-width: 481px) {
+    :root {
+        --header-height: 55px;
+        --footer-height: auto;
+        --panel-width: 100%;
+        --spacing-md: 12px;
+        --font-size-xxl: 1.8rem;
+        --font-size-xxxl: 2.2rem;
+    }
+
+    .app {
+        grid-template-columns: 1fr;
+        grid-template-rows: var(--header-height) 40vh auto auto auto;
+        grid-template-areas: 
+            "header"
+            "arena"
+            "left"
+            "right"
+            "footer";
+        overflow-y: auto;
+        padding: 5px;
+        gap: 5px;
+    }
+
+    .arena {
+        min-height: 300px;
+    }
+
+    .panel-left, .panel-right {
+        max-height: none;
+    }
+
+    .footer {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding-bottom: 20px;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .footer-actions {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .footer-actions .btn {
+        flex: 0 1 auto;
+        min-width: 120px;
+        padding: 10px 15px;
+        font-size: 14px;
+    }
+}
+
+/* Телефоны 480px */
+@media (max-width: 480px) {
+    :root {
+        --header-height: 50px;
+        --footer-height: auto;
+        --panel-width: 100%;
+        --spacing-sm: 4px;
+        --spacing-md: 8px;
+        --spacing-lg: 12px;
+        --font-size-sm: 12px;
+        --font-size-md: 14px;
+        --font-size-lg: 16px;
+        --font-size-xl: 18px;
+        --font-size-xxl: 20px;
+        --font-size-xxxl: 24px;
+    }
+
+    .app {
+        grid-template-columns: 1fr;
+        grid-template-rows: var(--header-height) 35vh auto auto auto;
+        grid-template-areas: 
+            "header"
+            "arena"
+            "left"
+            "right"
+            "footer";
+        overflow-y: auto;
+        padding: 3px;
+        gap: 3px;
+    }
+
+    .header {
+        padding: 0 10px;
+    }
+
+    .logo h1 {
+        font-size: 14px;
+    }
+
+    .gen-badge {
+        padding: 4px 8px;
+        font-size: 11px;
+    }
+
+    .header-controls .btn {
+        padding: 4px 8px;
+        font-size: 11px;
+        min-height: 30px;
+    }
+
+    .arena {
+        min-height: 250px;
+    }
+
+    .panel {
+        padding: 10px;
+    }
+
+    .panel-header {
+        font-size: 14px;
+        padding-bottom: 8px;
+        margin-bottom: 8px;
+    }
+
+    .stat-row {
+        font-size: 12px;
+        padding: 2px 0;
+    }
+
+    .stat-value {
+        min-width: 30px;
+    }
+
+    .progress-bar {
+        height: 6px;
+        margin: 2px 0;
+    }
+
+    .emotion-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 3px;
+        margin: 8px 0;
+    }
+
+    .emotion-item {
+        padding: 2px 5px;
+        font-size: 10px;
+    }
+
+    .activity {
+        padding: 5px;
+        margin: 8px 0;
+        flex-wrap: wrap;
+    }
+
+    .footer {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        padding-bottom: 15px;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 5px;
+    }
+
+    .stat-card {
+        padding: 8px 5px;
+    }
+
+    .stat-card .value {
+        font-size: 16px;
+    }
+
+    .stat-card div:last-child {
+        font-size: 10px;
+    }
+
+    .fighter-list {
+        max-height: 80px;
+        font-size: 11px;
+    }
+
+    .fighter-row {
+        padding: 3px 5px;
+    }
+
+    .log-header {
+        font-size: 12px;
+        padding-bottom: 5px;
+        margin-bottom: 5px;
+    }
+
+    .log-messages {
+        max-height: 80px;
+        font-size: 10px;
+    }
+
+    .footer-actions {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 5px;
+    }
+
+    .footer-actions .btn {
+        flex: 1 1 auto;
+        min-width: 90px;
+        padding: 8px 5px;
+        font-size: 11px;
+        min-height: 36px;
+    }
+
+    .winner-title {
+        font-size: 28px;
+    }
+
+    .winner-stats {
+        gap: 10px;
+        padding: 0 10px;
+    }
+
+    .winner-stat {
+        padding: 8px;
+    }
+
+    .winner-stat-value {
+        font-size: 20px;
+    }
+
+    .winner-stat-label {
+        font-size: 10px;
+    }
+
+    .fight-btn {
+        padding: 15px 30px;
+        font-size: 16px;
+        min-width: 200px;
+    }
+
+    .selector-card {
+        padding: 15px;
+        min-width: 240px;
+    }
+
+    .selector-card h2 {
+        font-size: 18px;
+        margin-bottom: 12px;
+    }
+
+    .selector-group select {
+        padding: 6px 10px;
+        font-size: 12px;
+        min-height: 36px;
+    }
+}
+
+/* Очень маленькие телефоны 320px */
+@media (max-width: 360px) {
+    :root {
+        --font-size-xxxl: 20px;
+    }
+
+    .logo h1 {
+        font-size: 12px;
+    }
+
+    .gen-badge {
+        padding: 3px 5px;
+        font-size: 10px;
+    }
+
+    .header-controls .btn {
+        padding: 3px 5px;
+        font-size: 10px;
+    }
+
+    .footer-actions .btn {
+        min-width: 70px;
+        font-size: 10px;
+        padding: 6px 3px;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .stat-card .value {
+        font-size: 14px;
+    }
+
+    .selector-card {
+        min-width: 200px;
+        padding: 10px;
+    }
+
+    .fight-btn {
+        padding: 12px 20px;
+        font-size: 14px;
+        min-width: 160px;
+    }
+}
 
         html {
             font-size: 16px;
