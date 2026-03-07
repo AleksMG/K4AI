@@ -1371,15 +1371,12 @@
         /**
          * NEURAL FIGHTER PRO - Professional Production Build
          * 
-         * Key fixes applied:
-         * 1. All timers properly initialized in Fighter constructor
-         * 2. Attack frame data properly tracked (startup/active/recovery phases)
-         * 3. Hitbox only active during "active" frames
-         * 4. Defense properly manages duration and state transitions
-         * 5. Emotion grid updates use correct DOM element selection
-         * 6. State machine properly handles all transitions
-         * 7. FIXED: Damage application now works correctly
-         * 8. FIXED: Collision detection prevents fighters from passing through each other
+         * FIXES APPLIED:
+         * 1. Stamina and energy limits REMOVED from movement and jump - neural network can now move freely
+         * 2. Added fallback actions - if an attack fails, try moving or jumping instead
+         * 3. Evolution persistence - fighters now learn across multiple fights
+         * 4. Proper attack variety - removed bias toward specific attacks
+         * 5. DQN learning rate adjusted for faster convergence
          */
         (function() {
             'use strict';
@@ -1440,15 +1437,15 @@
                     inputSize: 42,
                     hiddenSize: 128,
                     outputSize: 28,
-                    learningRate: 0.0001,
-                    discountFactor: 0.99,
-                    epsilonStart: 0.5,
-                    epsilonMin: 0.01,
-                    epsilonDecay: 0.9995,
-                    batchSize: 32,
-                    memorySize: 5000,
-                    targetUpdate: 100,
-                    tau: 0.005
+                    learningRate: 0.001,  // Increased for faster learning
+                    discountFactor: 0.95,   // Slightly lower for more immediate rewards
+                    epsilonStart: 0.7,       // More exploration initially
+                    epsilonMin: 0.05,
+                    epsilonDecay: 0.998,
+                    batchSize: 64,           // Larger batches for stability
+                    memorySize: 10000,        // More memory
+                    targetUpdate: 50,
+                    tau: 0.01
                 },
                 
                 evolution: {
@@ -2721,25 +2718,25 @@
                     }
                 }
                 
+                // FIX: Removed stamina checks for movement
                 move(direction) {
-                    if (this.state !== 'idle' && this.state !== 'walk') return false;
-                    if (this.stamina < 1) return false;
+                    if (this.state !== 'idle' && this.state !== 'walk' && this.state !== 'jump') return false;
                     
                     const speed = 4 * this.speedMod;
                     this.vx = direction * speed;
                     this.state = 'walk';
-                    this.stamina -= 0.3;
+                    // Stamina not consumed for movement
                     return true;
                 }
                 
+                // FIX: Removed stamina checks for jump
                 jump() {
                     if (this.jumpsRemaining <= 0) return false;
-                    if (this.stamina < 2) return false;
                     
                     this.vy = Config.physics.jumpForce * this.jumpMod;
                     this.isJumping = true;
                     this.jumpsRemaining--;
-                    this.stamina -= 2;
+                    // Stamina not consumed for jump
                     return true;
                 }
                 
@@ -2759,7 +2756,8 @@
                 }
                 
                 attack(attackId) {
-                    if (this.state !== 'idle' && this.state !== 'walk') return false;
+                    // Allow attacking from any state except hit/knockdown
+                    if (this.state === 'hit' || this.state === 'knockdown') return false;
                     if (this.hitstun > 0 || this.blockstun > 0) return false;
                     if (this.attackCooldown > 0) return false;
                     
@@ -2812,7 +2810,7 @@
                 }
                 
                 defend(defenseType) {
-                    if (this.state !== 'idle' && this.state !== 'walk') return false;
+                    if (this.state !== 'idle' && this.state !== 'walk' && this.state !== 'jump') return false;
                     if (this.energy < defenseType.energyCost) return false;
                     
                     this.state = 'defend';
@@ -3282,6 +3280,10 @@
                         const attack = ATTACKS[action];
                         if (attack && fighter.energy >= attack.energy) {
                             fighter.attack(action);
+                        } else {
+                            // If attack fails, try moving toward opponent
+                            const dir = opponent.x > fighter.x ? 1 : -1;
+                            fighter.move(dir);
                         }
                     } else if (action >= 20 && action < 25) {
                         const defenseTypes = [DEFENSE.BLOCK, DEFENSE.PARRY, DEFENSE.DODGE, DEFENSE.CROUCH, DEFENSE.NONE];
@@ -3940,11 +3942,11 @@
                     if (action < 20 && fighter.attackCooldown <= 0) {
                         const attack = ATTACKS[action];
                         if (attack && fighter.energy >= attack.energy) {
-                            if (fighter.attack(action)) {
-                                if (attack.type === 'special' || attack.type === 'super') {
-                                    this.renderer.createDash(fighter.x + fighter.facing * 30, fighter.y - 30, fighter.color);
-                                }
-                            }
+                            fighter.attack(action);
+                        } else {
+                            // Fallback: if attack fails, move toward opponent
+                            const dir = opponent.x > fighter.x ? 1 : -1;
+                            fighter.move(dir);
                         }
                     } else if (action >= 20 && action < 25) {
                         const defenses = [DEFENSE.BLOCK, DEFENSE.PARRY, DEFENSE.DODGE, DEFENSE.CROUCH, DEFENSE.NONE];
@@ -3956,7 +3958,7 @@
                         const dir = opponent.x > fighter.x ? -1 : 1;
                         fighter.move(dir);
                     } else if (action === 27) {
-                        if (fighter.jump()) this.renderer.createJump(fighter.x, fighter.y + 40, fighter.color);
+                        fighter.jump();
                     }
                 }
                 
@@ -3964,7 +3966,7 @@
                     const dist = Utils.distance(fighter.x, fighter.y, opponent.x, opponent.y);
                     
                     if (dist < 120 && fighter.attackCooldown <= 0) {
-                        fighter.attack(Utils.randomInt(0, 4));
+                        fighter.attack(Utils.randomInt(0, 19)); // Use any attack
                     } else if (dist < 200) {
                         const dir = opponent.x > fighter.x ? 1 : -1;
                         fighter.move(dir);
@@ -4000,6 +4002,27 @@
                     
                     winner.state = 'win';
                     loser.state = 'lose';
+                    
+                    // Save results to population for learning
+                    if (this.f1.architecture === 'neural' && this.f1.brain) {
+                        const idx = 0; // Alpha uses first fighter
+                        if (this.population.fighters[idx]) {
+                            this.population.fighters[idx].fitness += this.f1.totalReward;
+                            if (winner === this.f1) this.population.fighters[idx].wins++;
+                            else this.population.fighters[idx].losses++;
+                            this.population.fighters[idx].avgCombo = Math.max(this.population.fighters[idx].avgCombo, this.f1.maxCombo);
+                        }
+                    }
+                    
+                    if (this.f2.architecture === 'neural' && this.f2.brain) {
+                        const idx = 1; // Beta uses second fighter
+                        if (this.population.fighters[idx]) {
+                            this.population.fighters[idx].fitness += this.f2.totalReward;
+                            if (winner === this.f2) this.population.fighters[idx].wins++;
+                            else this.population.fighters[idx].losses++;
+                            this.population.fighters[idx].avgCombo = Math.max(this.population.fighters[idx].avgCombo, this.f2.maxCombo);
+                        }
+                    }
                     
                     if (winner.brain) {
                         winner.brain.remember(
@@ -4207,4 +4230,4 @@
         })();
     </script>
 </body>
-    </html>
+                                                  </html>
