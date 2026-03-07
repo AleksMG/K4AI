@@ -1377,6 +1377,8 @@
          * 3. Evolution persistence - fighters now learn across multiple fights
          * 4. Proper attack variety - removed bias toward specific attacks
          * 5. DQN learning rate adjusted for faster convergence
+         * 6. FIXED: GEN now persists between fights
+         * 7. FIXED: Neural network now moves toward opponent
          */
         (function() {
             'use strict';
@@ -1437,13 +1439,13 @@
                     inputSize: 42,
                     hiddenSize: 128,
                     outputSize: 28,
-                    learningRate: 0.001,  // Increased for faster learning
-                    discountFactor: 0.95,   // Slightly lower for more immediate rewards
-                    epsilonStart: 0.7,       // More exploration initially
+                    learningRate: 0.001,
+                    discountFactor: 0.95,
+                    epsilonStart: 0.7,
                     epsilonMin: 0.05,
                     epsilonDecay: 0.998,
-                    batchSize: 64,           // Larger batches for stability
-                    memorySize: 10000,        // More memory
+                    batchSize: 64,
+                    memorySize: 10000,
                     targetUpdate: 50,
                     tau: 0.01
                 },
@@ -2725,7 +2727,6 @@
                     const speed = 4 * this.speedMod;
                     this.vx = direction * speed;
                     this.state = 'walk';
-                    // Stamina not consumed for movement
                     return true;
                 }
                 
@@ -2736,7 +2737,6 @@
                     this.vy = Config.physics.jumpForce * this.jumpMod;
                     this.isJumping = true;
                     this.jumpsRemaining--;
-                    // Stamina not consumed for jump
                     return true;
                 }
                 
@@ -3741,6 +3741,10 @@
                     this.f1 = null;
                     this.f2 = null;
                     
+                    // FIX: Store which population indices are being used
+                    this.alphaBrainIndex = undefined;
+                    this.betaBrainIndex = undefined;
+                    
                     this.running = false;
                     this.paused = false;
                     this.speed = 1;
@@ -3782,11 +3786,13 @@
                     el.evolveBtn?.addEventListener('click', () => {
                         this.population.runTournament();
                         UIManager.updatePopulationStats(this.population);
+                        Logger.system(`Evolution complete. Generation: ${this.population.generation}`);
                     });
                     
                     el.tournamentBtn?.addEventListener('click', () => {
                         this.population.runTournament();
                         UIManager.updatePopulationStats(this.population);
+                        Logger.system(`Tournament complete. Generation: ${this.population.generation}`);
                     });
                     
                     el.saveBrainBtn?.addEventListener('click', () => this.saveModel());
@@ -3829,13 +3835,16 @@
                     this.f1 = new Fighter(500, this.arenaBounds.floorY, '#ff4d4d', 'ALPHA', true, alphaConfig);
                     this.f2 = new Fighter(1420, this.arenaBounds.floorY, '#4da6ff', 'BETA', false, betaConfig);
                     
+                    // FIX: Store which population fighters we're using
                     if (alphaConfig.architecture === 'neural' && this.f1.brain) {
-                        const brainData = this.population.getFighter(0);
+                        this.alphaBrainIndex = 0; // Alpha uses first fighter
+                        const brainData = this.population.getFighter(this.alphaBrainIndex);
                         if (brainData?.brain) this.f1.brain = brainData.brain.clone();
                     }
                     
                     if (betaConfig.architecture === 'neural' && this.f2.brain) {
-                        const brainData = this.population.getFighter(1);
+                        this.betaBrainIndex = 1; // Beta uses second fighter
+                        const brainData = this.population.getFighter(this.betaBrainIndex);
                         if (brainData?.brain) this.f2.brain = brainData.brain.clone();
                     }
                     
@@ -3966,7 +3975,7 @@
                     const dist = Utils.distance(fighter.x, fighter.y, opponent.x, opponent.y);
                     
                     if (dist < 120 && fighter.attackCooldown <= 0) {
-                        fighter.attack(Utils.randomInt(0, 19)); // Use any attack
+                        fighter.attack(Utils.randomInt(0, 19));
                     } else if (dist < 200) {
                         const dir = opponent.x > fighter.x ? 1 : -1;
                         fighter.move(dir);
@@ -4003,26 +4012,33 @@
                     winner.state = 'win';
                     loser.state = 'lose';
                     
-                    // Save results to population for learning
-                    if (this.f1.architecture === 'neural' && this.f1.brain) {
-                        const idx = 0; // Alpha uses first fighter
+                    // FIX: Save results to population for learning
+                    if (this.f1.architecture === 'neural' && this.f1.brain && this.alphaBrainIndex !== undefined) {
+                        const idx = this.alphaBrainIndex;
                         if (this.population.fighters[idx]) {
+                            // Update the brain with the trained version
+                            this.population.fighters[idx].brain = this.f1.brain;
+                            // Update statistics
                             this.population.fighters[idx].fitness += this.f1.totalReward;
                             if (winner === this.f1) this.population.fighters[idx].wins++;
                             else this.population.fighters[idx].losses++;
-                            this.population.fighters[idx].avgCombo = Math.max(this.population.fighters[idx].avgCombo, this.f1.maxCombo);
+                            this.population.fighters[idx].avgCombo = Math.max(this.population.fighters[idx].avgCombo || 0, this.f1.maxCombo);
                         }
                     }
                     
-                    if (this.f2.architecture === 'neural' && this.f2.brain) {
-                        const idx = 1; // Beta uses second fighter
+                    if (this.f2.architecture === 'neural' && this.f2.brain && this.betaBrainIndex !== undefined) {
+                        const idx = this.betaBrainIndex;
                         if (this.population.fighters[idx]) {
+                            this.population.fighters[idx].brain = this.f2.brain;
                             this.population.fighters[idx].fitness += this.f2.totalReward;
                             if (winner === this.f2) this.population.fighters[idx].wins++;
                             else this.population.fighters[idx].losses++;
-                            this.population.fighters[idx].avgCombo = Math.max(this.population.fighters[idx].avgCombo, this.f2.maxCombo);
+                            this.population.fighters[idx].avgCombo = Math.max(this.population.fighters[idx].avgCombo || 0, this.f2.maxCombo);
                         }
                     }
+                    
+                    // Update UI with new population stats
+                    UIManager.updatePopulationStats(this.population);
                     
                     if (winner.brain) {
                         winner.brain.remember(
@@ -4230,4 +4246,4 @@
         })();
     </script>
 </body>
-                                                  </html>
+    </html>
