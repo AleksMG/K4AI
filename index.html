@@ -2600,6 +2600,7 @@
                     if (this.dashCooldown > 0) this.dashCooldown -= deltaTime;
                     if (this.dashTimer > 0) this.dashTimer -= deltaTime;
                     if (this.attackTimer > 0) this.attackTimer -= deltaTime;
+                    if (this.blockTimer > 0) this.blockTimer -= deltaTime;
                     if (this.attackCooldown > 0) this.attackCooldown -= deltaTime;
                     if (this.comboTimer > 0) {
                         this.comboTimer -= deltaTime;
@@ -2636,7 +2637,14 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                             this.canDoubleJump = true;
                         }
                     }
-                    
+                    // Таймер защиты - 8 кадров
+    if (this.blockTimer > 0) {
+        this.blockTimer--;
+        if (this.blockTimer <= 0 && this.state === 'defend') {
+            this.state = 'idle';
+            this.currentDefense = null;
+        }
+    }
                     // Recovery
                     this._recoverResources(deltaTime);
                     
@@ -2840,15 +2848,17 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                 }
                 
                 defend(defenseType) {
-                    if (this.state !== 'idle') return false;
-                    if (this.energy < defenseType.energyCost) return false;
-                    
-                    this.state = 'defend';
-                    this.subState = defenseType.name;
-                    this.currentDefense = defenseType;
-                    this.energy -= defenseType.energyCost;
-                    
-                    return true;
+    if (this.state !== 'idle' && this.state !== 'walk') return false;
+    if (this.energy < defenseType.energyCost) return false;
+    
+    this.blockTimer = 8;  // ← ДОБАВЬ ЭТУ СТРОКУ!
+    
+    this.state = 'defend';
+    this.subState = defenseType.name;
+    this.currentDefense = defenseType;
+    this.energy -= defenseType.energyCost;
+    
+    return true;
                 }
                 
                 // Take damage
