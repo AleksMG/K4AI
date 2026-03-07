@@ -2606,18 +2606,20 @@
                         if (this.comboTimer <= 0) this.comboCount = 0;
                     }
 
-                    // === FIX: Сброс атаки после завершения анимации ===
-    if (this.state === 'attack' && this.attackTimer <= 0) {
-        this.state = 'idle';
-        this.subState = null;
-        this.attackData = null;
-        this.hitbox = null;
-    }
-                    // Update dash state
-                    if (this.isDashing && this.dashTimer <= 0) {
-                        this.isDashing = false;
-                        this.state = 'idle';
-                    }
+                    // Dash state (СНАЧАЛА)
+if (this.isDashing && this.dashTimer <= 0) {
+    this.isDashing = false;
+    this.state = 'idle';
+}
+
+// FIX (ПОТОМ)
+if (this.state === 'attack' && this.attackTimer <= 0) {
+    this.state = 'idle';
+    this.subState = null;
+    this.attackData = null;
+    this.hitbox = null;
+    this.currentAttack = null;
+}
                     
                     // Physics update
                     this._applyPhysics(deltaTime);
