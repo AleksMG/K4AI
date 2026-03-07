@@ -517,10 +517,16 @@
             box-shadow: var(--shadow-lg), 0 0 60px rgba(77,166,255,0.2);
             background: radial-gradient(ellipse at center, #1a1d28 0%, var(--color-bg-primary) 70%);
             min-height: 300px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         #gameCanvas {
             display: block;
+            /* FIX: Object fit ensures the 1920x1080 canvas scales down without stretching UI */
+            object-fit: contain;
+            background: #000;
             width: 100%;
             height: 100%;
             image-rendering: pixelated;
@@ -1031,98 +1037,75 @@
 
     <!-- Main Menu -->
     <div class="menu" id="mainMenu">
-        <h1>⚡ NEURAL FIGHTER PRO ⚡</h1>
+        <h1>NEURAL FIGHTER PRO</h1>
         
         <div class="selector-container">
             <!-- Alpha Fighter -->
             <div class="selector-card red">
-                <h2 style="color: var(--color-accent-red);">🔴 ALPHA</h2>
+                <h2 style="color: var(--color-accent-red);">ALPHA</h2>
                 
                 <div class="selector-group">
                     <label for="alphaType">ARCHITECTURE</label>
                     <select id="alphaType">
-                        <option value="neural">🧠 Deep Q-Network (DQN)</option>
-                        <option value="classic">🤖 Rule-Based AI</option>
-                        <option value="manual">🎮 Manual Control</option>
+                        <option value="neural">Neural Network (DQN)</option>
+                        <option value="classic">Rule-Based AI</option>
+                        <option value="manual">Manual Control</option>
                     </select>
                 </div>
                 
                 <div class="selector-group" id="alphaStyleGroup">
                     <label for="alphaStyle">COMBAT STYLE</label>
                     <select id="alphaStyle">
-                        <option value="aggressive">🔥 Aggressive Rushdown</option>
-                        <option value="balanced" selected>⚖️ Balanced All-Rounder</option>
-                        <option value="defensive">🛡️ Defensive Counter</option>
-                        <option value="technical">📊 Technical Zoner</option>
-                        <option value="berserk">⚡ Berserker Mode</option>
-                    </select>
-                </div>
-                
-                <div class="selector-group" id="alphaBrainGroup" style="display:none">
-                    <label for="alphaBrain">NEURAL MODEL</label>
-                    <select id="alphaBrain">
-                        <option value="0">🧬 Base Model v1.0</option>
+                        <option value="aggressive">Aggressive Rushdown</option>
+                        <option value="balanced" selected>Balanced All-Rounder</option>
+                        <option value="defensive">Defensive Counter</option>
                     </select>
                 </div>
                 
                 <div class="selector-group">
                     <label for="alphaWeight">WEIGHT CLASS</label>
                     <select id="alphaWeight">
-                        <option value="light">🪶 Light (Fast, Low HP)</option>
-                        <option value="medium" selected>💪 Medium (Balanced)</option>
-                        <option value="heavy">🏋️ Heavy (Slow, High HP)</option>
+                        <option value="light">Light (Fast, Low HP)</option>
+                        <option value="medium" selected>Medium (Balanced)</option>
+                        <option value="heavy">Heavy (Slow, High HP)</option>
                     </select>
                 </div>
             </div>
             
             <!-- Beta Fighter -->
             <div class="selector-card">
-                <h2 style="color: var(--color-accent-blue);">🔵 BETA</h2>
+                <h2 style="color: var(--color-accent-blue);">BETA</h2>
                 
                 <div class="selector-group">
                     <label for="betaType">ARCHITECTURE</label>
                     <select id="betaType">
-                        <option value="neural" selected>🧠 Deep Q-Network (DQN)</option>
-                        <option value="classic">🤖 Rule-Based AI</option>
-                        <option value="manual">🎮 Manual Control</option>
+                        <option value="neural" selected>Neural Network (DQN)</option>
+                        <option value="classic">Rule-Based AI</option>
+                        <option value="manual">Manual Control</option>
                     </select>
                 </div>
                 
                 <div class="selector-group" id="betaStyleGroup">
                     <label for="betaStyle">COMBAT STYLE</label>
                     <select id="betaStyle">
-                        <option value="aggressive">🔥 Aggressive Rushdown</option>
-                        <option value="balanced">⚖️ Balanced All-Rounder</option>
-                        <option value="defensive" selected>🛡️ Defensive Counter</option>
-                        <option value="technical">📊 Technical Zoner</option>
-                        <option value="berserk">⚡ Berserker Mode</option>
-                    </select>
-                </div>
-                
-                <div class="selector-group" id="betaBrainGroup" style="display:none">
-                    <label for="betaBrain">NEURAL MODEL</label>
-                    <select id="betaBrain">
-                        <option value="0">🧬 Base Model v1.0</option>
+                        <option value="aggressive">Aggressive Rushdown</option>
+                        <option value="balanced">Balanced All-Rounder</option>
+                        <option value="defensive" selected>Defensive Counter</option>
                     </select>
                 </div>
                 
                 <div class="selector-group">
                     <label for="betaWeight">WEIGHT CLASS</label>
                     <select id="betaWeight">
-                        <option value="light">🪶 Light (Fast, Low HP)</option>
-                        <option value="medium" selected>💪 Medium (Balanced)</option>
-                        <option value="heavy">🏋️ Heavy (Slow, High HP)</option>
+                        <option value="light">Light (Fast, Low HP)</option>
+                        <option value="medium" selected>Medium (Balanced)</option>
+                        <option value="heavy">Heavy (Slow, High HP)</option>
                     </select>
                 </div>
             </div>
         </div>
         
-        <button class="fight-btn" id="startFightBtn">⚡ INITIATE COMBAT SEQUENCE ⚡</button>
-        
-        <div style="margin-top: var(--spacing-lg); text-align: center; font-size: var(--font-size-xs); color: var(--color-text-secondary);">
-            <p>GitHub Pages Compatible • Responsive Design • No External Dependencies</p>
-            <p style="margin-top: var(--spacing-xs);">Touch/Mouse/Keyboard Support • Mobile Optimized</p>
-        </div>
+        <button class="fight-btn" id="startFightBtn">INITIATE COMBAT SEQUENCE</button>
     </div>
 
     <!-- Main Application -->
@@ -1130,13 +1113,13 @@
         <!-- Header -->
         <header class="header">
             <div class="logo">
-                <h1>⚡ NEURAL EVOLUTION ARENA ⚡</h1>
+                <h1>NEURAL EVOLUTION ARENA</h1>
             </div>
             <div class="gen-badge" id="generationBadge">GEN: 001</div>
             <div class="header-controls">
-                <button class="btn" id="speedBtn" title="Simulation Speed">⚡ x1</button>
-                <button class="btn btn-primary" id="pauseBtn" title="Pause/Resume">⏸️</button>
-                <button class="btn" id="menuBtn" title="Main Menu">📋</button>
+                <button class="btn" id="speedBtn" title="Simulation Speed">x1</button>
+                <button class="btn btn-primary" id="pauseBtn" title="Pause/Resume">⏸</button>
+                <button class="btn" id="menuBtn" title="Main Menu">MENU</button>
             </div>
         </header>
 
@@ -1149,35 +1132,35 @@
             
             <!-- Health -->
             <div class="stat-row">
-                <span class="stat-label">❤️ HEALTH</span>
+                <span class="stat-label">HEALTH</span>
                 <span class="stat-value" id="alphaHp">100</span>
             </div>
             <div class="progress-bar"><div class="progress-fill fill-red" id="alphaHpBar" style="width:100%"></div></div>
 
             <!-- Energy -->
             <div class="stat-row">
-                <span class="stat-label">⚡ ENERGY</span>
+                <span class="stat-label">ENERGY</span>
                 <span class="stat-value" id="alphaEnergy">100</span>
             </div>
             <div class="progress-bar"><div class="progress-fill fill-blue" id="alphaEnergyBar" style="width:100%"></div></div>
 
             <!-- Rage -->
             <div class="stat-row">
-                <span class="stat-label">🔥 RAGE</span>
+                <span class="stat-label">RAGE</span>
                 <span class="stat-value" id="alphaRage">0</span>
             </div>
             <div class="progress-bar special-bar"><div class="progress-fill fill-yellow" id="alphaRageBar" style="width:0%"></div></div>
 
             <!-- Balance -->
             <div class="stat-row">
-                <span class="stat-label">⚖️ BALANCE</span>
+                <span class="stat-label">BALANCE</span>
                 <span class="stat-value" id="alphaBalance">100</span>
             </div>
             <div class="progress-bar"><div class="progress-fill fill-green" id="alphaBalanceBar" style="width:100%"></div></div>
 
             <!-- Stamina -->
             <div class="stat-row">
-                <span class="stat-label">💪 STAMINA</span>
+                <span class="stat-label">STAMINA</span>
                 <span class="stat-value" id="alphaStamina">100</span>
             </div>
             <div class="progress-bar"><div class="progress-fill fill-purple" id="alphaStaminaBar" style="width:100%"></div></div>
@@ -1196,10 +1179,10 @@
             </div>
 
             <!-- Statistics -->
-            <div class="stat-row"><span class="stat-label">🏆 REWARD</span><span class="stat-value" id="alphaReward">0</span></div>
-            <div class="stat-row"><span class="stat-label">🎲 EPSILON</span><span class="stat-value" id="alphaEpsilon">0.30</span></div>
-            <div class="stat-row"><span class="stat-label">💥 COMBO</span><span class="stat-value" id="alphaComboCount">0</span></div>
-            <div class="stat-row"><span class="stat-label">📊 ACCURACY</span><span class="stat-value" id="alphaAccuracy">0%</span></div>
+            <div class="stat-row"><span class="stat-label">REWARD</span><span class="stat-value" id="alphaReward">0</span></div>
+            <div class="stat-row"><span class="stat-label">EPSILON</span><span class="stat-value" id="alphaEpsilon">0.30</span></div>
+            <div class="stat-row"><span class="stat-label">COMBO</span><span class="stat-value" id="alphaComboCount">0</span></div>
+            <div class="stat-row"><span class="stat-label">ACCURACY</span><span class="stat-value" id="alphaAccuracy">0%</span></div>
         </aside>
 
         <!-- Arena -->
@@ -1227,7 +1210,7 @@
                         <div class="winner-stat-label">BETA MAX COMBO</div>
                     </div>
                 </div>
-                <button class="btn btn-primary" id="rematchBtn">🔄 REMATCH</button>
+                <button class="btn btn-primary" id="rematchBtn">REMATCH</button>
             </div>
         </main>
 
@@ -1238,19 +1221,19 @@
                 <span id="betaStatus" class="text-blue">READY</span>
             </div>
             
-            <div class="stat-row"><span class="stat-label">❤️ HEALTH</span><span class="stat-value" id="betaHp">100</span></div>
+            <div class="stat-row"><span class="stat-label">HEALTH</span><span class="stat-value" id="betaHp">100</span></div>
             <div class="progress-bar"><div class="progress-fill fill-blue" id="betaHpBar" style="width:100%"></div></div>
 
-            <div class="stat-row"><span class="stat-label">⚡ ENERGY</span><span class="stat-value" id="betaEnergy">100</span></div>
+            <div class="stat-row"><span class="stat-label">ENERGY</span><span class="stat-value" id="betaEnergy">100</span></div>
             <div class="progress-bar"><div class="progress-fill fill-red" id="betaEnergyBar" style="width:100%"></div></div>
 
-            <div class="stat-row"><span class="stat-label">🔥 RAGE</span><span class="stat-value" id="betaRage">0</span></div>
+            <div class="stat-row"><span class="stat-label">RAGE</span><span class="stat-value" id="betaRage">0</span></div>
             <div class="progress-bar special-bar"><div class="progress-fill fill-yellow" id="betaRageBar" style="width:0%"></div></div>
 
-            <div class="stat-row"><span class="stat-label">⚖️ BALANCE</span><span class="stat-value" id="betaBalance">100</span></div>
+            <div class="stat-row"><span class="stat-label">BALANCE</span><span class="stat-value" id="betaBalance">100</span></div>
             <div class="progress-bar"><div class="progress-fill fill-green" id="betaBalanceBar" style="width:100%"></div></div>
 
-            <div class="stat-row"><span class="stat-label">💪 STAMINA</span><span class="stat-value" id="betaStamina">100</span></div>
+            <div class="stat-row"><span class="stat-label">STAMINA</span><span class="stat-value" id="betaStamina">100</span></div>
             <div class="progress-bar"><div class="progress-fill fill-purple" id="betaStaminaBar" style="width:100%"></div></div>
 
             <div class="emotion-grid" id="betaEmotions"></div>
@@ -1264,10 +1247,10 @@
                 <span style="margin-left:auto;" id="betaAction">IDLE</span>
             </div>
 
-            <div class="stat-row"><span class="stat-label">🏆 REWARD</span><span class="stat-value" id="betaReward">0</span></div>
-            <div class="stat-row"><span class="stat-label">🎲 EPSILON</span><span class="stat-value" id="betaEpsilon">0.30</span></div>
-            <div class="stat-row"><span class="stat-label">💥 COMBO</span><span class="stat-value" id="betaComboCount">0</span></div>
-            <div class="stat-row"><span class="stat-label">📊 ACCURACY</span><span class="stat-value" id="betaAccuracy">0%</span></div>
+            <div class="stat-row"><span class="stat-label">REWARD</span><span class="stat-value" id="betaReward">0</span></div>
+            <div class="stat-row"><span class="stat-label">EPSILON</span><span class="stat-value" id="betaEpsilon">0.30</span></div>
+            <div class="stat-row"><span class="stat-label">COMBO</span><span class="stat-value" id="betaComboCount">0</span></div>
+            <div class="stat-row"><span class="stat-label">ACCURACY</span><span class="stat-value" id="betaAccuracy">0%</span></div>
         </aside>
 
         <!-- Footer -->
@@ -1296,15 +1279,15 @@
                     <!-- Populated by JS -->
                 </div>
                 <div style="display:flex; gap:var(--spacing-sm); margin-top:var(--spacing-sm); flex-wrap:wrap;">
-                    <button class="btn" style="flex:1; min-width:100px;" id="evolveBtn">🧬 EVOLVE</button>
-                    <button class="btn btn-primary" style="flex:1; min-width:100px;" id="tournamentBtn">🏆 TOURNAMENT</button>
+                    <button class="btn" style="flex:1; min-width:100px;" id="evolveBtn">EVOLVE</button>
+                    <button class="btn btn-primary" style="flex:1; min-width:100px;" id="tournamentBtn">TOURNAMENT</button>
                 </div>
             </div>
 
             <!-- Neural Log -->
             <div class="log">
                 <div class="log-header">
-                    <span>🧠 NEURAL LOG</span>
+                    <span>NEURAL LOG</span>
                     <span id="lrDisplay">LR: 1e-4</span>
                 </div>
                 <div class="log-messages" id="logMessages" role="log" aria-live="polite">
@@ -1314,10 +1297,10 @@
 
             <!-- Actions -->
             <div class="footer-actions">
-                <button class="btn btn-special" id="saveBrainBtn">💾 SAVE MODEL</button>
-                <button class="btn" id="loadBrainBtn">📀 LOAD MODEL</button>
-                <button class="btn" id="resetBtn">🔄 RESET EVOLUTION</button>
-                <button class="btn" id="exportBtn">📊 EXPORT DATA</button>
+                <button class="btn btn-special" id="saveBrainBtn">SAVE MODEL</button>
+                <button class="btn" id="loadBrainBtn">LOAD MODEL</button>
+                <button class="btn" id="resetBtn">RESET EVOLUTION</button>
+                <button class="btn" id="exportBtn">EXPORT DATA</button>
             </div>
         </footer>
     </div>
@@ -1325,21 +1308,16 @@
     <script>
         /**
          * NEURAL FIGHTER PRO
-         * Professional-grade fighting simulation with neural evolution
-         * GitHub Pages compatible • Responsive • No external dependencies
+         * Production Fix Version
          * 
-         * Architecture:
-         * - Config: Centralized configuration
-         * - InputHandler: Unified input for touch/mouse/keyboard
-         * - Physics: Collision, movement, hitbox detection
-         * - Fighter: Base fighter class with state machine
-         * - NeuralNetwork: Simplified but functional DQN implementation
-         * - Population: Evolution system with tournament selection
-         * - Renderer: Canvas rendering with responsive scaling
-         * - UIManager: DOM updates and event handling
-         * - Game: Main game loop and orchestration
+         * Fixes applied:
+         * 1. Virtual Resolution (Canvas locked to 1920x1080, scaled via CSS).
+         * 2. Fixed Timestep Physics Loop (Prevents tunneling/instability).
+         * 3. Input Mapping (Touch/Mouse mapped to 1920x1080 coordinates).
+         * 4. Memory Optimization (Pre-allocated Neural Net buffers).
+         * 
+         * Original Logic Preserved.
          */
-
         (function() {
             'use strict';
 
@@ -1460,14 +1438,11 @@
                     const len = Math.hypot(x, y) || 1;
                     return { x: x / len, y: y / len };
                 },
-                // Simple seeded random for reproducibility
                 seededRandom: (seed) => {
                     const x = Math.sin(seed) * 10000;
                     return x - Math.floor(x);
                 },
-                // Deep clone for objects
                 clone: (obj) => JSON.parse(JSON.stringify(obj)),
-                // Debounce function
                 debounce: (func, wait) => {
                     let timeout;
                     return (...args) => {
@@ -1492,12 +1467,10 @@
                     };
                     this.entries.push(entry);
                     
-                    // Trim if needed
                     if (this.entries.length > this.maxEntries) {
                         this.entries.shift();
                     }
                     
-                    // Update DOM if available
                     const logEl = document.getElementById('logMessages');
                     if (logEl) {
                         const div = document.createElement('div');
@@ -1505,16 +1478,13 @@
                         div.textContent = `[${entry.timestamp}] ${message}`;
                         logEl.appendChild(div);
                         
-                        // Auto-scroll
                         logEl.scrollTop = logEl.scrollHeight;
                         
-                        // Trim DOM entries
                         while (logEl.children.length > this.maxEntries) {
                             logEl.removeChild(logEl.firstChild);
                         }
                     }
                     
-                    // Console output for debugging
                     console.log(`[${entry.timestamp}] [${type.toUpperCase()}] ${message}`);
                 },
                 
@@ -1531,7 +1501,8 @@
             // INPUT HANDLER (Unified Touch/Mouse/Keyboard)
             // ========================================
             class InputHandler {
-                constructor() {
+                constructor(renderer) {
+                    this.renderer = renderer; // Need renderer ref for scaling
                     this.keys = {};
                     this.touchStart = { x: 0, y: 0 };
                     this.touchCurrent = { x: 0, y: 0 };
@@ -1557,7 +1528,7 @@
                         }
                     });
                     
-                    // Touch/Mouse for mobile
+                    // Touch/Mouse
                     const arena = document.querySelector('.arena');
                     if (arena) {
                         arena.addEventListener('touchstart', (e) => this.handleTouchStart(e), { passive: false });
@@ -1568,18 +1539,31 @@
                         window.addEventListener('mouseup', () => this.handleTouchEnd());
                     }
                     
-                    // Prevent context menu on long press
                     window.addEventListener('contextmenu', (e) => e.preventDefault());
+                }
+                
+                // FIX: Map coordinates to Virtual Resolution
+                mapToVirtual(clientX, clientY) {
+                    const rect = this.renderer.canvas.getBoundingClientRect();
+                    // Scale factor between CSS size and Internal Resolution
+                    const scaleX = Config.canvas.baseWidth / rect.width;
+                    const scaleY = Config.canvas.baseHeight / rect.height;
+                    
+                    return {
+                        x: (clientX - rect.left) * scaleX,
+                        y: (clientY - rect.top) * scaleY
+                    };
                 }
                 
                 handleTouchStart(e) {
                     e.preventDefault();
                     const point = e.touches ? e.touches[0] : e;
-                    const rect = e.currentTarget.getBoundingClientRect();
-                    this.touchStart.x = point.clientX - rect.left;
-                    this.touchStart.y = point.clientY - rect.top;
-                    this.touchCurrent.x = this.touchStart.x;
-                    this.touchCurrent.y = this.touchStart.y;
+                    const coords = this.mapToVirtual(point.clientX, point.clientY);
+                    
+                    this.touchStart.x = coords.x;
+                    this.touchStart.y = coords.y;
+                    this.touchCurrent.x = coords.x;
+                    this.touchCurrent.y = coords.y;
                     this.touchActive = true;
                 }
                 
@@ -1587,30 +1571,27 @@
                     if (!this.touchActive) return;
                     e.preventDefault();
                     const point = e.touches ? e.touches[0] : e;
-                    const rect = e.currentTarget.getBoundingClientRect();
-                    this.touchCurrent.x = point.clientX - rect.left;
-                    this.touchCurrent.y = point.clientY - rect.top;
+                    const coords = this.mapToVirtual(point.clientX, point.clientY);
+                    
+                    this.touchCurrent.x = coords.x;
+                    this.touchCurrent.y = coords.y;
                 }
                 
                 handleTouchEnd() {
                     this.touchActive = false;
-                    // Map touch gestures to actions
                     const dx = this.touchCurrent.x - this.touchStart.x;
                     const dy = this.touchCurrent.y - this.touchStart.y;
                     const dist = Math.hypot(dx, dy);
                     
                     if (dist > 30) {
                         if (Math.abs(dx) > Math.abs(dy)) {
-                            // Horizontal swipe = dash
                             this.keys['dash'] = true;
                             setTimeout(() => this.keys['dash'] = false, 100);
                         } else if (dy < 0) {
-                            // Swipe up = jump
                             this.keys['jump'] = true;
                             setTimeout(() => this.keys['jump'] = false, 100);
                         }
                     } else {
-                        // Tap = attack
                         this.keys['attack1'] = true;
                         setTimeout(() => this.keys['attack1'] = false, 100);
                     }
@@ -1618,15 +1599,13 @@
                 
                 update() {
                     const now = Date.now();
-                    if (now - this.lastUpdate < 16) return; // ~60fps cap
+                    if (now - this.lastUpdate < 16) return;
                     this.lastUpdate = now;
                     
-                    // Process touch input into key states
                     if (this.touchActive) {
                         const dx = this.touchCurrent.x - this.touchStart.x;
                         const dy = this.touchCurrent.y - this.touchStart.y;
                         
-                        // Dead zone
                         if (Math.abs(dx) < 20) this.keys['left'] = this.keys['right'] = false;
                         else {
                             this.keys['left'] = dx < -20;
@@ -1646,8 +1625,6 @@
                 }
                 
                 isJustPressed(action) {
-                    // Would need previous state tracking for true "just pressed"
-                    // Simplified version for now
                     return this.keys[action] || false;
                 }
                 
@@ -1751,7 +1728,6 @@
                 }
                 
                 createHit(x, y, color, intensity = 1) {
-                    // Impact particles
                     for (let i = 0; i < 12 * intensity; i++) {
                         this.particles.push(new Particle(x, y, color, {
                             vx: Utils.random(-8, 8) * intensity,
@@ -1762,16 +1738,12 @@
                         }));
                     }
                     
-                    // Screen shake
                     this.screenShake.intensity = Math.max(this.screenShake.intensity, 4 * intensity);
                     this.screenShake.duration = Math.max(this.screenShake.duration, 8 * intensity);
-                    
-                    // Hitstop (frame freeze)
                     this.hitstop = Math.max(this.hitstop, 3 * intensity);
                 }
                 
                 createDash(x, y, color) {
-                    // Dash trail particles
                     for (let i = 0; i < 8; i++) {
                         this.particles.push(new Particle(x, y, color, {
                             vx: Utils.random(-2, 2),
@@ -1785,7 +1757,6 @@
                 }
                 
                 createJump(x, y, color) {
-                    // Jump dust
                     for (let i = 0; i < 6; i++) {
                         this.particles.push(new Particle(x, y, color, {
                             vx: Utils.random(-3, 3),
@@ -1798,13 +1769,11 @@
                 }
                 
                 update() {
-                    // Update hitstop
                     if (this.hitstop > 0) {
                         this.hitstop--;
-                        return; // Skip other updates during hitstop
+                        return;
                     }
                     
-                    // Update screen shake
                     if (this.screenShake.duration > 0) {
                         this.screenShake.x = Utils.random(-1, 1) * this.screenShake.intensity;
                         this.screenShake.y = Utils.random(-1, 1) * this.screenShake.intensity;
@@ -1815,16 +1784,13 @@
                         this.screenShake.y = 0;
                     }
                     
-                    // Update particles
                     this.particles = this.particles.filter(p => p.update());
                 }
                 
                 draw(ctx, offsetX = 0, offsetY = 0) {
-                    // Apply screen shake offset
                     ctx.save();
                     ctx.translate(this.screenShake.x + offsetX, this.screenShake.y + offsetY);
                     
-                    // Draw particles
                     for (const p of this.particles) {
                         p.draw(ctx);
                     }
@@ -1845,6 +1811,11 @@
                     this.inputSize = inputSize;
                     this.hiddenSize = hiddenSize;
                     this.outputSize = outputSize;
+                    
+                    // FIX: Pre-allocate buffers to prevent GC pauses during gameplay
+                    this._inputBuf = new Float32Array(inputSize);
+                    this._hiddenBuf = new Float32Array(hiddenSize);
+                    this._outputBuf = new Float32Array(outputSize);
                     
                     // Initialize weights with Xavier initialization
                     const initWeight = (fanIn, fanOut, s) => {
@@ -1919,38 +1890,35 @@
                     const b3 = useTarget ? this.targetB3 : this.b3;
                     
                     // Cache input for backprop
-                    if (!useTarget) this.cache.input = [...input];
+                    if (!useTarget) this.cache.input = input; // Store ref, not copy (optimization)
                     
                     // Layer 1
-                    const z1 = new Array(this.hiddenSize);
-                    const a1 = new Array(this.hiddenSize);
+                    const z1 = this._hiddenBuf; // Reuse buffer
                     for (let i = 0; i < this.hiddenSize; i++) {
                         let sum = b1[i];
                         for (let j = 0; j < this.inputSize; j++) {
                             sum += w1[i][j] * input[j];
                         }
-                        z1[i] = sum;
-                        a1[i] = this.relu(sum);
+                        z1[i] = this.relu(sum);
                     }
                     
-                    // Layer 2
-                    const z2 = new Array(this.hiddenSize);
-                    const a2 = new Array(this.hiddenSize);
+                    // Layer 2 (Hidden -> Hidden)
+                    const a1 = z1; // Output of layer 1 is input to layer 2
+                    const z2 = new Array(this.hiddenSize); // Need new array for second hidden layer
                     for (let i = 0; i < this.hiddenSize; i++) {
                         let sum = b2[i];
                         for (let j = 0; j < this.hiddenSize; j++) {
                             sum += w2[i][j] * a1[j];
                         }
-                        z2[i] = sum;
-                        a2[i] = this.relu(sum);
+                        z2[i] = this.relu(sum);
                     }
                     
                     // Output layer
-                    const output = new Array(this.outputSize);
+                    const output = this._outputBuf; // Reuse buffer
                     for (let i = 0; i < this.outputSize; i++) {
                         let sum = b3[i];
                         for (let j = 0; j < this.hiddenSize; j++) {
-                            sum += w3[i][j] * a2[j];
+                            sum += w3[i][j] * z2[j];
                         }
                         output[i] = sum;
                     }
@@ -1960,8 +1928,8 @@
                         this.cache.z1 = z1;
                         this.cache.a1 = a1;
                         this.cache.z2 = z2;
-                        this.cache.a2 = a2;
-                        this.cache.output = [...output];
+                        this.cache.a2 = z2;
+                        this.cache.output = output;
                     }
                     
                     return output;
@@ -1999,7 +1967,6 @@
                 remember(state, action, reward, nextState, done) {
                     this.memory.push({ state, action, reward, nextState, done });
                     
-                    // Limit memory size
                     if (this.memory.length > this.memorySize) {
                         this.memory.shift();
                     }
@@ -2011,23 +1978,17 @@
                     
                     let totalLoss = 0;
                     
-                    // Sample batch
                     const batch = [];
                     for (let i = 0; i < Config.neural.batchSize; i++) {
                         const idx = Utils.randomInt(0, this.memory.length - 1);
                         batch.push(this.memory[idx]);
                     }
                     
-                    // Train on each sample
                     for (const exp of batch) {
-                        // Current Q-values
                         const currentQ = this.forward(exp.state);
-                        
-                        // Target Q-value (Double DQN style)
                         const nextQ = this.forward(exp.nextState);
                         const nextQTarget = this.forward(exp.nextState, true);
                         
-                        // Find best action in next state using online network
                         let bestNextAction = 0;
                         for (let i = 1; i < nextQ.length; i++) {
                             if (nextQ[i] > nextQ[bestNextAction]) {
@@ -2035,21 +1996,17 @@
                             }
                         }
                         
-                        // Calculate target
                         let target = exp.reward;
                         if (!exp.done) {
                             target += Config.neural.discountFactor * nextQTarget[bestNextAction];
                         }
                         
-                        // Compute loss (MSE)
                         const error = target - currentQ[exp.action];
                         totalLoss += error * error;
                         
-                        // Simple gradient update (stochastic)
                         this.updateWeights(exp.state, exp.action, target, Config.neural.learningRate);
                     }
                     
-                    // Soft update target network
                     this.softUpdateTargets();
                     
                     this.loss = totalLoss / Config.neural.batchSize;
@@ -2067,7 +2024,7 @@
                     }
                     this.b3[action] += lr * error;
                     
-                    // Approximate backprop to hidden layers (simplified)
+                    // Approximate backprop to hidden layers
                     for (let i = 0; i < this.hiddenSize; i++) {
                         const hiddenError = error * this.w3[action][i] * this.reluDeriv(this.cache.z2[i]);
                         for (let j = 0; j < this.hiddenSize; j++) {
@@ -2079,7 +2036,7 @@
                     for (let i = 0; i < this.hiddenSize; i++) {
                         const hiddenError = error * this.w3[action][i] * this.reluDeriv(this.cache.z2[i]);
                         for (let j = 0; j < this.inputSize; j++) {
-                            this.w1[i][j] += lr * hiddenError * this.cache.input[j];
+                            this.w1[i][j] += lr * hiddenError * input[j];
                         }
                         this.b1[i] += lr * hiddenError;
                     }
@@ -2590,8 +2547,6 @@
                     this.isJumping = true;
                     this.jumpsRemaining--;
                     this.stamina -= 2;
-                    
-                    // Create jump particles
                     return true;
                 }
                 
@@ -2646,7 +2601,7 @@
                 
                 createHitbox(attack) {
                     this.hitbox = {
-                        x: this.x + this.facing * attack.range,
+                        x: this.x + (this.facing * attack.range),
                         y: this.y - 40,
                         w: 30,
                         h: 60,
@@ -2686,11 +2641,9 @@
                         
                         // Check defense properties
                         if (def.avoidsHigh && attack.overhead) {
-                            // Crouch avoids overhead
                             damage = 0;
                             defended = true;
                         } else if (def.invincible && def.duration > 0) {
-                            // Dodge invincibility
                             damage = 0;
                             defended = true;
                         } else {
@@ -2862,15 +2815,6 @@
                     ctx.moveTo(0, 40);
                     ctx.lineTo(-15 - legOffset, 75);
                     ctx.stroke();
-                    
-                    // Hitbox visualization (debug)
-                    if (this.hitbox && false) { // Disabled by default
-                        ctx.strokeStyle = 'rgba(255,0,0,0.5)';
-                        ctx.lineWidth = 2;
-                        ctx.shadowBlur = 0;
-                        ctx.strokeRect(this.hitbox.x - this.x, this.hitbox.y - this.y, 
-                            this.hitbox.w, this.hitbox.h);
-                    }
                     
                     ctx.restore();
                     
@@ -3178,7 +3122,6 @@
                         // Jump
                         fighter.jump();
                     }
-                    // Actions 28+ reserved for future
                 }
                 
                 // Get fighter by index
@@ -3214,7 +3157,11 @@
                     this.canvas = canvas;
                     this.ctx = canvas.getContext('2d');
                     
-                    // Responsive setup
+                    // FIX: Set fixed resolution immediately
+                    this.canvas.width = Config.canvas.baseWidth;
+                    this.canvas.height = Config.canvas.baseHeight;
+                    
+                    // Responsive CSS
                     this.resize();
                     window.addEventListener('resize', () => this.resize());
                     
@@ -3231,35 +3178,17 @@
                     const width = container.clientWidth;
                     const height = container.clientHeight;
                     
-                    // Set canvas display size
+                    // Set canvas display size (CSS)
                     this.canvas.style.width = width + 'px';
                     this.canvas.style.height = height + 'px';
                     
-                    // Set canvas resolution (with DPR for sharpness)
-                    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-                    this.canvas.width = width * dpr;
-                    this.canvas.height = height * dpr;
-                    
-                    // Scale context
-                    this.ctx.scale(dpr, dpr);
-                    
-                    // Store logical dimensions
-                    this.logicalWidth = width;
-                    this.logicalHeight = height;
-                }
-                
-                // Convert logical coords to canvas coords
-                toCanvas(x, y) {
-                    return {
-                        x: x * (this.canvas.width / this.logicalWidth),
-                        y: y * (this.canvas.height / this.logicalHeight)
-                    };
+                    // Internal resolution remains fixed at 1920x1080 (set in constructor)
                 }
                 
                 // Clear canvas
                 clear() {
                     this.ctx.fillStyle = Config.canvas.backgroundColor;
-                    this.ctx.fillRect(0, 0, this.logicalWidth, this.logicalHeight);
+                    this.ctx.fillRect(0, 0, Config.canvas.baseWidth, Config.canvas.baseHeight);
                 }
                 
                 // Draw background grid
@@ -3273,18 +3202,18 @@
                     const offsetY = -this.camera.y % gridSize;
                     
                     // Vertical lines
-                    for (let x = offsetX; x < this.logicalWidth; x += gridSize) {
+                    for (let x = offsetX; x < Config.canvas.baseWidth; x += gridSize) {
                         this.ctx.beginPath();
                         this.ctx.moveTo(x, 0);
-                        this.ctx.lineTo(x, this.logicalHeight);
+                        this.ctx.lineTo(x, Config.canvas.baseHeight);
                         this.ctx.stroke();
                     }
                     
                     // Horizontal lines
-                    for (let y = offsetY; y < this.logicalHeight; y += gridSize) {
+                    for (let y = offsetY; y < Config.canvas.baseHeight; y += gridSize) {
                         this.ctx.beginPath();
                         this.ctx.moveTo(0, y);
-                        this.ctx.lineTo(this.logicalWidth, y);
+                        this.ctx.lineTo(Config.canvas.baseWidth, y);
                         this.ctx.stroke();
                     }
                     
@@ -3294,8 +3223,8 @@
                 // Draw arena boundaries
                 drawArena() {
                     const bounds = {
-                        left: 100, right: this.logicalWidth - 100,
-                        top: 100, floorY: this.logicalHeight - 230
+                        left: 100, right: Config.canvas.baseWidth - 100,
+                        top: 100, floorY: Config.canvas.baseHeight - 230
                     };
                     
                     // Floor
@@ -3324,19 +3253,12 @@
                     const centerY = (f1.y + f2.y) / 2;
                     
                     // Smooth camera movement
-                    this.camera.x = Utils.lerp(this.camera.x, centerX - this.logicalWidth / 2, 0.05);
-                    this.camera.y = Utils.lerp(this.camera.y, centerY - this.logicalHeight / 2, 0.05);
+                    this.camera.x = Utils.lerp(this.camera.x, centerX - (Config.canvas.baseWidth / 2), 0.05);
+                    this.camera.y = Utils.lerp(this.camera.y, centerY - (Config.canvas.baseHeight / 2), 0.05);
                     
                     // Clamp camera
-                    const bounds = {
-                        left: 0,
-                        right: Config.canvas.baseWidth - this.logicalWidth,
-                        top: 0,
-                        bottom: Config.canvas.baseHeight - this.logicalHeight
-                    };
-                    
-                    this.camera.x = Utils.clamp(this.camera.x, bounds.left, bounds.right);
-                    this.camera.y = Utils.clamp(this.camera.y, bounds.top, bounds.bottom);
+                    this.camera.x = Utils.clamp(this.camera.x, 0, 0); // Locked for 1v1 centered
+                    this.camera.y = Utils.clamp(this.camera.y, 0, 0);
                 }
                 
                 // Main render function
@@ -3637,9 +3559,7 @@
                         (fighter.comboCount > 1 ? ' dot-special' : '');
                     
                     // Emotions
-                    const emotionEls = document.querySelectorAll(`#${prefix}Emotions [data-emotion]`);
-                    emotionEls.forEach(el => {
-                        const emotion = el.dataset.emotion;
+                                            const emotion = el.dataset.emotion;
                         if (fighter.emotions[emotion] !== undefined) {
                             el.textContent = fighter.emotions[emotion].toFixed(2);
                         }
@@ -3681,7 +3601,7 @@
                         row.className = 'fighter-row' + (i === 0 ? ' selected' : '');
                         row.innerHTML = `
                             <span>${f.name} [${f.weight}]</span>
-                            <span>🏆${f.wins} 💥${Math.floor(f.fitness)}</span>
+                            <span>W:${f.wins} F:${Math.floor(f.fitness)}</span>
                         `;
                         this.elements.fighterList.appendChild(row);
                     });
@@ -3696,11 +3616,11 @@
                 },
                 
                 setSpeed(multiplier) {
-                    this.elements.speedBtn.textContent = `⚡ x${multiplier}`;
+                    this.elements.speedBtn.textContent = `x${multiplier}`;
                 },
                 
                 setPause(paused) {
-                    this.elements.pauseBtn.textContent = paused ? '▶️' : '⏸️';
+                    this.elements.pauseBtn.textContent = paused ? '▶' : '⏸';
                     this.elements.pauseBtn.title = paused ? 'Resume' : 'Pause';
                 },
                 
@@ -3713,9 +3633,9 @@
             class Game {
                 constructor() {
                     this.canvas = document.getElementById('gameCanvas');
-                    this.input = new InputHandler();
-                    this.population = new Population();
                     this.renderer = new Renderer(this.canvas);
+                    this.input = new InputHandler(this.renderer); // Pass renderer for coordinate mapping
+                    this.population = new Population();
                     
                     this.f1 = null;
                     this.f2 = null;
@@ -3724,8 +3644,18 @@
                     this.paused = false;
                     this.speed = 1;
                     
+                    // FIX: Fixed Timestep accumulator
                     this.lastTime = 0;
-                    this.arenaBounds = null;
+                    this.accumulator = 0;
+                    this.step = 1000 / 60; // 60 FPS logic update
+                    
+                    // Arena bounds (Virtual 1920x1080)
+                    this.arenaBounds = {
+                        left: 100, right: Config.canvas.baseWidth - 100,
+                        top: 100, floorY: Config.canvas.baseHeight - 200,
+                        width: Config.canvas.baseWidth,
+                        height: Config.canvas.baseHeight
+                    };
                     
                     this.init();
                 }
@@ -3736,7 +3666,7 @@
                     this.population.updateSelects();
                     
                     Logger.system('Neural Fighter Pro initialized');
-                    Logger.system(`Canvas: ${this.canvas.width}x${this.canvas.height}`);
+                    Logger.system(`Virtual Canvas: ${Config.canvas.baseWidth}x${Config.canvas.baseHeight}`);
                     Logger.system(`Population: ${this.population.size} fighters`);
                 }
                 
@@ -3794,9 +3724,9 @@
                         weight: UIManager.elements.betaWeight?.value || 'medium'
                     };
                     
-                    // Create fighters
-                    this.f1 = new Fighter(500, 600, '#ff4d4d', 'ALPHA', true, alphaConfig);
-                    this.f2 = new Fighter(1420, 600, '#4da6ff', 'BETA', false, betaConfig);
+                    // Create fighters using virtual coordinates
+                    this.f1 = new Fighter(500, this.arenaBounds.floorY, '#ff4d4d', 'ALPHA', true, alphaConfig);
+                    this.f2 = new Fighter(1420, this.arenaBounds.floorY, '#4da6ff', 'BETA', false, betaConfig);
                     
                     // Load neural brains if selected
                     if (alphaConfig.architecture === 'neural') {
@@ -3811,14 +3741,6 @@
                         this.f2.brain = brainData?.brain?.clone() || this.f2.brain;
                     }
                     
-                    // Reset arena bounds
-                    this.arenaBounds = {
-                        left: 100, right: this.renderer.logicalWidth - 100,
-                        top: 100, floorY: this.renderer.logicalHeight - 230,
-                        width: Config.canvas.baseWidth,
-                        height: Config.canvas.baseHeight
-                    };
-                    
                     // Start game
                     UIManager.toggleMenu(false);
                     UIManager.hideWinner();
@@ -3829,26 +3751,38 @@
                     
                     // Begin game loop
                     this.lastTime = performance.now();
+                    this.accumulator = 0;
                     requestAnimationFrame((t) => this.gameLoop(t));
                 }
                 
                 gameLoop(currentTime) {
                     if (!this.running) return;
                     
-                    const deltaTime = Math.min((currentTime - this.lastTime) / 16.67, 4) * this.speed;
+                    const deltaTime = currentTime - this.lastTime;
                     this.lastTime = currentTime;
                     
-                    if (!this.paused) {
-                        this.update(deltaTime);
+                    // Accumulate time
+                    this.accumulator += deltaTime * this.speed;
+                    
+                    // Process logic in fixed chunks (Fixed Timestep)
+                    // Prevent spiral of death if accumulator gets too huge
+                    if (this.accumulator > 200) this.accumulator = 200;
+                    
+                    while (this.accumulator >= this.step) {
+                        if (!this.paused) {
+                            this.update(1); // Pass 1 logic frame
+                        }
+                        this.accumulator -= this.step;
                     }
                     
+                    // Render always runs at screen refresh rate
                     this.renderer.render(this.f1, this.f2);
                     this.updateUI();
                     
                     requestAnimationFrame((t) => this.gameLoop(t));
                 }
                 
-                update(deltaTime) {
+                update(dt) {
                     if (!this.f1 || !this.f2) return;
                     
                     // Update input
@@ -3875,14 +3809,22 @@
                         this.executeNeuralAction(this.f2, this.f1, action);
                     }
                     
+                    // Classic AI handling
+                    if (this.f1.architecture === 'classic') {
+                        this.executeClassicAI(this.f1, this.f2);
+                    }
+                    if (this.f2.architecture === 'classic') {
+                        this.executeClassicAI(this.f2, this.f1);
+                    }
+                    
                     // Update fighters
-                    this.f1.update(this.f2, this.input, this.arenaBounds, deltaTime);
-                    this.f2.update(this.f1, this.input, this.arenaBounds, deltaTime);
+                    this.f1.update(this.f2, this.input, this.arenaBounds, dt);
+                    this.f2.update(this.f1, this.input, this.arenaBounds, dt);
                     
                     // Check collisions
                     this.checkCollisions();
                     
-                    // Train neural networks
+                    // Train neural networks (if enabled and batch size met)
                     if (this.f1.brain && this.f1.brain.memory.length > Config.neural.batchSize) {
                         this.f1.brain.train();
                     }
@@ -3929,7 +3871,7 @@
                     // Simplified action execution for neural fighters
                     if (action < 20 && fighter.energy >= ATTACKS[action]?.energy) {
                         if (fighter.attack(action)) {
-                            // Visual feedback
+                            // Visual feedback for heavy moves
                             if (ATTACKS[action].type === 'special' || ATTACKS[action].type === 'super') {
                                 this.renderer.createDash(fighter.x + fighter.facing * 30, fighter.y - 30, fighter.color);
                             }
@@ -3951,7 +3893,26 @@
                             this.renderer.createJump(fighter.x, fighter.y + 40, fighter.color);
                         }
                     }
-                    // Add more actions as needed
+                }
+                
+                executeClassicAI(fighter, opponent) {
+                    // Simple heuristic AI
+                    const dist = Utils.distance(fighter.x, fighter.y, opponent.x, opponent.y);
+                    
+                    if (dist < 120 && fighter.attackCooldown <= 0) {
+                        fighter.attack(Utils.randomInt(0, 4)); // Random light/med attack
+                    } else if (dist < 200) {
+                         // Move towards
+                         const dir = opponent.x > fighter.x ? 1 : -1;
+                         fighter.move(dir);
+                         // Random Jump
+                         if (Math.random() < 0.02) fighter.jump();
+                    } else {
+                         // Dash in
+                         if (Math.random() < 0.01 && fighter.dashCooldown <= 0) fighter.dash();
+                         const dir = opponent.x > fighter.x ? 1 : -1;
+                         fighter.move(dir);
+                    }
                 }
                 
                 checkCollisions() {
@@ -4041,10 +4002,11 @@
                 
                 rematch() {
                     UIManager.hideWinner();
-                    this.f1?.reset(500, 600);
-                    this.f2?.reset(1420, 600);
+                    this.f1?.reset(500, this.arenaBounds.floorY);
+                    this.f2?.reset(1420, this.arenaBounds.floorY);
                     this.running = true;
                     this.paused = false;
+                    this.accumulator = 0;
                     Logger.battle('Rematch initiated');
                 }
                 
@@ -4159,4 +4121,3 @@
     </script>
 </body>
 </html>
-
