@@ -2861,27 +2861,54 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                     let defended = false;
                     
                     if (this.state === 'defend' && this.currentDefense) {
-                        const def = this.currentDefense;
-                        
-                        // Check defense properties
-                        if (def.avoidsHigh && attack.overhead) {
-                            damage = 0;
-                            defended = true;
-                        } else if (def.invincible && def.duration > 0) {
-                            damage = 0;
-                            defended = true;
-                        } else {
-                            // Block reduces damage
-                            damage *= def.damageMod;
-                            hitstun *= def.hitstunMod;
-                            this.blockstun = def.blockstun || Config.combat.blockstunBase;
-                            defended = true;
-                            
-                            // Chip damage still applies
-                            if (damage > 0) {
-                                this.hp = Utils.clamp(this.hp - damage, 0, this.maxHp);
-                            }
-                        }
+    const def = this.currentDefense;
+
+    // Проверяем тип защиты против типа атаки
+    if (def.name === 'Block') {
+        // Блок работает только против обычных атак
+        if (attack.type === 'light' || attack.type === 'medium') {
+            damage *= def.damageMod;
+            hitstun *= def.hitstunMod;
+            this.blockstun = def.blockstun || Config.combat.blockstunBase;
+            defended = true;
+        } else {
+            // Не блокирует спецприемы
+            defended = false;
+        }
+    } else if (def.name === 'Dodge') {
+        // Уклонение работает против тяжелых атак
+        if (attack.type === 'heavy' || attack.type === 'special') {
+            damage = 0;
+            defended = true;
+        } else {
+            defended = false;
+        }
+    } else if (def.name === 'Parry') {
+        // Парри работает только против легких атак
+        if (attack.type === 'light') {
+            damage = 0;
+            defended = true;
+            // Контратака
+            attacker.hitstun = 10;
+        } else {
+            defended = false;
+        }
+    } else if (def.name === 'Crouch') {
+        // Приседание уклоняется от высоких атак
+        if (attack.overhead) {
+            damage = 0;
+            defended = true;
+        } else {
+            defended = false;
+        }
+    } else {
+        defended = false;
+    }
+    
+    // Если защита не сработала - получаем полный урон
+    if (!defended && damage > 0) {
+        this.hp = Utils.clamp(this.hp - damage, 0, this.maxHp);
+    }
                     }
                     
                     // Apply damage if not fully defended
