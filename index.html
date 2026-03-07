@@ -34,6 +34,7 @@
             --color-accent-yellow: #ffd966;
             --color-accent-green: #4dff4d;
             --color-accent-purple: #b366ff;
+            --color-accent-cyan: #4dffff;
             
             /* Spacing System */
             --spacing-xs: 4px;
@@ -454,6 +455,7 @@
         .fill-yellow { background: linear-gradient(90deg, #ffe080, var(--color-accent-yellow)); }
         .fill-green { background: linear-gradient(90deg, #66ff66, var(--color-accent-green)); }
         .fill-purple { background: linear-gradient(90deg, #cc99ff, var(--color-accent-purple)); }
+        .fill-cyan { background: linear-gradient(90deg, #80ffff, var(--color-accent-cyan)); }
 
         .special-bar {
             background: linear-gradient(90deg, var(--color-bg-tertiary), #2a2535);
@@ -1169,9 +1171,9 @@
             </div>
             <div class="gen-badge" id="generationBadge" aria-label="Поколение">GEN: 001</div>
             <div class="header-controls">
-                <button class="btn" id="speedBtn" title="Скорость симуляции" aria-label="Скорость">×1</button>
-                <button class="btn btn-primary" id="pauseBtn" title="Пауза/Продолжить" aria-label="Пауза">⏸</button>
-                <button class="btn" id="menuBtn" title="Главное меню" aria-label="Меню">МЕНЮ</button>
+                <button class="btn" id="speedBtn" title="Скорость симуляции" aria-label="Скорость">x1</button>
+                <button class="btn btn-primary" id="pauseBtn" title="Пауза/Продолжить" aria-label="Пауза">PAUSE</button>
+                <button class="btn" id="menuBtn" title="Главное меню" aria-label="Меню">MENU</button>
             </div>
         </header>
 
@@ -1179,43 +1181,50 @@
         <aside class="panel panel-left" role="complementary" aria-label="Статистика ALPHA">
             <div class="panel-header">
                 <span><span class="led led-red" id="alphaLed" aria-hidden="true"></span> ALPHA</span>
-                <span id="alphaStatus" class="text-red">ГОТОВ</span>
+                <span id="alphaStatus" class="text-red">READY</span>
             </div>
             
             <!-- Health -->
             <div class="stat-row">
-                <span class="stat-label">ЗДОРОВЬЕ</span>
+                <span class="stat-label">HP</span>
                 <span class="stat-value" id="alphaHp">100</span>
             </div>
             <div class="progress-bar"><div class="progress-fill fill-red" id="alphaHpBar" style="width:100%" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div></div>
 
             <!-- Energy -->
             <div class="stat-row">
-                <span class="stat-label">ЭНЕРГИЯ</span>
+                <span class="stat-label">ENERGY</span>
                 <span class="stat-value" id="alphaEnergy">100</span>
             </div>
             <div class="progress-bar"><div class="progress-fill fill-blue" id="alphaEnergyBar" style="width:100%" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div></div>
 
             <!-- Rage -->
             <div class="stat-row">
-                <span class="stat-label">ЯРОСТЬ</span>
+                <span class="stat-label">RAGE</span>
                 <span class="stat-value" id="alphaRage">0</span>
             </div>
             <div class="progress-bar special-bar"><div class="progress-fill fill-yellow" id="alphaRageBar" style="width:0%" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div></div>
 
             <!-- Balance -->
             <div class="stat-row">
-                <span class="stat-label">БАЛАНС</span>
+                <span class="stat-label">BALANCE</span>
                 <span class="stat-value" id="alphaBalance">100</span>
             </div>
             <div class="progress-bar"><div class="progress-fill fill-green" id="alphaBalanceBar" style="width:100%" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div></div>
 
             <!-- Stamina -->
             <div class="stat-row">
-                <span class="stat-label">ВЫНОСЛИВОСТЬ</span>
+                <span class="stat-label">STAMINA</span>
                 <span class="stat-value" id="alphaStamina">100</span>
             </div>
             <div class="progress-bar"><div class="progress-fill fill-purple" id="alphaStaminaBar" style="width:100%" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div></div>
+
+            <!-- Super Meter -->
+            <div class="stat-row">
+                <span class="stat-label">SUPER</span>
+                <span class="stat-value" id="alphaSuper">0</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill fill-cyan" id="alphaSuperBar" style="width:0%" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div></div>
 
             <!-- Emotions Grid -->
             <div class="emotion-grid" id="alphaEmotions" aria-label="Эмоции ALPHA"></div>
@@ -1227,14 +1236,14 @@
                 <div class="dot" id="alphaDefend" title="Защита" aria-hidden="true"></div>
                 <div class="dot" id="alphaSpecial" title="Спецприём" aria-hidden="true"></div>
                 <div class="dot" id="alphaCombo" title="Комбо" aria-hidden="true"></div>
-                <span style="margin-left:auto;" id="alphaAction">ПОКОЙ</span>
+                <span style="margin-left:auto;" id="alphaAction">IDLE</span>
             </div>
 
             <!-- Statistics -->
-            <div class="stat-row"><span class="stat-label">НАГРАДА</span><span class="stat-value" id="alphaReward">0</span></div>
+            <div class="stat-row"><span class="stat-label">REWARD</span><span class="stat-value" id="alphaReward">0</span></div>
             <div class="stat-row"><span class="stat-label">EPSILON</span><span class="stat-value" id="alphaEpsilon">0.30</span></div>
-            <div class="stat-row"><span class="stat-label">КОМБО</span><span class="stat-value" id="alphaComboCount">0</span></div>
-            <div class="stat-row"><span class="stat-label">ТОЧНОСТЬ</span><span class="stat-value" id="alphaAccuracy">0%</span></div>
+            <div class="stat-row"><span class="stat-label">COMBO</span><span class="stat-value" id="alphaComboCount">0</span></div>
+            <div class="stat-row"><span class="stat-label">ACCURACY</span><span class="stat-value" id="alphaAccuracy">0%</span></div>
         </aside>
 
         <!-- Arena -->
@@ -1243,26 +1252,26 @@
             
             <!-- Winner Screen -->
             <div class="winner-screen" id="winnerScreen" role="alert" aria-live="assertive">
-                <div class="winner-title" id="winnerTitle">ПОБЕДА</div>
+                <div class="winner-title" id="winnerTitle">VICTORY</div>
                 <div class="winner-stats">
                     <div class="winner-stat">
                         <div class="winner-stat-value text-red" id="winnerHits1">0</div>
-                        <div class="winner-stat-label">УДАРОВ ALPHA</div>
+                        <div class="winner-stat-label">HITS ALPHA</div>
                     </div>
                     <div class="winner-stat">
                         <div class="winner-stat-value text-blue" id="winnerHits2">0</div>
-                        <div class="winner-stat-label">УДАРОВ BETA</div>
+                        <div class="winner-stat-label">HITS BETA</div>
                     </div>
                     <div class="winner-stat">
                         <div class="winner-stat-value text-yellow" id="winnerCombo1">0</div>
-                        <div class="winner-stat-label">МАКС. КОМБО ALPHA</div>
+                        <div class="winner-stat-label">MAX COMBO ALPHA</div>
                     </div>
                     <div class="winner-stat">
                         <div class="winner-stat-value text-yellow" id="winnerCombo2">0</div>
-                        <div class="winner-stat-label">МАКС. КОМБО BETA</div>
+                        <div class="winner-stat-label">MAX COMBO BETA</div>
                     </div>
                 </div>
-                <button class="btn btn-primary" id="rematchBtn">РЕВАНШ</button>
+                <button class="btn btn-primary" id="rematchBtn">REMATCH</button>
             </div>
         </main>
 
@@ -1270,23 +1279,26 @@
         <aside class="panel panel-right" role="complementary" aria-label="Статистика BETA">
             <div class="panel-header">
                 <span><span class="led led-blue" id="betaLed" aria-hidden="true"></span> BETA</span>
-                <span id="betaStatus" class="text-blue">ГОТОВ</span>
+                <span id="betaStatus" class="text-blue">READY</span>
             </div>
             
-            <div class="stat-row"><span class="stat-label">ЗДОРОВЬЕ</span><span class="stat-value" id="betaHp">100</span></div>
+            <div class="stat-row"><span class="stat-label">HP</span><span class="stat-value" id="betaHp">100</span></div>
             <div class="progress-bar"><div class="progress-fill fill-blue" id="betaHpBar" style="width:100%" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div></div>
 
-            <div class="stat-row"><span class="stat-label">ЭНЕРГИЯ</span><span class="stat-value" id="betaEnergy">100</span></div>
+            <div class="stat-row"><span class="stat-label">ENERGY</span><span class="stat-value" id="betaEnergy">100</span></div>
             <div class="progress-bar"><div class="progress-fill fill-red" id="betaEnergyBar" style="width:100%" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div></div>
 
-            <div class="stat-row"><span class="stat-label">ЯРОСТЬ</span><span class="stat-value" id="betaRage">0</span></div>
+            <div class="stat-row"><span class="stat-label">RAGE</span><span class="stat-value" id="betaRage">0</span></div>
             <div class="progress-bar special-bar"><div class="progress-fill fill-yellow" id="betaRageBar" style="width:0%" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div></div>
 
-            <div class="stat-row"><span class="stat-label">БАЛАНС</span><span class="stat-value" id="betaBalance">100</span></div>
+            <div class="stat-row"><span class="stat-label">BALANCE</span><span class="stat-value" id="betaBalance">100</span></div>
             <div class="progress-bar"><div class="progress-fill fill-green" id="betaBalanceBar" style="width:100%" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div></div>
 
-            <div class="stat-row"><span class="stat-label">ВЫНОСЛИВОСТЬ</span><span class="stat-value" id="betaStamina">100</span></div>
+            <div class="stat-row"><span class="stat-label">STAMINA</span><span class="stat-value" id="betaStamina">100</span></div>
             <div class="progress-bar"><div class="progress-fill fill-purple" id="betaStaminaBar" style="width:100%" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div></div>
+
+            <div class="stat-row"><span class="stat-label">SUPER</span><span class="stat-value" id="betaSuper">0</span></div>
+            <div class="progress-bar"><div class="progress-fill fill-cyan" id="betaSuperBar" style="width:0%" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div></div>
 
             <div class="emotion-grid" id="betaEmotions" aria-label="Эмоции BETA"></div>
 
@@ -1296,13 +1308,13 @@
                 <div class="dot" id="betaDefend" aria-hidden="true"></div>
                 <div class="dot" id="betaSpecial" aria-hidden="true"></div>
                 <div class="dot" id="betaCombo" aria-hidden="true"></div>
-                <span style="margin-left:auto;" id="betaAction">ПОКОЙ</span>
+                <span style="margin-left:auto;" id="betaAction">IDLE</span>
             </div>
 
-            <div class="stat-row"><span class="stat-label">НАГРАДА</span><span class="stat-value" id="betaReward">0</span></div>
+            <div class="stat-row"><span class="stat-label">REWARD</span><span class="stat-value" id="betaReward">0</span></div>
             <div class="stat-row"><span class="stat-label">EPSILON</span><span class="stat-value" id="betaEpsilon">0.30</span></div>
-            <div class="stat-row"><span class="stat-label">КОМБО</span><span class="stat-value" id="betaComboCount">0</span></div>
-            <div class="stat-row"><span class="stat-label">ТОЧНОСТЬ</span><span class="stat-value" id="betaAccuracy">0%</span></div>
+            <div class="stat-row"><span class="stat-label">COMBO</span><span class="stat-value" id="betaComboCount">0</span></div>
+            <div class="stat-row"><span class="stat-label">ACCURACY</span><span class="stat-value" id="betaAccuracy">0%</span></div>
         </aside>
 
         <!-- Footer -->
@@ -1312,68 +1324,60 @@
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="value" id="statGeneration">1</div>
-                        <div>ПОКОЛЕНИЕ</div>
+                        <div>GENERATION</div>
                     </div>
                     <div class="stat-card">
                         <div class="value" id="statPopulation">8</div>
-                        <div>ПОПУЛЯЦИЯ</div>
+                        <div>POPULATION</div>
                     </div>
                     <div class="stat-card">
                         <div class="value" id="statAvgFitness">0</div>
-                        <div>СР. ПРИГОДНОСТЬ</div>
+                        <div>AVG FITNESS</div>
                     </div>
                     <div class="stat-card">
                         <div class="value" id="statBestCombo">0</div>
-                        <div>ЛУЧШЕЕ КОМБО</div>
+                        <div>BEST COMBO</div>
                     </div>
                 </div>
-                <div class="fighter-list" id="fighterList" role="list" aria-label="Список бойцов">
-                    <!-- Populated by JS -->
-                </div>
+                <div class="fighter-list" id="fighterList" role="list" aria-label="Список бойцов"></div>
                 <div style="display:flex; gap:var(--spacing-sm); margin-top:var(--spacing-sm); flex-wrap:wrap;">
-                    <button class="btn" style="flex:1; min-width:100px;" id="evolveBtn">ЭВОЛЮЦИЯ</button>
-                    <button class="btn btn-primary" style="flex:1; min-width:100px;" id="tournamentBtn">ТУРНИР</button>
+                    <button class="btn" style="flex:1; min-width:100px;" id="evolveBtn">EVOLVE</button>
+                    <button class="btn btn-primary" style="flex:1; min-width:100px;" id="tournamentBtn">TOURNAMENT</button>
                 </div>
             </div>
 
             <!-- Neural Log -->
             <div class="log">
                 <div class="log-header">
-                    <span>НЕЙРО-ЛОГ</span>
+                    <span>NEURO-LOG</span>
                     <span id="lrDisplay">LR: 1e-4</span>
                 </div>
                 <div class="log-messages" id="logMessages" role="log" aria-live="polite" aria-label="Системный лог">
-                    <div class="log-entry system">Система инициализирована. Готов к бою.</div>
+                    <div class="log-entry system">System initialized. Ready for battle.</div>
                 </div>
             </div>
 
             <!-- Actions -->
             <div class="footer-actions">
-                <button class="btn btn-special" id="saveBrainBtn">СОХРАНИТЬ МОДЕЛЬ</button>
-                <button class="btn" id="loadBrainBtn">ЗАГРУЗИТЬ МОДЕЛЬ</button>
-                <button class="btn" id="resetBtn">СБРОС ЭВОЛЮЦИИ</button>
-                <button class="btn" id="exportBtn">ЭКСПОРТ ДАННЫХ</button>
+                <button class="btn btn-special" id="saveBrainBtn">SAVE MODEL</button>
+                <button class="btn" id="loadBrainBtn">LOAD MODEL</button>
+                <button class="btn" id="resetBtn">RESET EVOLUTION</button>
+                <button class="btn" id="exportBtn">EXPORT DATA</button>
             </div>
         </footer>
     </div>
 
     <script>
         /**
-         * NEURAL FIGHTER PRO — Professional Production Build
+         * NEURAL FIGHTER PRO - Professional Production Build
          * 
-         * Fixes applied:
-         * 1. Virtual Resolution (Canvas locked to 1920x1080, scaled via CSS object-fit)
-         * 2. Fixed Timestep Physics Loop (Prevents tunneling/instability)
-         * 3. Input Mapping (Touch/Mouse/Keyboard mapped to virtual coordinates)
-         * 4. Memory Optimization (Pre-allocated buffers, reduced GC pressure)
-         * 5. Neural Network: Proper gradient computation for DQN training
-         * 6. UI Manager: Fixed emotion grid update logic and variable scoping
-         * 7. Fighter Class: Added missing attackCooldown property
-         * 8. Collision Detection: Proper coordinate transformation and AABB
-         * 9. Accessibility: ARIA labels, roles, keyboard navigation support
-         * 10. Error Handling: Comprehensive try/catch, validation, fallbacks
-         * 11. Performance: requestAnimationFrame optimization, debounced resize
-         * 12. Responsive: Improved media queries and touch target sizes
+         * Key fixes applied:
+         * 1. All timers properly initialized in Fighter constructor
+         * 2. Attack frame data properly tracked (startup/active/recovery phases)
+         * 3. Hitbox only active during "active" frames
+         * 4. Defense properly manages duration and state transitions
+         * 5. Emotion grid updates use correct DOM element selection
+         * 6. State machine properly handles all transitions
          */
         (function() {
             'use strict';
@@ -1382,7 +1386,6 @@
             // CONFIGURATION MODULE
             // ========================================
             const Config = Object.freeze({
-                // Canvas & Rendering
                 canvas: {
                     baseWidth: 1920,
                     baseHeight: 1080,
@@ -1392,7 +1395,6 @@
                     particleCount: 50
                 },
                 
-                // Physics Constants
                 physics: {
                     gravity: 0.6,
                     friction: 0.85,
@@ -1406,11 +1408,10 @@
                     airControl: 0.7
                 },
                 
-                // Fighter Constants
                 fighter: {
                     baseHp: 100,
                     baseEnergy: 100,
-                    baseRage: 0,
+                    baseRage: 100,
                     baseBalance: 100,
                     baseStamina: 100,
                     recoveryRate: 0.15,
@@ -1418,10 +1419,10 @@
                     hitstunBase: 8,
                     blockstunBase: 4,
                     knockdownThreshold: 0,
-                    invincibilityFrames: 15
+                    invincibilityFrames: 15,
+                    defenseDuration: 30
                 },
                 
-                // Combat Constants
                 combat: {
                     hitboxTolerance: 8,
                     comboWindow: 45,
@@ -1431,7 +1432,6 @@
                     superMeterCost: 100
                 },
                 
-                // Neural Network Constants
                 neural: {
                     inputSize: 42,
                     hiddenSize: 128,
@@ -1447,7 +1447,6 @@
                     tau: 0.005
                 },
                 
-                // Evolution Constants
                 evolution: {
                     populationSize: 8,
                     eliteCount: 2,
@@ -1458,14 +1457,12 @@
                     generationsPerTournament: 1
                 },
                 
-                // UI Constants
                 ui: {
                     updateInterval: 16,
                     logMaxLength: 100,
                     emotionUpdateRate: 30
                 },
                 
-                // Input Constants
                 input: {
                     keyMap: {
                         'KeyA': 'left', 'ArrowLeft': 'left',
@@ -1482,7 +1479,7 @@
             });
 
             // ========================================
-            // UTILITY FUNCTIONS (Pure, Immutable)
+            // UTILITY FUNCTIONS
             // ========================================
             const Utils = {
                 clamp: (val, min, max) => Math.max(min, Math.min(max, val)),
@@ -1517,7 +1514,6 @@
                         timeout = setTimeout(() => func.apply(this, args), wait);
                     };
                 },
-                // Safe JSON parse with fallback
                 safeJsonParse: (str, fallback) => {
                     try {
                         return JSON.parse(str);
@@ -1528,13 +1524,13 @@
             };
 
             // ========================================
-            // LOGGING SYSTEM (Thread-safe, rate-limited)
+            // LOGGING SYSTEM
             // ========================================
             const Logger = (() => {
                 const entries = [];
                 const maxEntries = Config.ui.logMaxLength;
                 let lastLogTime = 0;
-                const logRateLimit = 50; // ms between logs
+                const logRateLimit = 50;
                 
                 const add = (type, message) => {
                     const now = Date.now();
@@ -1552,7 +1548,6 @@
                         entries.shift();
                     }
                     
-                    // Update DOM if available
                     const logEl = document.getElementById('logMessages');
                     if (logEl) {
                         const div = document.createElement('div');
@@ -1562,13 +1557,11 @@
                         logEl.appendChild(div);
                         logEl.scrollTop = logEl.scrollHeight;
                         
-                        // Cleanup old entries
                         while (logEl.children.length > maxEntries) {
                             logEl.removeChild(logEl.firstChild);
                         }
                     }
                     
-                    // Console output for debugging
                     if (console[type]) {
                         console[type](`[${entry.timestamp}] [${type.toUpperCase()}] ${message}`);
                     } else {
@@ -1590,7 +1583,7 @@
             })();
 
             // ========================================
-            // INPUT HANDLER (Unified Touch/Mouse/Keyboard)
+            // INPUT HANDLER
             // ========================================
             class InputHandler {
                 constructor(renderer) {
@@ -1606,7 +1599,6 @@
                 }
                 
                 initEvents() {
-                    // Keyboard
                     const onKeyDown = (e) => {
                         const action = Config.input.keyMap[e.code];
                         if (action) {
@@ -1627,7 +1619,6 @@
                     window.addEventListener('keyup', onKeyUp, { passive: false });
                     this._boundHandlers.keyboard = { down: onKeyDown, up: onKeyUp };
                     
-                    // Touch/Mouse
                     const arena = document.querySelector('.arena');
                     if (arena) {
                         const onTouchStart = (e) => this.handleTouchStart(e);
@@ -1648,11 +1639,9 @@
                         };
                     }
                     
-                    // Prevent context menu
                     window.addEventListener('contextmenu', (e) => e.preventDefault());
                 }
                 
-                // Map client coordinates to virtual canvas coordinates
                 mapToVirtual(clientX, clientY) {
                     const rect = this.renderer.canvas.getBoundingClientRect();
                     const scaleX = Config.canvas.baseWidth / rect.width;
@@ -1717,7 +1706,6 @@
                         const dx = this.touchCurrent.x - this.touchStart.x;
                         const dy = this.touchCurrent.y - this.touchStart.y;
                         
-                        // Reset movement keys
                         this.keys['left'] = this.keys['right'] = false;
                         this.keys['up'] = this.keys['down'] = false;
                         
@@ -1742,7 +1730,6 @@
                     this.touchActive = false;
                 }
                 
-                // Cleanup event listeners
                 destroy() {
                     if (this._boundHandlers.keyboard) {
                         window.removeEventListener('keydown', this._boundHandlers.keyboard.down);
@@ -1763,31 +1750,24 @@
             }
 
             // ========================================
-            // ATTACK DATA (Frame Data System)
+            // ATTACK DATA
             // ========================================
             const ATTACKS = Object.freeze([
-                // Light Attacks (0-4)
                 { id: 0, name: 'JAB', damage: 3, energy: 2, startup: 3, active: 2, recovery: 8, hitstun: 10, blockstun: 4, range: 65, type: 'light', comboValue: 0.1 },
                 { id: 1, name: 'STRAIGHT', damage: 5, energy: 4, startup: 5, active: 3, recovery: 10, hitstun: 14, blockstun: 6, range: 75, type: 'light', comboValue: 0.15 },
                 { id: 2, name: 'HOOK', damage: 8, energy: 7, startup: 8, active: 4, recovery: 14, hitstun: 18, blockstun: 8, range: 60, type: 'medium', comboValue: 0.2 },
-                { id: 3, name: 'UPPERCUT', damage: 10, energy: 10, startup: 10, active: 5, recovery: 18, hitstun: 22, blockstun: 10, range: 60, type: 'medium', comboValue: 0.25 },
+                { id: 3, name: 'UPPERCUT', damage: 10, energy: 10, startup: 10, active: 5, recovery: 18, hitstun: 22, blockstun: 10, range: 60, type: 'medium', comboValue: 0.25, launcher: true },
                 { id: 4, name: 'OVERHEAD', damage: 7, energy: 8, startup: 15, active: 3, recovery: 16, hitstun: 16, blockstun: 12, range: 68, type: 'medium', comboValue: 0.18, overhead: true },
-                
-                // Kick Attacks (5-9)
                 { id: 5, name: 'LOW KICK', damage: 4, energy: 3, startup: 6, active: 4, recovery: 12, hitstun: 12, blockstun: 5, range: 80, type: 'light', comboValue: 0.12, low: true },
                 { id: 6, name: 'MID KICK', damage: 7, energy: 6, startup: 9, active: 5, recovery: 15, hitstun: 16, blockstun: 7, range: 85, type: 'medium', comboValue: 0.18 },
                 { id: 7, name: 'HIGH KICK', damage: 9, energy: 9, startup: 12, active: 6, recovery: 20, hitstun: 20, blockstun: 9, range: 90, type: 'heavy', comboValue: 0.22 },
                 { id: 8, name: 'ROUNDHOUSE', damage: 12, energy: 12, startup: 18, active: 8, recovery: 25, hitstun: 26, blockstun: 12, range: 95, type: 'heavy', comboValue: 0.28 },
                 { id: 9, name: 'SPIN KICK', damage: 15, energy: 16, startup: 22, active: 10, recovery: 30, hitstun: 30, blockstun: 14, range: 90, type: 'heavy', comboValue: 0.35 },
-                
-                // Special Attacks (10-14)
                 { id: 10, name: 'KNEE STRIKE', damage: 6, energy: 5, startup: 7, active: 4, recovery: 13, hitstun: 15, blockstun: 7, range: 55, type: 'special', comboValue: 0.2 },
                 { id: 11, name: 'ELBOW', damage: 8, energy: 7, startup: 6, active: 3, recovery: 11, hitstun: 17, blockstun: 8, range: 60, type: 'special', comboValue: 0.25 },
                 { id: 12, name: 'FLYING KNEE', damage: 14, energy: 15, startup: 20, active: 8, recovery: 28, hitstun: 28, blockstun: 13, range: 90, type: 'special', comboValue: 0.4, launcher: true },
                 { id: 13, name: 'SPINNING ELBOW', damage: 13, energy: 14, startup: 16, active: 7, recovery: 24, hitstun: 25, blockstun: 11, range: 65, type: 'special', comboValue: 0.38 },
                 { id: 14, name: 'SUPERMAN', damage: 18, energy: 20, startup: 25, active: 10, recovery: 35, hitstun: 35, blockstun: 16, range: 100, type: 'special', comboValue: 0.5 },
-                
-                // Combo Finishers (15-19)
                 { id: 15, name: 'COMBO ENDER', damage: 20, energy: 25, startup: 12, active: 6, recovery: 22, hitstun: 30, blockstun: 14, range: 70, type: 'finisher', comboValue: 1.0, requiresCombo: 3 },
                 { id: 16, name: 'CHAIN COMBO', damage: 25, energy: 30, startup: 8, active: 8, recovery: 20, hitstun: 32, blockstun: 15, range: 75, type: 'finisher', comboValue: 1.5, requiresCombo: 5 },
                 { id: 17, name: 'SUPER ART', damage: 35, energy: 50, startup: 15, active: 12, recovery: 40, hitstun: 45, blockstun: 20, range: 90, type: 'super', comboValue: 2.0, requiresSuper: true },
@@ -1913,7 +1893,6 @@
                         this.screenShake.y = 0;
                     }
                     
-                    // Update and filter particles
                     for (let i = this.particles.length - 1; i >= 0; i--) {
                         if (!this.particles[i].update()) {
                             this.particles.splice(i, 1);
@@ -1944,7 +1923,7 @@
             }
 
             // ========================================
-            // NEURAL NETWORK (Proper DQN Implementation)
+            // NEURAL NETWORK
             // ========================================
             class NeuralNetwork {
                 constructor(inputSize, hiddenSize, outputSize, seed = null) {
@@ -1952,14 +1931,12 @@
                     this.hiddenSize = hiddenSize;
                     this.outputSize = outputSize;
                     
-                    // Pre-allocate buffers for forward pass (reduce GC)
                     this._z1 = new Float32Array(hiddenSize);
                     this._a1 = new Float32Array(hiddenSize);
                     this._z2 = new Float32Array(hiddenSize);
                     this._a2 = new Float32Array(hiddenSize);
                     this._output = new Float32Array(outputSize);
                     
-                    // Cache for backpropagation
                     this._cache = {
                         input: new Float32Array(inputSize),
                         z1: new Float32Array(hiddenSize),
@@ -1972,38 +1949,32 @@
                         delta1: new Float32Array(hiddenSize)
                     };
                     
-                    // Initialize weights with Xavier/Glorot initialization
                     const initWeight = (fanIn, fanOut, rng) => {
                         const std = Math.sqrt(2.0 / (fanIn + fanOut));
                         return rng() * std;
                     };
                     
-                    // Seeded RNG for reproducibility
                     let rngSeed = seed ?? Math.random() * 1e9;
                     const rng = () => {
                         rngSeed = (rngSeed * 1664525 + 1013904223) % 4294967296;
                         return rngSeed / 4294967296;
                     };
                     
-                    // Layer 1: Input -> Hidden
                     this.w1 = Array.from({ length: hiddenSize }, () => 
                         Array.from({ length: inputSize }, () => initWeight(inputSize, hiddenSize, rng))
                     );
                     this.b1 = Array.from({ length: hiddenSize }, () => initWeight(1, hiddenSize, rng) * 0.1);
                     
-                    // Layer 2: Hidden -> Hidden
                     this.w2 = Array.from({ length: hiddenSize }, () => 
                         Array.from({ length: hiddenSize }, () => initWeight(hiddenSize, hiddenSize, rng))
                     );
                     this.b2 = Array.from({ length: hiddenSize }, () => initWeight(1, hiddenSize, rng) * 0.1);
                     
-                    // Layer 3: Hidden -> Output
                     this.w3 = Array.from({ length: outputSize }, () => 
                         Array.from({ length: hiddenSize }, () => initWeight(hiddenSize, outputSize, rng))
                     );
                     this.b3 = Array.from({ length: outputSize }, () => initWeight(1, outputSize, rng) * 0.1);
                     
-                    // Target network weights (for DQN stability)
                     this.targetW1 = Utils.deepClone(this.w1);
                     this.targetB1 = [...this.b1];
                     this.targetW2 = Utils.deepClone(this.w2);
@@ -2011,22 +1982,18 @@
                     this.targetW3 = Utils.deepClone(this.w3);
                     this.targetB3 = [...this.b3];
                     
-                    // Experience replay buffer
                     this.memory = [];
                     this.memorySize = Config.neural.memorySize;
                     
-                    // Training parameters
                     this.epsilon = Config.neural.epsilonStart;
                     this.steps = 0;
                     this.totalLoss = 0;
                     this.trainingSteps = 0;
                 }
                 
-                // Activation functions
                 _relu(x) { return Math.max(0, x); }
-                _reluDeriv(x) { return x > 0 ? 1 : 0.01; } // Leaky ReLU for better gradient flow
+                _reluDeriv(x) { return x > 0 ? 1 : 0.01; }
                 
-                // Forward pass with caching for backprop
                 forward(input, useTarget = false) {
                     const w1 = useTarget ? this.targetW1 : this.w1;
                     const b1 = useTarget ? this.targetB1 : this.b1;
@@ -2035,14 +2002,12 @@
                     const w3 = useTarget ? this.targetW3 : this.w3;
                     const b3 = useTarget ? this.targetB3 : this.b3;
                     
-                    // Cache input
                     if (!useTarget) {
                         for (let i = 0; i < this.inputSize; i++) {
                             this._cache.input[i] = input[i];
                         }
                     }
                     
-                    // Layer 1: Input -> Hidden
                     for (let i = 0; i < this.hiddenSize; i++) {
                         let sum = b1[i];
                         for (let j = 0; j < this.inputSize; j++) {
@@ -2057,7 +2022,6 @@
                         }
                     }
                     
-                    // Layer 2: Hidden -> Hidden
                     for (let i = 0; i < this.hiddenSize; i++) {
                         let sum = b2[i];
                         for (let j = 0; j < this.hiddenSize; j++) {
@@ -2072,7 +2036,6 @@
                         }
                     }
                     
-                    // Output layer: Hidden -> Output (linear activation for Q-values)
                     for (let i = 0; i < this.outputSize; i++) {
                         let sum = b3[i];
                         for (let j = 0; j < this.hiddenSize; j++) {
@@ -2087,20 +2050,16 @@
                     return this._output;
                 }
                 
-                // Epsilon-greedy action selection
                 chooseAction(state) {
                     this.steps++;
                     
-                    // Decay epsilon
                     this.epsilon = Math.max(Config.neural.epsilonMin, 
                         this.epsilon * Config.neural.epsilonDecay);
                     
-                    // Exploration
                     if (Math.random() < this.epsilon) {
                         return Utils.randomInt(0, this.outputSize - 1);
                     }
                     
-                    // Exploitation
                     const qValues = this.forward(state);
                     let bestAction = 0;
                     let bestValue = qValues[0];
@@ -2115,7 +2074,6 @@
                     return bestAction;
                 }
                 
-                // Store experience in replay buffer
                 remember(state, action, reward, nextState, done) {
                     this.memory.push({ 
                         state: [...state], 
@@ -2125,20 +2083,17 @@
                         done 
                     });
                     
-                    // Maintain fixed buffer size
                     if (this.memory.length > this.memorySize) {
                         this.memory.shift();
                     }
                 }
                 
-                // Train the network using mini-batch gradient descent
                 train() {
                     if (this.memory.length < Config.neural.batchSize) return 0;
                     
                     let batchLoss = 0;
                     const lr = Config.neural.learningRate;
                     
-                    // Sample mini-batch
                     const batch = [];
                     for (let i = 0; i < Config.neural.batchSize; i++) {
                         const idx = Utils.randomInt(0, this.memory.length - 1);
@@ -2146,14 +2101,10 @@
                     }
                     
                     for (const exp of batch) {
-                        // Forward pass for current state
                         const currentQ = this.forward(exp.state);
-                        
-                        // Forward pass for next state (both networks for Double DQN)
                         const nextQOnline = this.forward(exp.nextState);
                         const nextQTarget = this.forward(exp.nextState, true);
                         
-                        // Select best action using online network (Double DQN)
                         let bestNextAction = 0;
                         for (let i = 1; i < nextQOnline.length; i++) {
                             if (nextQOnline[i] > nextQOnline[bestNextAction]) {
@@ -2161,26 +2112,21 @@
                             }
                         }
                         
-                        // Compute target Q-value
                         let targetQ = exp.reward;
                         if (!exp.done) {
                             targetQ += Config.neural.discountFactor * nextQTarget[bestNextAction];
                         }
                         
-                        // Compute error (MSE loss component)
                         const error = targetQ - currentQ[exp.action];
                         batchLoss += error * error;
                         
-                        // Backpropagation through output layer
                         this._cache.delta3[exp.action] = error;
                         
-                        // Update output layer weights
                         for (let j = 0; j < this.hiddenSize; j++) {
                             this.w3[exp.action][j] += lr * error * this._cache.a2[j];
                         }
                         this.b3[exp.action] += lr * error;
                         
-                        // Backpropagate to hidden layer 2
                         for (let i = 0; i < this.hiddenSize; i++) {
                             let delta = 0;
                             for (let k = 0; k < this.outputSize; k++) {
@@ -2188,14 +2134,12 @@
                             }
                             this._cache.delta2[i] = delta * this._reluDeriv(this._cache.z2[i]);
                             
-                            // Update hidden layer 2 weights
                             for (let j = 0; j < this.hiddenSize; j++) {
                                 this.w2[i][j] += lr * this._cache.delta2[i] * this._cache.a1[j];
                             }
                             this.b2[i] += lr * this._cache.delta2[i];
                         }
                         
-                        // Backpropagate to hidden layer 1
                         for (let i = 0; i < this.hiddenSize; i++) {
                             let delta = 0;
                             for (let k = 0; k < this.hiddenSize; k++) {
@@ -2203,7 +2147,6 @@
                             }
                             this._cache.delta1[i] = delta * this._reluDeriv(this._cache.z1[i]);
                             
-                            // Update hidden layer 1 weights
                             for (let j = 0; j < this.inputSize; j++) {
                                 this.w1[i][j] += lr * this._cache.delta1[i] * this._cache.input[j];
                             }
@@ -2211,17 +2154,14 @@
                         }
                     }
                     
-                    // Soft update target network
                     this._softUpdateTargets();
                     
-                    // Track average loss
                     this.totalLoss += batchLoss;
                     this.trainingSteps++;
                     
                     return batchLoss / Config.neural.batchSize;
                 }
                 
-                // Soft update target network parameters (tau interpolation)
                 _softUpdateTargets() {
                     const tau = Config.neural.tau;
                     const oneMinusTau = 1 - tau;
@@ -2248,7 +2188,6 @@
                     }
                 }
                 
-                // Mutation for evolutionary algorithms
                 mutate(rate = Config.evolution.mutationRate, strength = Config.evolution.mutationStrength) {
                     const mutateVal = (val) => {
                         if (Math.random() < rate) {
@@ -2279,11 +2218,9 @@
                     }
                 }
                 
-                // Uniform crossover with another network
                 crossover(other) {
                     const child = new NeuralNetwork(this.inputSize, this.hiddenSize, this.outputSize);
                     
-                    // Uniform crossover for all weights and biases
                     for (let i = 0; i < this.hiddenSize; i++) {
                         for (let j = 0; j < this.inputSize; j++) {
                             child.w1[i][j] = Math.random() < 0.5 ? this.w1[i][j] : other.w1[i][j];
@@ -2305,7 +2242,6 @@
                         child.b3[i] = Math.random() < 0.5 ? this.b3[i] : other.b3[i];
                     }
                     
-                    // Initialize target networks from new weights
                     child.targetW1 = Utils.deepClone(child.w1);
                     child.targetB1 = [...child.b1];
                     child.targetW2 = Utils.deepClone(child.w2);
@@ -2316,7 +2252,6 @@
                     return child;
                 }
                 
-                // Deep clone the network
                 clone() {
                     const cloned = new NeuralNetwork(this.inputSize, this.hiddenSize, this.outputSize);
                     
@@ -2340,7 +2275,6 @@
                     return cloned;
                 }
                 
-                // Serialize to JSON (for saving)
                 toJSON() {
                     return {
                         inputSize: this.inputSize,
@@ -2358,7 +2292,6 @@
                     };
                 }
                 
-                // Deserialize from JSON (for loading)
                 static fromJSON(json) {
                     const nn = new NeuralNetwork(json.inputSize, json.hiddenSize, json.outputSize);
                     
@@ -2376,7 +2309,6 @@
                     return nn;
                 }
                 
-                // Get training statistics
                 getStats() {
                     return {
                         epsilon: this.epsilon,
@@ -2388,7 +2320,7 @@
             }
 
             // ========================================
-            // FIGHTER CLASS (Core Game Entity)
+            // FIGHTER CLASS - FIXED
             // ========================================
             class Fighter {
                 constructor(x, y, color, name, isRed, config = {}) {
@@ -2424,29 +2356,32 @@
                     this.rage = 0;
                     this.balance = this.maxBalance;
                     this.stamina = this.maxStamina;
+                    this.superMeter = 0;
                     
                     // State Machine
                     this.state = 'idle';
                     this.subState = null;
                     
-                    // Animation & Timing
+                    // Animation & Timing - ALL INITIALIZED
                     this.frame = 0;
                     this.animationFrame = 0;
                     this.attackTimer = 0;
+                    this.attackFrame = 0; // Current frame of attack animation
                     this.attackData = null;
                     this.hitstun = 0;
                     this.blockstun = 0;
                     this.invincible = 0;
                     this.knockdownTimer = 0;
-                    this.attackCooldown = 0; // FIX: Added missing property
+                    this.attackCooldown = 0;
+                    this.blockTimer = 0; // FIX: Initialize block timer
+                    this.defenseTimer = 0; // Timer for defense duration
+                    this.comboTimer = 0;
                     
                     // Combat Systems
                     this.currentAttack = null;
                     this.currentDefense = null;
                     this.comboCount = 0;
-                    this.comboTimer = 0;
                     this.maxCombo = 0;
-                    this.superMeter = 0;
                     
                     // Dash System
                     this.dashCooldown = 0;
@@ -2466,7 +2401,7 @@
                     this.perfectBlocks = 0;
                     this.totalReward = 0;
                     
-                    // Emotions (affect behavior)
+                    // Emotions
                     this.emotions = {
                         aggression: 0.5,
                         fear: 0.3,
@@ -2509,7 +2444,7 @@
                             this.damageMod = 1.2;
                             this.jumpMod = 0.8;
                             break;
-                        default: // medium
+                        default:
                             this.speedMod = 1.0;
                             this.hpMod = 1.0;
                             this.damageMod = 1.0;
@@ -2518,14 +2453,12 @@
                     this.energyMod = 1.0;
                 }
                 
-                // Get state vector for neural network (42 dimensions)
                 getState(opponent, arenaBounds) {
                     const dx = opponent.x - this.x;
                     const dy = opponent.y - this.y;
                     const dist = Utils.distance(this.x, this.y, opponent.x, opponent.y);
                     
                     return [
-                        // Health & Resources (0-9)
                         this.hp / this.maxHp,
                         opponent.hp / opponent.maxHp,
                         this.energy / this.maxEnergy,
@@ -2536,8 +2469,6 @@
                         opponent.balance / opponent.maxBalance,
                         this.stamina / this.maxStamina,
                         opponent.stamina / opponent.maxStamina,
-                        
-                        // Position & Velocity (10-21)
                         this.x / arenaBounds.width,
                         opponent.x / arenaBounds.width,
                         this.y / arenaBounds.height,
@@ -2550,8 +2481,6 @@
                         Math.atan2(dy, dx) / Math.PI,
                         this.facing,
                         opponent.facing,
-                        
-                        // State Flags (22-31)
                         this.state === 'attack' ? 1 : 0,
                         opponent.state === 'attack' ? 1 : 0,
                         this.state === 'defend' ? 1 : 0,
@@ -2562,16 +2491,12 @@
                         opponent.isDashing ? 1 : 0,
                         this.knockdownTimer > 0 ? 1 : 0,
                         opponent.knockdownTimer > 0 ? 1 : 0,
-                        
-                        // Combo & Special (32-37)
                         this.comboCount / 10,
                         opponent.comboCount / 10,
                         this.superMeter / Config.combat.superMeterCost,
                         opponent.superMeter / Config.combat.superMeterCost,
                         this.hitstun > 0 ? 1 : 0,
                         opponent.hitstun > 0 ? 1 : 0,
-                        
-                        // Emotions (38-43)
                         this.emotions.aggression,
                         this.emotions.fear,
                         this.emotions.confidence,
@@ -2581,8 +2506,8 @@
                     ];
                 }
                 
-                // Update fighter state
                 update(opponent, input, arenaBounds, deltaTime = 1) {
+                    // Handle knockdown recovery
                     if (this.knockdownTimer > 0) {
                         this.knockdownTimer -= deltaTime;
                         if (this.knockdownTimer <= 0) {
@@ -2593,34 +2518,69 @@
                         return;
                     }
                     
-                    // Update timers
+                    // Update all timers
                     if (this.hitstun > 0) this.hitstun -= deltaTime;
                     if (this.blockstun > 0) this.blockstun -= deltaTime;
                     if (this.invincible > 0) this.invincible -= deltaTime;
                     if (this.dashCooldown > 0) this.dashCooldown -= deltaTime;
-                    if (this.dashTimer > 0) this.dashTimer -= deltaTime;
-                    if (this.attackTimer > 0) this.attackTimer -= deltaTime;
-                    if (this.blockTimer > 0) this.blockTimer -= deltaTime;
                     if (this.attackCooldown > 0) this.attackCooldown -= deltaTime;
                     if (this.comboTimer > 0) {
                         this.comboTimer -= deltaTime;
                         if (this.comboTimer <= 0) this.comboCount = 0;
                     }
-
-                    // Dash state (СНАЧАЛА)
-if (this.isDashing && this.dashTimer <= 0) {
-    this.isDashing = false;
-    this.state = 'idle';
-}
-
-// FIX (ПОТОМ)
-if (this.state === 'attack' && this.attackTimer <= 0) {
-    this.state = 'idle';
-    this.subState = null;
-    this.attackData = null;
-    this.hitbox = null;
-    this.currentAttack = null;
-}
+                    
+                    // Defense timer management
+                    if (this.defenseTimer > 0) {
+                        this.defenseTimer -= deltaTime;
+                        if (this.defenseTimer <= 0 && this.state === 'defend') {
+                            this.state = 'idle';
+                            this.currentDefense = null;
+                        }
+                    }
+                    
+                    // Dash timer management
+                    if (this.dashTimer > 0) {
+                        this.dashTimer -= deltaTime;
+                        if (this.dashTimer <= 0 && this.isDashing) {
+                            this.isDashing = false;
+                            this.state = 'idle';
+                        }
+                    }
+                    
+                    // Attack frame tracking - FIX: Proper frame data handling
+                    if (this.state === 'attack' && this.attackTimer > 0) {
+                        this.attackFrame++;
+                        this.attackTimer -= deltaTime;
+                        
+                        // Create/update hitbox only during active frames
+                        if (this.attackData && this.hitbox) {
+                            const attack = this.attackData;
+                            const totalFrames = attack.startup + attack.active + attack.recovery;
+                            
+                            // Determine current phase
+                            if (this.attackFrame < attack.startup) {
+                                // Startup phase - no hitbox
+                                this.hitbox = null;
+                            } else if (this.attackFrame < attack.startup + attack.active) {
+                                // Active phase - hitbox active
+                                if (!this.hitbox) {
+                                    this._createHitbox(attack);
+                                }
+                            } else {
+                                // Recovery phase - no hitbox
+                                this.hitbox = null;
+                            }
+                        }
+                        
+                        if (this.attackTimer <= 0) {
+                            this.state = 'idle';
+                            this.subState = null;
+                            this.attackData = null;
+                            this.hitbox = null;
+                            this.currentAttack = null;
+                            this.attackFrame = 0;
+                        }
+                    }
                     
                     // Physics update
                     this._applyPhysics(deltaTime);
@@ -2632,19 +2592,13 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                     if (this.y >= arenaBounds.floorY) {
                         this.y = arenaBounds.floorY;
                         this.vy = 0;
-                        if (!this.isJumping) {
-                            this.jumpsRemaining = 1;
-                            this.canDoubleJump = true;
+                        if (this.isJumping) {
+                            this.isJumping = false;
                         }
+                        this.jumpsRemaining = 1;
+                        this.canDoubleJump = true;
                     }
-                    // Таймер защиты - 8 кадров
-    if (this.blockTimer > 0) {
-        this.blockTimer--;
-        if (this.blockTimer <= 0 && this.state === 'defend') {
-            this.state = 'idle';
-            this.currentDefense = null;
-        }
-    }
+                    
                     // Recovery
                     this._recoverResources(deltaTime);
                     
@@ -2662,30 +2616,25 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                 }
                 
                 _applyPhysics(deltaTime) {
-                    // Apply gravity
                     if (!this.isDashing) {
                         this.vy += Config.physics.gravity * deltaTime;
                     }
                     
-                    // Apply friction
-                    if (this.y >= Config.canvas.baseHeight - 150) {
+                    const floorY = Config.canvas.baseHeight - 200;
+                    if (this.y >= floorY) {
                         this.vx *= Math.pow(Config.physics.friction, deltaTime);
                     } else {
-                        // Air control
                         this.vx *= Math.pow(Config.physics.airControl, deltaTime);
                     }
                     
-                    // Clamp velocity
                     this.vx = Utils.clamp(this.vx, -Config.physics.maxVelocity, Config.physics.maxVelocity);
                     this.vy = Utils.clamp(this.vy, -Config.physics.maxVelocity * 1.5, Config.physics.maxVelocity);
                     
-                    // Apply velocity
                     this.x += this.vx * deltaTime;
                     this.y += this.vy * deltaTime;
                 }
                 
                 _handleBoundaries(arenaBounds) {
-                    // Horizontal boundaries
                     if (this.x < arenaBounds.left + 20) {
                         this.x = arenaBounds.left + 20;
                         this.vx = Math.abs(this.vx) * Config.physics.bounce;
@@ -2695,7 +2644,6 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                         this.vx = -Math.abs(this.vx) * Config.physics.bounce;
                     }
                     
-                    // Vertical boundaries (ceiling)
                     if (this.y < arenaBounds.top) {
                         this.y = arenaBounds.top;
                         this.vy = Math.abs(this.vy) * Config.physics.bounce;
@@ -2703,61 +2651,49 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                 }
                 
                 _recoverResources(deltaTime) {
-                    // Energy recovery (faster when not attacking)
                     const energyRecovery = Config.fighter.recoveryRate * 
                         (this.state === 'attack' ? 0.5 : 1) * deltaTime;
                     this.energy = Utils.clamp(this.energy + energyRecovery, 0, this.maxEnergy);
                     
-                    // Stamina recovery
                     const staminaRecovery = Config.fighter.recoveryRate * 0.8 * deltaTime;
                     this.stamina = Utils.clamp(this.stamina + staminaRecovery, 0, this.maxStamina);
                     
-                    // Balance recovery
                     const balanceRecovery = Config.fighter.recoveryRate * 1.5 * deltaTime;
                     this.balance = Utils.clamp(this.balance + balanceRecovery, 0, this.maxBalance);
                     
-                    // Rage decay
                     this.rage = Utils.clamp(this.rage - Config.fighter.rageDecay * deltaTime, 0, this.maxRage);
                     
-                    // Fatigue decay
                     this.emotions.fatigue = Utils.clamp(this.emotions.fatigue - 0.01 * deltaTime, 0, 1);
                 }
                 
                 _updateEmotions(opponent, deltaTime) {
-                    // Aggression increases when opponent is low HP
                     if (opponent.hp < opponent.maxHp * 0.3) {
                         this.emotions.aggression = Utils.clamp(this.emotions.aggression + 0.02 * deltaTime, 0, 1);
                     }
                     
-                    // Fear increases when own HP is low
                     if (this.hp < this.maxHp * 0.3) {
                         this.emotions.fear = Utils.clamp(this.emotions.fear + 0.03 * deltaTime, 0, 1);
                         this.emotions.confidence = Utils.clamp(this.emotions.confidence - 0.01 * deltaTime, 0, 1);
                     }
                     
-                    // Confidence increases on successful combos
                     if (this.comboCount > 2) {
                         this.emotions.confidence = Utils.clamp(this.emotions.confidence + 0.015 * deltaTime, 0, 1);
                     }
                     
-                    // Fatigue increases with low stamina
                     if (this.stamina < this.maxStamina * 0.3) {
                         this.emotions.fatigue = Utils.clamp(this.emotions.fatigue + 0.02 * deltaTime, 0, 1);
                     }
                     
-                    // Focus increases when blocking successfully
                     if (this.perfectBlocks > 0) {
                         this.emotions.focus = Utils.clamp(this.emotions.focus + 0.03 * deltaTime, 0, 1);
                         this.perfectBlocks--;
                     }
                     
-                    // Intuition increases with prediction success (simplified)
                     if (Math.random() < 0.01 * deltaTime) {
                         this.emotions.intuition = Utils.clamp(this.emotions.intuition + 0.01, 0, 1);
                     }
                 }
                 
-                // Movement actions
                 move(direction) {
                     if (this.state !== 'idle' && this.state !== 'walk') return false;
                     if (this.stamina < 1) return false;
@@ -2788,17 +2724,17 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                     this.dashTimer = Config.physics.dashDuration;
                     this.dashCooldown = Config.physics.dashCooldown;
                     this.vx = this.facing * Config.physics.dashSpeed;
-                    this.invincible = 8; // I-frames during dash
+                    this.invincible = 8;
                     this.stamina -= 5;
+                    this.state = 'dash';
                     
                     return true;
                 }
                 
-                // Combat actions
                 attack(attackId) {
                     if (this.state !== 'idle' && this.state !== 'walk') return false;
                     if (this.hitstun > 0 || this.blockstun > 0) return false;
-                    if (this.attackCooldown > 0) return false; // FIX: Check attack cooldown
+                    if (this.attackCooldown > 0) return false;
                     
                     const attack = ATTACKS[attackId];
                     if (!attack) return false;
@@ -2812,31 +2748,32 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                     // Check resources
                     if (this.energy < attack.energy) return false;
                     
-                    // Execute attack
+                    // Execute attack - FIX: Initialize attack frame properly
                     this.state = 'attack';
                     this.subState = attack.name;
                     this.attackData = attack;
                     this.attackTimer = attack.startup + attack.active + attack.recovery;
+                    this.attackFrame = 0; // Reset frame counter
                     this.currentAttack = attackId;
                     this.energy -= attack.energy;
                     this.attacksThrown++;
-                    this.attackCooldown = attack.recovery + 2; // FIX: Set attack cooldown
+                    this.attackCooldown = attack.recovery + 2;
                     
                     // Build super meter
                     this.superMeter = Utils.clamp(this.superMeter + Config.combat.superMeterGain, 0, Config.combat.superMeterCost);
                     
-                    // Create attack hitbox
-                    this._createHitbox(attack);
+                    // Hitbox will be created during active frames in update()
+                    this.hitbox = null;
                     
                     return true;
                 }
                 
                 _createHitbox(attack) {
                     this.hitbox = {
-                        x: this.x + (this.facing * attack.range),
-                        y: this.y - 40,
-                        w: 30,
-                        h: 60,
+                        x: this.x + (this.facing > 0 ? 20 : -attack.range - 20),
+                        y: this.y - 50,
+                        w: attack.range,
+                        h: 50,
                         damage: attack.damage,
                         hitstun: attack.hitstun,
                         blockstun: attack.blockstun,
@@ -2848,80 +2785,62 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                 }
                 
                 defend(defenseType) {
-    if (this.state !== 'idle' && this.state !== 'walk') return false;
-    if (this.energy < defenseType.energyCost) return false;
-    
-    this.blockTimer = 8;  // ← ДОБАВЬ ЭТУ СТРОКУ!
-    
-    this.state = 'defend';
-    this.subState = defenseType.name;
-    this.currentDefense = defenseType;
-    this.energy -= defenseType.energyCost;
-    
-    return true;
+                    if (this.state !== 'idle' && this.state !== 'walk') return false;
+                    if (this.energy < defenseType.energyCost) return false;
+                    
+                    this.state = 'defend';
+                    this.subState = defenseType.name;
+                    this.currentDefense = defenseType;
+                    this.energy -= defenseType.energyCost;
+                    
+                    // FIX: Set defense duration based on type
+                    if (defenseType.name === 'Dodge') {
+                        this.defenseTimer = defenseType.duration || 10;
+                        this.invincible = defenseType.duration || 10;
+                    } else if (defenseType.name === 'Block' || defenseType.name === 'Crouch') {
+                        this.defenseTimer = Config.fighter.defenseDuration;
+                    } else {
+                        this.defenseTimer = defenseType.counterWindow || 8;
+                    }
+                    
+                    return true;
                 }
                 
-                // Take damage
                 takeDamage(attacker, attack) {
-                    if (this.invincible > 0) return false;
+                    if (this.invincible > 0) return { hit: false, damage: 0 };
                     
-                    // Check defense
                     let damage = attack.damage * attacker.damageMod;
                     let hitstun = attack.hitstun;
                     let defended = false;
                     
                     if (this.state === 'defend' && this.currentDefense) {
-    const def = this.currentDefense;
-
-    // Проверяем тип защиты против типа атаки
-    if (def.name === 'Block') {
-        // Блок работает только против обычных атак
-        if (attack.type === 'light' || attack.type === 'medium') {
-            damage *= def.damageMod;
-            hitstun *= def.hitstunMod;
-            this.blockstun = def.blockstun || Config.combat.blockstunBase;
-            defended = true;
-        } else {
-            // Не блокирует спецприемы
-            defended = false;
-        }
-    } else if (def.name === 'Dodge') {
-        // Уклонение работает против тяжелых атак
-        if (attack.type === 'heavy' || attack.type === 'special') {
-            damage = 0;
-            defended = true;
-        } else {
-            defended = false;
-        }
-    } else if (def.name === 'Parry') {
-        // Парри работает только против легких атак
-        if (attack.type === 'light') {
-            damage = 0;
-            defended = true;
-            // Контратака
-            attacker.hitstun = 10;
-        } else {
-            defended = false;
-        }
-    } else if (def.name === 'Crouch') {
-        // Приседание уклоняется от высоких атак
-        if (attack.overhead) {
-            damage = 0;
-            defended = true;
-        } else {
-            defended = false;
-        }
-    } else {
-        defended = false;
-    }
-    
-    // Если защита не сработала - получаем полный урон
-    if (!defended && damage > 0) {
-        this.hp = Utils.clamp(this.hp - damage, 0, this.maxHp);
-    }
+                        const def = this.currentDefense;
+                        
+                        if (def.name === 'Block') {
+                            if (attack.type === 'light' || attack.type === 'medium') {
+                                damage *= def.damageMod;
+                                hitstun *= def.hitstunMod;
+                                this.blockstun = def.blockstun || Config.combat.blockstunBase;
+                                defended = true;
+                            }
+                        } else if (def.name === 'Dodge') {
+                            damage = 0;
+                            defended = true;
+                        } else if (def.name === 'Parry') {
+                            if (attack.type === 'light') {
+                                damage = 0;
+                                defended = true;
+                                attacker.hitstun = 10;
+                            }
+                        } else if (def.name === 'Crouch') {
+                            if (attack.overhead) {
+                                damage = 0;
+                                defended = true;
+                            }
+                        }
                     }
                     
-                    // Apply damage if not fully defended
+                    // Apply damage
                     if (!defended || damage > 0) {
                         this.hp = Utils.clamp(this.hp - damage, 0, this.maxHp);
                         this.hitstun = hitstun;
@@ -2947,8 +2866,6 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                             attacker.comboCount = 1;
                         } else {
                             attacker.comboCount++;
-                            // Damage scaling
-                            damage *= Math.pow(Config.combat.damageScaling, attacker.comboCount - 1);
                         }
                         attacker.comboTimer = Config.combat.comboWindow;
                         attacker.maxCombo = Math.max(attacker.maxCombo, attacker.comboCount);
@@ -2958,17 +2875,19 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                         attacker.hitsLanded++;
                         attacker.damageDealt += damage;
                         
+                        // Build rage
+                        attacker.rage = Utils.clamp(attacker.rage + damage * 0.5, 0, attacker.maxRage);
+                        
                         // Emotion updates
                         attacker.emotions.aggression = Utils.clamp(attacker.emotions.aggression + 0.05, 0, 1);
                         this.emotions.fear = Utils.clamp(this.emotions.fear + 0.08, 0, 1);
                         
-                        return true;
+                        return { hit: true, damage };
                     }
                     
-                    return defended;
+                    return { hit: false, damage: 0, defended };
                 }
                 
-                // Check hitbox collision (AABB with tolerance)
                 checkCollision(opponent) {
                     if (!this.hitbox || this.state !== 'attack') return false;
                     
@@ -2980,7 +2899,6 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                         h: 80
                     };
                     
-                    // AABB collision with tolerance
                     const collision = 
                         hb.x < hbOpp.x + hbOpp.w + Config.combat.hitboxTolerance &&
                         hb.x + hb.w > hbOpp.x - Config.combat.hitboxTolerance &&
@@ -2988,21 +2906,18 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                         hb.y + hb.h > hbOpp.y - Config.combat.hitboxTolerance;
                     
                     if (collision) {
-                        // Clear hitbox after hit to prevent multiple hits
-                        this.hitbox = null;
+                        this.hitbox = null; // Clear to prevent multiple hits
                         return true;
                     }
                     
                     return false;
                 }
                 
-                // Draw fighter
                 draw(ctx, cameraOffset = { x: 0, y: 0 }) {
                     ctx.save();
                     ctx.translate(this.x + cameraOffset.x, this.y + cameraOffset.y);
                     ctx.scale(this.facing, 1);
                     
-                    // Color based on state
                     let bodyColor = this.color;
                     if (this.knockdownTimer > 0) bodyColor = '#666';
                     else if (this.invincible > 0) bodyColor = '#ffd966';
@@ -3032,10 +2947,9 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                     ctx.arc(0, -50, 18, 0, Math.PI * 2);
                     ctx.stroke();
                     
-                    // Arms (animated)
+                    // Arms
                     const armAngle = Math.sin(this.animationFrame * Math.PI) * 0.3;
                     if (this.state === 'attack') {
-                        // Attack pose
                         ctx.beginPath();
                         ctx.moveTo(0, -20);
                         ctx.lineTo(40, -30);
@@ -3045,7 +2959,6 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                         ctx.lineTo(-20, -10);
                         ctx.stroke();
                     } else if (this.state === 'defend') {
-                        // Guard pose
                         ctx.beginPath();
                         ctx.moveTo(0, -20);
                         ctx.lineTo(25, -15);
@@ -3055,7 +2968,6 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                         ctx.lineTo(-25, -15);
                         ctx.stroke();
                     } else {
-                        // Idle pose
                         ctx.beginPath();
                         ctx.moveTo(0, -20);
                         ctx.lineTo(20 + armAngle * 10, -5);
@@ -3079,23 +2991,20 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                     
                     ctx.restore();
                     
-                    // Health bar above fighter
+                    // Health bar
                     const barWidth = 60;
                     const barHeight = 6;
                     const barY = this.y - 90 + cameraOffset.y;
                     const barX = this.x - barWidth/2 + cameraOffset.x;
                     
-                    // Background
                     ctx.fillStyle = '#222';
                     ctx.fillRect(barX, barY, barWidth, barHeight);
                     
-                    // Health
                     const healthPercent = this.hp / this.maxHp;
                     const healthColor = healthPercent > 0.5 ? '#4dff4d' : healthPercent > 0.25 ? '#ffd966' : '#ff4d4d';
                     ctx.fillStyle = healthColor;
                     ctx.fillRect(barX, barY, barWidth * healthPercent, barHeight);
                     
-                    // Border
                     ctx.strokeStyle = '#fff';
                     ctx.lineWidth = 1;
                     ctx.strokeRect(barX, barY, barWidth, barHeight);
@@ -3107,7 +3016,6 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                     ctx.fillText(this.name, this.x + cameraOffset.x, barY - 5);
                 }
                 
-                // Reset fighter to initial state
                 reset(x, y) {
                     this.x = x;
                     this.y = y;
@@ -3118,6 +3026,7 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                     this.rage = 0;
                     this.balance = this.maxBalance;
                     this.stamina = this.maxStamina;
+                    this.superMeter = 0;
                     this.state = 'idle';
                     this.subState = null;
                     this.hitstun = 0;
@@ -3125,20 +3034,25 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                     this.invincible = 0;
                     this.knockdownTimer = 0;
                     this.attackCooldown = 0;
+                    this.defenseTimer = 0;
+                    this.attackTimer = 0;
+                    this.attackFrame = 0;
                     this.comboCount = 0;
                     this.comboTimer = 0;
-                    this.superMeter = 0;
                     this.dashCooldown = 0;
+                    this.dashTimer = 0;
                     this.isDashing = false;
                     this.isJumping = false;
                     this.jumpsRemaining = 1;
                     this.hitbox = null;
                     this.currentDefense = null;
+                    this.attackData = null;
+                    this.currentAttack = null;
                 }
             }
 
             // ========================================
-            // POPULATION & EVOLUTION SYSTEM
+            // POPULATION & EVOLUTION
             // ========================================
             class Population {
                 constructor(size = Config.evolution.populationSize) {
@@ -3159,7 +3073,7 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                                 Config.neural.inputSize,
                                 Config.neural.hiddenSize,
                                 Config.neural.outputSize,
-                                i * 1000 // Seed for reproducibility
+                                i * 1000
                             ),
                             fitness: 0,
                             wins: 0,
@@ -3171,7 +3085,6 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                     }
                 }
                 
-                // Tournament selection
                 tournament(k = Config.evolution.tournamentSize) {
                     let best = null;
                     for (let i = 0; i < k; i++) {
@@ -3184,23 +3097,18 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                     return best;
                 }
                 
-                // Run evolution cycle
                 evolve() {
-                    Logger.evolution(`Начало эволюции поколения ${this.generation}`);
+                    Logger.evolution(`Evolution generation ${this.generation}`);
                     
-                    // Sort by fitness
                     this.fighters.sort((a, b) => b.fitness - a.fitness);
                     
-                    // Track best
                     if (this.fighters[0].fitness > this.bestFitness) {
                         this.bestFitness = this.fighters[0].fitness;
-                        Logger.evolution(`Новый рекорд пригодности: ${Math.floor(this.bestFitness)}`);
+                        Logger.evolution(`New fitness record: ${Math.floor(this.bestFitness)}`);
                     }
                     
-                    // Create new population
                     const newPopulation = [];
                     
-                    // Elitism: keep top performers
                     for (let i = 0; i < Config.evolution.eliteCount; i++) {
                         newPopulation.push({
                             ...this.fighters[i],
@@ -3209,13 +3117,10 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                         });
                     }
                     
-                    // Fill rest with offspring
                     while (newPopulation.length < this.size) {
-                        // Tournament selection for parents
                         const parent1 = this.tournament();
                         const parent2 = this.tournament();
                         
-                        // Crossover
                         let childBrain;
                         if (Math.random() < Config.evolution.crossoverRate) {
                             childBrain = parent1.brain.crossover(parent2.brain);
@@ -3223,7 +3128,6 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                             childBrain = parent1.brain.clone();
                         }
                         
-                        // Mutation
                         childBrain.mutate();
                         
                         newPopulation.push({
@@ -3242,56 +3146,44 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                     this.fighters = newPopulation;
                     this.generation++;
                     
-                    Logger.evolution(`Поколение ${this.generation} завершено. Популяция: ${this.size}`);
+                    Logger.evolution(`Generation ${this.generation} complete. Population: ${this.size}`);
                 }
                 
-                // Run tournament matches
                 runTournament() {
-                    Logger.evolution('Запуск турнира...');
+                    Logger.evolution('Starting tournament...');
                     
-                    // Reset stats
                     for (const f of this.fighters) {
                         f.fitness = 0;
                         f.wins = 0;
                         f.losses = 0;
                     }
                     
-                    // Round-robin matches
                     for (let i = 0; i < this.fighters.length; i++) {
                         for (let j = i + 1; j < this.fighters.length; j++) {
                             const result = this._simulateMatch(this.fighters[i], this.fighters[j]);
                             
-                            // Update winner
                             if (result.winner === 0) {
                                 this.fighters[i].wins++;
                                 this.fighters[i].fitness += 100 + result.score1;
-                            } else {
-                                this.fighters[j].wins++;
-                                this.fighters[j].fitness += 100 + result.score2;
-                            }
-                            
-                            // Update loser
-                            if (result.winner === 0) {
                                 this.fighters[j].losses++;
                                 this.fighters[j].fitness += result.score2 * 0.5;
                             } else {
+                                this.fighters[j].wins++;
+                                this.fighters[j].fitness += 100 + result.score2;
                                 this.fighters[i].losses++;
                                 this.fighters[i].fitness += result.score1 * 0.5;
                             }
                             
-                            // Combo bonus
                             this.fighters[i].fitness += result.combo1 * 10;
                             this.fighters[j].fitness += result.combo2 * 10;
                         }
                     }
                     
-                    Logger.evolution('Турнир завершён. Эволюция...');
+                    Logger.evolution('Tournament complete. Evolving...');
                     this.evolve();
                 }
                 
-                // Simulate a match between two fighters
                 _simulateMatch(f1Data, f2Data) {
-                    // Create fighter instances
                     const f1 = new Fighter(500, 600, '#ff4d4d', f1Data.name, true, {
                         architecture: 'neural',
                         weight: f1Data.weight
@@ -3314,25 +3206,19 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                     let combo1 = 0, combo2 = 0;
                     let score1 = 0, score2 = 0;
                     
-                    // Simulate match (max 1800 frames = 30 seconds at 60fps)
                     for (let step = 0; step < 1800; step++) {
-                        // Get states
                         const state1 = f1.getState(f2, arenaBounds);
                         const state2 = f2.getState(f1, arenaBounds);
                         
-                        // Neural decisions
                         const action1 = f1.brain.chooseAction(state1);
                         const action2 = f2.brain.chooseAction(state2);
                         
-                        // Execute actions (simplified)
                         this._executeNeuralAction(f1, f2, action1, arenaBounds);
                         this._executeNeuralAction(f2, f1, action2, arenaBounds);
                         
-                        // Update fighters
                         f1.update(f2, {}, arenaBounds);
                         f2.update(f1, {}, arenaBounds);
                         
-                        // Check collisions
                         if (f1.checkCollision(f2)) {
                             f2.takeDamage(f1, f1.attackData);
                             if (f1.comboCount > combo1) combo1 = f1.comboCount;
@@ -3344,7 +3230,6 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                             score2 += 10;
                         }
                         
-                        // Check win condition
                         if (f1.hp <= 0 || f2.hp <= 0 || f1.knockdownTimer > 30 || f2.knockdownTimer > 30) {
                             break;
                         }
@@ -3360,84 +3245,47 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                     };
                 }
                 
-                // Execute neural network action
                 _executeNeuralAction(fighter, opponent, action, arenaBounds) {
-                    // Action mapping: 0-19 = attacks, 20-24 = defense, 25-27 = movement
                     if (action < 20 && fighter.attackCooldown <= 0) {
-                        // Attack
                         const attack = ATTACKS[action];
                         if (attack && fighter.energy >= attack.energy) {
                             fighter.attack(action);
                         }
                     } else if (action >= 20 && action < 25) {
-                        // Defense
                         const defenseTypes = [DEFENSE.BLOCK, DEFENSE.PARRY, DEFENSE.DODGE, DEFENSE.CROUCH, DEFENSE.NONE];
                         fighter.defend(defenseTypes[action - 20]);
                     } else if (action === 25) {
-                        // Move toward opponent
                         const dir = opponent.x > fighter.x ? 1 : -1;
                         fighter.move(dir);
                     } else if (action === 26) {
-                        // Move away
                         const dir = opponent.x > fighter.x ? -1 : 1;
                         fighter.move(dir);
                     } else if (action === 27) {
-                        // Jump
                         fighter.jump();
                     }
                 }
                 
-                // Get fighter by index
                 getFighter(index) {
                     return this.fighters[index % this.fighters.length];
-                }
-                
-                // Update UI selects with population data
-                updateSelects() {
-                    const updateSelect = (selectId) => {
-                        const select = document.getElementById(selectId);
-                        if (!select) return;
-                        
-                        select.innerHTML = '';
-                        this.fighters.forEach((f, i) => {
-                            const opt = document.createElement('option');
-                            opt.value = i;
-                            opt.textContent = `${f.name} [${f.weight}] (${f.wins}П)`;
-                            select.appendChild(opt);
-                        });
-                    };
-                    
-                    // Only update if brain selection groups exist
-                    if (document.getElementById('alphaBrainGroup')) {
-                        updateSelect('alphaBrain');
-                    }
-                    if (document.getElementById('betaBrainGroup')) {
-                        updateSelect('betaBrain');
-                    }
                 }
             }
 
             // ========================================
-            // RENDERER (Canvas with Responsive Scaling)
+            // RENDERER
             // ========================================
             class Renderer {
                 constructor(canvas) {
                     this.canvas = canvas;
-                    this.ctx = canvas.getContext('2d', { alpha: false }); // Optimize for no transparency
+                    this.ctx = canvas.getContext('2d', { alpha: false });
                     
-                    // Set fixed internal resolution
                     this.canvas.width = Config.canvas.baseWidth;
                     this.canvas.height = Config.canvas.baseHeight;
                     
-                    // Responsive CSS sizing
                     this._resize = Utils.debounce(() => this.resize(), 100);
                     this.resize();
                     window.addEventListener('resize', this._resize);
                     
-                    // Camera
                     this.camera = { x: 0, y: 0, zoom: 1 };
-                    
-                    // Effects
                     this.effects = new HitEffects();
                 }
                 
@@ -3448,7 +3296,6 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                     const width = container.clientWidth;
                     const height = container.clientHeight;
                     
-                    // Set canvas display size via CSS (internal resolution stays fixed)
                     this.canvas.style.width = width + 'px';
                     this.canvas.style.height = height + 'px';
                 }
@@ -3467,7 +3314,6 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                     const offsetX = -this.camera.x % gridSize;
                     const offsetY = -this.camera.y % gridSize;
                     
-                    // Vertical lines
                     for (let x = offsetX; x < Config.canvas.baseWidth; x += gridSize) {
                         this.ctx.beginPath();
                         this.ctx.moveTo(x, 0);
@@ -3475,7 +3321,6 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                         this.ctx.stroke();
                     }
                     
-                    // Horizontal lines
                     for (let y = offsetY; y < Config.canvas.baseHeight; y += gridSize) {
                         this.ctx.beginPath();
                         this.ctx.moveTo(0, y);
@@ -3492,7 +3337,6 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                         top: 100, floorY: Config.canvas.baseHeight - 230
                     };
                     
-                    // Floor
                     this.ctx.strokeStyle = '#4a5060';
                     this.ctx.lineWidth = 3;
                     this.ctx.beginPath();
@@ -3500,7 +3344,6 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                     this.ctx.lineTo(bounds.right, bounds.floorY);
                     this.ctx.stroke();
                     
-                    // Walls
                     this.ctx.beginPath();
                     this.ctx.moveTo(bounds.left, bounds.top);
                     this.ctx.lineTo(bounds.left, bounds.floorY);
@@ -3514,38 +3357,31 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                 updateCamera(f1, f2) {
                     if (!f1 || !f2) return;
                     
-                    // Center between fighters
                     const centerX = (f1.x + f2.x) / 2;
                     const centerY = (f1.y + f2.y) / 2;
                     
-                    // Smooth camera movement
                     this.camera.x = Utils.lerp(this.camera.x, centerX - (Config.canvas.baseWidth / 2), 0.05);
                     this.camera.y = Utils.lerp(this.camera.y, centerY - (Config.canvas.baseHeight / 2), 0.05);
                     
-                    // Clamp camera to arena bounds
                     this.camera.x = Utils.clamp(this.camera.x, 0, 0);
                     this.camera.y = Utils.clamp(this.camera.y, 0, 0);
                 }
                 
                 render(f1, f2) {
-                    this.clear();
+                                        this.clear();
                     this.drawGrid();
                     const arenaBounds = this.drawArena();
                     
-                    // Update camera
                     if (f1 && f2) {
                         this.updateCamera(f1, f2);
                     }
                     
-                    // Update and draw effects
                     this.effects.update();
                     this.effects.draw(this.ctx, -this.camera.x, -this.camera.y);
                     
-                    // Draw fighters
                     if (f1) f1.draw(this.ctx, { x: -this.camera.x, y: -this.camera.y });
                     if (f2) f2.draw(this.ctx, { x: -this.camera.x, y: -this.camera.y });
                     
-                    // Draw combo indicator
                     if (f1?.comboCount > 1) {
                         this._drawComboIndicator(f1.x, f1.y - 120, f1.comboCount, f1.color);
                     }
@@ -3562,7 +3398,7 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                     this.ctx.shadowColor = color;
                     this.ctx.shadowBlur = 15;
                     this.ctx.textAlign = 'center';
-                    this.ctx.fillText(`×${count}`, x - this.camera.x, y - this.camera.y);
+                    this.ctx.fillText(`x${count}`, x - this.camera.x, y - this.camera.y);
                     this.ctx.shadowBlur = 0;
                 }
                 
@@ -3578,7 +3414,6 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                     this.effects.createJump(x, y, color);
                 }
                 
-                // Cleanup
                 destroy() {
                     window.removeEventListener('resize', this._resize);
                     this.effects.clear();
@@ -3586,24 +3421,23 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
             }
 
             // ========================================
-            // UI MANAGER (Fixed emotion update logic)
+            // UI MANAGER
             // ========================================
             const UIManager = (() => {
                 const elements = {};
                 const emotionNames = ['aggression', 'fear', 'confidence', 'fatigue', 'focus', 'intuition'];
                 
                 const init = () => {
-                    // Cache DOM elements with null checks
                     const ids = [
                         'alphaLed', 'betaLed', 'alphaStatus', 'betaStatus',
                         'alphaHp', 'alphaHpBar', 'alphaEnergy', 'alphaEnergyBar',
                         'alphaRage', 'alphaRageBar', 'alphaBalance', 'alphaBalanceBar',
-                        'alphaStamina', 'alphaStaminaBar', 'alphaReward', 'alphaEpsilon',
-                        'alphaComboCount', 'alphaAccuracy', 'alphaAction',
+                        'alphaStamina', 'alphaStaminaBar', 'alphaSuper', 'alphaSuperBar',
+                        'alphaReward', 'alphaEpsilon', 'alphaComboCount', 'alphaAccuracy', 'alphaAction',
                         'betaHp', 'betaHpBar', 'betaEnergy', 'betaEnergyBar',
                         'betaRage', 'betaRageBar', 'betaBalance', 'betaBalanceBar',
-                        'betaStamina', 'betaStaminaBar', 'betaReward', 'betaEpsilon',
-                        'betaComboCount', 'betaAccuracy', 'betaAction',
+                        'betaStamina', 'betaStaminaBar', 'betaSuper', 'betaSuperBar',
+                        'betaReward', 'betaEpsilon', 'betaComboCount', 'betaAccuracy', 'betaAction',
                         'alphaEmotions', 'betaEmotions',
                         'alphaMove', 'alphaAttack', 'alphaDefend', 'alphaSpecial', 'alphaCombo',
                         'betaMove', 'betaAttack', 'betaDefend', 'betaSpecial', 'betaCombo',
@@ -3612,7 +3446,7 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                         'statGeneration', 'statPopulation', 'statAvgFitness', 'statBestCombo',
                         'fighterList', 'generationBadge', 'lrDisplay',
                         'mainMenu', 'startFightBtn', 'alphaType', 'betaType',
-                        'alphaStyleGroup', 'betaStyleGroup', 'alphaBrainGroup', 'betaBrainGroup',
+                        'alphaStyleGroup', 'betaStyleGroup',
                         'speedBtn', 'pauseBtn', 'menuBtn', 'evolveBtn', 'tournamentBtn',
                         'saveBrainBtn', 'loadBrainBtn', 'resetBtn', 'exportBtn', 'rematchBtn',
                         'loadingOverlay'
@@ -3622,10 +3456,7 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                         elements[id] = document.getElementById(id);
                     });
                     
-                    // Initialize emotion grids
                     _initEmotionGrids();
-                    
-                    // Setup event listeners
                     _setupEventListeners();
                 };
                 
@@ -3651,12 +3482,7 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                 };
                 
                 const _setupEventListeners = () => {
-                    // Type selectors - toggle brain/style groups
                     elements.alphaType?.addEventListener('change', (e) => {
-                        if (elements.alphaBrainGroup) {
-                            elements.alphaBrainGroup.style.display = 
-                                e.target.value === 'neural' ? 'block' : 'none';
-                        }
                         if (elements.alphaStyleGroup) {
                             elements.alphaStyleGroup.style.display = 
                                 e.target.value === 'classic' ? 'block' : 'none';
@@ -3664,17 +3490,12 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                     });
                     
                     elements.betaType?.addEventListener('change', (e) => {
-                        if (elements.betaBrainGroup) {
-                            elements.betaBrainGroup.style.display = 
-                                e.target.value === 'neural' ? 'block' : 'none';
-                        }
                         if (elements.betaStyleGroup) {
                             elements.betaStyleGroup.style.display = 
                                 e.target.value === 'classic' ? 'block' : 'none';
                         }
                     });
                     
-                    // Hide loading after init
                     setTimeout(() => {
                         elements.loadingOverlay?.classList.add('hidden');
                     }, 500);
@@ -3685,42 +3506,36 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                     
                     const el = elements;
                     
-                    // Health
                     if (el[`${prefix}Hp`]) {
                         el[`${prefix}Hp`].textContent = Math.floor(fighter.hp);
                         el[`${prefix}HpBar`].style.width = `${fighter.hp / fighter.maxHp * 100}%`;
-                        el[`${prefix}HpBar`].setAttribute('aria-valuenow', Math.floor(fighter.hp));
                     }
                     
-                    // Energy
                     if (el[`${prefix}Energy`]) {
                         el[`${prefix}Energy`].textContent = Math.floor(fighter.energy);
                         el[`${prefix}EnergyBar`].style.width = `${fighter.energy / fighter.maxEnergy * 100}%`;
-                        el[`${prefix}EnergyBar`].setAttribute('aria-valuenow', Math.floor(fighter.energy));
                     }
                     
-                    // Rage
                     if (el[`${prefix}Rage`]) {
                         el[`${prefix}Rage`].textContent = Math.floor(fighter.rage);
                         el[`${prefix}RageBar`].style.width = `${fighter.rage / fighter.maxRage * 100}%`;
-                        el[`${prefix}RageBar`].setAttribute('aria-valuenow', Math.floor(fighter.rage));
                     }
                     
-                    // Balance
                     if (el[`${prefix}Balance`]) {
                         el[`${prefix}Balance`].textContent = Math.floor(fighter.balance);
                         el[`${prefix}BalanceBar`].style.width = `${fighter.balance / fighter.maxBalance * 100}%`;
-                        el[`${prefix}BalanceBar`].setAttribute('aria-valuenow', Math.floor(fighter.balance));
                     }
                     
-                    // Stamina
                     if (el[`${prefix}Stamina`]) {
                         el[`${prefix}Stamina`].textContent = Math.floor(fighter.stamina);
                         el[`${prefix}StaminaBar`].style.width = `${fighter.stamina / fighter.maxStamina * 100}%`;
-                        el[`${prefix}StaminaBar`].setAttribute('aria-valuenow', Math.floor(fighter.stamina));
                     }
                     
-                    // Stats
+                    if (el[`${prefix}Super`]) {
+                        el[`${prefix}Super`].textContent = Math.floor(fighter.superMeter);
+                        el[`${prefix}SuperBar`].style.width = `${fighter.superMeter / Config.combat.superMeterCost * 100}%`;
+                    }
+                    
                     if (el[`${prefix}Reward`]) el[`${prefix}Reward`].textContent = Math.floor(fighter.totalReward);
                     if (el[`${prefix}ComboCount`]) el[`${prefix}ComboCount`].textContent = fighter.comboCount;
                     
@@ -3733,37 +3548,35 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                         : 0;
                     if (el[`${prefix}Accuracy`]) el[`${prefix}Accuracy`].textContent = `${accuracy}%`;
                     
-                    // Action text
                     const actionMap = {
-                        'idle': 'ПОКОЙ', 'walk': 'ДВИЖЕНИЕ', 'jump': 'ПРЫЖОК',
-                        'dash': 'РЫВОК', 'attack': fighter.subState || 'АТАКА',
-                        'defend': fighter.subState || 'ЗАЩИТА',
-                        'hit': 'УДАР', 'knockdown': 'НОКДАУН',
-                        'win': 'ПОБЕДА', 'lose': 'ПОРАЖЕНИЕ'
+                        'idle': 'IDLE', 'walk': 'MOVE', 'jump': 'JUMP',
+                        'dash': 'DASH', 'attack': fighter.subState || 'ATTACK',
+                        'defend': fighter.subState || 'DEFEND',
+                        'hit': 'HIT', 'knockdown': 'DOWN',
+                        'win': 'WIN', 'lose': 'LOSE'
                     };
                     if (el[`${prefix}Action`]) {
                         el[`${prefix}Action`].textContent = actionMap[fighter.state] || fighter.state.toUpperCase();
                     }
                     
-                    // LED status
                     const led = el[`${prefix}Led`];
                     const status = el[`${prefix}Status`];
                     if (led && status) {
                         if (fighter.hp <= 0 || fighter.knockdownTimer > 30) {
                             led.className = 'led led-yellow';
-                            status.textContent = 'Н/О';
+                            status.textContent = 'KO';
                             status.className = 'text-yellow status-flash';
                         } else if (fighter.hitstun > 0) {
                             led.className = 'led led-red';
-                            status.textContent = 'УДАР';
+                            status.textContent = 'HIT';
                             status.className = 'text-red status-flash';
                         } else if (fighter.state === 'attack') {
                             led.className = 'led led-red';
-                            status.textContent = 'АТАКА';
+                            status.textContent = 'ATK';
                             status.className = 'text-red';
                         } else if (fighter.state === 'defend') {
                             led.className = 'led led-green';
-                            status.textContent = 'ЗАЩИТА';
+                            status.textContent = 'DEF';
                             status.className = 'text-green';
                         } else {
                             led.className = prefix === 'alpha' ? 'led led-red' : 'led led-blue';
@@ -3772,7 +3585,6 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                         }
                     }
                     
-                    // Activity dots
                     const updateDot = (dotEl, isActive, className) => {
                         if (dotEl) {
                             dotEl.className = 'dot' + (isActive ? ` ${className}` : '');
@@ -3785,13 +3597,12 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                     updateDot(el[`${prefix}Special`], fighter.superMeter >= Config.combat.superMeterCost, 'dot-special');
                     updateDot(el[`${prefix}Combo`], fighter.comboCount > 1, 'dot-special');
                     
-                    // Emotions - FIX: Proper variable scoping
+                    // Emotions
                     const emotionContainer = el[`${prefix}Emotions`];
                     if (emotionContainer) {
-                        const emotionElements = emotionContainer.querySelectorAll('.emotion-value');
-                        emotionElements.forEach(emotionEl => {
-                            const emotion = emotionEl.dataset.emotion;
-                            if (emotion && fighter.emotions[emotion] !== undefined) {
+                        emotionNames.forEach(emotion => {
+                            const emotionEl = emotionContainer.querySelector(`[data-emotion="${emotion}"]`);
+                            if (emotionEl && fighter.emotions[emotion] !== undefined) {
                                 emotionEl.textContent = fighter.emotions[emotion].toFixed(2);
                             }
                         });
@@ -3801,7 +3612,7 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                 const showWinner = (winner, f1, f2) => {
                     if (!elements.winnerScreen) return;
                     
-                    elements.winnerTitle.textContent = `${winner.name} ПОБЕЖДАЕТ!`;
+                    elements.winnerTitle.textContent = `${winner.name} WINS!`;
                     elements.winnerTitle.className = `winner-title ${winner.isRed ? 'text-red' : 'text-blue'}`;
                     
                     if (elements.winnerHits1) elements.winnerHits1.textContent = f1.hitsLanded;
@@ -3830,7 +3641,6 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                         elements.generationBadge.textContent = `GEN: ${String(population.generation).padStart(3, '0')}`;
                     }
                     
-                    // Fighter list
                     if (elements.fighterList) {
                         elements.fighterList.innerHTML = '';
                         population.fighters.slice(0, 5).forEach((f, i) => {
@@ -3839,7 +3649,7 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                             row.setAttribute('role', 'listitem');
                             row.innerHTML = `
                                 <span>${f.name} [${f.weight}]</span>
-                                <span>П:${f.wins} Ф:${Math.floor(f.fitness)}</span>
+                                <span>W:${f.wins} F:${Math.floor(f.fitness)}</span>
                             `;
                             elements.fighterList.appendChild(row);
                         });
@@ -3856,14 +3666,13 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                 };
                 
                 const setSpeed = (multiplier) => {
-                    if (elements.speedBtn) elements.speedBtn.textContent = `×${multiplier}`;
+                    if (elements.speedBtn) elements.speedBtn.textContent = `x${multiplier}`;
                 };
                 
                 const setPause = (paused) => {
                     if (elements.pauseBtn) {
-                        elements.pauseBtn.textContent = paused ? '▶' : '⏸';
-                        elements.pauseBtn.title = paused ? 'Продолжить' : 'Пауза';
-                        elements.pauseBtn.setAttribute('aria-label', paused ? 'Продолжить' : 'Пауза');
+                        elements.pauseBtn.textContent = paused ? 'PLAY' : 'PAUSE';
+                        elements.pauseBtn.setAttribute('aria-label', paused ? 'Continue' : 'Pause');
                     }
                 };
                 
@@ -3903,12 +3712,10 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                     this.paused = false;
                     this.speed = 1;
                     
-                    // Fixed timestep variables
                     this.lastTime = 0;
                     this.accumulator = 0;
-                    this.step = 1000 / 60; // 60 FPS logic update
+                    this.step = 1000 / 60;
                     
-                    // Arena bounds (Virtual 1920x1080)
                     this.arenaBounds = {
                         left: 100, right: Config.canvas.baseWidth - 100,
                         top: 100, floorY: Config.canvas.baseHeight - 200,
@@ -3923,45 +3730,37 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                 init() {
                     UIManager.init();
                     this._setupEventListeners();
-                    this.population.updateSelects();
                     
-                    Logger.system('Neural Fighter Pro инициализирован');
-                    Logger.system(`Виртуальное разрешение: ${Config.canvas.baseWidth}×${Config.canvas.baseHeight}`);
-                    Logger.system(`Популяция: ${this.population.size} бойцов`);
+                    Logger.system('Neural Fighter Pro initialized');
+                    Logger.system(`Virtual Resolution: ${Config.canvas.baseWidth}x${Config.canvas.baseHeight}`);
+                    Logger.system(`Population: ${this.population.size} fighters`);
                 }
                 
                 _setupEventListeners() {
                     const el = UIManager.getElements();
                     
-                    // Menu buttons
                     el.startFightBtn?.addEventListener('click', () => this.startFight());
                     el.menuBtn?.addEventListener('click', () => this.showMenu());
                     el.rematchBtn?.addEventListener('click', () => this.rematch());
                     
-                    // Control buttons
                     el.speedBtn?.addEventListener('click', () => this.cycleSpeed());
                     el.pauseBtn?.addEventListener('click', () => this.togglePause());
                     
-                    // Evolution buttons
                     el.evolveBtn?.addEventListener('click', () => {
                         this.population.runTournament();
-                        this.population.updateSelects();
                         UIManager.updatePopulationStats(this.population);
                     });
                     
                     el.tournamentBtn?.addEventListener('click', () => {
                         this.population.runTournament();
-                        this.population.updateSelects();
                         UIManager.updatePopulationStats(this.population);
                     });
                     
-                    // Save/Load
                     el.saveBrainBtn?.addEventListener('click', () => this.saveModel());
                     el.loadBrainBtn?.addEventListener('click', () => this.loadModel());
                     el.resetBtn?.addEventListener('click', () => this.resetEvolution());
                     el.exportBtn?.addEventListener('click', () => this.exportData());
                     
-                    // Keyboard shortcuts
                     const onKeyDown = (e) => {
                         if (e.key === 'Escape') {
                             e.preventDefault();
@@ -3971,22 +3770,17 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                             e.preventDefault();
                             this.togglePause();
                         }
-                        if (e.key === 'r' || e.key === 'R') {
-                            this.rematch();
-                        }
                     };
                     
                     window.addEventListener('keydown', onKeyDown);
                     this._boundHandlers.keydown = onKeyDown;
                     
-                    // Canvas focus for keyboard input
                     this.canvas?.addEventListener('click', () => {
                         this.canvas.focus();
                     });
                 }
                 
                 startFight() {
-                    // Get configuration with fallbacks
                     const alphaConfig = {
                         architecture: UIManager.getElements().alphaType?.value || 'neural',
                         style: UIManager.getElements().alphaStyle?.value || 'balanced',
@@ -3999,36 +3793,26 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                         weight: UIManager.getElements().betaWeight?.value || 'medium'
                     };
                     
-                    // Create fighters using virtual coordinates
                     this.f1 = new Fighter(500, this.arenaBounds.floorY, '#ff4d4d', 'ALPHA', true, alphaConfig);
                     this.f2 = new Fighter(1420, this.arenaBounds.floorY, '#4da6ff', 'BETA', false, betaConfig);
                     
-                    // Load neural brains if selected
                     if (alphaConfig.architecture === 'neural' && this.f1.brain) {
-                        const idx = parseInt(UIManager.getElements().alphaBrain?.value) || 0;
-                        const brainData = this.population.getFighter(idx);
-                        if (brainData?.brain) {
-                            this.f1.brain = brainData.brain.clone();
-                        }
+                        const brainData = this.population.getFighter(0);
+                        if (brainData?.brain) this.f1.brain = brainData.brain.clone();
                     }
                     
                     if (betaConfig.architecture === 'neural' && this.f2.brain) {
-                        const idx = parseInt(UIManager.getElements().betaBrain?.value) || 0;
-                        const brainData = this.population.getFighter(idx);
-                        if (brainData?.brain) {
-                            this.f2.brain = brainData.brain.clone();
-                        }
+                        const brainData = this.population.getFighter(1);
+                        if (brainData?.brain) this.f2.brain = brainData.brain.clone();
                     }
                     
-                    // Start game
                     UIManager.toggleMenu(false);
                     UIManager.hideWinner();
                     this.running = true;
                     this.paused = false;
                     
-                    Logger.battle(`Бой начат: ${this.f1.name} против ${this.f2.name}`);
+                    Logger.battle(`Fight started: ${this.f1.name} vs ${this.f2.name}`);
                     
-                    // Begin game loop
                     this.lastTime = performance.now();
                     this.accumulator = 0;
                     requestAnimationFrame((t) => this._gameLoop(t));
@@ -4040,21 +3824,17 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                     const deltaTime = currentTime - this.lastTime;
                     this.lastTime = currentTime;
                     
-                    // Accumulate time for fixed timestep
                     this.accumulator += deltaTime * this.speed;
                     
-                    // Prevent spiral of death
                     if (this.accumulator > 200) this.accumulator = 200;
                     
-                    // Process logic in fixed chunks
                     while (this.accumulator >= this.step) {
                         if (!this.paused) {
-                            this._update(1); // Pass 1 logic frame (16.67ms)
+                            this._update(1);
                         }
                         this.accumulator -= this.step;
                     }
                     
-                    // Render always at screen refresh rate
                     this.renderer.render(this.f1, this.f2);
                     this._updateUI();
                     
@@ -4064,18 +3844,11 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                 _update(dt) {
                     if (!this.f1 || !this.f2) return;
                     
-                    // Update input
                     this.input.update();
                     
-                    // Manual control handling
-                    if (this.f1.architecture === 'manual') {
-                        this._handleManualInput(this.f1, this.f2);
-                    }
-                    if (this.f2.architecture === 'manual') {
-                        this._handleManualInput(this.f2, this.f1);
-                    }
+                    if (this.f1.architecture === 'manual') this._handleManualInput(this.f1, this.f2);
+                    if (this.f2.architecture === 'manual') this._handleManualInput(this.f2, this.f1);
                     
-                    // Neural control handling
                     if (this.f1.architecture === 'neural' && this.f1.brain) {
                         const state = this.f1.getState(this.f2, this.arenaBounds);
                         const action = this.f1.brain.chooseAction(state);
@@ -4090,22 +3863,14 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                         this._executeNeuralAction(this.f2, this.f1, action);
                     }
                     
-                    // Classic AI handling
-                    if (this.f1.architecture === 'classic') {
-                        this._executeClassicAI(this.f1, this.f2);
-                    }
-                    if (this.f2.architecture === 'classic') {
-                        this._executeClassicAI(this.f2, this.f1);
-                    }
+                    if (this.f1.architecture === 'classic') this._executeClassicAI(this.f1, this.f2);
+                    if (this.f2.architecture === 'classic') this._executeClassicAI(this.f2, this.f1);
                     
-                    // Update fighters
                     this.f1.update(this.f2, this.input, this.arenaBounds, dt);
                     this.f2.update(this.f1, this.input, this.arenaBounds, dt);
                     
-                    // Check collisions
                     this._checkCollisions();
                     
-                    // Train neural networks (if enabled and batch size met)
                     if (this.f1.brain && this.f1.brain.memory.length >= Config.neural.batchSize) {
                         this.f1.brain.train();
                     }
@@ -4113,7 +3878,6 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                         this.f2.brain.train();
                     }
                     
-                    // Check win condition
                     if (this.f1.hp <= 0 || this.f2.hp <= 0 || 
                         this.f1.knockdownTimer > 60 || this.f2.knockdownTimer > 60) {
                         this._endMatch();
@@ -4121,109 +3885,78 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                 }
                 
                 _handleManualInput(fighter, opponent) {
-                    // Movement
                     if (this.input.isPressed('left')) fighter.move(-1);
                     else if (this.input.isPressed('right')) fighter.move(1);
                     
-                    // Jump
                     if (this.input.isPressed('jump')) {
-                        if (fighter.jump()) {
-                            this.renderer.createJump(fighter.x, fighter.y + 40, fighter.color);
-                        }
+                        if (fighter.jump()) this.renderer.createJump(fighter.x, fighter.y + 40, fighter.color);
                     }
                     
-                    // Dash
                     if (this.input.isPressed('dash')) {
-                        if (fighter.dash()) {
-                            this.renderer.createDash(fighter.x, fighter.y, fighter.color);
-                        }
+                        if (fighter.dash()) this.renderer.createDash(fighter.x, fighter.y, fighter.color);
                     }
                     
-                    // Attacks (only on press, not hold)
                     if (this.input.isPressed('attack1')) fighter.attack(1);
                     if (this.input.isPressed('attack2')) fighter.attack(3);
                     if (this.input.isPressed('special') && fighter.superMeter >= Config.combat.superMeterCost) {
-                        fighter.attack(17); // Super art
+                        fighter.attack(17);
                     }
                     
-                    // Defense
                     if (this.input.isPressed('defend')) fighter.defend(DEFENSE.BLOCK);
                 }
                 
                 _executeNeuralAction(fighter, opponent, action) {
                     if (action < 20 && fighter.attackCooldown <= 0) {
-                        // Attack
                         const attack = ATTACKS[action];
                         if (attack && fighter.energy >= attack.energy) {
                             if (fighter.attack(action)) {
-                                // Visual feedback for heavy moves
                                 if (attack.type === 'special' || attack.type === 'super') {
                                     this.renderer.createDash(fighter.x + fighter.facing * 30, fighter.y - 30, fighter.color);
                                 }
                             }
                         }
                     } else if (action >= 20 && action < 25) {
-                        // Defense
                         const defenses = [DEFENSE.BLOCK, DEFENSE.PARRY, DEFENSE.DODGE, DEFENSE.CROUCH, DEFENSE.NONE];
                         fighter.defend(defenses[action - 20]);
                     } else if (action === 25) {
-                        // Move toward opponent
                         const dir = opponent.x > fighter.x ? 1 : -1;
                         fighter.move(dir);
                     } else if (action === 26) {
-                        // Move away
                         const dir = opponent.x > fighter.x ? -1 : 1;
                         fighter.move(dir);
                     } else if (action === 27) {
-                        // Jump
-                        if (fighter.jump()) {
-                            this.renderer.createJump(fighter.x, fighter.y + 40, fighter.color);
-                        }
+                        if (fighter.jump()) this.renderer.createJump(fighter.x, fighter.y + 40, fighter.color);
                     }
                 }
                 
                 _executeClassicAI(fighter, opponent) {
-                    // Simple heuristic AI with attack cooldown
                     const dist = Utils.distance(fighter.x, fighter.y, opponent.x, opponent.y);
                     
                     if (dist < 120 && fighter.attackCooldown <= 0) {
-                        fighter.attack(Utils.randomInt(0, 4)); // Random light/med attack
+                        fighter.attack(Utils.randomInt(0, 4));
                     } else if (dist < 200) {
-                         // Move towards
-                         const dir = opponent.x > fighter.x ? 1 : -1;
-                         fighter.move(dir);
-                         // Random Jump
-                         if (Math.random() < 0.02) fighter.jump();
+                        const dir = opponent.x > fighter.x ? 1 : -1;
+                        fighter.move(dir);
+                        if (Math.random() < 0.02) fighter.jump();
                     } else {
-                         // Dash in
-                         if (Math.random() < 0.01 && fighter.dashCooldown <= 0) fighter.dash();
-                         const dir = opponent.x > fighter.x ? 1 : -1;
-                         fighter.move(dir);
+                        if (Math.random() < 0.01 && fighter.dashCooldown <= 0) fighter.dash();
+                        const dir = opponent.x > fighter.x ? 1 : -1;
+                        fighter.move(dir);
                     }
                 }
                 
                 _checkCollisions() {
-                    // F1 attacks F2
                     if (this.f1.checkCollision(this.f2)) {
-                        const hit = this.f2.takeDamage(this.f1, this.f1.attackData);
-                        if (hit && this.f1.attackData) {
-                            this.renderer.createHit(
-                                this.f2.x, this.f2.y - 40, 
-                                this.f1.color, 
-                                this.f1.attackData.damage / 10
-                            );
+                        const result = this.f2.takeDamage(this.f1, this.f1.attackData);
+                        if (result.hit && this.f1.attackData) {
+                            this.renderer.createHit(this.f2.x, this.f2.y - 40, this.f1.color, this.f1.attackData.damage / 10);
                         }
                     }
                     
-                    // F2 attacks F1
                     if (this.f2.checkCollision(this.f1)) {
-                        const hit = this.f1.takeDamage(this.f2, this.f2.attackData);
-                        if (hit && this.f2.attackData) {
-                            this.renderer.createHit(
-                                this.f1.x, this.f1.y - 40, 
-                                this.f2.color, 
-                                this.f2.attackData.damage / 10
-                            );
+                        const result = this.f1.takeDamage(this.f2, this.f2.attackData);
+                        if (result.hit && this.f2.attackData) {
+                            this.renderer.createHit(this.f1.x, this.f1.y - 40, this.f2.color, this.f2.attackData.damage / 10);
                         }
                     }
                 }
@@ -4234,37 +3967,33 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                     const winner = this.f1.hp > this.f2.hp ? this.f1 : this.f2;
                     const loser = winner === this.f1 ? this.f2 : this.f1;
                     
-                    // Update states
                     winner.state = 'win';
                     loser.state = 'lose';
                     
-                    // Reward for winner
                     if (winner.brain) {
                         winner.brain.remember(
                             winner.getState(loser, this.arenaBounds),
                             winner.lastAction ?? 0,
-                            200, // Win reward
+                            200,
                             winner.getState(loser, this.arenaBounds),
                             true
                         );
                     }
                     
-                    // Penalty for loser
                     if (loser.brain) {
                         loser.brain.remember(
                             loser.getState(winner, this.arenaBounds),
                             loser.lastAction ?? 0,
-                            -50, // Loss penalty
+                            -50,
                             loser.getState(winner, this.arenaBounds),
                             true
                         );
                     }
                     
-                    // Show winner screen
                     UIManager.showWinner(winner, this.f1, this.f2);
                     
-                    Logger.battle(`${winner.name} побеждает ${loser.name}!`);
-                    Logger.battle(`Комбо: ${winner.maxCombo} | Удары: ${winner.hitsLanded}`);
+                    Logger.battle(`${winner.name} defeats ${loser.name}!`);
+                    Logger.battle(`Combo: ${winner.maxCombo} | Hits: ${winner.hitsLanded}`);
                 }
                 
                 _updateUI() {
@@ -4274,17 +4003,16 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                     UIManager.updateFighterUI(this.f2, 'beta');
                     UIManager.updatePopulationStats(this.population);
                     
-                    // Update learning rate display
                     const lrEl = UIManager.getElements().lrDisplay;
                     if (lrEl && this.f1.brain) {
-                        lrEl.textContent = `LR: ${this.f1.brain.epsilon.toFixed(4)}`;
+                        lrEl.textContent = `EPS: ${this.f1.brain.epsilon.toFixed(4)}`;
                     }
                 }
                 
                 showMenu() {
                     this.running = false;
                     UIManager.toggleMenu(true);
-                    Logger.system('Возврат в главное меню');
+                    Logger.system('Returned to main menu');
                 }
                 
                 rematch() {
@@ -4294,7 +4022,7 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                     this.running = true;
                     this.paused = false;
                     this.accumulator = 0;
-                    Logger.battle('Реванш начат');
+                    Logger.battle('Rematch started');
                 }
                 
                 cycleSpeed() {
@@ -4302,19 +4030,19 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                     const idx = speeds.indexOf(this.speed);
                     this.speed = speeds[(idx + 1) % speeds.length];
                     UIManager.setSpeed(this.speed);
-                    Logger.system(`Скорость: ×${this.speed}`);
+                    Logger.system(`Speed: x${this.speed}`);
                 }
                 
                 togglePause() {
                     this.paused = !this.paused;
                     UIManager.setPause(this.paused);
-                    Logger.system(this.paused ? 'Пауза' : 'Продолжение');
+                    Logger.system(this.paused ? 'Paused' : 'Resumed');
                 }
                 
                 saveModel() {
                     const brain = this.f1?.brain;
                     if (!brain) {
-                        UIManager.log('system', 'Нет нейромодели для сохранения');
+                        UIManager.log('system', 'No neural model to save');
                         return;
                     }
                     
@@ -4327,9 +4055,9 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                     
                     try {
                         localStorage.setItem('neuralFighterModel', JSON.stringify(data));
-                        UIManager.log('system', 'Модель сохранена в localStorage');
+                        UIManager.log('system', 'Model saved to localStorage');
                     } catch (e) {
-                        UIManager.log('error', `Ошибка сохранения: ${e.message}`);
+                        UIManager.log('error', `Save error: ${e.message}`);
                     }
                 }
                 
@@ -4337,31 +4065,30 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                     try {
                         const saved = localStorage.getItem('neuralFighterModel');
                         if (!saved) {
-                            UIManager.log('system', 'Сохранённая модель не найдена');
+                            UIManager.log('system', 'Saved model not found');
                             return;
                         }
                         
                         const data = Utils.safeJsonParse(saved, null);
                         if (!data?.network) {
-                            UIManager.log('error', 'Неверный формат сохранённой модели');
+                            UIManager.log('error', 'Invalid model format');
                             return;
                         }
                         
                         if (this.f1?.brain) {
                             this.f1.brain = NeuralNetwork.fromJSON(data.network);
-                            UIManager.log('system', 'Модель загружена успешно');
+                            UIManager.log('system', 'Model loaded successfully');
                         }
                     } catch (e) {
-                        UIManager.log('error', `Ошибка загрузки: ${e.message}`);
+                        UIManager.log('error', `Load error: ${e.message}`);
                     }
                 }
                 
                 resetEvolution() {
-                    if (confirm('Сбросить весь прогресс эволюции?')) {
+                    if (confirm('Reset all evolution progress?')) {
                         this.population = new Population();
-                        this.population.updateSelects();
                         UIManager.updatePopulationStats(this.population);
-                        UIManager.log('evolution', 'Эволюция сброшена к поколению 1');
+                        UIManager.log('evolution', 'Evolution reset to generation 1');
                     }
                 }
                 
@@ -4388,10 +4115,9 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                     document.body.removeChild(a);
                     URL.revokeObjectURL(url);
                     
-                    UIManager.log('system', 'Данные экспортированы');
+                    UIManager.log('system', 'Data exported');
                 }
                 
-                // Cleanup resources
                 destroy() {
                     this.running = false;
                     this.input?.destroy();
@@ -4401,7 +4127,7 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                         window.removeEventListener('keydown', this._boundHandlers.keydown);
                     }
                     
-                    Logger.system('Ресурсы освобождены');
+                    Logger.system('Resources cleaned up');
                 }
             }
 
@@ -4414,19 +4140,17 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                 try {
                     gameInstance = new Game();
                     
-                    // Expose for debugging (dev only)
                     if (window.location.hostname === 'localhost') {
                         window.game = gameInstance;
                         window.Config = Config;
                         window.Logger = Logger;
                     }
                     
-                    Logger.system('Готов к бою');
+                    Logger.system('Ready for battle');
                 } catch (error) {
-                    Logger.error(`Ошибка инициализации: ${error.message}`);
+                    Logger.error(`Initialization error: ${error.message}`);
                     console.error(error);
                     
-                    // Fallback: hide loading, show error
                     const loading = document.getElementById('loadingOverlay');
                     loading?.classList.add('hidden');
                     
@@ -4434,20 +4158,18 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
                     if (log) {
                         const err = document.createElement('div');
                         err.className = 'log-entry error';
-                        err.textContent = `КРИТИЧЕСКАЯ ОШИБКА: ${error.message}`;
+                        err.textContent = `CRITICAL ERROR: ${error.message}`;
                         log.appendChild(err);
                     }
                 }
             };
             
-            // Wait for DOM ready
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', initGame);
             } else {
                 initGame();
             }
             
-            // Cleanup on page unload
             window.addEventListener('beforeunload', () => {
                 gameInstance?.destroy();
             });
@@ -4455,4 +4177,3 @@ if (this.state === 'attack' && this.attackTimer <= 0) {
     </script>
 </body>
 </html>
-
