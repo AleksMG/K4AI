@@ -2604,7 +2604,14 @@
                         this.comboTimer -= deltaTime;
                         if (this.comboTimer <= 0) this.comboCount = 0;
                     }
-                    
+
+                    // === FIX: Сброс атаки после завершения анимации ===
+    if (this.state === 'attack' && this.attackTimer <= 0) {
+        this.state = 'idle';
+        this.subState = null;
+        this.attackData = null;
+        this.hitbox = null;
+    }
                     // Update dash state
                     if (this.isDashing && this.dashTimer <= 0) {
                         this.isDashing = false;
@@ -4404,37 +4411,6 @@
             window.addEventListener('beforeunload', () => {
                 gameInstance?.destroy();
             });
-            // === HOTFIX: Fix fighters freezing ===
-    (function(){
-        'use strict';
-        
-        setTimeout(() => {
-            if (typeof Fighter === 'undefined' || !window.game) {
-                console.warn('HOTFIX: Retry...');
-                setTimeout(arguments.callee, 500);
-                return;
-            }
-            
-            const origUpdate = Fighter.prototype.update;
-            Fighter.prototype.update = function(opponent, input, arenaBounds, deltaTime = 1) {
-                origUpdate.call(this, opponent, input, arenaBounds, deltaTime);
-                
-                if (this.state === 'attack' && this.attackTimer <= 0) {
-                    this.state = 'idle';
-                    this.subState = null;
-                    this.attackData = null;
-                    this.hitbox = null;
-                }
-                
-                if (this.state === 'defend' && input?.isPressed && !input.isPressed('defend')) {
-                    this.state = 'idle';
-                    this.currentDefense = null;
-                }
-            };
-            
-            console.log('[HOTFIX] Applied successfully');
-        }, 1000);
-    })();
         })();
     </script>
 </body>
