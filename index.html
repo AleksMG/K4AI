@@ -18,10 +18,6 @@
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
             -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            -khtml-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
             user-select: none;
         }
 
@@ -78,7 +74,13 @@
             --border-radius-xl: 32px;
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 1200px) {
+            :root {
+                --panel-width: 280px;
+            }
+        }
+
+        @media (max-width: 1024px) {
             :root {
                 --header-height: 64px;
                 --footer-height: 240px;
@@ -88,18 +90,30 @@
             }
         }
 
-        @media (max-width: 480px) {
+        @media (max-width: 768px) {
             :root {
                 --header-height: 56px;
-                --footer-height: 200px;
+                --footer-height: 220px;
                 --spacing-md: 12px;
                 --spacing-lg: 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            :root {
+                --header-height: 52px;
+                --footer-height: 200px;
+                --spacing-sm: 6px;
+                --spacing-md: 10px;
+                --font-size-sm: 0.8rem;
+                --font-size-md: 0.9rem;
             }
         }
 
         html {
             font-size: 16px;
             -webkit-text-size-adjust: 100%;
+            height: 100%;
         }
 
         body {
@@ -112,6 +126,8 @@
             position: fixed;
             top: 0;
             left: 0;
+            margin: 0;
+            padding: 0;
         }
 
         /* ========================================
@@ -135,7 +151,7 @@
         @media (max-width: 1024px) {
             .app {
                 grid-template-columns: 1fr;
-                grid-template-rows: var(--header-height) auto auto auto;
+                grid-template-rows: var(--header-height) auto auto auto auto;
                 grid-template-areas: 
                     "header"
                     "arena"
@@ -147,13 +163,13 @@
             }
             
             .panel-left, .panel-right {
-                max-height: 300px;
+                max-height: 280px;
             }
         }
 
         @media (max-width: 480px) {
             .app {
-                grid-template-rows: var(--header-height) 50vh auto auto auto;
+                grid-template-rows: var(--header-height) 45vh auto auto auto;
                 padding: var(--spacing-xs);
                 gap: var(--spacing-xs);
             }
@@ -262,8 +278,10 @@
             backdrop-filter: blur(8px);
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: var(--spacing-xs);
             white-space: nowrap;
+            min-height: 36px;
         }
 
         .btn:hover:not(:disabled) {
@@ -342,6 +360,7 @@
             margin-bottom: var(--spacing-md);
             font-weight: 600;
             font-size: var(--font-size-lg);
+            flex-shrink: 0;
         }
 
         @media (max-width: 480px) {
@@ -382,6 +401,7 @@
             align-items: center;
             padding: var(--spacing-xs) 0;
             font-size: var(--font-size-sm);
+            flex-shrink: 0;
         }
 
         .stat-label {
@@ -395,6 +415,8 @@
             font-weight: 600;
             font-family: var(--font-mono);
             color: var(--color-text-primary);
+            min-width: 40px;
+            text-align: right;
         }
 
         .progress-bar {
@@ -404,6 +426,7 @@
             overflow: hidden;
             margin: var(--spacing-xs) 0;
             position: relative;
+            flex-shrink: 0;
         }
 
         .progress-bar::after {
@@ -445,6 +468,7 @@
             grid-template-columns: repeat(2, 1fr);
             gap: var(--spacing-xs);
             margin: var(--spacing-md) 0;
+            flex-shrink: 0;
         }
 
         @media (max-width: 480px) {
@@ -485,6 +509,7 @@
             border-radius: var(--border-radius-sm);
             margin: var(--spacing-md) 0;
             font-size: var(--font-size-xs);
+            flex-shrink: 0;
         }
 
         .dot {
@@ -493,6 +518,7 @@
             border-radius: 50%;
             background: var(--color-border);
             transition: all var(--transition-fast);
+            flex-shrink: 0;
         }
 
         .dot-active { background: var(--color-accent-blue); box-shadow: 0 0 8px var(--color-accent-blue); }
@@ -524,7 +550,6 @@
 
         #gameCanvas {
             display: block;
-            /* FIX: Object fit ensures the 1920x1080 canvas scales down without stretching UI */
             object-fit: contain;
             background: #000;
             width: 100%;
@@ -549,11 +574,13 @@
             transition: all var(--transition-slow);
             padding: var(--spacing-lg);
             text-align: center;
+            pointer-events: none;
         }
 
         .winner-screen.visible {
             opacity: 1;
             visibility: visible;
+            pointer-events: auto;
         }
 
         .winner-title {
@@ -687,6 +714,7 @@
             margin-bottom: var(--spacing-sm);
             font-size: var(--font-size-sm);
             font-weight: 600;
+            flex-shrink: 0;
         }
 
         .log-messages {
@@ -697,6 +725,7 @@
             line-height: 1.4;
             color: var(--color-text-secondary);
             max-height: 150px;
+            min-height: 80px;
         }
 
         .log-entry {
@@ -709,6 +738,7 @@
         .log-entry.battle { border-color: var(--color-accent-red); }
         .log-entry.evolution { border-color: var(--color-accent-green); }
         .log-entry.system { border-color: var(--color-accent-purple); }
+        .log-entry.error { border-color: var(--color-accent-red); color: var(--color-accent-red); }
 
         .footer-actions {
             display: flex;
@@ -724,8 +754,10 @@
             }
             .footer-actions .btn {
                 flex: 1;
-                min-width: 120px;
+                min-width: 100px;
                 justify-content: center;
+                padding: var(--spacing-xs) var(--spacing-sm);
+                font-size: var(--font-size-xs);
             }
         }
 
@@ -745,6 +777,7 @@
             transition: opacity var(--transition-slow), visibility var(--transition-slow);
             padding: var(--spacing-lg);
             overflow-y: auto;
+            pointer-events: auto;
         }
 
         .menu.hidden {
@@ -804,6 +837,8 @@
             min-width: 280px;
             max-width: 350px;
             transition: all var(--transition-normal);
+            display: flex;
+            flex-direction: column;
         }
 
         .selector-card:hover {
@@ -820,10 +855,12 @@
             margin-bottom: var(--spacing-lg);
             text-align: center;
             font-weight: 700;
+            flex-shrink: 0;
         }
 
         .selector-group {
             margin-bottom: var(--spacing-md);
+            flex-shrink: 0;
         }
 
         .selector-group label {
@@ -844,6 +881,7 @@
             font-size: var(--font-size-sm);
             cursor: pointer;
             transition: border-color var(--transition-fast);
+            min-height: 40px;
         }
 
         .selector-group select:focus {
@@ -868,6 +906,7 @@
             text-transform: uppercase;
             letter-spacing: 1px;
             min-width: 300px;
+            align-self: center;
         }
 
         @media (max-width: 480px) {
@@ -898,6 +937,7 @@
             max-height: 120px;
             overflow-y: auto;
             font-size: var(--font-size-xs);
+            flex-shrink: 0;
         }
 
         .fighter-row {
@@ -909,6 +949,7 @@
             border-radius: var(--border-radius-sm);
             border-left: 3px solid transparent;
             transition: all var(--transition-fast);
+            flex-shrink: 0;
         }
 
         .fighter-row:hover {
@@ -979,6 +1020,7 @@
             justify-content: center;
             z-index: 3000;
             transition: opacity var(--transition-slow), visibility var(--transition-slow);
+            pointer-events: auto;
         }
 
         .loading-overlay.hidden {
@@ -1014,6 +1056,7 @@
         .text-red { color: var(--color-accent-red); }
         .text-blue { color: var(--color-accent-blue); }
         .text-yellow { color: var(--color-accent-yellow); }
+        .text-green { color: var(--color-accent-green); }
         .hidden { display: none !important; }
         .sr-only {
             position: absolute;
@@ -1026,297 +1069,311 @@
             white-space: nowrap;
             border: 0;
         }
+
+        /* Animation for status updates */
+        @keyframes statusFlash {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .status-flash {
+            animation: statusFlash 0.3s ease-in-out;
+        }
     </style>
 </head>
 <body>
     <!-- Loading Overlay -->
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-spinner"></div>
-        <div class="loading-text">INITIALIZING NEURAL ARENA...</div>
+    <div class="loading-overlay" id="loadingOverlay" role="status" aria-live="polite">
+        <div class="loading-spinner" aria-hidden="true"></div>
+        <div class="loading-text">ИНИЦИАЛИЗАЦИЯ НЕЙРО-АРЕНЫ...</div>
     </div>
 
     <!-- Main Menu -->
-    <div class="menu" id="mainMenu">
-        <h1>NEURAL FIGHTER PRO</h1>
+    <div class="menu hidden" id="mainMenu" role="dialog" aria-modal="true" aria-labelledby="menuTitle">
+        <h1 id="menuTitle">NEURAL FIGHTER PRO</h1>
         
         <div class="selector-container">
             <!-- Alpha Fighter -->
-            <div class="selector-card red">
+            <div class="selector-card red" role="region" aria-label="Настройки бойца ALPHA">
                 <h2 style="color: var(--color-accent-red);">ALPHA</h2>
                 
                 <div class="selector-group">
-                    <label for="alphaType">ARCHITECTURE</label>
-                    <select id="alphaType">
-                        <option value="neural">Neural Network (DQN)</option>
-                        <option value="classic">Rule-Based AI</option>
-                        <option value="manual">Manual Control</option>
+                    <label for="alphaType">АРХИТЕКТУРА</label>
+                    <select id="alphaType" aria-label="Тип ИИ для ALPHA">
+                        <option value="neural">Нейросеть (DQN)</option>
+                        <option value="classic">Правила (Classic AI)</option>
+                        <option value="manual">Ручное управление</option>
                     </select>
                 </div>
                 
                 <div class="selector-group" id="alphaStyleGroup">
-                    <label for="alphaStyle">COMBAT STYLE</label>
-                    <select id="alphaStyle">
-                        <option value="aggressive">Aggressive Rushdown</option>
-                        <option value="balanced" selected>Balanced All-Rounder</option>
-                        <option value="defensive">Defensive Counter</option>
+                    <label for="alphaStyle">СТИЛЬ БОЯ</label>
+                    <select id="alphaStyle" aria-label="Стиль боя для ALPHA">
+                        <option value="aggressive">Агрессивный рашдаун</option>
+                        <option value="balanced" selected>Сбалансированный</option>
+                        <option value="defensive">Защитный контратакующий</option>
                     </select>
                 </div>
                 
                 <div class="selector-group">
-                    <label for="alphaWeight">WEIGHT CLASS</label>
-                    <select id="alphaWeight">
-                        <option value="light">Light (Fast, Low HP)</option>
-                        <option value="medium" selected>Medium (Balanced)</option>
-                        <option value="heavy">Heavy (Slow, High HP)</option>
+                    <label for="alphaWeight">ВЕСОВАЯ КАТЕГОРИЯ</label>
+                    <select id="alphaWeight" aria-label="Весовая категория для ALPHA">
+                        <option value="light">Лёгкий (быстрый, мало HP)</option>
+                        <option value="medium" selected>Средний (баланс)</option>
+                        <option value="heavy">Тяжёлый (медленный, много HP)</option>
                     </select>
                 </div>
             </div>
             
             <!-- Beta Fighter -->
-            <div class="selector-card">
+            <div class="selector-card" role="region" aria-label="Настройки бойца BETA">
                 <h2 style="color: var(--color-accent-blue);">BETA</h2>
                 
                 <div class="selector-group">
-                    <label for="betaType">ARCHITECTURE</label>
-                    <select id="betaType">
-                        <option value="neural" selected>Neural Network (DQN)</option>
-                        <option value="classic">Rule-Based AI</option>
-                        <option value="manual">Manual Control</option>
+                    <label for="betaType">АРХИТЕКТУРА</label>
+                    <select id="betaType" aria-label="Тип ИИ для BETA">
+                        <option value="neural" selected>Нейросеть (DQN)</option>
+                        <option value="classic">Правила (Classic AI)</option>
+                        <option value="manual">Ручное управление</option>
                     </select>
                 </div>
                 
                 <div class="selector-group" id="betaStyleGroup">
-                    <label for="betaStyle">COMBAT STYLE</label>
-                    <select id="betaStyle">
-                        <option value="aggressive">Aggressive Rushdown</option>
-                        <option value="balanced">Balanced All-Rounder</option>
-                        <option value="defensive" selected>Defensive Counter</option>
+                    <label for="betaStyle">СТИЛЬ БОЯ</label>
+                    <select id="betaStyle" aria-label="Стиль боя для BETA">
+                        <option value="aggressive">Агрессивный рашдаун</option>
+                        <option value="balanced">Сбалансированный</option>
+                        <option value="defensive" selected>Защитный контратакующий</option>
                     </select>
                 </div>
                 
                 <div class="selector-group">
-                    <label for="betaWeight">WEIGHT CLASS</label>
-                    <select id="betaWeight">
-                        <option value="light">Light (Fast, Low HP)</option>
-                        <option value="medium" selected>Medium (Balanced)</option>
-                        <option value="heavy">Heavy (Slow, High HP)</option>
+                    <label for="betaWeight">ВЕСОВАЯ КАТЕГОРИЯ</label>
+                    <select id="betaWeight" aria-label="Весовая категория для BETA">
+                        <option value="light">Лёгкий (быстрый, мало HP)</option>
+                        <option value="medium" selected>Средний (баланс)</option>
+                        <option value="heavy">Тяжёлый (медленный, много HP)</option>
                     </select>
                 </div>
             </div>
         </div>
         
-        <button class="fight-btn" id="startFightBtn">INITIATE COMBAT SEQUENCE</button>
+        <button class="fight-btn" id="startFightBtn" aria-label="Начать бой">НАЧАТЬ БОЙ</button>
     </div>
 
     <!-- Main Application -->
-    <div class="app">
+    <div class="app" id="app" aria-live="polite">
         <!-- Header -->
-        <header class="header">
+        <header class="header" role="banner">
             <div class="logo">
                 <h1>NEURAL EVOLUTION ARENA</h1>
             </div>
-            <div class="gen-badge" id="generationBadge">GEN: 001</div>
+            <div class="gen-badge" id="generationBadge" aria-label="Поколение">GEN: 001</div>
             <div class="header-controls">
-                <button class="btn" id="speedBtn" title="Simulation Speed">x1</button>
-                <button class="btn btn-primary" id="pauseBtn" title="Pause/Resume">⏸</button>
-                <button class="btn" id="menuBtn" title="Main Menu">MENU</button>
+                <button class="btn" id="speedBtn" title="Скорость симуляции" aria-label="Скорость">×1</button>
+                <button class="btn btn-primary" id="pauseBtn" title="Пауза/Продолжить" aria-label="Пауза">⏸</button>
+                <button class="btn" id="menuBtn" title="Главное меню" aria-label="Меню">МЕНЮ</button>
             </div>
         </header>
 
         <!-- Left Panel - Alpha Stats -->
-        <aside class="panel panel-left">
+        <aside class="panel panel-left" role="complementary" aria-label="Статистика ALPHA">
             <div class="panel-header">
-                <span><span class="led led-red" id="alphaLed"></span> ALPHA</span>
-                <span id="alphaStatus" class="text-red">READY</span>
+                <span><span class="led led-red" id="alphaLed" aria-hidden="true"></span> ALPHA</span>
+                <span id="alphaStatus" class="text-red">ГОТОВ</span>
             </div>
             
             <!-- Health -->
             <div class="stat-row">
-                <span class="stat-label">HEALTH</span>
+                <span class="stat-label">ЗДОРОВЬЕ</span>
                 <span class="stat-value" id="alphaHp">100</span>
             </div>
-            <div class="progress-bar"><div class="progress-fill fill-red" id="alphaHpBar" style="width:100%"></div></div>
+            <div class="progress-bar"><div class="progress-fill fill-red" id="alphaHpBar" style="width:100%" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div></div>
 
             <!-- Energy -->
             <div class="stat-row">
-                <span class="stat-label">ENERGY</span>
+                <span class="stat-label">ЭНЕРГИЯ</span>
                 <span class="stat-value" id="alphaEnergy">100</span>
             </div>
-            <div class="progress-bar"><div class="progress-fill fill-blue" id="alphaEnergyBar" style="width:100%"></div></div>
+            <div class="progress-bar"><div class="progress-fill fill-blue" id="alphaEnergyBar" style="width:100%" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div></div>
 
             <!-- Rage -->
             <div class="stat-row">
-                <span class="stat-label">RAGE</span>
+                <span class="stat-label">ЯРОСТЬ</span>
                 <span class="stat-value" id="alphaRage">0</span>
             </div>
-            <div class="progress-bar special-bar"><div class="progress-fill fill-yellow" id="alphaRageBar" style="width:0%"></div></div>
+            <div class="progress-bar special-bar"><div class="progress-fill fill-yellow" id="alphaRageBar" style="width:0%" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div></div>
 
             <!-- Balance -->
             <div class="stat-row">
-                <span class="stat-label">BALANCE</span>
+                <span class="stat-label">БАЛАНС</span>
                 <span class="stat-value" id="alphaBalance">100</span>
             </div>
-            <div class="progress-bar"><div class="progress-fill fill-green" id="alphaBalanceBar" style="width:100%"></div></div>
+            <div class="progress-bar"><div class="progress-fill fill-green" id="alphaBalanceBar" style="width:100%" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div></div>
 
             <!-- Stamina -->
             <div class="stat-row">
-                <span class="stat-label">STAMINA</span>
+                <span class="stat-label">ВЫНОСЛИВОСТЬ</span>
                 <span class="stat-value" id="alphaStamina">100</span>
             </div>
-            <div class="progress-bar"><div class="progress-fill fill-purple" id="alphaStaminaBar" style="width:100%"></div></div>
+            <div class="progress-bar"><div class="progress-fill fill-purple" id="alphaStaminaBar" style="width:100%" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div></div>
 
             <!-- Emotions Grid -->
-            <div class="emotion-grid" id="alphaEmotions"></div>
+            <div class="emotion-grid" id="alphaEmotions" aria-label="Эмоции ALPHA"></div>
 
             <!-- Activity Indicators -->
-            <div class="activity">
-                <div class="dot" id="alphaMove" title="Movement"></div>
-                <div class="dot" id="alphaAttack" title="Attacking"></div>
-                <div class="dot" id="alphaDefend" title="Defending"></div>
-                <div class="dot" id="alphaSpecial" title="Special Ready"></div>
-                <div class="dot" id="alphaCombo" title="Combo Active"></div>
-                <span style="margin-left:auto;" id="alphaAction">IDLE</span>
+            <div class="activity" aria-label="Текущее действие">
+                <div class="dot" id="alphaMove" title="Движение" aria-hidden="true"></div>
+                <div class="dot" id="alphaAttack" title="Атака" aria-hidden="true"></div>
+                <div class="dot" id="alphaDefend" title="Защита" aria-hidden="true"></div>
+                <div class="dot" id="alphaSpecial" title="Спецприём" aria-hidden="true"></div>
+                <div class="dot" id="alphaCombo" title="Комбо" aria-hidden="true"></div>
+                <span style="margin-left:auto;" id="alphaAction">ПОКОЙ</span>
             </div>
 
             <!-- Statistics -->
-            <div class="stat-row"><span class="stat-label">REWARD</span><span class="stat-value" id="alphaReward">0</span></div>
+            <div class="stat-row"><span class="stat-label">НАГРАДА</span><span class="stat-value" id="alphaReward">0</span></div>
             <div class="stat-row"><span class="stat-label">EPSILON</span><span class="stat-value" id="alphaEpsilon">0.30</span></div>
-            <div class="stat-row"><span class="stat-label">COMBO</span><span class="stat-value" id="alphaComboCount">0</span></div>
-            <div class="stat-row"><span class="stat-label">ACCURACY</span><span class="stat-value" id="alphaAccuracy">0%</span></div>
+            <div class="stat-row"><span class="stat-label">КОМБО</span><span class="stat-value" id="alphaComboCount">0</span></div>
+            <div class="stat-row"><span class="stat-label">ТОЧНОСТЬ</span><span class="stat-value" id="alphaAccuracy">0%</span></div>
         </aside>
 
         <!-- Arena -->
-        <main class="arena">
-            <canvas id="gameCanvas"></canvas>
+        <main class="arena" role="main" aria-label="Арена боя">
+            <canvas id="gameCanvas" aria-label="Игровое поле" tabindex="0"></canvas>
             
             <!-- Winner Screen -->
-            <div class="winner-screen" id="winnerScreen">
-                <div class="winner-title" id="winnerTitle">VICTORY</div>
+            <div class="winner-screen" id="winnerScreen" role="alert" aria-live="assertive">
+                <div class="winner-title" id="winnerTitle">ПОБЕДА</div>
                 <div class="winner-stats">
                     <div class="winner-stat">
                         <div class="winner-stat-value text-red" id="winnerHits1">0</div>
-                        <div class="winner-stat-label">ALPHA HITS</div>
+                        <div class="winner-stat-label">УДАРОВ ALPHA</div>
                     </div>
                     <div class="winner-stat">
                         <div class="winner-stat-value text-blue" id="winnerHits2">0</div>
-                        <div class="winner-stat-label">BETA HITS</div>
+                        <div class="winner-stat-label">УДАРОВ BETA</div>
                     </div>
                     <div class="winner-stat">
                         <div class="winner-stat-value text-yellow" id="winnerCombo1">0</div>
-                        <div class="winner-stat-label">ALPHA MAX COMBO</div>
+                        <div class="winner-stat-label">МАКС. КОМБО ALPHA</div>
                     </div>
                     <div class="winner-stat">
                         <div class="winner-stat-value text-yellow" id="winnerCombo2">0</div>
-                        <div class="winner-stat-label">BETA MAX COMBO</div>
+                        <div class="winner-stat-label">МАКС. КОМБО BETA</div>
                     </div>
                 </div>
-                <button class="btn btn-primary" id="rematchBtn">REMATCH</button>
+                <button class="btn btn-primary" id="rematchBtn">РЕВАНШ</button>
             </div>
         </main>
 
         <!-- Right Panel - Beta Stats -->
-        <aside class="panel panel-right">
+        <aside class="panel panel-right" role="complementary" aria-label="Статистика BETA">
             <div class="panel-header">
-                <span><span class="led led-blue" id="betaLed"></span> BETA</span>
-                <span id="betaStatus" class="text-blue">READY</span>
+                <span><span class="led led-blue" id="betaLed" aria-hidden="true"></span> BETA</span>
+                <span id="betaStatus" class="text-blue">ГОТОВ</span>
             </div>
             
-            <div class="stat-row"><span class="stat-label">HEALTH</span><span class="stat-value" id="betaHp">100</span></div>
-            <div class="progress-bar"><div class="progress-fill fill-blue" id="betaHpBar" style="width:100%"></div></div>
+            <div class="stat-row"><span class="stat-label">ЗДОРОВЬЕ</span><span class="stat-value" id="betaHp">100</span></div>
+            <div class="progress-bar"><div class="progress-fill fill-blue" id="betaHpBar" style="width:100%" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div></div>
 
-            <div class="stat-row"><span class="stat-label">ENERGY</span><span class="stat-value" id="betaEnergy">100</span></div>
-            <div class="progress-bar"><div class="progress-fill fill-red" id="betaEnergyBar" style="width:100%"></div></div>
+            <div class="stat-row"><span class="stat-label">ЭНЕРГИЯ</span><span class="stat-value" id="betaEnergy">100</span></div>
+            <div class="progress-bar"><div class="progress-fill fill-red" id="betaEnergyBar" style="width:100%" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div></div>
 
-            <div class="stat-row"><span class="stat-label">RAGE</span><span class="stat-value" id="betaRage">0</span></div>
-            <div class="progress-bar special-bar"><div class="progress-fill fill-yellow" id="betaRageBar" style="width:0%"></div></div>
+            <div class="stat-row"><span class="stat-label">ЯРОСТЬ</span><span class="stat-value" id="betaRage">0</span></div>
+            <div class="progress-bar special-bar"><div class="progress-fill fill-yellow" id="betaRageBar" style="width:0%" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div></div>
 
-            <div class="stat-row"><span class="stat-label">BALANCE</span><span class="stat-value" id="betaBalance">100</span></div>
-            <div class="progress-bar"><div class="progress-fill fill-green" id="betaBalanceBar" style="width:100%"></div></div>
+            <div class="stat-row"><span class="stat-label">БАЛАНС</span><span class="stat-value" id="betaBalance">100</span></div>
+            <div class="progress-bar"><div class="progress-fill fill-green" id="betaBalanceBar" style="width:100%" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div></div>
 
-            <div class="stat-row"><span class="stat-label">STAMINA</span><span class="stat-value" id="betaStamina">100</span></div>
-            <div class="progress-bar"><div class="progress-fill fill-purple" id="betaStaminaBar" style="width:100%"></div></div>
+            <div class="stat-row"><span class="stat-label">ВЫНОСЛИВОСТЬ</span><span class="stat-value" id="betaStamina">100</span></div>
+            <div class="progress-bar"><div class="progress-fill fill-purple" id="betaStaminaBar" style="width:100%" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div></div>
 
-            <div class="emotion-grid" id="betaEmotions"></div>
+            <div class="emotion-grid" id="betaEmotions" aria-label="Эмоции BETA"></div>
 
-            <div class="activity">
-                <div class="dot" id="betaMove"></div>
-                <div class="dot" id="betaAttack"></div>
-                <div class="dot" id="betaDefend"></div>
-                <div class="dot" id="betaSpecial"></div>
-                <div class="dot" id="betaCombo"></div>
-                <span style="margin-left:auto;" id="betaAction">IDLE</span>
+            <div class="activity" aria-label="Текущее действие">
+                <div class="dot" id="betaMove" aria-hidden="true"></div>
+                <div class="dot" id="betaAttack" aria-hidden="true"></div>
+                <div class="dot" id="betaDefend" aria-hidden="true"></div>
+                <div class="dot" id="betaSpecial" aria-hidden="true"></div>
+                <div class="dot" id="betaCombo" aria-hidden="true"></div>
+                <span style="margin-left:auto;" id="betaAction">ПОКОЙ</span>
             </div>
 
-            <div class="stat-row"><span class="stat-label">REWARD</span><span class="stat-value" id="betaReward">0</span></div>
+            <div class="stat-row"><span class="stat-label">НАГРАДА</span><span class="stat-value" id="betaReward">0</span></div>
             <div class="stat-row"><span class="stat-label">EPSILON</span><span class="stat-value" id="betaEpsilon">0.30</span></div>
-            <div class="stat-row"><span class="stat-label">COMBO</span><span class="stat-value" id="betaComboCount">0</span></div>
-            <div class="stat-row"><span class="stat-label">ACCURACY</span><span class="stat-value" id="betaAccuracy">0%</span></div>
+            <div class="stat-row"><span class="stat-label">КОМБО</span><span class="stat-value" id="betaComboCount">0</span></div>
+            <div class="stat-row"><span class="stat-label">ТОЧНОСТЬ</span><span class="stat-value" id="betaAccuracy">0%</span></div>
         </aside>
 
         <!-- Footer -->
-        <footer class="footer">
+        <footer class="footer" role="contentinfo">
             <!-- Statistics Panel -->
             <div class="panel">
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="value" id="statGeneration">1</div>
-                        <div>GENERATION</div>
+                        <div>ПОКОЛЕНИЕ</div>
                     </div>
                     <div class="stat-card">
                         <div class="value" id="statPopulation">8</div>
-                        <div>POPULATION</div>
+                        <div>ПОПУЛЯЦИЯ</div>
                     </div>
                     <div class="stat-card">
                         <div class="value" id="statAvgFitness">0</div>
-                        <div>AVG FITNESS</div>
+                        <div>СР. ПРИГОДНОСТЬ</div>
                     </div>
                     <div class="stat-card">
                         <div class="value" id="statBestCombo">0</div>
-                        <div>BEST COMBO</div>
+                        <div>ЛУЧШЕЕ КОМБО</div>
                     </div>
                 </div>
-                <div class="fighter-list" id="fighterList">
+                <div class="fighter-list" id="fighterList" role="list" aria-label="Список бойцов">
                     <!-- Populated by JS -->
                 </div>
                 <div style="display:flex; gap:var(--spacing-sm); margin-top:var(--spacing-sm); flex-wrap:wrap;">
-                    <button class="btn" style="flex:1; min-width:100px;" id="evolveBtn">EVOLVE</button>
-                    <button class="btn btn-primary" style="flex:1; min-width:100px;" id="tournamentBtn">TOURNAMENT</button>
+                    <button class="btn" style="flex:1; min-width:100px;" id="evolveBtn">ЭВОЛЮЦИЯ</button>
+                    <button class="btn btn-primary" style="flex:1; min-width:100px;" id="tournamentBtn">ТУРНИР</button>
                 </div>
             </div>
 
             <!-- Neural Log -->
             <div class="log">
                 <div class="log-header">
-                    <span>NEURAL LOG</span>
+                    <span>НЕЙРО-ЛОГ</span>
                     <span id="lrDisplay">LR: 1e-4</span>
                 </div>
-                <div class="log-messages" id="logMessages" role="log" aria-live="polite">
-                    <div class="log-entry system">System initialized. Ready for combat.</div>
+                <div class="log-messages" id="logMessages" role="log" aria-live="polite" aria-label="Системный лог">
+                    <div class="log-entry system">Система инициализирована. Готов к бою.</div>
                 </div>
             </div>
 
             <!-- Actions -->
             <div class="footer-actions">
-                <button class="btn btn-special" id="saveBrainBtn">SAVE MODEL</button>
-                <button class="btn" id="loadBrainBtn">LOAD MODEL</button>
-                <button class="btn" id="resetBtn">RESET EVOLUTION</button>
-                <button class="btn" id="exportBtn">EXPORT DATA</button>
+                <button class="btn btn-special" id="saveBrainBtn">СОХРАНИТЬ МОДЕЛЬ</button>
+                <button class="btn" id="loadBrainBtn">ЗАГРУЗИТЬ МОДЕЛЬ</button>
+                <button class="btn" id="resetBtn">СБРОС ЭВОЛЮЦИИ</button>
+                <button class="btn" id="exportBtn">ЭКСПОРТ ДАННЫХ</button>
             </div>
         </footer>
     </div>
 
     <script>
         /**
-         * NEURAL FIGHTER PRO
-         * Production Fix Version
+         * NEURAL FIGHTER PRO — Professional Production Build
          * 
          * Fixes applied:
-         * 1. Virtual Resolution (Canvas locked to 1920x1080, scaled via CSS).
-         * 2. Fixed Timestep Physics Loop (Prevents tunneling/instability).
-         * 3. Input Mapping (Touch/Mouse mapped to 1920x1080 coordinates).
-         * 4. Memory Optimization (Pre-allocated Neural Net buffers).
-         * 
-         * Original Logic Preserved.
+         * 1. Virtual Resolution (Canvas locked to 1920x1080, scaled via CSS object-fit)
+         * 2. Fixed Timestep Physics Loop (Prevents tunneling/instability)
+         * 3. Input Mapping (Touch/Mouse/Keyboard mapped to virtual coordinates)
+         * 4. Memory Optimization (Pre-allocated buffers, reduced GC pressure)
+         * 5. Neural Network: Proper gradient computation for DQN training
+         * 6. UI Manager: Fixed emotion grid update logic and variable scoping
+         * 7. Fighter Class: Added missing attackCooldown property
+         * 8. Collision Detection: Proper coordinate transformation and AABB
+         * 9. Accessibility: ARIA labels, roles, keyboard navigation support
+         * 10. Error Handling: Comprehensive try/catch, validation, fallbacks
+         * 11. Performance: requestAnimationFrame optimization, debounced resize
+         * 12. Responsive: Improved media queries and touch target sizes
          */
         (function() {
             'use strict';
@@ -1324,7 +1381,7 @@
             // ========================================
             // CONFIGURATION MODULE
             // ========================================
-            const Config = {
+            const Config = Object.freeze({
                 // Canvas & Rendering
                 canvas: {
                     baseWidth: 1920,
@@ -1367,10 +1424,10 @@
                 // Combat Constants
                 combat: {
                     hitboxTolerance: 8,
-                    comboWindow: 45, // frames
+                    comboWindow: 45,
                     comboDecay: 0.8,
-                    damageScaling: 0.9, // per hit in combo
-                    superMeterGain: 0.5, // per hit
+                    damageScaling: 0.9,
+                    superMeterGain: 0.5,
                     superMeterCost: 100
                 },
                 
@@ -1384,8 +1441,8 @@
                     epsilonStart: 0.5,
                     epsilonMin: 0.01,
                     epsilonDecay: 0.9995,
-                    batchSize: 64,
-                    memorySize: 10000,
+                    batchSize: 32,
+                    memorySize: 5000,
                     targetUpdate: 100,
                     tau: 0.005
                 },
@@ -1403,7 +1460,7 @@
                 
                 // UI Constants
                 ui: {
-                    updateInterval: 16, // ~60fps
+                    updateInterval: 16,
                     logMaxLength: 100,
                     emotionUpdateRate: 30
                 },
@@ -1422,10 +1479,10 @@
                     touchSensitivity: 0.15,
                     deadZone: 0.1
                 }
-            };
+            });
 
             // ========================================
-            // UTILITY FUNCTIONS
+            // UTILITY FUNCTIONS (Pure, Immutable)
             // ========================================
             const Utils = {
                 clamp: (val, min, max) => Math.max(min, Math.min(max, val)),
@@ -1442,110 +1499,162 @@
                     const x = Math.sin(seed) * 10000;
                     return x - Math.floor(x);
                 },
-                clone: (obj) => JSON.parse(JSON.stringify(obj)),
+                deepClone: (obj) => {
+                    if (obj === null || typeof obj !== 'object') return obj;
+                    if (Array.isArray(obj)) return obj.map(Utils.deepClone);
+                    const cloned = {};
+                    for (const key in obj) {
+                        if (Object.prototype.hasOwnProperty.call(obj, key)) {
+                            cloned[key] = Utils.deepClone(obj[key]);
+                        }
+                    }
+                    return cloned;
+                },
                 debounce: (func, wait) => {
                     let timeout;
                     return (...args) => {
                         clearTimeout(timeout);
                         timeout = setTimeout(() => func.apply(this, args), wait);
                     };
+                },
+                // Safe JSON parse with fallback
+                safeJsonParse: (str, fallback) => {
+                    try {
+                        return JSON.parse(str);
+                    } catch {
+                        return fallback;
+                    }
                 }
             };
 
             // ========================================
-            // LOGGING SYSTEM
+            // LOGGING SYSTEM (Thread-safe, rate-limited)
             // ========================================
-            const Logger = {
-                entries: [],
-                maxEntries: Config.ui.logMaxLength,
+            const Logger = (() => {
+                const entries = [];
+                const maxEntries = Config.ui.logMaxLength;
+                let lastLogTime = 0;
+                const logRateLimit = 50; // ms between logs
                 
-                add: function(type, message) {
+                const add = (type, message) => {
+                    const now = Date.now();
+                    if (now - lastLogTime < logRateLimit) return;
+                    lastLogTime = now;
+                    
                     const entry = {
-                        timestamp: new Date().toLocaleTimeString(),
+                        timestamp: new Date().toLocaleTimeString('ru-RU'),
                         type,
                         message
                     };
-                    this.entries.push(entry);
+                    entries.push(entry);
                     
-                    if (this.entries.length > this.maxEntries) {
-                        this.entries.shift();
+                    if (entries.length > maxEntries) {
+                        entries.shift();
                     }
                     
+                    // Update DOM if available
                     const logEl = document.getElementById('logMessages');
                     if (logEl) {
                         const div = document.createElement('div');
                         div.className = `log-entry ${type}`;
                         div.textContent = `[${entry.timestamp}] ${message}`;
+                        div.setAttribute('role', 'logitem');
                         logEl.appendChild(div);
-                        
                         logEl.scrollTop = logEl.scrollHeight;
                         
-                        while (logEl.children.length > this.maxEntries) {
+                        // Cleanup old entries
+                        while (logEl.children.length > maxEntries) {
                             logEl.removeChild(logEl.firstChild);
                         }
                     }
                     
-                    console.log(`[${entry.timestamp}] [${type.toUpperCase()}] ${message}`);
-                },
+                    // Console output for debugging
+                    if (console[type]) {
+                        console[type](`[${entry.timestamp}] [${type.toUpperCase()}] ${message}`);
+                    } else {
+                        console.log(`[${entry.timestamp}] [${type.toUpperCase()}] ${message}`);
+                    }
+                };
                 
-                battle: (msg) => Logger.add('battle', msg),
-                evolution: (msg) => Logger.add('evolution', msg),
-                system: (msg) => Logger.add('system', msg),
-                error: (msg) => {
-                    Logger.add('error', msg);
-                    console.error(msg);
-                }
-            };
+                return {
+                    add,
+                    battle: (msg) => add('battle', msg),
+                    evolution: (msg) => add('evolution', msg),
+                    system: (msg) => add('system', msg),
+                    error: (msg) => {
+                        add('error', msg);
+                        console.error(msg);
+                    },
+                    getEntries: () => [...entries]
+                };
+            })();
 
             // ========================================
             // INPUT HANDLER (Unified Touch/Mouse/Keyboard)
             // ========================================
             class InputHandler {
                 constructor(renderer) {
-                    this.renderer = renderer; // Need renderer ref for scaling
-                    this.keys = {};
+                    this.renderer = renderer;
+                    this.keys = Object.create(null);
                     this.touchStart = { x: 0, y: 0 };
                     this.touchCurrent = { x: 0, y: 0 };
                     this.touchActive = false;
                     this.lastUpdate = 0;
+                    this._boundHandlers = {};
                     
                     this.initEvents();
                 }
                 
                 initEvents() {
                     // Keyboard
-                    window.addEventListener('keydown', (e) => {
-                        if (Config.input.keyMap[e.code]) {
-                            this.keys[Config.input.keyMap[e.code]] = true;
+                    const onKeyDown = (e) => {
+                        const action = Config.input.keyMap[e.code];
+                        if (action) {
+                            this.keys[action] = true;
                             e.preventDefault();
                         }
-                    });
+                    };
                     
-                    window.addEventListener('keyup', (e) => {
-                        if (Config.input.keyMap[e.code]) {
-                            this.keys[Config.input.keyMap[e.code]] = false;
+                    const onKeyUp = (e) => {
+                        const action = Config.input.keyMap[e.code];
+                        if (action) {
+                            this.keys[action] = false;
                             e.preventDefault();
                         }
-                    });
+                    };
+                    
+                    window.addEventListener('keydown', onKeyDown, { passive: false });
+                    window.addEventListener('keyup', onKeyUp, { passive: false });
+                    this._boundHandlers.keyboard = { down: onKeyDown, up: onKeyUp };
                     
                     // Touch/Mouse
                     const arena = document.querySelector('.arena');
                     if (arena) {
-                        arena.addEventListener('touchstart', (e) => this.handleTouchStart(e), { passive: false });
-                        arena.addEventListener('touchmove', (e) => this.handleTouchMove(e), { passive: false });
-                        arena.addEventListener('touchend', () => this.handleTouchEnd());
-                        arena.addEventListener('mousedown', (e) => this.handleTouchStart(e));
-                        arena.addEventListener('mousemove', (e) => this.handleTouchMove(e));
-                        window.addEventListener('mouseup', () => this.handleTouchEnd());
+                        const onTouchStart = (e) => this.handleTouchStart(e);
+                        const onTouchMove = (e) => this.handleTouchMove(e);
+                        const onTouchEnd = () => this.handleTouchEnd();
+                        
+                        arena.addEventListener('touchstart', onTouchStart, { passive: false });
+                        arena.addEventListener('touchmove', onTouchMove, { passive: false });
+                        arena.addEventListener('touchend', onTouchEnd);
+                        arena.addEventListener('mousedown', onTouchStart);
+                        arena.addEventListener('mousemove', onTouchMove);
+                        window.addEventListener('mouseup', onTouchEnd);
+                        
+                        this._boundHandlers.touch = {
+                            start: onTouchStart,
+                            move: onTouchMove,
+                            end: onTouchEnd
+                        };
                     }
                     
+                    // Prevent context menu
                     window.addEventListener('contextmenu', (e) => e.preventDefault());
                 }
                 
-                // FIX: Map coordinates to Virtual Resolution
+                // Map client coordinates to virtual canvas coordinates
                 mapToVirtual(clientX, clientY) {
                     const rect = this.renderer.canvas.getBoundingClientRect();
-                    // Scale factor between CSS size and Internal Resolution
                     const scaleX = Config.canvas.baseWidth / rect.width;
                     const scaleY = Config.canvas.baseHeight / rect.height;
                     
@@ -1578,7 +1687,9 @@
                 }
                 
                 handleTouchEnd() {
+                    if (!this.touchActive) return;
                     this.touchActive = false;
+                    
                     const dx = this.touchCurrent.x - this.touchStart.x;
                     const dy = this.touchCurrent.y - this.touchStart.y;
                     const dist = Math.hypot(dx, dy);
@@ -1586,14 +1697,14 @@
                     if (dist > 30) {
                         if (Math.abs(dx) > Math.abs(dy)) {
                             this.keys['dash'] = true;
-                            setTimeout(() => this.keys['dash'] = false, 100);
+                            setTimeout(() => { this.keys['dash'] = false; }, 100);
                         } else if (dy < 0) {
                             this.keys['jump'] = true;
-                            setTimeout(() => this.keys['jump'] = false, 100);
+                            setTimeout(() => { this.keys['jump'] = false; }, 100);
                         }
                     } else {
                         this.keys['attack1'] = true;
-                        setTimeout(() => this.keys['attack1'] = false, 100);
+                        setTimeout(() => { this.keys['attack1'] = false; }, 100);
                     }
                 }
                 
@@ -1606,14 +1717,16 @@
                         const dx = this.touchCurrent.x - this.touchStart.x;
                         const dy = this.touchCurrent.y - this.touchStart.y;
                         
-                        if (Math.abs(dx) < 20) this.keys['left'] = this.keys['right'] = false;
-                        else {
+                        // Reset movement keys
+                        this.keys['left'] = this.keys['right'] = false;
+                        this.keys['up'] = this.keys['down'] = false;
+                        
+                        if (Math.abs(dx) > 20) {
                             this.keys['left'] = dx < -20;
                             this.keys['right'] = dx > 20;
                         }
                         
-                        if (Math.abs(dy) < 20) this.keys['up'] = this.keys['down'] = false;
-                        else {
+                        if (Math.abs(dy) > 20) {
                             this.keys['up'] = dy < -20;
                             this.keys['down'] = dy > 20;
                         }
@@ -1621,23 +1734,38 @@
                 }
                 
                 isPressed(action) {
-                    return this.keys[action] || false;
-                }
-                
-                isJustPressed(action) {
-                    return this.keys[action] || false;
+                    return !!this.keys[action];
                 }
                 
                 reset() {
-                    this.keys = {};
+                    this.keys = Object.create(null);
                     this.touchActive = false;
+                }
+                
+                // Cleanup event listeners
+                destroy() {
+                    if (this._boundHandlers.keyboard) {
+                        window.removeEventListener('keydown', this._boundHandlers.keyboard.down);
+                        window.removeEventListener('keyup', this._boundHandlers.keyboard.up);
+                    }
+                    if (this._boundHandlers.touch) {
+                        const arena = document.querySelector('.arena');
+                        if (arena) {
+                            arena.removeEventListener('touchstart', this._boundHandlers.touch.start);
+                            arena.removeEventListener('touchmove', this._boundHandlers.touch.move);
+                            arena.removeEventListener('touchend', this._boundHandlers.touch.end);
+                            arena.removeEventListener('mousedown', this._boundHandlers.touch.start);
+                            arena.removeEventListener('mousemove', this._boundHandlers.touch.move);
+                        }
+                        window.removeEventListener('mouseup', this._boundHandlers.touch.end);
+                    }
                 }
             }
 
             // ========================================
             // ATTACK DATA (Frame Data System)
             // ========================================
-            const ATTACKS = [
+            const ATTACKS = Object.freeze([
                 // Light Attacks (0-4)
                 { id: 0, name: 'JAB', damage: 3, energy: 2, startup: 3, active: 2, recovery: 8, hitstun: 10, blockstun: 4, range: 45, type: 'light', comboValue: 0.1 },
                 { id: 1, name: 'STRAIGHT', damage: 5, energy: 4, startup: 5, active: 3, recovery: 10, hitstun: 14, blockstun: 6, range: 55, type: 'light', comboValue: 0.15 },
@@ -1665,18 +1793,18 @@
                 { id: 17, name: 'SUPER ART', damage: 35, energy: 50, startup: 15, active: 12, recovery: 40, hitstun: 45, blockstun: 20, range: 70, type: 'super', comboValue: 2.0, requiresSuper: true },
                 { id: 18, name: 'RAGE MODE', damage: 45, energy: 70, startup: 20, active: 15, recovery: 50, hitstun: 55, blockstun: 25, range: 60, type: 'super', comboValue: 3.0, requiresRage: true },
                 { id: 19, name: 'FINAL STRIKE', damage: 60, energy: 100, startup: 30, active: 20, recovery: 60, hitstun: 70, blockstun: 30, range: 80, type: 'super', comboValue: 5.0, requiresFull: true }
-            ];
+            ]);
 
             // ========================================
             // DEFENSE TYPES
             // ========================================
-            const DEFENSE = {
+            const DEFENSE = Object.freeze({
                 NONE: { id: 0, name: 'None', energyCost: 0, damageMod: 1, hitstunMod: 1 },
                 BLOCK: { id: 1, name: 'Block', energyCost: 2, damageMod: 0.6, hitstunMod: 0.7, blockstun: 8 },
                 PARRY: { id: 2, name: 'Parry', energyCost: 5, damageMod: 0, hitstunMod: 0, counterWindow: 5, requiresTiming: true },
                 DODGE: { id: 3, name: 'Dodge', energyCost: 4, damageMod: 1, hitstunMod: 1, invincible: true, duration: 10 },
                 CROUCH: { id: 4, name: 'Crouch', energyCost: 1, damageMod: 0.8, hitstunMod: 0.9, avoidsHigh: true }
-            };
+            });
 
             // ========================================
             // PARTICLE SYSTEM
@@ -1685,14 +1813,14 @@
                 constructor(x, y, color, options = {}) {
                     this.x = x;
                     this.y = y;
-                    this.vx = options.vx || Utils.random(-5, 5);
-                    this.vy = options.vy || Utils.random(-5, 5);
-                    this.life = options.life || Utils.random(20, 40);
+                    this.vx = options.vx ?? Utils.random(-5, 5);
+                    this.vy = options.vy ?? Utils.random(-5, 5);
+                    this.life = options.life ?? Utils.random(20, 40);
                     this.maxLife = this.life;
                     this.color = color;
-                    this.size = options.size || Utils.random(2, 6);
-                    this.gravity = options.gravity || 0.2;
-                    this.friction = options.friction || 0.98;
+                    this.size = options.size ?? Utils.random(2, 6);
+                    this.gravity = options.gravity ?? 0.2;
+                    this.friction = options.friction ?? 0.98;
                     this.fade = options.fade !== false;
                 }
                 
@@ -1728,7 +1856,8 @@
                 }
                 
                 createHit(x, y, color, intensity = 1) {
-                    for (let i = 0; i < 12 * intensity; i++) {
+                    const count = Math.floor(12 * intensity);
+                    for (let i = 0; i < count; i++) {
                         this.particles.push(new Particle(x, y, color, {
                             vx: Utils.random(-8, 8) * intensity,
                             vy: Utils.random(-8, 2) * intensity,
@@ -1784,7 +1913,12 @@
                         this.screenShake.y = 0;
                     }
                     
-                    this.particles = this.particles.filter(p => p.update());
+                    // Update and filter particles
+                    for (let i = this.particles.length - 1; i >= 0; i--) {
+                        if (!this.particles[i].update()) {
+                            this.particles.splice(i, 1);
+                        }
+                    }
                 }
                 
                 draw(ctx, offsetX = 0, offsetY = 0) {
@@ -1801,10 +1935,16 @@
                 isHitstop() {
                     return this.hitstop > 0;
                 }
+                
+                clear() {
+                    this.particles = [];
+                    this.screenShake = { x: 0, y: 0, duration: 0, intensity: 0 };
+                    this.hitstop = 0;
+                }
             }
 
             // ========================================
-            // NEURAL NETWORK (Simplified DQN)
+            // NEURAL NETWORK (Proper DQN Implementation)
             // ========================================
             class NeuralNetwork {
                 constructor(inputSize, hiddenSize, outputSize, seed = null) {
@@ -1812,75 +1952,81 @@
                     this.hiddenSize = hiddenSize;
                     this.outputSize = outputSize;
                     
-                    // FIX: Pre-allocate buffers to prevent GC pauses during gameplay
-                    this._inputBuf = new Float32Array(inputSize);
-                    this._hiddenBuf = new Float32Array(hiddenSize);
-                    this._outputBuf = new Float32Array(outputSize);
+                    // Pre-allocate buffers for forward pass (reduce GC)
+                    this._z1 = new Float32Array(hiddenSize);
+                    this._a1 = new Float32Array(hiddenSize);
+                    this._z2 = new Float32Array(hiddenSize);
+                    this._a2 = new Float32Array(hiddenSize);
+                    this._output = new Float32Array(outputSize);
                     
-                    // Initialize weights with Xavier initialization
-                    const initWeight = (fanIn, fanOut, s) => {
-                        const scale = Math.sqrt(2.0 / (fanIn + fanOut));
-                        return (Utils.seededRandom(s) * 2 - 1) * scale;
+                    // Cache for backpropagation
+                    this._cache = {
+                        input: new Float32Array(inputSize),
+                        z1: new Float32Array(hiddenSize),
+                        a1: new Float32Array(hiddenSize),
+                        z2: new Float32Array(hiddenSize),
+                        a2: new Float32Array(hiddenSize),
+                        output: new Float32Array(outputSize),
+                        delta3: new Float32Array(outputSize),
+                        delta2: new Float32Array(hiddenSize),
+                        delta1: new Float32Array(hiddenSize)
                     };
                     
-                    let weightSeed = seed || Math.random() * 10000;
+                    // Initialize weights with Xavier/Glorot initialization
+                    const initWeight = (fanIn, fanOut, rng) => {
+                        const std = Math.sqrt(2.0 / (fanIn + fanOut));
+                        return rng() * std;
+                    };
+                    
+                    // Seeded RNG for reproducibility
+                    let rngSeed = seed ?? Math.random() * 1e9;
+                    const rng = () => {
+                        rngSeed = (rngSeed * 1664525 + 1013904223) % 4294967296;
+                        return rngSeed / 4294967296;
+                    };
                     
                     // Layer 1: Input -> Hidden
-                    this.w1 = [];
-                    for (let i = 0; i < hiddenSize; i++) {
-                        this.w1[i] = [];
-                        for (let j = 0; j < inputSize; j++) {
-                            this.w1[i][j] = initWeight(inputSize, hiddenSize, weightSeed++);
-                        }
-                    }
-                    this.b1 = new Array(hiddenSize).fill(0).map(() => Utils.seededRandom(weightSeed++) * 0.1);
+                    this.w1 = Array.from({ length: hiddenSize }, () => 
+                        Array.from({ length: inputSize }, () => initWeight(inputSize, hiddenSize, rng))
+                    );
+                    this.b1 = Array.from({ length: hiddenSize }, () => initWeight(1, hiddenSize, rng) * 0.1);
                     
                     // Layer 2: Hidden -> Hidden
-                    this.w2 = [];
-                    for (let i = 0; i < hiddenSize; i++) {
-                        this.w2[i] = [];
-                        for (let j = 0; j < hiddenSize; j++) {
-                            this.w2[i][j] = initWeight(hiddenSize, hiddenSize, weightSeed++);
-                        }
-                    }
-                    this.b2 = new Array(hiddenSize).fill(0).map(() => Utils.seededRandom(weightSeed++) * 0.1);
+                    this.w2 = Array.from({ length: hiddenSize }, () => 
+                        Array.from({ length: hiddenSize }, () => initWeight(hiddenSize, hiddenSize, rng))
+                    );
+                    this.b2 = Array.from({ length: hiddenSize }, () => initWeight(1, hiddenSize, rng) * 0.1);
                     
                     // Layer 3: Hidden -> Output
-                    this.w3 = [];
-                    for (let i = 0; i < outputSize; i++) {
-                        this.w3[i] = [];
-                        for (let j = 0; j < hiddenSize; j++) {
-                            this.w3[i][j] = initWeight(hiddenSize, outputSize, weightSeed++);
-                        }
-                    }
-                    this.b3 = new Array(outputSize).fill(0).map(() => Utils.seededRandom(weightSeed++) * 0.1);
+                    this.w3 = Array.from({ length: outputSize }, () => 
+                        Array.from({ length: hiddenSize }, () => initWeight(hiddenSize, outputSize, rng))
+                    );
+                    this.b3 = Array.from({ length: outputSize }, () => initWeight(1, outputSize, rng) * 0.1);
                     
-                    // Target network (for DQN stability)
-                    this.targetW1 = Utils.clone(this.w1);
+                    // Target network weights (for DQN stability)
+                    this.targetW1 = Utils.deepClone(this.w1);
                     this.targetB1 = [...this.b1];
-                    this.targetW2 = Utils.clone(this.w2);
+                    this.targetW2 = Utils.deepClone(this.w2);
                     this.targetB2 = [...this.b2];
-                    this.targetW3 = Utils.clone(this.w3);
+                    this.targetW3 = Utils.deepClone(this.w3);
                     this.targetB3 = [...this.b3];
                     
-                    // Experience replay
+                    // Experience replay buffer
                     this.memory = [];
                     this.memorySize = Config.neural.memorySize;
                     
                     // Training parameters
                     this.epsilon = Config.neural.epsilonStart;
                     this.steps = 0;
-                    this.loss = 0;
-                    
-                    // Cache for backprop
-                    this.cache = {};
+                    this.totalLoss = 0;
+                    this.trainingSteps = 0;
                 }
                 
                 // Activation functions
-                relu(x) { return Math.max(0, x); }
-                reluDeriv(x) { return x > 0 ? 1 : 0.01; } // Leaky ReLU
+                _relu(x) { return Math.max(0, x); }
+                _reluDeriv(x) { return x > 0 ? 1 : 0.01; } // Leaky ReLU for better gradient flow
                 
-                // Forward pass
+                // Forward pass with caching for backprop
                 forward(input, useTarget = false) {
                     const w1 = useTarget ? this.targetW1 : this.w1;
                     const b1 = useTarget ? this.targetB1 : this.b1;
@@ -1889,54 +2035,60 @@
                     const w3 = useTarget ? this.targetW3 : this.w3;
                     const b3 = useTarget ? this.targetB3 : this.b3;
                     
-                    // Cache input for backprop
-                    if (!useTarget) this.cache.input = input; // Store ref, not copy (optimization)
+                    // Cache input
+                    if (!useTarget) {
+                        for (let i = 0; i < this.inputSize; i++) {
+                            this._cache.input[i] = input[i];
+                        }
+                    }
                     
-                    // Layer 1
-                    const z1 = this._hiddenBuf; // Reuse buffer
+                    // Layer 1: Input -> Hidden
                     for (let i = 0; i < this.hiddenSize; i++) {
                         let sum = b1[i];
                         for (let j = 0; j < this.inputSize; j++) {
                             sum += w1[i][j] * input[j];
                         }
-                        z1[i] = this.relu(sum);
+                        this._z1[i] = sum;
+                        this._a1[i] = this._relu(sum);
+                        
+                        if (!useTarget) {
+                            this._cache.z1[i] = sum;
+                            this._cache.a1[i] = this._a1[i];
+                        }
                     }
                     
-                    // Layer 2 (Hidden -> Hidden)
-                    const a1 = z1; // Output of layer 1 is input to layer 2
-                    const z2 = new Array(this.hiddenSize); // Need new array for second hidden layer
+                    // Layer 2: Hidden -> Hidden
                     for (let i = 0; i < this.hiddenSize; i++) {
                         let sum = b2[i];
                         for (let j = 0; j < this.hiddenSize; j++) {
-                            sum += w2[i][j] * a1[j];
+                            sum += w2[i][j] * this._a1[j];
                         }
-                        z2[i] = this.relu(sum);
+                        this._z2[i] = sum;
+                        this._a2[i] = this._relu(sum);
+                        
+                        if (!useTarget) {
+                            this._cache.z2[i] = sum;
+                            this._cache.a2[i] = this._a2[i];
+                        }
                     }
                     
-                    // Output layer
-                    const output = this._outputBuf; // Reuse buffer
+                    // Output layer: Hidden -> Output (linear activation for Q-values)
                     for (let i = 0; i < this.outputSize; i++) {
                         let sum = b3[i];
                         for (let j = 0; j < this.hiddenSize; j++) {
-                            sum += w3[i][j] * z2[j];
+                            sum += w3[i][j] * this._a2[j];
                         }
-                        output[i] = sum;
+                        this._output[i] = sum;
+                        if (!useTarget) {
+                            this._cache.output[i] = sum;
+                        }
                     }
                     
-                    // Cache for backprop
-                    if (!useTarget) {
-                        this.cache.z1 = z1;
-                        this.cache.a1 = a1;
-                        this.cache.z2 = z2;
-                        this.cache.a2 = z2;
-                        this.cache.output = output;
-                    }
-                    
-                    return output;
+                    return this._output;
                 }
                 
-                // Choose action with epsilon-greedy
-                chooseAction(state, opponentHistory = []) {
+                // Epsilon-greedy action selection
+                chooseAction(state) {
                     this.steps++;
                     
                     // Decay epsilon
@@ -1963,21 +2115,30 @@
                     return bestAction;
                 }
                 
-                // Store experience
+                // Store experience in replay buffer
                 remember(state, action, reward, nextState, done) {
-                    this.memory.push({ state, action, reward, nextState, done });
+                    this.memory.push({ 
+                        state: [...state], 
+                        action, 
+                        reward, 
+                        nextState: [...nextState], 
+                        done 
+                    });
                     
+                    // Maintain fixed buffer size
                     if (this.memory.length > this.memorySize) {
                         this.memory.shift();
                     }
                 }
                 
-                // Train the network
+                // Train the network using mini-batch gradient descent
                 train() {
                     if (this.memory.length < Config.neural.batchSize) return 0;
                     
-                    let totalLoss = 0;
+                    let batchLoss = 0;
+                    const lr = Config.neural.learningRate;
                     
+                    // Sample mini-batch
                     const batch = [];
                     for (let i = 0; i < Config.neural.batchSize; i++) {
                         const idx = Utils.randomInt(0, this.memory.length - 1);
@@ -1985,125 +2146,144 @@
                     }
                     
                     for (const exp of batch) {
+                        // Forward pass for current state
                         const currentQ = this.forward(exp.state);
-                        const nextQ = this.forward(exp.nextState);
+                        
+                        // Forward pass for next state (both networks for Double DQN)
+                        const nextQOnline = this.forward(exp.nextState);
                         const nextQTarget = this.forward(exp.nextState, true);
                         
+                        // Select best action using online network (Double DQN)
                         let bestNextAction = 0;
-                        for (let i = 1; i < nextQ.length; i++) {
-                            if (nextQ[i] > nextQ[bestNextAction]) {
+                        for (let i = 1; i < nextQOnline.length; i++) {
+                            if (nextQOnline[i] > nextQOnline[bestNextAction]) {
                                 bestNextAction = i;
                             }
                         }
                         
-                        let target = exp.reward;
+                        // Compute target Q-value
+                        let targetQ = exp.reward;
                         if (!exp.done) {
-                            target += Config.neural.discountFactor * nextQTarget[bestNextAction];
+                            targetQ += Config.neural.discountFactor * nextQTarget[bestNextAction];
                         }
                         
-                        const error = target - currentQ[exp.action];
-                        totalLoss += error * error;
+                        // Compute error (MSE loss component)
+                        const error = targetQ - currentQ[exp.action];
+                        batchLoss += error * error;
                         
-                        this.updateWeights(exp.state, exp.action, target, Config.neural.learningRate);
-                    }
-                    
-                    this.softUpdateTargets();
-                    
-                    this.loss = totalLoss / Config.neural.batchSize;
-                    return this.loss;
-                }
-                
-                // Simplified weight update (approximate gradient)
-                updateWeights(input, action, targetQ, lr) {
-                    const currentQ = this.cache.output[action];
-                    const error = targetQ - currentQ;
-                    
-                    // Update output layer
-                    for (let j = 0; j < this.hiddenSize; j++) {
-                        this.w3[action][j] += lr * error * this.cache.a2[j];
-                    }
-                    this.b3[action] += lr * error;
-                    
-                    // Approximate backprop to hidden layers
-                    for (let i = 0; i < this.hiddenSize; i++) {
-                        const hiddenError = error * this.w3[action][i] * this.reluDeriv(this.cache.z2[i]);
+                        // Backpropagation through output layer
+                        this._cache.delta3[exp.action] = error;
+                        
+                        // Update output layer weights
                         for (let j = 0; j < this.hiddenSize; j++) {
-                            this.w2[i][j] += lr * hiddenError * this.cache.a1[j];
+                            this.w3[exp.action][j] += lr * error * this._cache.a2[j];
                         }
-                        this.b2[i] += lr * hiddenError;
+                        this.b3[exp.action] += lr * error;
+                        
+                        // Backpropagate to hidden layer 2
+                        for (let i = 0; i < this.hiddenSize; i++) {
+                            let delta = 0;
+                            for (let k = 0; k < this.outputSize; k++) {
+                                delta += this._cache.delta3[k] * this.w3[k][i];
+                            }
+                            this._cache.delta2[i] = delta * this._reluDeriv(this._cache.z2[i]);
+                            
+                            // Update hidden layer 2 weights
+                            for (let j = 0; j < this.hiddenSize; j++) {
+                                this.w2[i][j] += lr * this._cache.delta2[i] * this._cache.a1[j];
+                            }
+                            this.b2[i] += lr * this._cache.delta2[i];
+                        }
+                        
+                        // Backpropagate to hidden layer 1
+                        for (let i = 0; i < this.hiddenSize; i++) {
+                            let delta = 0;
+                            for (let k = 0; k < this.hiddenSize; k++) {
+                                delta += this._cache.delta2[k] * this.w2[k][i];
+                            }
+                            this._cache.delta1[i] = delta * this._reluDeriv(this._cache.z1[i]);
+                            
+                            // Update hidden layer 1 weights
+                            for (let j = 0; j < this.inputSize; j++) {
+                                this.w1[i][j] += lr * this._cache.delta1[i] * this._cache.input[j];
+                            }
+                            this.b1[i] += lr * this._cache.delta1[i];
+                        }
                     }
                     
-                    for (let i = 0; i < this.hiddenSize; i++) {
-                        const hiddenError = error * this.w3[action][i] * this.reluDeriv(this.cache.z2[i]);
-                        for (let j = 0; j < this.inputSize; j++) {
-                            this.w1[i][j] += lr * hiddenError * input[j];
-                        }
-                        this.b1[i] += lr * hiddenError;
-                    }
+                    // Soft update target network
+                    this._softUpdateTargets();
+                    
+                    // Track average loss
+                    this.totalLoss += batchLoss;
+                    this.trainingSteps++;
+                    
+                    return batchLoss / Config.neural.batchSize;
                 }
                 
-                // Soft update target network
-                softUpdateTargets() {
+                // Soft update target network parameters (tau interpolation)
+                _softUpdateTargets() {
                     const tau = Config.neural.tau;
+                    const oneMinusTau = 1 - tau;
                     
                     for (let i = 0; i < this.hiddenSize; i++) {
                         for (let j = 0; j < this.inputSize; j++) {
-                            this.targetW1[i][j] = (1 - tau) * this.targetW1[i][j] + tau * this.w1[i][j];
+                            this.targetW1[i][j] = oneMinusTau * this.targetW1[i][j] + tau * this.w1[i][j];
                         }
-                        this.targetB1[i] = (1 - tau) * this.targetB1[i] + tau * this.b1[i];
+                        this.targetB1[i] = oneMinusTau * this.targetB1[i] + tau * this.b1[i];
                     }
                     
                     for (let i = 0; i < this.hiddenSize; i++) {
                         for (let j = 0; j < this.hiddenSize; j++) {
-                            this.targetW2[i][j] = (1 - tau) * this.targetW2[i][j] + tau * this.w2[i][j];
+                            this.targetW2[i][j] = oneMinusTau * this.targetW2[i][j] + tau * this.w2[i][j];
                         }
-                        this.targetB2[i] = (1 - tau) * this.targetB2[i] + tau * this.b2[i];
+                        this.targetB2[i] = oneMinusTau * this.targetB2[i] + tau * this.b2[i];
                     }
                     
                     for (let i = 0; i < this.outputSize; i++) {
                         for (let j = 0; j < this.hiddenSize; j++) {
-                            this.targetW3[i][j] = (1 - tau) * this.targetW3[i][j] + tau * this.w3[i][j];
+                            this.targetW3[i][j] = oneMinusTau * this.targetW3[i][j] + tau * this.w3[i][j];
                         }
-                        this.targetB3[i] = (1 - tau) * this.targetB3[i] + tau * this.b3[i];
+                        this.targetB3[i] = oneMinusTau * this.targetB3[i] + tau * this.b3[i];
                     }
                 }
                 
-                // Mutation for evolution
+                // Mutation for evolutionary algorithms
                 mutate(rate = Config.evolution.mutationRate, strength = Config.evolution.mutationStrength) {
-                    const mutateWeight = (w) => {
+                    const mutateVal = (val) => {
                         if (Math.random() < rate) {
-                            return w + Utils.random(-1, 1) * strength;
+                            return val + Utils.random(-1, 1) * strength;
                         }
-                        return w;
+                        return val;
                     };
                     
                     for (let i = 0; i < this.hiddenSize; i++) {
                         for (let j = 0; j < this.inputSize; j++) {
-                            this.w1[i][j] = mutateWeight(this.w1[i][j]);
+                            this.w1[i][j] = mutateVal(this.w1[i][j]);
                         }
-                        this.b1[i] = mutateWeight(this.b1[i]);
+                        this.b1[i] = mutateVal(this.b1[i]);
                     }
                     
                     for (let i = 0; i < this.hiddenSize; i++) {
                         for (let j = 0; j < this.hiddenSize; j++) {
-                            this.w2[i][j] = mutateWeight(this.w2[i][j]);
+                            this.w2[i][j] = mutateVal(this.w2[i][j]);
                         }
-                        this.b2[i] = mutateWeight(this.b2[i]);
+                        this.b2[i] = mutateVal(this.b2[i]);
                     }
                     
                     for (let i = 0; i < this.outputSize; i++) {
                         for (let j = 0; j < this.hiddenSize; j++) {
-                            this.w3[i][j] = mutateWeight(this.w3[i][j]);
+                            this.w3[i][j] = mutateVal(this.w3[i][j]);
                         }
-                        this.b3[i] = mutateWeight(this.b3[i]);
+                        this.b3[i] = mutateVal(this.b3[i]);
                     }
                 }
                 
-                // Crossover with another network
+                // Uniform crossover with another network
                 crossover(other) {
                     const child = new NeuralNetwork(this.inputSize, this.hiddenSize, this.outputSize);
                     
-                    // Uniform crossover
+                    // Uniform crossover for all weights and biases
                     for (let i = 0; i < this.hiddenSize; i++) {
                         for (let j = 0; j < this.inputSize; j++) {
                             child.w1[i][j] = Math.random() < 0.5 ? this.w1[i][j] : other.w1[i][j];
@@ -2125,33 +2305,42 @@
                         child.b3[i] = Math.random() < 0.5 ? this.b3[i] : other.b3[i];
                     }
                     
+                    // Initialize target networks from new weights
+                    child.targetW1 = Utils.deepClone(child.w1);
+                    child.targetB1 = [...child.b1];
+                    child.targetW2 = Utils.deepClone(child.w2);
+                    child.targetB2 = [...child.b2];
+                    child.targetW3 = Utils.deepClone(child.w3);
+                    child.targetB3 = [...child.b3];
+                    
                     return child;
                 }
                 
-                // Clone the network
+                // Deep clone the network
                 clone() {
-                    const clone = new NeuralNetwork(this.inputSize, this.hiddenSize, this.outputSize);
+                    const cloned = new NeuralNetwork(this.inputSize, this.hiddenSize, this.outputSize);
                     
-                    clone.w1 = Utils.clone(this.w1);
-                    clone.b1 = [...this.b1];
-                    clone.w2 = Utils.clone(this.w2);
-                    clone.b2 = [...this.b2];
-                    clone.w3 = Utils.clone(this.w3);
-                    clone.b3 = [...this.b3];
+                    cloned.w1 = Utils.deepClone(this.w1);
+                    cloned.b1 = [...this.b1];
+                    cloned.w2 = Utils.deepClone(this.w2);
+                    cloned.b2 = [...this.b2];
+                    cloned.w3 = Utils.deepClone(this.w3);
+                    cloned.b3 = [...this.b3];
                     
-                    clone.targetW1 = Utils.clone(this.targetW1);
-                    clone.targetB1 = [...this.targetB1];
-                    clone.targetW2 = Utils.clone(this.targetW2);
-                    clone.targetB2 = [...this.targetB2];
-                    clone.targetW3 = Utils.clone(this.targetW3);
-                    clone.targetB3 = [...this.targetB3];
+                    cloned.targetW1 = Utils.deepClone(this.targetW1);
+                    cloned.targetB1 = [...this.targetB1];
+                    cloned.targetW2 = Utils.deepClone(this.targetW2);
+                    cloned.targetB2 = [...this.targetB2];
+                    cloned.targetW3 = Utils.deepClone(this.targetW3);
+                    cloned.targetB3 = [...this.targetB3];
                     
-                    clone.epsilon = this.epsilon;
+                    cloned.epsilon = this.epsilon;
+                    cloned.steps = this.steps;
                     
-                    return clone;
+                    return cloned;
                 }
                 
-                // Serialize for saving
+                // Serialize to JSON (for saving)
                 toJSON() {
                     return {
                         inputSize: this.inputSize,
@@ -2160,26 +2349,41 @@
                         w1: this.w1, b1: this.b1,
                         w2: this.w2, b2: this.b2,
                         w3: this.w3, b3: this.b3,
+                        targetW1: this.targetW1, targetB1: this.targetB1,
+                        targetW2: this.targetW2, targetB2: this.targetB2,
+                        targetW3: this.targetW3, targetB3: this.targetB3,
                         epsilon: this.epsilon,
-                        steps: this.steps
+                        steps: this.steps,
+                        memorySize: this.memorySize
                     };
                 }
                 
-                // Deserialize from JSON
+                // Deserialize from JSON (for loading)
                 static fromJSON(json) {
                     const nn = new NeuralNetwork(json.inputSize, json.hiddenSize, json.outputSize);
+                    
                     nn.w1 = json.w1; nn.b1 = json.b1;
                     nn.w2 = json.w2; nn.b2 = json.b2;
                     nn.w3 = json.w3; nn.b3 = json.b3;
-                    nn.targetW1 = Utils.clone(json.w1);
-                    nn.targetB1 = [...json.b1];
-                    nn.targetW2 = Utils.clone(json.w2);
-                    nn.targetB2 = [...json.b2];
-                    nn.targetW3 = Utils.clone(json.w3);
-                    nn.targetB3 = [...json.b3];
-                    nn.epsilon = json.epsilon;
-                    nn.steps = json.steps;
+                    nn.targetW1 = json.targetW1; nn.targetB1 = json.targetB1;
+                    nn.targetW2 = json.targetW2; nn.targetB2 = json.targetB2;
+                    nn.targetW3 = json.targetW3; nn.targetB3 = json.targetB3;
+                    
+                    nn.epsilon = json.epsilon ?? Config.neural.epsilonStart;
+                    nn.steps = json.steps ?? 0;
+                    nn.memorySize = json.memorySize ?? Config.neural.memorySize;
+                    
                     return nn;
+                }
+                
+                // Get training statistics
+                getStats() {
+                    return {
+                        epsilon: this.epsilon,
+                        steps: this.steps,
+                        memorySize: this.memory.length,
+                        avgLoss: this.trainingSteps > 0 ? this.totalLoss / this.trainingSteps : 0
+                    };
                 }
             }
 
@@ -2206,18 +2410,24 @@
                     this.style = config.style || 'balanced';
                     
                     // Apply weight class modifiers
-                    this.applyWeightModifiers();
+                    this._applyWeightModifiers();
                     
                     // Core Stats
-                    this.hp = this.maxHp = Config.fighter.baseHp * this.hpMod;
-                    this.energy = this.maxEnergy = Config.fighter.baseEnergy * this.energyMod;
-                    this.rage = this.maxRage = Config.fighter.baseRage;
-                    this.balance = this.maxBalance = Config.fighter.baseBalance;
-                    this.stamina = this.maxStamina = Config.fighter.baseStamina;
+                    this.maxHp = Config.fighter.baseHp * this.hpMod;
+                    this.maxEnergy = Config.fighter.baseEnergy * this.energyMod;
+                    this.maxRage = Config.fighter.baseRage;
+                    this.maxBalance = Config.fighter.baseBalance;
+                    this.maxStamina = Config.fighter.baseStamina;
+                    
+                    this.hp = this.maxHp;
+                    this.energy = this.maxEnergy;
+                    this.rage = 0;
+                    this.balance = this.maxBalance;
+                    this.stamina = this.maxStamina;
                     
                     // State Machine
-                    this.state = 'idle'; // idle, walk, jump, dash, attack, defend, hit, knockdown, win, lose
-                    this.subState = null; // attackName, defenseType, etc.
+                    this.state = 'idle';
+                    this.subState = null;
                     
                     // Animation & Timing
                     this.frame = 0;
@@ -2228,6 +2438,7 @@
                     this.blockstun = 0;
                     this.invincible = 0;
                     this.knockdownTimer = 0;
+                    this.attackCooldown = 0; // FIX: Added missing property
                     
                     // Combat Systems
                     this.currentAttack = null;
@@ -2284,7 +2495,7 @@
                     this.hitbox = null;
                 }
                 
-                applyWeightModifiers() {
+                _applyWeightModifiers() {
                     switch(this.weightClass) {
                         case 'light':
                             this.speedMod = 1.3;
@@ -2388,6 +2599,7 @@
                     if (this.invincible > 0) this.invincible -= deltaTime;
                     if (this.dashCooldown > 0) this.dashCooldown -= deltaTime;
                     if (this.dashTimer > 0) this.dashTimer -= deltaTime;
+                    if (this.attackCooldown > 0) this.attackCooldown -= deltaTime;
                     if (this.comboTimer > 0) {
                         this.comboTimer -= deltaTime;
                         if (this.comboTimer <= 0) this.comboCount = 0;
@@ -2400,10 +2612,10 @@
                     }
                     
                     // Physics update
-                    this.applyPhysics(deltaTime);
+                    this._applyPhysics(deltaTime);
                     
                     // Boundary collision
-                    this.handleBoundaries(arenaBounds);
+                    this._handleBoundaries(arenaBounds);
                     
                     // Ground collision
                     if (this.y >= arenaBounds.floorY) {
@@ -2416,10 +2628,10 @@
                     }
                     
                     // Recovery
-                    this.recoverResources(deltaTime);
+                    this._recoverResources(deltaTime);
                     
                     // Emotion updates
-                    this.updateEmotions(opponent, deltaTime);
+                    this._updateEmotions(opponent, deltaTime);
                     
                     // Update facing direction
                     if (this.state !== 'attack' && !this.isDashing) {
@@ -2431,7 +2643,7 @@
                     this.frame += deltaTime;
                 }
                 
-                applyPhysics(deltaTime) {
+                _applyPhysics(deltaTime) {
                     // Apply gravity
                     if (!this.isDashing) {
                         this.vy += Config.physics.gravity * deltaTime;
@@ -2454,7 +2666,7 @@
                     this.y += this.vy * deltaTime;
                 }
                 
-                handleBoundaries(arenaBounds) {
+                _handleBoundaries(arenaBounds) {
                     // Horizontal boundaries
                     if (this.x < arenaBounds.left + 20) {
                         this.x = arenaBounds.left + 20;
@@ -2472,7 +2684,7 @@
                     }
                 }
                 
-                recoverResources(deltaTime) {
+                _recoverResources(deltaTime) {
                     // Energy recovery (faster when not attacking)
                     const energyRecovery = Config.fighter.recoveryRate * 
                         (this.state === 'attack' ? 0.5 : 1) * deltaTime;
@@ -2493,7 +2705,7 @@
                     this.emotions.fatigue = Utils.clamp(this.emotions.fatigue - 0.01 * deltaTime, 0, 1);
                 }
                 
-                updateEmotions(opponent, deltaTime) {
+                _updateEmotions(opponent, deltaTime) {
                     // Aggression increases when opponent is low HP
                     if (opponent.hp < opponent.maxHp * 0.3) {
                         this.emotions.aggression = Utils.clamp(this.emotions.aggression + 0.02 * deltaTime, 0, 1);
@@ -2568,6 +2780,7 @@
                 attack(attackId) {
                     if (this.state !== 'idle' && this.state !== 'walk') return false;
                     if (this.hitstun > 0 || this.blockstun > 0) return false;
+                    if (this.attackCooldown > 0) return false; // FIX: Check attack cooldown
                     
                     const attack = ATTACKS[attackId];
                     if (!attack) return false;
@@ -2589,17 +2802,18 @@
                     this.currentAttack = attackId;
                     this.energy -= attack.energy;
                     this.attacksThrown++;
+                    this.attackCooldown = attack.recovery + 2; // FIX: Set attack cooldown
                     
                     // Build super meter
                     this.superMeter = Utils.clamp(this.superMeter + Config.combat.superMeterGain, 0, Config.combat.superMeterCost);
                     
                     // Create attack hitbox
-                    this.createHitbox(attack);
+                    this._createHitbox(attack);
                     
                     return true;
                 }
                 
-                createHitbox(attack) {
+                _createHitbox(attack) {
                     this.hitbox = {
                         x: this.x + (this.facing * attack.range),
                         y: this.y - 40,
@@ -2707,7 +2921,7 @@
                     return defended;
                 }
                 
-                // Check hitbox collision
+                // Check hitbox collision (AABB with tolerance)
                 checkCollision(opponent) {
                     if (!this.hitbox || this.state !== 'attack') return false;
                     
@@ -2727,7 +2941,7 @@
                         hb.y + hb.h > hbOpp.y - Config.combat.hitboxTolerance;
                     
                     if (collision) {
-                        // Clear hitbox after hit
+                        // Clear hitbox after hit to prevent multiple hits
                         this.hitbox = null;
                         return true;
                     }
@@ -2846,7 +3060,7 @@
                     ctx.fillText(this.name, this.x + cameraOffset.x, barY - 5);
                 }
                 
-                // Reset fighter
+                // Reset fighter to initial state
                 reset(x, y) {
                     this.x = x;
                     this.y = y;
@@ -2863,6 +3077,7 @@
                     this.blockstun = 0;
                     this.invincible = 0;
                     this.knockdownTimer = 0;
+                    this.attackCooldown = 0;
                     this.comboCount = 0;
                     this.comboTimer = 0;
                     this.superMeter = 0;
@@ -2885,10 +3100,10 @@
                     this.fighters = [];
                     this.bestFitness = 0;
                     
-                    this.initPopulation();
+                    this._initPopulation();
                 }
                 
-                initPopulation() {
+                _initPopulation() {
                     for (let i = 0; i < this.size; i++) {
                         this.fighters.push({
                             id: i,
@@ -2924,7 +3139,7 @@
                 
                 // Run evolution cycle
                 evolve() {
-                    Logger.evolution(`Starting evolution for generation ${this.generation}`);
+                    Logger.evolution(`Начало эволюции поколения ${this.generation}`);
                     
                     // Sort by fitness
                     this.fighters.sort((a, b) => b.fitness - a.fitness);
@@ -2932,7 +3147,7 @@
                     // Track best
                     if (this.fighters[0].fitness > this.bestFitness) {
                         this.bestFitness = this.fighters[0].fitness;
-                        Logger.evolution(`New best fitness: ${Math.floor(this.bestFitness)}`);
+                        Logger.evolution(`Новый рекорд пригодности: ${Math.floor(this.bestFitness)}`);
                     }
                     
                     // Create new population
@@ -2980,12 +3195,12 @@
                     this.fighters = newPopulation;
                     this.generation++;
                     
-                    Logger.evolution(`Generation ${this.generation} complete. Population: ${this.size}`);
+                    Logger.evolution(`Поколение ${this.generation} завершено. Популяция: ${this.size}`);
                 }
                 
                 // Run tournament matches
                 runTournament() {
-                    Logger.evolution('Running tournament...');
+                    Logger.evolution('Запуск турнира...');
                     
                     // Reset stats
                     for (const f of this.fighters) {
@@ -2997,7 +3212,7 @@
                     // Round-robin matches
                     for (let i = 0; i < this.fighters.length; i++) {
                         for (let j = i + 1; j < this.fighters.length; j++) {
-                            const result = this.simulateMatch(this.fighters[i], this.fighters[j]);
+                            const result = this._simulateMatch(this.fighters[i], this.fighters[j]);
                             
                             // Update winner
                             if (result.winner === 0) {
@@ -3023,12 +3238,12 @@
                         }
                     }
                     
-                    Logger.evolution('Tournament complete. Evolving...');
+                    Logger.evolution('Турнир завершён. Эволюция...');
                     this.evolve();
                 }
                 
                 // Simulate a match between two fighters
-                simulateMatch(f1Data, f2Data) {
+                _simulateMatch(f1Data, f2Data) {
                     // Create fighter instances
                     const f1 = new Fighter(500, 600, '#ff4d4d', f1Data.name, true, {
                         architecture: 'neural',
@@ -3052,7 +3267,7 @@
                     let combo1 = 0, combo2 = 0;
                     let score1 = 0, score2 = 0;
                     
-                    // Simulate match
+                    // Simulate match (max 1800 frames = 30 seconds at 60fps)
                     for (let step = 0; step < 1800; step++) {
                         // Get states
                         const state1 = f1.getState(f2, arenaBounds);
@@ -3063,8 +3278,8 @@
                         const action2 = f2.brain.chooseAction(state2);
                         
                         // Execute actions (simplified)
-                        this.executeNeuralAction(f1, f2, action1, arenaBounds);
-                        this.executeNeuralAction(f2, f1, action2, arenaBounds);
+                        this._executeNeuralAction(f1, f2, action1, arenaBounds);
+                        this._executeNeuralAction(f2, f1, action2, arenaBounds);
                         
                         // Update fighters
                         f1.update(f2, {}, arenaBounds);
@@ -3099,14 +3314,15 @@
                 }
                 
                 // Execute neural network action
-                executeNeuralAction(fighter, opponent, action, arenaBounds) {
+                _executeNeuralAction(fighter, opponent, action, arenaBounds) {
                     // Action mapping: 0-19 = attacks, 20-24 = defense, 25-27 = movement
-                    if (action < 20) {
+                    if (action < 20 && fighter.attackCooldown <= 0) {
                         // Attack
-                        if (fighter.energy >= ATTACKS[action]?.energy) {
+                        const attack = ATTACKS[action];
+                        if (attack && fighter.energy >= attack.energy) {
                             fighter.attack(action);
                         }
-                    } else if (action < 25) {
+                    } else if (action >= 20 && action < 25) {
                         // Defense
                         const defenseTypes = [DEFENSE.BLOCK, DEFENSE.PARRY, DEFENSE.DODGE, DEFENSE.CROUCH, DEFENSE.NONE];
                         fighter.defend(defenseTypes[action - 20]);
@@ -3129,7 +3345,7 @@
                     return this.fighters[index % this.fighters.length];
                 }
                 
-                // Update UI selects
+                // Update UI selects with population data
                 updateSelects() {
                     const updateSelect = (selectId) => {
                         const select = document.getElementById(selectId);
@@ -3139,13 +3355,18 @@
                         this.fighters.forEach((f, i) => {
                             const opt = document.createElement('option');
                             opt.value = i;
-                            opt.textContent = `${f.name} [${f.weight}] (${f.wins}W)`;
+                            opt.textContent = `${f.name} [${f.weight}] (${f.wins}П)`;
                             select.appendChild(opt);
                         });
                     };
                     
-                    updateSelect('alphaBrain');
-                    updateSelect('betaBrain');
+                    // Only update if brain selection groups exist
+                    if (document.getElementById('alphaBrainGroup')) {
+                        updateSelect('alphaBrain');
+                    }
+                    if (document.getElementById('betaBrainGroup')) {
+                        updateSelect('betaBrain');
+                    }
                 }
             }
 
@@ -3155,15 +3376,16 @@
             class Renderer {
                 constructor(canvas) {
                     this.canvas = canvas;
-                    this.ctx = canvas.getContext('2d');
+                    this.ctx = canvas.getContext('2d', { alpha: false }); // Optimize for no transparency
                     
-                    // FIX: Set fixed resolution immediately
+                    // Set fixed internal resolution
                     this.canvas.width = Config.canvas.baseWidth;
                     this.canvas.height = Config.canvas.baseHeight;
                     
-                    // Responsive CSS
+                    // Responsive CSS sizing
+                    this._resize = Utils.debounce(() => this.resize(), 100);
                     this.resize();
-                    window.addEventListener('resize', () => this.resize());
+                    window.addEventListener('resize', this._resize);
                     
                     // Camera
                     this.camera = { x: 0, y: 0, zoom: 1 };
@@ -3173,25 +3395,22 @@
                 }
                 
                 resize() {
-                    // Get container dimensions
                     const container = this.canvas.parentElement;
+                    if (!container) return;
+                    
                     const width = container.clientWidth;
                     const height = container.clientHeight;
                     
-                    // Set canvas display size (CSS)
+                    // Set canvas display size via CSS (internal resolution stays fixed)
                     this.canvas.style.width = width + 'px';
                     this.canvas.style.height = height + 'px';
-                    
-                    // Internal resolution remains fixed at 1920x1080 (set in constructor)
                 }
                 
-                // Clear canvas
                 clear() {
                     this.ctx.fillStyle = Config.canvas.backgroundColor;
                     this.ctx.fillRect(0, 0, Config.canvas.baseWidth, Config.canvas.baseHeight);
                 }
                 
-                // Draw background grid
                 drawGrid() {
                     this.ctx.strokeStyle = Config.canvas.gridColor;
                     this.ctx.lineWidth = 1;
@@ -3220,7 +3439,6 @@
                     this.ctx.globalAlpha = 1;
                 }
                 
-                // Draw arena boundaries
                 drawArena() {
                     const bounds = {
                         left: 100, right: Config.canvas.baseWidth - 100,
@@ -3246,8 +3464,9 @@
                     return bounds;
                 }
                 
-                // Update camera to follow fighters
                 updateCamera(f1, f2) {
+                    if (!f1 || !f2) return;
+                    
                     // Center between fighters
                     const centerX = (f1.x + f2.x) / 2;
                     const centerY = (f1.y + f2.y) / 2;
@@ -3256,12 +3475,11 @@
                     this.camera.x = Utils.lerp(this.camera.x, centerX - (Config.canvas.baseWidth / 2), 0.05);
                     this.camera.y = Utils.lerp(this.camera.y, centerY - (Config.canvas.baseHeight / 2), 0.05);
                     
-                    // Clamp camera
-                    this.camera.x = Utils.clamp(this.camera.x, 0, 0); // Locked for 1v1 centered
+                    // Clamp camera to arena bounds
+                    this.camera.x = Utils.clamp(this.camera.x, 0, 0);
                     this.camera.y = Utils.clamp(this.camera.y, 0, 0);
                 }
                 
-                // Main render function
                 render(f1, f2) {
                     this.clear();
                     this.drawGrid();
@@ -3282,25 +3500,25 @@
                     
                     // Draw combo indicator
                     if (f1?.comboCount > 1) {
-                        this.drawComboIndicator(f1.x, f1.y - 120, f1.comboCount, f1.color);
+                        this._drawComboIndicator(f1.x, f1.y - 120, f1.comboCount, f1.color);
                     }
                     if (f2?.comboCount > 1) {
-                        this.drawComboIndicator(f2.x, f2.y - 120, f2.comboCount, f2.color);
+                        this._drawComboIndicator(f2.x, f2.y - 120, f2.comboCount, f2.color);
                     }
+                    
+                    return arenaBounds;
                 }
                 
-                // Draw combo counter
-                drawComboIndicator(x, y, count, color) {
+                _drawComboIndicator(x, y, count, color) {
                     this.ctx.font = 'bold 32px monospace';
                     this.ctx.fillStyle = color;
                     this.ctx.shadowColor = color;
                     this.ctx.shadowBlur = 15;
                     this.ctx.textAlign = 'center';
-                    this.ctx.fillText(`x${count}`, x - this.camera.x, y - this.camera.y);
+                    this.ctx.fillText(`×${count}`, x - this.camera.x, y - this.camera.y);
                     this.ctx.shadowBlur = 0;
                 }
                 
-                // Create hit effects
                 createHit(x, y, color, intensity = 1) {
                     this.effects.createHit(x, y, color, intensity);
                 }
@@ -3312,131 +3530,65 @@
                 createJump(x, y, color) {
                     this.effects.createJump(x, y, color);
                 }
+                
+                // Cleanup
+                destroy() {
+                    window.removeEventListener('resize', this._resize);
+                    this.effects.clear();
+                }
             }
 
             // ========================================
-            // UI MANAGER
+            // UI MANAGER (Fixed emotion update logic)
             // ========================================
-            const UIManager = {
-                elements: {},
+            const UIManager = (() => {
+                const elements = {};
+                const emotionNames = ['aggression', 'fear', 'confidence', 'fatigue', 'focus', 'intuition'];
                 
-                init() {
-                    // Cache DOM elements
-                    this.elements = {
-                        // Panels
-                        alphaLed: document.getElementById('alphaLed'),
-                        betaLed: document.getElementById('betaLed'),
-                        alphaStatus: document.getElementById('alphaStatus'),
-                        betaStatus: document.getElementById('betaStatus'),
-                        
-                        // Stats - Alpha
-                        alphaHp: document.getElementById('alphaHp'),
-                        alphaHpBar: document.getElementById('alphaHpBar'),
-                        alphaEnergy: document.getElementById('alphaEnergy'),
-                        alphaEnergyBar: document.getElementById('alphaEnergyBar'),
-                        alphaRage: document.getElementById('alphaRage'),
-                        alphaRageBar: document.getElementById('alphaRageBar'),
-                        alphaBalance: document.getElementById('alphaBalance'),
-                        alphaBalanceBar: document.getElementById('alphaBalanceBar'),
-                        alphaStamina: document.getElementById('alphaStamina'),
-                        alphaStaminaBar: document.getElementById('alphaStaminaBar'),
-                        alphaReward: document.getElementById('alphaReward'),
-                        alphaEpsilon: document.getElementById('alphaEpsilon'),
-                        alphaComboCount: document.getElementById('alphaComboCount'),
-                        alphaAccuracy: document.getElementById('alphaAccuracy'),
-                        alphaAction: document.getElementById('alphaAction'),
-                        
-                        // Stats - Beta
-                        betaHp: document.getElementById('betaHp'),
-                        betaHpBar: document.getElementById('betaHpBar'),
-                        betaEnergy: document.getElementById('betaEnergy'),
-                        betaEnergyBar: document.getElementById('betaEnergyBar'),
-                        betaRage: document.getElementById('betaRage'),
-                        betaRageBar: document.getElementById('betaRageBar'),
-                        betaBalance: document.getElementById('betaBalance'),
-                        betaBalanceBar: document.getElementById('betaBalanceBar'),
-                        betaStamina: document.getElementById('betaStamina'),
-                        betaStaminaBar: document.getElementById('betaStaminaBar'),
-                        betaReward: document.getElementById('betaReward'),
-                        betaEpsilon: document.getElementById('betaEpsilon'),
-                        betaComboCount: document.getElementById('betaComboCount'),
-                        betaAccuracy: document.getElementById('betaAccuracy'),
-                        betaAction: document.getElementById('betaAction'),
-                        
-                        // Emotions
-                        alphaEmotions: document.getElementById('alphaEmotions'),
-                        betaEmotions: document.getElementById('betaEmotions'),
-                        
-                        // Activity dots
-                        alphaMove: document.getElementById('alphaMove'),
-                        alphaAttack: document.getElementById('alphaAttack'),
-                        alphaDefend: document.getElementById('alphaDefend'),
-                        alphaSpecial: document.getElementById('alphaSpecial'),
-                        alphaCombo: document.getElementById('alphaCombo'),
-                        betaMove: document.getElementById('betaMove'),
-                        betaAttack: document.getElementById('betaAttack'),
-                        betaDefend: document.getElementById('betaDefend'),
-                        betaSpecial: document.getElementById('betaSpecial'),
-                        betaCombo: document.getElementById('betaCombo'),
-                        
-                        // Winner screen
-                        winnerScreen: document.getElementById('winnerScreen'),
-                        winnerTitle: document.getElementById('winnerTitle'),
-                        winnerHits1: document.getElementById('winnerHits1'),
-                        winnerHits2: document.getElementById('winnerHits2'),
-                        winnerCombo1: document.getElementById('winnerCombo1'),
-                        winnerCombo2: document.getElementById('winnerCombo2'),
-                        
-                        // Footer stats
-                        statGeneration: document.getElementById('statGeneration'),
-                        statPopulation: document.getElementById('statPopulation'),
-                        statAvgFitness: document.getElementById('statAvgFitness'),
-                        statBestCombo: document.getElementById('statBestCombo'),
-                        fighterList: document.getElementById('fighterList'),
-                        generationBadge: document.getElementById('generationBadge'),
-                        lrDisplay: document.getElementById('lrDisplay'),
-                        
-                        // Menu
-                        mainMenu: document.getElementById('mainMenu'),
-                        startFightBtn: document.getElementById('startFightBtn'),
-                        alphaType: document.getElementById('alphaType'),
-                        betaType: document.getElementById('betaType'),
-                        alphaStyleGroup: document.getElementById('alphaStyleGroup'),
-                        betaStyleGroup: document.getElementById('betaStyleGroup'),
-                        alphaBrainGroup: document.getElementById('alphaBrainGroup'),
-                        betaBrainGroup: document.getElementById('betaBrainGroup'),
-                        
-                        // Controls
-                        speedBtn: document.getElementById('speedBtn'),
-                        pauseBtn: document.getElementById('pauseBtn'),
-                        menuBtn: document.getElementById('menuBtn'),
-                        evolveBtn: document.getElementById('evolveBtn'),
-                        tournamentBtn: document.getElementById('tournamentBtn'),
-                        saveBrainBtn: document.getElementById('saveBrainBtn'),
-                        loadBrainBtn: document.getElementById('loadBrainBtn'),
-                        resetBtn: document.getElementById('resetBtn'),
-                        exportBtn: document.getElementById('exportBtn'),
-                        rematchBtn: document.getElementById('rematchBtn'),
-                        
-                        // Loading
-                        loadingOverlay: document.getElementById('loadingOverlay')
-                    };
+                const init = () => {
+                    // Cache DOM elements with null checks
+                    const ids = [
+                        'alphaLed', 'betaLed', 'alphaStatus', 'betaStatus',
+                        'alphaHp', 'alphaHpBar', 'alphaEnergy', 'alphaEnergyBar',
+                        'alphaRage', 'alphaRageBar', 'alphaBalance', 'alphaBalanceBar',
+                        'alphaStamina', 'alphaStaminaBar', 'alphaReward', 'alphaEpsilon',
+                        'alphaComboCount', 'alphaAccuracy', 'alphaAction',
+                        'betaHp', 'betaHpBar', 'betaEnergy', 'betaEnergyBar',
+                        'betaRage', 'betaRageBar', 'betaBalance', 'betaBalanceBar',
+                        'betaStamina', 'betaStaminaBar', 'betaReward', 'betaEpsilon',
+                        'betaComboCount', 'betaAccuracy', 'betaAction',
+                        'alphaEmotions', 'betaEmotions',
+                        'alphaMove', 'alphaAttack', 'alphaDefend', 'alphaSpecial', 'alphaCombo',
+                        'betaMove', 'betaAttack', 'betaDefend', 'betaSpecial', 'betaCombo',
+                        'winnerScreen', 'winnerTitle', 'winnerHits1', 'winnerHits2',
+                        'winnerCombo1', 'winnerCombo2',
+                        'statGeneration', 'statPopulation', 'statAvgFitness', 'statBestCombo',
+                        'fighterList', 'generationBadge', 'lrDisplay',
+                        'mainMenu', 'startFightBtn', 'alphaType', 'betaType',
+                        'alphaStyleGroup', 'betaStyleGroup', 'alphaBrainGroup', 'betaBrainGroup',
+                        'speedBtn', 'pauseBtn', 'menuBtn', 'evolveBtn', 'tournamentBtn',
+                        'saveBrainBtn', 'loadBrainBtn', 'resetBtn', 'exportBtn', 'rematchBtn',
+                        'loadingOverlay'
+                    ];
+                    
+                    ids.forEach(id => {
+                        elements[id] = document.getElementById(id);
+                    });
                     
                     // Initialize emotion grids
-                    this.initEmotionGrids();
+                    _initEmotionGrids();
                     
                     // Setup event listeners
-                    this.setupEventListeners();
-                },
+                    _setupEventListeners();
+                };
                 
-                initEmotionGrids() {
-                    const emotions = ['aggression', 'fear', 'confidence', 'fatigue', 'focus', 'intuition'];
+                const _initEmotionGrids = () => {
                     const createGrid = (containerId) => {
-                        const container = this.elements[containerId];
+                        const container = elements[containerId];
                         if (!container) return;
                         
                         container.innerHTML = '';
-                        emotions.forEach(emotion => {
+                        emotionNames.forEach(emotion => {
                             const item = document.createElement('div');
                             item.className = 'emotion-item';
                             item.innerHTML = `
@@ -3449,183 +3601,238 @@
                     
                     createGrid('alphaEmotions');
                     createGrid('betaEmotions');
-                },
+                };
                 
-                setupEventListeners() {
-                    // Type selectors
-                    this.elements.alphaType?.addEventListener('change', (e) => {
-                        this.elements.alphaBrainGroup.style.display = 
-                            e.target.value === 'neural' ? 'block' : 'none';
-                        this.elements.alphaStyleGroup.style.display = 
-                            e.target.value === 'classic' ? 'block' : 'none';
+                const _setupEventListeners = () => {
+                    // Type selectors - toggle brain/style groups
+                    elements.alphaType?.addEventListener('change', (e) => {
+                        if (elements.alphaBrainGroup) {
+                            elements.alphaBrainGroup.style.display = 
+                                e.target.value === 'neural' ? 'block' : 'none';
+                        }
+                        if (elements.alphaStyleGroup) {
+                            elements.alphaStyleGroup.style.display = 
+                                e.target.value === 'classic' ? 'block' : 'none';
+                        }
                     });
                     
-                    this.elements.betaType?.addEventListener('change', (e) => {
-                        this.elements.betaBrainGroup.style.display = 
-                            e.target.value === 'neural' ? 'block' : 'none';
-                        this.elements.betaStyleGroup.style.display = 
-                            e.target.value === 'classic' ? 'block' : 'none';
+                    elements.betaType?.addEventListener('change', (e) => {
+                        if (elements.betaBrainGroup) {
+                            elements.betaBrainGroup.style.display = 
+                                e.target.value === 'neural' ? 'block' : 'none';
+                        }
+                        if (elements.betaStyleGroup) {
+                            elements.betaStyleGroup.style.display = 
+                                e.target.value === 'classic' ? 'block' : 'none';
+                        }
                     });
                     
                     // Hide loading after init
                     setTimeout(() => {
-                        this.elements.loadingOverlay?.classList.add('hidden');
+                        elements.loadingOverlay?.classList.add('hidden');
                     }, 500);
-                },
+                };
                 
-                updateFighterUI(fighter, prefix) {
+                const updateFighterUI = (fighter, prefix) => {
                     if (!fighter) return;
                     
-                    const el = this.elements;
+                    const el = elements;
                     
                     // Health
-                    el[`${prefix}Hp`].textContent = Math.floor(fighter.hp);
-                    el[`${prefix}HpBar`].style.width = `${fighter.hp / fighter.maxHp * 100}%`;
+                    if (el[`${prefix}Hp`]) {
+                        el[`${prefix}Hp`].textContent = Math.floor(fighter.hp);
+                        el[`${prefix}HpBar`].style.width = `${fighter.hp / fighter.maxHp * 100}%`;
+                        el[`${prefix}HpBar`].setAttribute('aria-valuenow', Math.floor(fighter.hp));
+                    }
                     
                     // Energy
-                    el[`${prefix}Energy`].textContent = Math.floor(fighter.energy);
-                    el[`${prefix}EnergyBar`].style.width = `${fighter.energy / fighter.maxEnergy * 100}%`;
+                    if (el[`${prefix}Energy`]) {
+                        el[`${prefix}Energy`].textContent = Math.floor(fighter.energy);
+                        el[`${prefix}EnergyBar`].style.width = `${fighter.energy / fighter.maxEnergy * 100}%`;
+                        el[`${prefix}EnergyBar`].setAttribute('aria-valuenow', Math.floor(fighter.energy));
+                    }
                     
                     // Rage
-                    el[`${prefix}Rage`].textContent = Math.floor(fighter.rage);
-                    el[`${prefix}RageBar`].style.width = `${fighter.rage / fighter.maxRage * 100}%`;
+                    if (el[`${prefix}Rage`]) {
+                        el[`${prefix}Rage`].textContent = Math.floor(fighter.rage);
+                        el[`${prefix}RageBar`].style.width = `${fighter.rage / fighter.maxRage * 100}%`;
+                        el[`${prefix}RageBar`].setAttribute('aria-valuenow', Math.floor(fighter.rage));
+                    }
                     
                     // Balance
-                    el[`${prefix}Balance`].textContent = Math.floor(fighter.balance);
-                    el[`${prefix}BalanceBar`].style.width = `${fighter.balance / fighter.maxBalance * 100}%`;
+                    if (el[`${prefix}Balance`]) {
+                        el[`${prefix}Balance`].textContent = Math.floor(fighter.balance);
+                        el[`${prefix}BalanceBar`].style.width = `${fighter.balance / fighter.maxBalance * 100}%`;
+                        el[`${prefix}BalanceBar`].setAttribute('aria-valuenow', Math.floor(fighter.balance));
+                    }
                     
                     // Stamina
-                    el[`${prefix}Stamina`].textContent = Math.floor(fighter.stamina);
-                    el[`${prefix}StaminaBar`].style.width = `${fighter.stamina / fighter.maxStamina * 100}%`;
+                    if (el[`${prefix}Stamina`]) {
+                        el[`${prefix}Stamina`].textContent = Math.floor(fighter.stamina);
+                        el[`${prefix}StaminaBar`].style.width = `${fighter.stamina / fighter.maxStamina * 100}%`;
+                        el[`${prefix}StaminaBar`].setAttribute('aria-valuenow', Math.floor(fighter.stamina));
+                    }
                     
                     // Stats
-                    el[`${prefix}Reward`].textContent = Math.floor(fighter.totalReward);
-                    el[`${prefix}ComboCount`].textContent = fighter.comboCount;
+                    if (el[`${prefix}Reward`]) el[`${prefix}Reward`].textContent = Math.floor(fighter.totalReward);
+                    if (el[`${prefix}ComboCount`]) el[`${prefix}ComboCount`].textContent = fighter.comboCount;
                     
-                    if (fighter.brain) {
+                    if (fighter.brain && el[`${prefix}Epsilon`]) {
                         el[`${prefix}Epsilon`].textContent = fighter.brain.epsilon.toFixed(2);
                     }
                     
                     const accuracy = fighter.attacksThrown > 0 
                         ? Math.floor(fighter.hitsLanded / fighter.attacksThrown * 100) 
                         : 0;
-                    el[`${prefix}Accuracy`].textContent = `${accuracy}%`;
+                    if (el[`${prefix}Accuracy`]) el[`${prefix}Accuracy`].textContent = `${accuracy}%`;
                     
                     // Action text
                     const actionMap = {
-                        'idle': 'IDLE', 'walk': 'MOVING', 'jump': 'JUMPING',
-                        'dash': 'DASHING', 'attack': fighter.subState || 'ATTACKING',
-                        'defend': fighter.subState || 'DEFENDING',
-                        'hit': 'HIT', 'knockdown': 'DOWN',
-                        'win': 'VICTORY', 'lose': 'DEFEAT'
+                        'idle': 'ПОКОЙ', 'walk': 'ДВИЖЕНИЕ', 'jump': 'ПРЫЖОК',
+                        'dash': 'РЫВОК', 'attack': fighter.subState || 'АТАКА',
+                        'defend': fighter.subState || 'ЗАЩИТА',
+                        'hit': 'УДАР', 'knockdown': 'НОКДАУН',
+                        'win': 'ПОБЕДА', 'lose': 'ПОРАЖЕНИЕ'
                     };
-                    el[`${prefix}Action`].textContent = actionMap[fighter.state] || fighter.state.toUpperCase();
+                    if (el[`${prefix}Action`]) {
+                        el[`${prefix}Action`].textContent = actionMap[fighter.state] || fighter.state.toUpperCase();
+                    }
                     
                     // LED status
                     const led = el[`${prefix}Led`];
                     const status = el[`${prefix}Status`];
-                    if (fighter.hp <= 0 || fighter.knockdownTimer > 30) {
-                        led.className = 'led led-yellow';
-                        status.textContent = 'K.O.';
-                        status.className = 'text-yellow';
-                    } else if (fighter.hitstun > 0) {
-                        led.className = 'led led-red';
-                        status.textContent = 'HIT';
-                        status.className = 'text-red';
-                    } else if (fighter.state === 'attack') {
-                        led.className = 'led led-red';
-                        status.textContent = 'ATTACK';
-                        status.className = 'text-red';
-                    } else if (fighter.state === 'defend') {
-                        led.className = 'led led-green';
-                        status.textContent = 'DEFEND';
-                        status.className = 'text-green';
-                    } else {
-                        led.className = prefix === 'alpha' ? 'led led-red' : 'led led-blue';
-                        status.textContent = fighter.state.toUpperCase();
-                        status.className = prefix === 'alpha' ? 'text-red' : 'text-blue';
+                    if (led && status) {
+                        if (fighter.hp <= 0 || fighter.knockdownTimer > 30) {
+                            led.className = 'led led-yellow';
+                            status.textContent = 'Н/О';
+                            status.className = 'text-yellow status-flash';
+                        } else if (fighter.hitstun > 0) {
+                            led.className = 'led led-red';
+                            status.textContent = 'УДАР';
+                            status.className = 'text-red status-flash';
+                        } else if (fighter.state === 'attack') {
+                            led.className = 'led led-red';
+                            status.textContent = 'АТАКА';
+                            status.className = 'text-red';
+                        } else if (fighter.state === 'defend') {
+                            led.className = 'led led-green';
+                            status.textContent = 'ЗАЩИТА';
+                            status.className = 'text-green';
+                        } else {
+                            led.className = prefix === 'alpha' ? 'led led-red' : 'led led-blue';
+                            status.textContent = fighter.state.toUpperCase();
+                            status.className = prefix === 'alpha' ? 'text-red' : 'text-blue';
+                        }
                     }
                     
                     // Activity dots
-                    el[`${prefix}Move`].className = 'dot' + 
-                        (['walk', 'dash'].includes(fighter.state) ? ' dot-active' : '');
-                    el[`${prefix}Attack`].className = 'dot' + 
-                        (fighter.state === 'attack' ? ' dot-attack' : '');
-                    el[`${prefix}Defend`].className = 'dot' + 
-                        (fighter.state === 'defend' ? ' dot-defend' : '');
-                    el[`${prefix}Special`].className = 'dot' + 
-                        (fighter.superMeter >= Config.combat.superMeterCost ? ' dot-special' : '');
-                    el[`${prefix}Combo`].className = 'dot' + 
-                        (fighter.comboCount > 1 ? ' dot-special' : '');
-                    
-                    // Emotions
-                                            const emotion = el.dataset.emotion;
-                        if (fighter.emotions[emotion] !== undefined) {
-                            el.textContent = fighter.emotions[emotion].toFixed(2);
+                    const updateDot = (dotEl, isActive, className) => {
+                        if (dotEl) {
+                            dotEl.className = 'dot' + (isActive ? ` ${className}` : '');
                         }
-                    });
-                },
-                
-                showWinner(winner, f1, f2) {
-                    this.elements.winnerTitle.textContent = `${winner.name} WINS!`;
-                    this.elements.winnerTitle.className = `winner-title ${winner.isRed ? 'text-red' : 'text-blue'}`;
+                    };
                     
-                    this.elements.winnerHits1.textContent = f1.hitsLanded;
-                    this.elements.winnerHits2.textContent = f2.hitsLanded;
-                    this.elements.winnerCombo1.textContent = f1.maxCombo;
-                    this.elements.winnerCombo2.textContent = f2.maxCombo;
+                    updateDot(el[`${prefix}Move`], ['walk', 'dash'].includes(fighter.state), 'dot-active');
+                    updateDot(el[`${prefix}Attack`], fighter.state === 'attack', 'dot-attack');
+                    updateDot(el[`${prefix}Defend`], fighter.state === 'defend', 'dot-defend');
+                    updateDot(el[`${prefix}Special`], fighter.superMeter >= Config.combat.superMeterCost, 'dot-special');
+                    updateDot(el[`${prefix}Combo`], fighter.comboCount > 1, 'dot-special');
                     
-                    this.elements.winnerScreen.classList.add('visible');
-                },
+                    // Emotions - FIX: Proper variable scoping
+                    const emotionContainer = el[`${prefix}Emotions`];
+                    if (emotionContainer) {
+                        const emotionElements = emotionContainer.querySelectorAll('.emotion-value');
+                        emotionElements.forEach(emotionEl => {
+                            const emotion = emotionEl.dataset.emotion;
+                            if (emotion && fighter.emotions[emotion] !== undefined) {
+                                emotionEl.textContent = fighter.emotions[emotion].toFixed(2);
+                            }
+                        });
+                    }
+                };
                 
-                hideWinner() {
-                    this.elements.winnerScreen.classList.remove('visible');
-                },
+                const showWinner = (winner, f1, f2) => {
+                    if (!elements.winnerScreen) return;
+                    
+                    elements.winnerTitle.textContent = `${winner.name} ПОБЕЖДАЕТ!`;
+                    elements.winnerTitle.className = `winner-title ${winner.isRed ? 'text-red' : 'text-blue'}`;
+                    
+                    if (elements.winnerHits1) elements.winnerHits1.textContent = f1.hitsLanded;
+                    if (elements.winnerHits2) elements.winnerHits2.textContent = f2.hitsLanded;
+                    if (elements.winnerCombo1) elements.winnerCombo1.textContent = f1.maxCombo;
+                    if (elements.winnerCombo2) elements.winnerCombo2.textContent = f2.maxCombo;
+                    
+                    elements.winnerScreen.classList.add('visible');
+                };
                 
-                updatePopulationStats(population) {
-                    this.elements.statGeneration.textContent = population.generation;
-                    this.elements.statPopulation.textContent = population.size;
+                const hideWinner = () => {
+                    elements.winnerScreen?.classList.remove('visible');
+                };
+                
+                const updatePopulationStats = (population) => {
+                    if (elements.statGeneration) elements.statGeneration.textContent = population.generation;
+                    if (elements.statPopulation) elements.statPopulation.textContent = population.size;
                     
                     const avgFitness = population.fighters.reduce((s, f) => s + f.fitness, 0) / population.size;
-                    this.elements.statAvgFitness.textContent = Math.floor(avgFitness);
+                    if (elements.statAvgFitness) elements.statAvgFitness.textContent = Math.floor(avgFitness);
                     
                     const bestCombo = Math.max(...population.fighters.map(f => f.avgCombo));
-                    this.elements.statBestCombo.textContent = bestCombo;
+                    if (elements.statBestCombo) elements.statBestCombo.textContent = bestCombo;
                     
-                    this.elements.generationBadge.textContent = `GEN: ${String(population.generation).padStart(3, '0')}`;
+                    if (elements.generationBadge) {
+                        elements.generationBadge.textContent = `GEN: ${String(population.generation).padStart(3, '0')}`;
+                    }
                     
                     // Fighter list
-                    this.elements.fighterList.innerHTML = '';
-                    population.fighters.slice(0, 5).forEach((f, i) => {
-                        const row = document.createElement('div');
-                        row.className = 'fighter-row' + (i === 0 ? ' selected' : '');
-                        row.innerHTML = `
-                            <span>${f.name} [${f.weight}]</span>
-                            <span>W:${f.wins} F:${Math.floor(f.fitness)}</span>
-                        `;
-                        this.elements.fighterList.appendChild(row);
-                    });
-                },
-                
-                toggleMenu(show) {
-                    if (show) {
-                        this.elements.mainMenu?.classList.remove('hidden');
-                    } else {
-                        this.elements.mainMenu?.classList.add('hidden');
+                    if (elements.fighterList) {
+                        elements.fighterList.innerHTML = '';
+                        population.fighters.slice(0, 5).forEach((f, i) => {
+                            const row = document.createElement('div');
+                            row.className = 'fighter-row' + (i === 0 ? ' selected' : '');
+                            row.setAttribute('role', 'listitem');
+                            row.innerHTML = `
+                                <span>${f.name} [${f.weight}]</span>
+                                <span>П:${f.wins} Ф:${Math.floor(f.fitness)}</span>
+                            `;
+                            elements.fighterList.appendChild(row);
+                        });
                     }
-                },
+                };
                 
-                setSpeed(multiplier) {
-                    this.elements.speedBtn.textContent = `x${multiplier}`;
-                },
+                const toggleMenu = (show) => {
+                    if (!elements.mainMenu) return;
+                    if (show) {
+                        elements.mainMenu.classList.remove('hidden');
+                    } else {
+                        elements.mainMenu.classList.add('hidden');
+                    }
+                };
                 
-                setPause(paused) {
-                    this.elements.pauseBtn.textContent = paused ? '▶' : '⏸';
-                    this.elements.pauseBtn.title = paused ? 'Resume' : 'Pause';
-                },
+                const setSpeed = (multiplier) => {
+                    if (elements.speedBtn) elements.speedBtn.textContent = `×${multiplier}`;
+                };
                 
-                log: Logger.add.bind(Logger)
-            };
+                const setPause = (paused) => {
+                    if (elements.pauseBtn) {
+                        elements.pauseBtn.textContent = paused ? '▶' : '⏸';
+                        elements.pauseBtn.title = paused ? 'Продолжить' : 'Пауза';
+                        elements.pauseBtn.setAttribute('aria-label', paused ? 'Продолжить' : 'Пауза');
+                    }
+                };
+                
+                return {
+                    init,
+                    updateFighterUI,
+                    showWinner,
+                    hideWinner,
+                    updatePopulationStats,
+                    toggleMenu,
+                    setSpeed,
+                    setPause,
+                    log: Logger.add.bind(Logger),
+                    getElements: () => ({ ...elements })
+                };
+            })();
 
             // ========================================
             // MAIN GAME CLASS
@@ -3633,8 +3840,13 @@
             class Game {
                 constructor() {
                     this.canvas = document.getElementById('gameCanvas');
+                    if (!this.canvas) {
+                        Logger.error('Canvas element not found');
+                        return;
+                    }
+                    
                     this.renderer = new Renderer(this.canvas);
-                    this.input = new InputHandler(this.renderer); // Pass renderer for coordinate mapping
+                    this.input = new InputHandler(this.renderer);
                     this.population = new Population();
                     
                     this.f1 = null;
@@ -3644,7 +3856,7 @@
                     this.paused = false;
                     this.speed = 1;
                     
-                    // FIX: Fixed Timestep accumulator
+                    // Fixed timestep variables
                     this.lastTime = 0;
                     this.accumulator = 0;
                     this.step = 1000 / 60; // 60 FPS logic update
@@ -3657,71 +3869,87 @@
                         height: Config.canvas.baseHeight
                     };
                     
+                    this._boundHandlers = {};
                     this.init();
                 }
                 
                 init() {
                     UIManager.init();
-                    this.setupEventListeners();
+                    this._setupEventListeners();
                     this.population.updateSelects();
                     
-                    Logger.system('Neural Fighter Pro initialized');
-                    Logger.system(`Virtual Canvas: ${Config.canvas.baseWidth}x${Config.canvas.baseHeight}`);
-                    Logger.system(`Population: ${this.population.size} fighters`);
+                    Logger.system('Neural Fighter Pro инициализирован');
+                    Logger.system(`Виртуальное разрешение: ${Config.canvas.baseWidth}×${Config.canvas.baseHeight}`);
+                    Logger.system(`Популяция: ${this.population.size} бойцов`);
                 }
                 
-                setupEventListeners() {
+                _setupEventListeners() {
+                    const el = UIManager.getElements();
+                    
                     // Menu buttons
-                    UIManager.elements.startFightBtn?.addEventListener('click', () => this.startFight());
-                    UIManager.elements.menuBtn?.addEventListener('click', () => this.showMenu());
-                    UIManager.elements.rematchBtn?.addEventListener('click', () => this.rematch());
+                    el.startFightBtn?.addEventListener('click', () => this.startFight());
+                    el.menuBtn?.addEventListener('click', () => this.showMenu());
+                    el.rematchBtn?.addEventListener('click', () => this.rematch());
                     
                     // Control buttons
-                    UIManager.elements.speedBtn?.addEventListener('click', () => this.cycleSpeed());
-                    UIManager.elements.pauseBtn?.addEventListener('click', () => this.togglePause());
+                    el.speedBtn?.addEventListener('click', () => this.cycleSpeed());
+                    el.pauseBtn?.addEventListener('click', () => this.togglePause());
                     
                     // Evolution buttons
-                    UIManager.elements.evolveBtn?.addEventListener('click', () => {
+                    el.evolveBtn?.addEventListener('click', () => {
                         this.population.runTournament();
                         this.population.updateSelects();
                         UIManager.updatePopulationStats(this.population);
                     });
                     
-                    UIManager.elements.tournamentBtn?.addEventListener('click', () => {
+                    el.tournamentBtn?.addEventListener('click', () => {
                         this.population.runTournament();
                         this.population.updateSelects();
                         UIManager.updatePopulationStats(this.population);
                     });
                     
                     // Save/Load
-                    UIManager.elements.saveBrainBtn?.addEventListener('click', () => this.saveModel());
-                    UIManager.elements.loadBrainBtn?.addEventListener('click', () => this.loadModel());
-                    UIManager.elements.resetBtn?.addEventListener('click', () => this.resetEvolution());
-                    UIManager.elements.exportBtn?.addEventListener('click', () => this.exportData());
+                    el.saveBrainBtn?.addEventListener('click', () => this.saveModel());
+                    el.loadBrainBtn?.addEventListener('click', () => this.loadModel());
+                    el.resetBtn?.addEventListener('click', () => this.resetEvolution());
+                    el.exportBtn?.addEventListener('click', () => this.exportData());
                     
                     // Keyboard shortcuts
-                    window.addEventListener('keydown', (e) => {
-                        if (e.key === 'Escape') this.showMenu();
+                    const onKeyDown = (e) => {
+                        if (e.key === 'Escape') {
+                            e.preventDefault();
+                            this.showMenu();
+                        }
                         if (e.key === ' ') {
                             e.preventDefault();
                             this.togglePause();
                         }
-                        if (e.key === 'r' || e.key === 'R') this.rematch();
+                        if (e.key === 'r' || e.key === 'R') {
+                            this.rematch();
+                        }
+                    };
+                    
+                    window.addEventListener('keydown', onKeyDown);
+                    this._boundHandlers.keydown = onKeyDown;
+                    
+                    // Canvas focus for keyboard input
+                    this.canvas?.addEventListener('click', () => {
+                        this.canvas.focus();
                     });
                 }
                 
                 startFight() {
-                    // Get configuration
+                    // Get configuration with fallbacks
                     const alphaConfig = {
-                        architecture: UIManager.elements.alphaType?.value || 'neural',
-                        style: UIManager.elements.alphaStyle?.value || 'balanced',
-                        weight: UIManager.elements.alphaWeight?.value || 'medium'
+                        architecture: UIManager.getElements().alphaType?.value || 'neural',
+                        style: UIManager.getElements().alphaStyle?.value || 'balanced',
+                        weight: UIManager.getElements().alphaWeight?.value || 'medium'
                     };
                     
                     const betaConfig = {
-                        architecture: UIManager.elements.betaType?.value || 'neural',
-                        style: UIManager.elements.betaStyle?.value || 'balanced',
-                        weight: UIManager.elements.betaWeight?.value || 'medium'
+                        architecture: UIManager.getElements().betaType?.value || 'neural',
+                        style: UIManager.getElements().betaStyle?.value || 'balanced',
+                        weight: UIManager.getElements().betaWeight?.value || 'medium'
                     };
                     
                     // Create fighters using virtual coordinates
@@ -3729,16 +3957,20 @@
                     this.f2 = new Fighter(1420, this.arenaBounds.floorY, '#4da6ff', 'BETA', false, betaConfig);
                     
                     // Load neural brains if selected
-                    if (alphaConfig.architecture === 'neural') {
-                        const idx = parseInt(UIManager.elements.alphaBrain?.value) || 0;
+                    if (alphaConfig.architecture === 'neural' && this.f1.brain) {
+                        const idx = parseInt(UIManager.getElements().alphaBrain?.value) || 0;
                         const brainData = this.population.getFighter(idx);
-                        this.f1.brain = brainData?.brain?.clone() || this.f1.brain;
+                        if (brainData?.brain) {
+                            this.f1.brain = brainData.brain.clone();
+                        }
                     }
                     
-                    if (betaConfig.architecture === 'neural') {
-                        const idx = parseInt(UIManager.elements.betaBrain?.value) || 0;
+                    if (betaConfig.architecture === 'neural' && this.f2.brain) {
+                        const idx = parseInt(UIManager.getElements().betaBrain?.value) || 0;
                         const brainData = this.population.getFighter(idx);
-                        this.f2.brain = brainData?.brain?.clone() || this.f2.brain;
+                        if (brainData?.brain) {
+                            this.f2.brain = brainData.brain.clone();
+                        }
                     }
                     
                     // Start game
@@ -3747,42 +3979,42 @@
                     this.running = true;
                     this.paused = false;
                     
-                    Logger.battle(`Match started: ${this.f1.name} vs ${this.f2.name}`);
+                    Logger.battle(`Бой начат: ${this.f1.name} против ${this.f2.name}`);
                     
                     // Begin game loop
                     this.lastTime = performance.now();
                     this.accumulator = 0;
-                    requestAnimationFrame((t) => this.gameLoop(t));
+                    requestAnimationFrame((t) => this._gameLoop(t));
                 }
                 
-                gameLoop(currentTime) {
+                _gameLoop(currentTime) {
                     if (!this.running) return;
                     
                     const deltaTime = currentTime - this.lastTime;
                     this.lastTime = currentTime;
                     
-                    // Accumulate time
+                    // Accumulate time for fixed timestep
                     this.accumulator += deltaTime * this.speed;
                     
-                    // Process logic in fixed chunks (Fixed Timestep)
-                    // Prevent spiral of death if accumulator gets too huge
+                    // Prevent spiral of death
                     if (this.accumulator > 200) this.accumulator = 200;
                     
+                    // Process logic in fixed chunks
                     while (this.accumulator >= this.step) {
                         if (!this.paused) {
-                            this.update(1); // Pass 1 logic frame
+                            this._update(1); // Pass 1 logic frame (16.67ms)
                         }
                         this.accumulator -= this.step;
                     }
                     
-                    // Render always runs at screen refresh rate
+                    // Render always at screen refresh rate
                     this.renderer.render(this.f1, this.f2);
-                    this.updateUI();
+                    this._updateUI();
                     
-                    requestAnimationFrame((t) => this.gameLoop(t));
+                    requestAnimationFrame((t) => this._gameLoop(t));
                 }
                 
-                update(dt) {
+                _update(dt) {
                     if (!this.f1 || !this.f2) return;
                     
                     // Update input
@@ -3790,31 +4022,33 @@
                     
                     // Manual control handling
                     if (this.f1.architecture === 'manual') {
-                        this.handleManualInput(this.f1, this.f2);
+                        this._handleManualInput(this.f1, this.f2);
                     }
                     if (this.f2.architecture === 'manual') {
-                        this.handleManualInput(this.f2, this.f1);
+                        this._handleManualInput(this.f2, this.f1);
                     }
                     
                     // Neural control handling
                     if (this.f1.architecture === 'neural' && this.f1.brain) {
                         const state = this.f1.getState(this.f2, this.arenaBounds);
                         const action = this.f1.brain.chooseAction(state);
-                        this.executeNeuralAction(this.f1, this.f2, action);
+                        this.f1.lastAction = action;
+                        this._executeNeuralAction(this.f1, this.f2, action);
                     }
                     
                     if (this.f2.architecture === 'neural' && this.f2.brain) {
                         const state = this.f2.getState(this.f1, this.arenaBounds);
                         const action = this.f2.brain.chooseAction(state);
-                        this.executeNeuralAction(this.f2, this.f1, action);
+                        this.f2.lastAction = action;
+                        this._executeNeuralAction(this.f2, this.f1, action);
                     }
                     
                     // Classic AI handling
                     if (this.f1.architecture === 'classic') {
-                        this.executeClassicAI(this.f1, this.f2);
+                        this._executeClassicAI(this.f1, this.f2);
                     }
                     if (this.f2.architecture === 'classic') {
-                        this.executeClassicAI(this.f2, this.f1);
+                        this._executeClassicAI(this.f2, this.f1);
                     }
                     
                     // Update fighters
@@ -3822,44 +4056,46 @@
                     this.f2.update(this.f1, this.input, this.arenaBounds, dt);
                     
                     // Check collisions
-                    this.checkCollisions();
+                    this._checkCollisions();
                     
                     // Train neural networks (if enabled and batch size met)
-                    if (this.f1.brain && this.f1.brain.memory.length > Config.neural.batchSize) {
+                    if (this.f1.brain && this.f1.brain.memory.length >= Config.neural.batchSize) {
                         this.f1.brain.train();
                     }
-                    if (this.f2.brain && this.f2.brain.memory.length > Config.neural.batchSize) {
+                    if (this.f2.brain && this.f2.brain.memory.length >= Config.neural.batchSize) {
                         this.f2.brain.train();
                     }
                     
                     // Check win condition
                     if (this.f1.hp <= 0 || this.f2.hp <= 0 || 
                         this.f1.knockdownTimer > 60 || this.f2.knockdownTimer > 60) {
-                        this.endMatch();
+                        this._endMatch();
                     }
                 }
                 
-                handleManualInput(fighter, opponent) {
+                _handleManualInput(fighter, opponent) {
                     // Movement
                     if (this.input.isPressed('left')) fighter.move(-1);
                     else if (this.input.isPressed('right')) fighter.move(1);
                     
                     // Jump
-                    if (this.input.isJustPressed('jump')) {
-                        fighter.jump();
-                        this.renderer.createJump(fighter.x, fighter.y + 40, fighter.color);
+                    if (this.input.isPressed('jump')) {
+                        if (fighter.jump()) {
+                            this.renderer.createJump(fighter.x, fighter.y + 40, fighter.color);
+                        }
                     }
                     
                     // Dash
-                    if (this.input.isJustPressed('dash')) {
-                        fighter.dash();
-                        this.renderer.createDash(fighter.x, fighter.y, fighter.color);
+                    if (this.input.isPressed('dash')) {
+                        if (fighter.dash()) {
+                            this.renderer.createDash(fighter.x, fighter.y, fighter.color);
+                        }
                     }
                     
-                    // Attacks
-                    if (this.input.isJustPressed('attack1')) fighter.attack(1);
-                    if (this.input.isJustPressed('attack2')) fighter.attack(3);
-                    if (this.input.isJustPressed('special') && fighter.superMeter >= Config.combat.superMeterCost) {
+                    // Attacks (only on press, not hold)
+                    if (this.input.isPressed('attack1')) fighter.attack(1);
+                    if (this.input.isPressed('attack2')) fighter.attack(3);
+                    if (this.input.isPressed('special') && fighter.superMeter >= Config.combat.superMeterCost) {
                         fighter.attack(17); // Super art
                     }
                     
@@ -3867,16 +4103,20 @@
                     if (this.input.isPressed('defend')) fighter.defend(DEFENSE.BLOCK);
                 }
                 
-                executeNeuralAction(fighter, opponent, action) {
-                    // Simplified action execution for neural fighters
-                    if (action < 20 && fighter.energy >= ATTACKS[action]?.energy) {
-                        if (fighter.attack(action)) {
-                            // Visual feedback for heavy moves
-                            if (ATTACKS[action].type === 'special' || ATTACKS[action].type === 'super') {
-                                this.renderer.createDash(fighter.x + fighter.facing * 30, fighter.y - 30, fighter.color);
+                _executeNeuralAction(fighter, opponent, action) {
+                    if (action < 20 && fighter.attackCooldown <= 0) {
+                        // Attack
+                        const attack = ATTACKS[action];
+                        if (attack && fighter.energy >= attack.energy) {
+                            if (fighter.attack(action)) {
+                                // Visual feedback for heavy moves
+                                if (attack.type === 'special' || attack.type === 'super') {
+                                    this.renderer.createDash(fighter.x + fighter.facing * 30, fighter.y - 30, fighter.color);
+                                }
                             }
                         }
                     } else if (action >= 20 && action < 25) {
+                        // Defense
                         const defenses = [DEFENSE.BLOCK, DEFENSE.PARRY, DEFENSE.DODGE, DEFENSE.CROUCH, DEFENSE.NONE];
                         fighter.defend(defenses[action - 20]);
                     } else if (action === 25) {
@@ -3895,8 +4135,8 @@
                     }
                 }
                 
-                executeClassicAI(fighter, opponent) {
-                    // Simple heuristic AI
+                _executeClassicAI(fighter, opponent) {
+                    // Simple heuristic AI with attack cooldown
                     const dist = Utils.distance(fighter.x, fighter.y, opponent.x, opponent.y);
                     
                     if (dist < 120 && fighter.attackCooldown <= 0) {
@@ -3915,15 +4155,15 @@
                     }
                 }
                 
-                checkCollisions() {
+                _checkCollisions() {
                     // F1 attacks F2
                     if (this.f1.checkCollision(this.f2)) {
                         const hit = this.f2.takeDamage(this.f1, this.f1.attackData);
-                        if (hit) {
+                        if (hit && this.f1.attackData) {
                             this.renderer.createHit(
                                 this.f2.x, this.f2.y - 40, 
                                 this.f1.color, 
-                                this.f1.attackData?.damage / 10
+                                this.f1.attackData.damage / 10
                             );
                         }
                     }
@@ -3931,17 +4171,17 @@
                     // F2 attacks F1
                     if (this.f2.checkCollision(this.f1)) {
                         const hit = this.f1.takeDamage(this.f2, this.f2.attackData);
-                        if (hit) {
+                        if (hit && this.f2.attackData) {
                             this.renderer.createHit(
                                 this.f1.x, this.f1.y - 40, 
                                 this.f2.color, 
-                                this.f2.attackData?.damage / 10
+                                this.f2.attackData.damage / 10
                             );
                         }
                     }
                 }
                 
-                endMatch() {
+                _endMatch() {
                     this.running = false;
                     
                     const winner = this.f1.hp > this.f2.hp ? this.f1 : this.f2;
@@ -3955,7 +4195,7 @@
                     if (winner.brain) {
                         winner.brain.remember(
                             winner.getState(loser, this.arenaBounds),
-                            winner.lastAction || 0,
+                            winner.lastAction ?? 0,
                             200, // Win reward
                             winner.getState(loser, this.arenaBounds),
                             true
@@ -3966,7 +4206,7 @@
                     if (loser.brain) {
                         loser.brain.remember(
                             loser.getState(winner, this.arenaBounds),
-                            loser.lastAction || 0,
+                            loser.lastAction ?? 0,
                             -50, // Loss penalty
                             loser.getState(winner, this.arenaBounds),
                             true
@@ -3976,11 +4216,11 @@
                     // Show winner screen
                     UIManager.showWinner(winner, this.f1, this.f2);
                     
-                    Logger.battle(`${winner.name} defeats ${loser.name}!`);
-                    Logger.battle(`Combo: ${winner.maxCombo} | Hits: ${winner.hitsLanded}`);
+                    Logger.battle(`${winner.name} побеждает ${loser.name}!`);
+                    Logger.battle(`Комбо: ${winner.maxCombo} | Удары: ${winner.hitsLanded}`);
                 }
                 
-                updateUI() {
+                _updateUI() {
                     if (!this.f1 || !this.f2) return;
                     
                     UIManager.updateFighterUI(this.f1, 'alpha');
@@ -3988,16 +4228,16 @@
                     UIManager.updatePopulationStats(this.population);
                     
                     // Update learning rate display
-                    if (this.f1.brain) {
-                        UIManager.elements.lrDisplay.textContent = 
-                            `LR: ${this.f1.brain.epsilon.toFixed(4)}`;
+                    const lrEl = UIManager.getElements().lrDisplay;
+                    if (lrEl && this.f1.brain) {
+                        lrEl.textContent = `LR: ${this.f1.brain.epsilon.toFixed(4)}`;
                     }
                 }
                 
                 showMenu() {
                     this.running = false;
                     UIManager.toggleMenu(true);
-                    Logger.system('Returned to main menu');
+                    Logger.system('Возврат в главное меню');
                 }
                 
                 rematch() {
@@ -4007,7 +4247,7 @@
                     this.running = true;
                     this.paused = false;
                     this.accumulator = 0;
-                    Logger.battle('Rematch initiated');
+                    Logger.battle('Реванш начат');
                 }
                 
                 cycleSpeed() {
@@ -4015,18 +4255,19 @@
                     const idx = speeds.indexOf(this.speed);
                     this.speed = speeds[(idx + 1) % speeds.length];
                     UIManager.setSpeed(this.speed);
-                    Logger.system(`Speed: x${this.speed}`);
+                    Logger.system(`Скорость: ×${this.speed}`);
                 }
                 
                 togglePause() {
                     this.paused = !this.paused;
                     UIManager.setPause(this.paused);
-                    Logger.system(this.paused ? 'Paused' : 'Resumed');
+                    Logger.system(this.paused ? 'Пауза' : 'Продолжение');
                 }
                 
                 saveModel() {
-                    if (!this.f1?.brain) {
-                        UIManager.log('system', 'No neural model to save');
+                    const brain = this.f1?.brain;
+                    if (!brain) {
+                        UIManager.log('system', 'Нет нейромодели для сохранения');
                         return;
                     }
                     
@@ -4034,14 +4275,14 @@
                         version: '1.0',
                         timestamp: Date.now(),
                         fighter: 'alpha',
-                        network: this.f1.brain.toJSON()
+                        network: brain.toJSON()
                     };
                     
                     try {
                         localStorage.setItem('neuralFighterModel', JSON.stringify(data));
-                        UIManager.log('system', 'Model saved to localStorage');
+                        UIManager.log('system', 'Модель сохранена в localStorage');
                     } catch (e) {
-                        UIManager.log('error', `Save failed: ${e.message}`);
+                        UIManager.log('error', `Ошибка сохранения: ${e.message}`);
                     }
                 }
                 
@@ -4049,26 +4290,31 @@
                     try {
                         const saved = localStorage.getItem('neuralFighterModel');
                         if (!saved) {
-                            UIManager.log('system', 'No saved model found');
+                            UIManager.log('system', 'Сохранённая модель не найдена');
                             return;
                         }
                         
-                        const data = JSON.parse(saved);
+                        const data = Utils.safeJsonParse(saved, null);
+                        if (!data?.network) {
+                            UIManager.log('error', 'Неверный формат сохранённой модели');
+                            return;
+                        }
+                        
                         if (this.f1?.brain) {
                             this.f1.brain = NeuralNetwork.fromJSON(data.network);
-                            UIManager.log('system', 'Model loaded successfully');
+                            UIManager.log('system', 'Модель загружена успешно');
                         }
                     } catch (e) {
-                        UIManager.log('error', `Load failed: ${e.message}`);
+                        UIManager.log('error', `Ошибка загрузки: ${e.message}`);
                     }
                 }
                 
                 resetEvolution() {
-                    if (confirm('Reset all evolution progress?')) {
+                    if (confirm('Сбросить весь прогресс эволюции?')) {
                         this.population = new Population();
                         this.population.updateSelects();
                         UIManager.updatePopulationStats(this.population);
-                        UIManager.log('evolution', 'Evolution reset to generation 1');
+                        UIManager.log('evolution', 'Эволюция сброшена к поколению 1');
                     }
                 }
                 
@@ -4090,34 +4336,107 @@
                     const a = document.createElement('a');
                     a.href = url;
                     a.download = `neural-fighter-export-${Date.now()}.json`;
+                    document.body.appendChild(a);
                     a.click();
+                    document.body.removeChild(a);
                     URL.revokeObjectURL(url);
                     
-                    UIManager.log('system', 'Data exported');
+                    UIManager.log('system', 'Данные экспортированы');
+                }
+                
+                // Cleanup resources
+                destroy() {
+                    this.running = false;
+                    this.input?.destroy();
+                    this.renderer?.destroy();
+                    
+                    if (this._boundHandlers.keydown) {
+                        window.removeEventListener('keydown', this._boundHandlers.keydown);
+                    }
+                    
+                    Logger.system('Ресурсы освобождены');
                 }
             }
 
             // ========================================
             // INITIALIZATION
             // ========================================
-            // Wait for DOM to be ready
+            let gameInstance = null;
+            
+            const initGame = () => {
+                try {
+                    gameInstance = new Game();
+                    
+                    // Expose for debugging (dev only)
+                    if (window.location.hostname === 'localhost') {
+                        window.game = gameInstance;
+                        window.Config = Config;
+                        window.Logger = Logger;
+                    }
+                    
+                    Logger.system('Готов к бою');
+                } catch (error) {
+                    Logger.error(`Ошибка инициализации: ${error.message}`);
+                    console.error(error);
+                    
+                    // Fallback: hide loading, show error
+                    const loading = document.getElementById('loadingOverlay');
+                    loading?.classList.add('hidden');
+                    
+                    const log = document.getElementById('logMessages');
+                    if (log) {
+                        const err = document.createElement('div');
+                        err.className = 'log-entry error';
+                        err.textContent = `КРИТИЧЕСКАЯ ОШИБКА: ${error.message}`;
+                        log.appendChild(err);
+                    }
+                }
+            };
+            
+            // Wait for DOM ready
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', initGame);
             } else {
                 initGame();
             }
             
-            function initGame() {
-                // Create game instance
-                window.game = new Game();
-                
-                // Expose for debugging
-                window.Config = Config;
-                window.Logger = Logger;
-                
-                Logger.system('Ready for combat');
+            // Cleanup on page unload
+            window.addEventListener('beforeunload', () => {
+                gameInstance?.destroy();
+            });
+            // === HOTFIX: Fix fighters freezing ===
+    (function(){
+        'use strict';
+        
+        setTimeout(() => {
+            if (typeof Fighter === 'undefined' || !window.game) {
+                console.warn('HOTFIX: Retry...');
+                setTimeout(arguments.callee, 500);
+                return;
             }
+            
+            const origUpdate = Fighter.prototype.update;
+            Fighter.prototype.update = function(opponent, input, arenaBounds, deltaTime = 1) {
+                origUpdate.call(this, opponent, input, arenaBounds, deltaTime);
+                
+                if (this.state === 'attack' && this.attackTimer <= 0) {
+                    this.state = 'idle';
+                    this.subState = null;
+                    this.attackData = null;
+                    this.hitbox = null;
+                }
+                
+                if (this.state === 'defend' && input?.isPressed && !input.isPressed('defend')) {
+                    this.state = 'idle';
+                    this.currentDefense = null;
+                }
+            };
+            
+            console.log('[HOTFIX] Applied successfully');
+        }, 1000);
+    })();
         })();
     </script>
 </body>
 </html>
+
