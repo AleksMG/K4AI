@@ -1093,156 +1093,175 @@
             }
         }
         /* ========================================
-   ИСПРАВЛЕНИЕ СКРОЛЛИНГА ЭКРАНА ПОБЕДИТЕЛЯ
+   WINNER SCREEN - ВЕРТИКАЛЬНЫЙ СКРОЛЛИНГ
    ======================================== */
 .winner-screen {
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    background: rgba(10,12,18,0.98) !important;
-    backdrop-filter: blur(20px) !important;
-    z-index: 1000 !important;
-    
-    /* КРИТИЧЕСКИ ВАЖНО ДЛЯ СКРОЛЛИНГА */
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    display: block !important;
-    
+    position: absolute;
+    inset: 0;
+    background: rgba(10,12,18,0.98);
+    backdrop-filter: blur(20px);
+    z-index: 1000;
     opacity: 0;
     visibility: hidden;
-    transition: all 0.5s ease;
-    padding: 20px !important;
+    transition: all var(--transition-slow);
+    padding: 15px;
+    text-align: center;
+    pointer-events: none;
+    
+    /* ВАЖНО: вертикальный скроллинг */
+    overflow-y: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
 }
 
 .winner-screen.visible {
     opacity: 1 !important;
     visibility: visible !important;
+    pointer-events: auto !important;
 }
 
 .winner-title {
-    font-size: 2.5rem !important;
-    font-weight: 900 !important;
-    margin: 20px auto 25px auto !important;
-    text-align: center !important;
-    width: 100% !important;
-    position: relative !important;
+    font-size: 2rem;
+    font-weight: 900;
+    margin: 10px 0 15px 0 !important;
+    text-transform: uppercase;
+    animation: winGlow 2s ease-in-out infinite;
+    text-shadow: 0 0 30px currentColor;
+    line-height: 1.1;
+    width: 100%;
+    flex-shrink: 0;
+}
+
+@keyframes winGlow {
+    0%, 100% { filter: brightness(1); transform: scale(1); }
+    50% { filter: brightness(1.4); transform: scale(1.05); }
 }
 
 .winner-stats {
-    width: 100% !important;
-    max-width: 500px !important;
-    margin: 0 auto 25px auto !important;
+    width: 100%;
+    max-width: 400px;
+    margin: 0 0 15px 0 !important;
     
-    /* ВЕРТИКАЛЬНЫЙ СПИСОК */
+    /* ВАЖНО: вертикальный список */
     display: flex !important;
     flex-direction: column !important;
-    gap: 12px !important;
+    gap: 10px !important;
     
-    /* СКРОЛЛИНГ ВНУТРИ СТАТИСТИКИ */
-    max-height: 50vh !important;
+    /* ВАЖНО: скроллинг если много */
+    max-height: 60vh !important;
     overflow-y: auto !important;
-    padding: 10px !important;
+    padding: 8px !important;
+    flex-shrink: 1;
 }
 
 .winner-stat {
-    width: 100% !important;
-    text-align: center !important;
-    padding: 15px !important;
-    background: var(--color-bg-tertiary) !important;
-    border-radius: var(--border-radius-md) !important;
-    border: 1px solid var(--color-border) !important;
-    flex-shrink: 0 !important;
+    width: 100%;
+    text-align: center;
+    padding: 12px;
+    background: var(--color-bg-tertiary);
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--color-border);
+    flex-shrink: 0;
 }
 
 .winner-stat-value {
-    font-size: 1.8rem !important;
-    font-weight: 900 !important;
-    font-family: monospace !important;
-    margin-bottom: 5px !important;
+    font-size: 1.5rem;
+    font-weight: 900;
+    font-family: var(--font-mono);
+    margin-bottom: 5px;
 }
 
 .winner-stat-label {
-    font-size: 0.9rem !important;
-    color: var(--color-text-secondary) !important;
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
 }
 
 #rematchBtn {
-    margin: 10px auto 30px auto !important;
-    display: block !important;
-    width: 200px !important;
+    margin: 10px auto 20px auto !important;
+    width: 180px !important;
+    flex-shrink: 0;
+    padding: 10px 15px !important;
 }
 
 /* МОБИЛЬНЫЕ ТЕЛЕФОНЫ */
 @media (max-width: 768px) {
     .winner-title {
-        font-size: 2rem !important;
-        margin: 15px auto 20px auto !important;
+        font-size: 1.8rem;
+        margin: 8px 0 12px 0 !important;
     }
     
     .winner-stats {
-        max-height: 55vh !important;
-        gap: 10px !important;
-        padding: 8px !important;
-    }
-    
-    .winner-stat {
-        padding: 12px !important;
-    }
-    
-    .winner-stat-value {
-        font-size: 1.5rem !important;
-    }
-}
-
-@media (max-width: 480px) {
-    .winner-title {
-        font-size: 1.6rem !important;
-        margin: 10px auto 15px auto !important;
-    }
-    
-    .winner-stats {
-        max-height: 60vh !important;
+        max-height: 65vh;
         gap: 8px !important;
         padding: 5px !important;
     }
     
     .winner-stat {
-        padding: 10px !important;
+        padding: 10px;
     }
     
     .winner-stat-value {
-        font-size: 1.2rem !important;
+        font-size: 1.3rem;
     }
     
     .winner-stat-label {
-        font-size: 0.8rem !important;
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .winner-title {
+        font-size: 1.5rem;
+        margin: 5px 0 10px 0 !important;
+    }
+    
+    .winner-stats {
+        max-height: 70vh;
+        gap: 6px !important;
+    }
+    
+    .winner-stat {
+        padding: 8px;
+    }
+    
+    .winner-stat-value {
+        font-size: 1.2rem;
+    }
+    
+    .winner-stat-label {
+        font-size: 0.75rem;
     }
     
     #rematchBtn {
-        width: 160px !important;
-        padding: 10px !important;
+        width: 150px !important;
+        padding: 8px 12px !important;
+        font-size: 0.9rem !important;
     }
 }
 
 @media (max-width: 360px) {
     .winner-title {
-        font-size: 1.4rem !important;
+        font-size: 1.3rem;
     }
     
     .winner-stats {
-        max-height: 65vh !important;
+        max-height: 75vh;
     }
     
     .winner-stat {
-        padding: 8px !important;
+        padding: 6px;
     }
     
     .winner-stat-value {
-        font-size: 1rem !important;
+        font-size: 1.1rem;
     }
-        }
+    
+    #rematchBtn {
+        width: 130px !important;
+    }
+}
     </style>
 </head>
 <body>
