@@ -461,22 +461,30 @@
         }
 
         @media (max-width: 1024px) {
-            .app {
-                grid-template-columns: 1fr;
-                grid-template-rows: var(--header-height) auto auto auto auto;
-                grid-template-areas: 
-                    "header"
-                    "arena"
-                    "left"
-                    "right"
-                    "footer";
-                overflow-y: auto;
-                padding-bottom: var(--spacing-lg);
-            }
-            
-            .panel-left, .panel-right {
-                max-height: 280px;
-            }
+    .app {
+        grid-template-columns: 1fr;
+        grid-template-rows: var(--header-height) auto auto auto auto;
+        grid-template-areas: 
+            "header"
+            "arena"
+            "left"
+            "right"
+            "footer";
+        overflow-y: auto; /* это уже есть */
+        padding-bottom: var(--spacing-lg);
+        height: auto; /* ДОБАВИТЬ */
+        min-height: 100vh; /* ДОБАВИТЬ */
+    }
+
+    .footer {
+        overflow-y: auto; /* ДОБАВИТЬ */
+        max-height: 500px; /* ДОБАВИТЬ */
+    }
+
+    .arena {
+        min-height: 300px; /* ДОБАВИТЬ */
+        overflow: visible; /* ДОБАВИТЬ */
+    }
         }
 
         @media (max-width: 480px) {
