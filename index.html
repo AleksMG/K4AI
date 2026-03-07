@@ -475,15 +475,14 @@
             cursor: none;
         }
 
+        /* ========================================
+           WINNER SCREEN - ВЕРТИКАЛЬНЫЙ СКРОЛЛИНГ
+           ======================================== */
         .winner-screen {
             position: absolute;
             inset: 0;
             background: rgba(10,12,18,0.98);
             backdrop-filter: blur(20px);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
             z-index: 1000;
             opacity: 0;
             visibility: hidden;
@@ -491,26 +490,31 @@
             padding: var(--spacing-lg);
             text-align: center;
             pointer-events: none;
-            overflow-y: auto;
+            
+            /* ВАЖНО: вертикальный скроллинг */
+            overflow-y: auto !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
         }
 
         .winner-screen.visible {
-            opacity: 1;
-            visibility: visible;
-            pointer-events: auto;
-            justify-content: flex-start;
-            padding-top: 30px;
-            padding-bottom: 30px;
+            opacity: 1 !important;
+            visibility: visible !important;
+            pointer-events: auto !important;
         }
 
         .winner-title {
             font-size: var(--font-size-xxxl);
             font-weight: 900;
-            margin-bottom: var(--spacing-xl);
+            margin: 20px 0 30px 0 !important;
             text-transform: uppercase;
             animation: winGlow 2s ease-in-out infinite;
             text-shadow: 0 0 30px currentColor;
             line-height: 1.1;
+            width: 100%;
+            flex-shrink: 0;
         }
 
         @keyframes winGlow {
@@ -519,23 +523,30 @@
         }
 
         .winner-stats {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: var(--spacing-lg);
-            margin-bottom: var(--spacing-xl);
             width: 100%;
             max-width: 500px;
-            max-height: 60vh;
-            overflow-y: auto;
-            padding-right: 10px;
+            margin: 0 0 30px 0 !important;
+            
+            /* ВАЖНО: вертикальный список */
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 15px !important;
+            
+            /* ВАЖНО: скроллинг если много */
+            max-height: 50vh !important;
+            overflow-y: auto !important;
+            padding: 10px !important;
+            flex-shrink: 1;
         }
 
         .winner-stat {
+            width: 100%;
             text-align: center;
-            padding: var(--spacing-md);
+            padding: 20px;
             background: var(--color-bg-tertiary);
             border-radius: var(--border-radius-md);
             border: 1px solid var(--color-border);
+            flex-shrink: 0;
         }
 
         .winner-stat-value {
@@ -548,6 +559,12 @@
         .winner-stat-label {
             font-size: var(--font-size-sm);
             color: var(--color-text-secondary);
+        }
+
+        #rematchBtn {
+            margin: 10px 0 30px 0 !important;
+            width: 200px !important;
+            flex-shrink: 0;
         }
 
         /* ========================================
@@ -940,61 +957,9 @@
         }
 
         /* ========================================
-           МЕДИА-ЗАПРОСЫ ДЛЯ ВСЕХ ЭКРАНОВ
+           МЕДИА-ЗАПРОСЫ ДЛЯ МОБИЛЬНЫХ
            ======================================== */
-
-        /* 4K и больше */
-        @media (min-width: 1921px) {
-            :root {
-                --header-height: 100px;
-                --footer-height: 350px;
-                --panel-width: 400px;
-                --font-size-xxxl: 4rem;
-                --font-size-xxl: 2.5rem;
-                --font-size-xl: 2rem;
-                --spacing-lg: 32px;
-            }
-        }
-
-        /* Десктоп 1920px */
-        @media (max-width: 1920px) and (min-width: 1441px) {
-            :root {
-                --header-height: 80px;
-                --footer-height: 300px;
-                --panel-width: 350px;
-            }
-        }
-
-        /* Ноутбуки */
-        @media (max-width: 1440px) and (min-width: 1025px) {
-            :root {
-                --header-height: 70px;
-                --footer-height: 280px;
-                --panel-width: 300px;
-                --font-size-lg: 1.1rem;
-            }
-        }
-
-        /* Планшеты горизонтально */
-        @media (max-width: 1024px) and (min-width: 769px) {
-            :root {
-                --header-height: 60px;
-                --footer-height: 260px;
-                --panel-width: 280px;
-            }
-        }
-
-        /* ВСЕ МОБИЛЬНЫЕ УСТРОЙСТВА */
-        @media (max-width: 768px) {
-            :root {
-                --header-height: 55px;
-                --footer-height: auto;
-                --panel-width: 100%;
-                --spacing-md: 12px;
-                --font-size-xxl: 1.5rem;
-                --font-size-xxxl: 2rem;
-            }
-
+        @media (max-width: 1024px) {
             .app {
                 display: flex;
                 flex-direction: column;
@@ -1031,14 +996,8 @@
                 padding-bottom: 20px;
             }
 
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-                max-height: 150px;
-                overflow-y: auto;
-            }
-
-            .fighter-list {
-                max-height: 100px;
+            .footer > .panel {
+                width: 100%;
             }
 
             .footer-actions {
@@ -1049,219 +1008,88 @@
             }
 
             .footer-actions .btn {
-                flex: 0 1 auto;
                 min-width: 120px;
             }
 
-            .header-controls {
-                gap: 5px;
-            }
-
-            .header-controls .btn {
-                padding: 5px 10px;
-                font-size: 12px;
-                min-height: 32px;
-            }
-
-            .logo h1 {
-                font-size: 1.1rem;
-            }
-
-            .gen-badge {
-                padding: 5px 10px;
-                font-size: 11px;
-            }
-
-            .winner-stats {
-                max-height: 50vh;
-                gap: 10px;
-            }
-            
-            .winner-stat {
-                padding: 12px;
-            }
-        }
-
-        /* Телефоны */
-        @media (max-width: 480px) {
-            :root {
-                --header-height: 50px;
-                --spacing-sm: 4px;
-                --spacing-md: 8px;
-                --spacing-lg: 12px;
-                --font-size-sm: 11px;
-                --font-size-md: 13px;
-                --font-size-lg: 15px;
-                --font-size-xl: 17px;
-                --font-size-xxl: 18px;
-                --font-size-xxxl: 22px;
-            }
-
-            .arena {
-                height: 35vh;
-                min-height: 250px;
-            }
-
-            .panel-left,
-            .panel-right {
-                max-height: 300px;
-            }
-
-            .logo h1 {
-                font-size: 13px;
-            }
-
-            .gen-badge {
-                padding: 3px 6px;
-                font-size: 10px;
-            }
-
-            .header-controls .btn {
-                padding: 3px 6px;
-                font-size: 10px;
-                min-height: 28px;
-            }
-
-            .panel {
-                padding: 8px;
-            }
-
-            .panel-header {
-                font-size: 13px;
-                padding-bottom: 5px;
-                margin-bottom: 5px;
-            }
-
-            .stat-row {
-                font-size: 11px;
-                padding: 1px 0;
-            }
-
-            .stat-value {
-                min-width: 25px;
-            }
-
-            .progress-bar {
-                height: 5px;
-                margin: 1px 0;
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr 1fr;
-                gap: 3px;
-            }
-
-            .stat-card {
-                padding: 5px 3px;
-            }
-
-            .stat-card .value {
-                font-size: 14px;
-            }
-
-            .stat-card div:last-child {
-                font-size: 9px;
-            }
-
-            .footer-actions .btn {
-                min-width: 80px;
-                font-size: 10px;
-                padding: 6px 4px;
-            }
-
-            .fighter-list {
-                max-height: 70px;
-                font-size: 10px;
-            }
-
-            .fighter-row {
-                padding: 2px 4px;
-            }
-
-            .log-header {
-                font-size: 11px;
-                padding-bottom: 3px;
-                margin-bottom: 3px;
-            }
-
-            .log-messages {
-                max-height: 70px;
-                font-size: 9px;
-            }
-
             .winner-title {
-                font-size: 22px;
+                font-size: 2.5rem;
             }
 
             .winner-stats {
                 max-height: 45vh;
-                gap: 8px;
-                padding: 0 5px;
-            }
-
-            .winner-stat {
-                padding: 8px;
-            }
-
-            .winner-stat-value {
-                font-size: 16px;
-            }
-
-            .winner-stat-label {
-                font-size: 9px;
-            }
-
-            .selector-card {
-                padding: 10px;
-                min-width: 240px;
-            }
-
-            .selector-card h2 {
-                font-size: 16px;
-                margin-bottom: 8px;
-            }
-
-            .selector-group select {
-                padding: 5px 8px;
-                font-size: 11px;
-                min-height: 32px;
-            }
-
-            .fight-btn {
-                padding: 10px 20px;
-                font-size: 14px;
-                min-width: 200px;
             }
         }
 
-        /* Очень маленькие телефоны */
-        @media (max-width: 360px) {
-            .footer-actions .btn {
-                min-width: 70px;
-                font-size: 9px;
-                padding: 5px 2px;
+        @media (max-width: 768px) {
+            .winner-title {
+                font-size: 2rem;
+                margin: 15px 0 20px 0 !important;
             }
 
-            .stat-card .value {
-                font-size: 12px;
-            }
-
-            .logo h1 {
-                font-size: 11px;
-            }
-
-            .header-controls .btn {
-                padding: 2px 4px;
-                font-size: 9px;
-            }
-
-            .selector-card {
-                min-width: 200px;
-                padding: 8px;
-            }
-            
             .winner-stats {
-                max-height: 40vh;
+                max-height: 50vh;
+                gap: 10px !important;
+            }
+
+            .winner-stat {
+                padding: 15px;
+            }
+
+            .winner-stat-value {
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .winner-title {
+                font-size: 1.8rem !important;
+                margin: 10px 0 15px 0 !important;
+            }
+
+            .winner-stats {
+                max-height: 55vh !important;
+                gap: 8px !important;
+                padding: 5px !important;
+            }
+
+            .winner-stat {
+                padding: 12px !important;
+            }
+
+            .winner-stat-value {
+                font-size: 1.2rem !important;
+            }
+
+            .winner-stat-label {
+                font-size: 0.75rem !important;
+            }
+
+            #rematchBtn {
+                width: 160px !important;
+                padding: 10px !important;
+                font-size: 0.875rem !important;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .winner-title {
+                font-size: 1.5rem !important;
+            }
+
+            .winner-stats {
+                max-height: 60vh !important;
+            }
+
+            .winner-stat {
+                padding: 10px !important;
+            }
+
+            .winner-stat-value {
+                font-size: 1rem !important;
+            }
+
+            #rematchBtn {
+                width: 140px !important;
             }
         }
     </style>
@@ -1563,8 +1391,7 @@
          * 5. DQN learning rate adjusted for faster convergence
          * 6. FIXED: GEN now persists between fights
          * 7. FIXED: Neural network now moves toward opponent
-         * 8. FIXED: Winner screen scrolling works on all devices
-         * 9. FIXED: Evolution buttons now properly update the generation
+         * 8. FIXED: Winner screen now has VERTICAL SCROLLING
          */
         (function() {
             'use strict';
@@ -4432,4 +4259,4 @@
         })();
     </script>
 </body>
-                    </html>
+    </html>
