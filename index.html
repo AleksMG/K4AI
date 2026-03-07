@@ -75,353 +75,6 @@
             --border-radius-xl: 32px;
         }
 
-        /* ========================================
-   АДАПТИВНОСТЬ ДЛЯ ВСЕХ УСТРОЙСТВ
-   ======================================== */
-
-/* От 4K до 1920px */
-@media (min-width: 1921px) {
-    :root {
-        --header-height: 100px;
-        --footer-height: 350px;
-        --panel-width: 400px;
-        --font-size-xxxl: 4rem;
-        --font-size-xxl: 2.5rem;
-        --font-size-xl: 2rem;
-        --spacing-lg: 32px;
-    }
-}
-
-/* Десктоп 1920px */
-@media (max-width: 1920px) and (min-width: 1441px) {
-    :root {
-        --header-height: 80px;
-        --footer-height: 300px;
-        --panel-width: 350px;
-    }
-}
-
-/* Ноутбуки 1440px */
-@media (max-width: 1440px) and (min-width: 1025px) {
-    :root {
-        --header-height: 70px;
-        --footer-height: 280px;
-        --panel-width: 300px;
-        --font-size-lg: 1.1rem;
-    }
-}
-
-/* Планшеты горизонтально 1024px */
-@media (max-width: 1024px) and (min-width: 769px) {
-    :root {
-        --header-height: 60px;
-        --footer-height: 260px;
-        --panel-width: 280px;
-        --font-size-lg: 1rem;
-    }
-}
-
-/* Планшеты вертикально 768px */
-@media (max-width: 768px) and (min-width: 481px) {
-    :root {
-        --header-height: 55px;
-        --footer-height: auto;
-        --panel-width: 100%;
-        --spacing-md: 12px;
-        --font-size-xxl: 1.8rem;
-        --font-size-xxxl: 2.2rem;
-    }
-
-    .app {
-        grid-template-columns: 1fr;
-        grid-template-rows: var(--header-height) 40vh auto auto auto;
-        grid-template-areas: 
-            "header"
-            "arena"
-            "left"
-            "right"
-            "footer";
-        overflow-y: auto;
-        padding: 5px;
-        gap: 5px;
-    }
-
-    .arena {
-        min-height: 300px;
-    }
-
-    .panel-left, .panel-right {
-        max-height: none;
-    }
-
-    .footer {
-        grid-template-columns: 1fr;
-        gap: 10px;
-        padding-bottom: 20px;
-    }
-
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .footer-actions {
-        flex-direction: row;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 8px;
-    }
-
-    .footer-actions .btn {
-        flex: 0 1 auto;
-        min-width: 120px;
-        padding: 10px 15px;
-        font-size: 14px;
-    }
-}
-
-/* Телефоны 480px */
-@media (max-width: 480px) {
-    :root {
-        --header-height: 50px;
-        --footer-height: auto;
-        --panel-width: 100%;
-        --spacing-sm: 4px;
-        --spacing-md: 8px;
-        --spacing-lg: 12px;
-        --font-size-sm: 12px;
-        --font-size-md: 14px;
-        --font-size-lg: 16px;
-        --font-size-xl: 18px;
-        --font-size-xxl: 20px;
-        --font-size-xxxl: 24px;
-    }
-
-    .app {
-        grid-template-columns: 1fr;
-        grid-template-rows: var(--header-height) 35vh auto auto auto;
-        grid-template-areas: 
-            "header"
-            "arena"
-            "left"
-            "right"
-            "footer";
-        overflow-y: auto;
-        padding: 3px;
-        gap: 3px;
-    }
-
-    .header {
-        padding: 0 10px;
-    }
-
-    .logo h1 {
-        font-size: 14px;
-    }
-
-    .gen-badge {
-        padding: 4px 8px;
-        font-size: 11px;
-    }
-
-    .header-controls .btn {
-        padding: 4px 8px;
-        font-size: 11px;
-        min-height: 30px;
-    }
-
-    .arena {
-        min-height: 250px;
-    }
-
-    .panel {
-        padding: 10px;
-    }
-
-    .panel-header {
-        font-size: 14px;
-        padding-bottom: 8px;
-        margin-bottom: 8px;
-    }
-
-    .stat-row {
-        font-size: 12px;
-        padding: 2px 0;
-    }
-
-    .stat-value {
-        min-width: 30px;
-    }
-
-    .progress-bar {
-        height: 6px;
-        margin: 2px 0;
-    }
-
-    .emotion-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 3px;
-        margin: 8px 0;
-    }
-
-    .emotion-item {
-        padding: 2px 5px;
-        font-size: 10px;
-    }
-
-    .activity {
-        padding: 5px;
-        margin: 8px 0;
-        flex-wrap: wrap;
-    }
-
-    .footer {
-        grid-template-columns: 1fr;
-        gap: 8px;
-        padding-bottom: 15px;
-    }
-
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 5px;
-    }
-
-    .stat-card {
-        padding: 8px 5px;
-    }
-
-    .stat-card .value {
-        font-size: 16px;
-    }
-
-    .stat-card div:last-child {
-        font-size: 10px;
-    }
-
-    .fighter-list {
-        max-height: 80px;
-        font-size: 11px;
-    }
-
-    .fighter-row {
-        padding: 3px 5px;
-    }
-
-    .log-header {
-        font-size: 12px;
-        padding-bottom: 5px;
-        margin-bottom: 5px;
-    }
-
-    .log-messages {
-        max-height: 80px;
-        font-size: 10px;
-    }
-
-    .footer-actions {
-        flex-direction: row;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 5px;
-    }
-
-    .footer-actions .btn {
-        flex: 1 1 auto;
-        min-width: 90px;
-        padding: 8px 5px;
-        font-size: 11px;
-        min-height: 36px;
-    }
-
-    .winner-title {
-        font-size: 28px;
-    }
-
-    .winner-stats {
-        gap: 10px;
-        padding: 0 10px;
-    }
-
-    .winner-stat {
-        padding: 8px;
-    }
-
-    .winner-stat-value {
-        font-size: 20px;
-    }
-
-    .winner-stat-label {
-        font-size: 10px;
-    }
-
-    .fight-btn {
-        padding: 15px 30px;
-        font-size: 16px;
-        min-width: 200px;
-    }
-
-    .selector-card {
-        padding: 15px;
-        min-width: 240px;
-    }
-
-    .selector-card h2 {
-        font-size: 18px;
-        margin-bottom: 12px;
-    }
-
-    .selector-group select {
-        padding: 6px 10px;
-        font-size: 12px;
-        min-height: 36px;
-    }
-}
-
-/* Очень маленькие телефоны 320px */
-@media (max-width: 360px) {
-    :root {
-        --font-size-xxxl: 20px;
-    }
-
-    .logo h1 {
-        font-size: 12px;
-    }
-
-    .gen-badge {
-        padding: 3px 5px;
-        font-size: 10px;
-    }
-
-    .header-controls .btn {
-        padding: 3px 5px;
-        font-size: 10px;
-    }
-
-    .footer-actions .btn {
-        min-width: 70px;
-        font-size: 10px;
-        padding: 6px 3px;
-    }
-
-    .stats-grid {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .stat-card .value {
-        font-size: 14px;
-    }
-
-    .selector-card {
-        min-width: 200px;
-        padding: 10px;
-    }
-
-    .fight-btn {
-        padding: 12px 20px;
-        font-size: 14px;
-        min-width: 160px;
-    }
-}
-
         html {
             font-size: 16px;
             -webkit-text-size-adjust: 100%;
@@ -458,41 +111,6 @@
             gap: var(--spacing-sm);
             padding: var(--spacing-sm);
             position: relative;
-        }
-
-        @media (max-width: 1024px) {
-    .app {
-        grid-template-columns: 1fr;
-        grid-template-rows: var(--header-height) auto auto auto auto;
-        grid-template-areas: 
-            "header"
-            "arena"
-            "left"
-            "right"
-            "footer";
-        overflow-y: auto; /* это уже есть */
-        padding-bottom: var(--spacing-lg);
-        height: auto; /* ДОБАВИТЬ */
-        min-height: 100vh; /* ДОБАВИТЬ */
-    }
-
-    .footer {
-        overflow-y: auto; /* ДОБАВИТЬ */
-        max-height: 500px; /* ДОБАВИТЬ */
-    }
-
-    .arena {
-        min-height: 300px; /* ДОБАВИТЬ */
-        overflow: visible; /* ДОБАВИТЬ */
-    }
-        }
-
-        @media (max-width: 480px) {
-            .app {
-                grid-template-rows: var(--header-height) 45vh auto auto auto;
-                padding: var(--spacing-xs);
-                gap: var(--spacing-xs);
-            }
         }
 
         /* ========================================
@@ -568,16 +186,6 @@
             gap: var(--spacing-sm);
             position: relative;
             z-index: 2;
-        }
-
-        @media (max-width: 480px) {
-            .header-controls {
-                gap: var(--spacing-xs);
-            }
-            .header-controls .btn {
-                padding: var(--spacing-xs) var(--spacing-sm);
-                font-size: var(--font-size-xs);
-            }
         }
 
         /* ========================================
@@ -657,6 +265,7 @@
             display: flex;
             flex-direction: column;
             gap: var(--spacing-md);
+            max-height: 100%;
         }
 
         .panel-left {
@@ -681,14 +290,6 @@
             font-weight: 600;
             font-size: var(--font-size-lg);
             flex-shrink: 0;
-        }
-
-        @media (max-width: 480px) {
-            .panel-header {
-                font-size: var(--font-size-md);
-                padding-bottom: var(--spacing-sm);
-                margin-bottom: var(--spacing-sm);
-            }
         }
 
         .led {
@@ -790,12 +391,6 @@
             gap: var(--spacing-xs);
             margin: var(--spacing-md) 0;
             flex-shrink: 0;
-        }
-
-        @media (max-width: 480px) {
-            .emotion-grid {
-                grid-template-columns: 1fr;
-            }
         }
 
         .emotion-item {
@@ -914,12 +509,6 @@
             line-height: 1.1;
         }
 
-        @media (max-width: 480px) {
-            .winner-title {
-                font-size: var(--font-size-xxl);
-            }
-        }
-
         @keyframes winGlow {
             0%, 100% { filter: brightness(1); transform: scale(1); }
             50% { filter: brightness(1.4); transform: scale(1.05); }
@@ -932,13 +521,6 @@
             margin-bottom: var(--spacing-xl);
             width: 100%;
             max-width: 500px;
-        }
-
-        @media (max-width: 480px) {
-            .winner-stats {
-                grid-template-columns: 1fr;
-                gap: var(--spacing-md);
-            }
         }
 
         .winner-stat {
@@ -972,24 +554,11 @@
             min-height: var(--footer-height);
         }
 
-        @media (max-width: 1024px) {
-            .footer {
-                grid-template-columns: 1fr;
-                grid-template-rows: auto auto auto;
-            }
-        }
-
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: var(--spacing-sm);
             margin-bottom: var(--spacing-md);
-        }
-
-        @media (max-width: 480px) {
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
         }
 
         .stat-card {
@@ -1068,20 +637,6 @@
             justify-content: center;
         }
 
-        @media (max-width: 480px) {
-            .footer-actions {
-                flex-direction: row;
-                flex-wrap: wrap;
-            }
-            .footer-actions .btn {
-                flex: 1;
-                min-width: 100px;
-                justify-content: center;
-                padding: var(--spacing-xs) var(--spacing-sm);
-                font-size: var(--font-size-xs);
-            }
-        }
-
         /* ========================================
            MAIN MENU OVERLAY
            ======================================== */
@@ -1119,13 +674,6 @@
             line-height: 1.1;
         }
 
-        @media (max-width: 480px) {
-            .menu h1 {
-                font-size: var(--font-size-xxl);
-                margin-bottom: var(--spacing-lg);
-            }
-        }
-
         @keyframes titleDance {
             0%, 100% { transform: translateY(0) rotate(0deg); }
             25% { transform: translateY(-10px) rotate(-1deg); }
@@ -1140,14 +688,6 @@
             justify-content: center;
             width: 100%;
             max-width: 900px;
-        }
-
-        @media (max-width: 768px) {
-            .selector-container {
-                gap: var(--spacing-lg);
-                flex-direction: column;
-                align-items: center;
-            }
         }
 
         .selector-card {
@@ -1228,14 +768,6 @@
             letter-spacing: 1px;
             min-width: 300px;
             align-self: center;
-        }
-
-        @media (max-width: 480px) {
-            .fight-btn {
-                padding: var(--spacing-md) var(--spacing-lg);
-                font-size: var(--font-size-md);
-                min-width: 240px;
-            }
         }
 
         .fight-btn:hover {
@@ -1398,6 +930,356 @@
         }
         .status-flash {
             animation: statusFlash 0.3s ease-in-out;
+        }
+
+        /* ========================================
+           МЕДИА-ЗАПРОСЫ ДЛЯ ВСЕХ ЭКРАНОВ
+           ======================================== */
+
+        /* 4K и больше */
+        @media (min-width: 1921px) {
+            :root {
+                --header-height: 100px;
+                --footer-height: 350px;
+                --panel-width: 400px;
+                --font-size-xxxl: 4rem;
+                --font-size-xxl: 2.5rem;
+                --font-size-xl: 2rem;
+                --spacing-lg: 32px;
+            }
+        }
+
+        /* Десктоп 1920px */
+        @media (max-width: 1920px) and (min-width: 1441px) {
+            :root {
+                --header-height: 80px;
+                --footer-height: 300px;
+                --panel-width: 350px;
+            }
+        }
+
+        /* Ноутбуки */
+        @media (max-width: 1440px) and (min-width: 1025px) {
+            :root {
+                --header-height: 70px;
+                --footer-height: 280px;
+                --panel-width: 300px;
+                --font-size-lg: 1.1rem;
+            }
+        }
+
+        /* ВСЕ МОБИЛЬНЫЕ УСТРОЙСТВА (планшеты и телефоны) */
+        @media (max-width: 1024px) {
+            .app {
+                display: flex !important;
+                flex-direction: column !important;
+                height: auto !important;
+                min-height: 100vh !important;
+                overflow-y: auto !important;
+                padding: 5px !important;
+                gap: 5px !important;
+            }
+
+            .header {
+                flex-shrink: 0;
+                position: sticky;
+                top: 0;
+                z-index: 100;
+            }
+
+            .arena {
+                min-height: 300px;
+                height: 40vh;
+                flex-shrink: 0;
+            }
+
+            .panel-left, 
+            .panel-right,
+            .footer {
+                flex-shrink: 0;
+                max-height: none !important;
+                height: auto !important;
+                overflow-y: visible !important;
+            }
+
+            .panel-left,
+            .panel-right {
+                max-height: 400px !important;
+                overflow-y: auto !important;
+            }
+
+            .footer {
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 10px !important;
+                padding-bottom: 20px !important;
+            }
+
+            .footer > .panel {
+                width: 100%;
+            }
+
+            .stats-grid {
+                max-height: 150px !important;
+                overflow-y: auto !important;
+            }
+
+            .fighter-list {
+                max-height: 100px !important;
+                overflow-y: auto !important;
+            }
+
+            .footer-actions {
+                display: flex !important;
+                flex-direction: row !important;
+                flex-wrap: wrap !important;
+                justify-content: center !important;
+                gap: 8px !important;
+            }
+
+            .footer-actions .btn {
+                flex: 0 1 auto !important;
+                min-width: 120px !important;
+            }
+
+            .header-controls {
+                gap: 5px;
+            }
+
+            .header-controls .btn {
+                padding: 5px 10px;
+                font-size: 12px;
+                min-height: 32px;
+            }
+
+            .logo h1 {
+                font-size: 1.2rem;
+            }
+
+            .gen-badge {
+                padding: 5px 10px;
+                font-size: 12px;
+            }
+
+            .winner-stats {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+        }
+
+        /* Планшеты вертикально */
+        @media (max-width: 768px) {
+            :root {
+                --header-height: 60px;
+                --footer-height: auto;
+                --spacing-md: 12px;
+            }
+
+            .arena {
+                height: 35vh;
+                min-height: 250px;
+            }
+
+            .panel-left,
+            .panel-right {
+                max-height: 350px !important;
+            }
+
+            .footer-actions .btn {
+                min-width: 100px !important;
+                font-size: 12px !important;
+                padding: 8px 10px !important;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .emotion-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .selector-container {
+                gap: 15px;
+            }
+        }
+
+        /* Телефоны */
+        @media (max-width: 480px) {
+            :root {
+                --header-height: 50px;
+                --spacing-sm: 4px;
+                --spacing-md: 8px;
+                --spacing-lg: 12px;
+                --font-size-sm: 11px;
+                --font-size-md: 13px;
+                --font-size-lg: 15px;
+                --font-size-xl: 17px;
+                --font-size-xxl: 19px;
+                --font-size-xxxl: 22px;
+            }
+
+            .arena {
+                height: 30vh;
+                min-height: 200px;
+            }
+
+            .panel-left,
+            .panel-right {
+                max-height: 300px !important;
+            }
+
+            .logo h1 {
+                font-size: 13px;
+            }
+
+            .gen-badge {
+                padding: 3px 6px;
+                font-size: 10px;
+            }
+
+            .header-controls .btn {
+                padding: 3px 6px;
+                font-size: 10px;
+                min-height: 28px;
+            }
+
+            .panel {
+                padding: 8px;
+            }
+
+            .panel-header {
+                font-size: 13px;
+                padding-bottom: 5px;
+                margin-bottom: 5px;
+            }
+
+            .stat-row {
+                font-size: 11px;
+                padding: 1px 0;
+            }
+
+            .stat-value {
+                min-width: 25px;
+            }
+
+            .progress-bar {
+                height: 5px;
+                margin: 1px 0;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr !important;
+                gap: 3px;
+            }
+
+            .stat-card {
+                padding: 5px 3px;
+            }
+
+            .stat-card .value {
+                font-size: 14px;
+            }
+
+            .stat-card div:last-child {
+                font-size: 9px;
+            }
+
+            .footer-actions .btn {
+                min-width: 80px !important;
+                font-size: 10px !important;
+                padding: 6px 4px !important;
+            }
+
+            .fighter-list {
+                max-height: 70px;
+                font-size: 10px;
+            }
+
+            .fighter-row {
+                padding: 2px 4px;
+            }
+
+            .log-header {
+                font-size: 11px;
+                padding-bottom: 3px;
+                margin-bottom: 3px;
+            }
+
+            .log-messages {
+                max-height: 70px;
+                font-size: 9px;
+            }
+
+            .winner-title {
+                font-size: 24px;
+            }
+
+            .winner-stats {
+                gap: 5px;
+                padding: 0 5px;
+            }
+
+            .winner-stat {
+                padding: 5px;
+            }
+
+            .winner-stat-value {
+                font-size: 18px;
+            }
+
+            .winner-stat-label {
+                font-size: 9px;
+            }
+
+            .selector-card {
+                padding: 10px;
+                min-width: 240px;
+            }
+
+            .selector-card h2 {
+                font-size: 16px;
+                margin-bottom: 8px;
+            }
+
+            .selector-group select {
+                padding: 5px 8px;
+                font-size: 11px;
+                min-height: 32px;
+            }
+
+            .fight-btn {
+                padding: 10px 20px;
+                font-size: 14px;
+                min-width: 200px;
+            }
+        }
+
+        /* Очень маленькие телефоны */
+        @media (max-width: 360px) {
+            .footer-actions .btn {
+                min-width: 70px !important;
+                font-size: 9px !important;
+                padding: 5px 2px !important;
+            }
+
+            .stat-card .value {
+                font-size: 12px;
+            }
+
+            .logo h1 {
+                font-size: 11px;
+            }
+
+            .header-controls .btn {
+                padding: 2px 4px;
+                font-size: 9px;
+            }
+
+            .selector-card {
+                min-width: 200px;
+                padding: 8px;
+            }
         }
     </style>
 </head>
@@ -4565,4 +4447,4 @@
         })();
     </script>
 </body>
-    </html>
+                    </html>
