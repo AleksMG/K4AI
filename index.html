@@ -1092,6 +1092,157 @@
                 width: 140px !important;
             }
         }
+        /* ========================================
+   ИСПРАВЛЕНИЕ СКРОЛЛИНГА ЭКРАНА ПОБЕДИТЕЛЯ
+   ======================================== */
+.winner-screen {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background: rgba(10,12,18,0.98) !important;
+    backdrop-filter: blur(20px) !important;
+    z-index: 1000 !important;
+    
+    /* КРИТИЧЕСКИ ВАЖНО ДЛЯ СКРОЛЛИНГА */
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    display: block !important;
+    
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.5s ease;
+    padding: 20px !important;
+}
+
+.winner-screen.visible {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+.winner-title {
+    font-size: 2.5rem !important;
+    font-weight: 900 !important;
+    margin: 20px auto 25px auto !important;
+    text-align: center !important;
+    width: 100% !important;
+    position: relative !important;
+}
+
+.winner-stats {
+    width: 100% !important;
+    max-width: 500px !important;
+    margin: 0 auto 25px auto !important;
+    
+    /* ВЕРТИКАЛЬНЫЙ СПИСОК */
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    
+    /* СКРОЛЛИНГ ВНУТРИ СТАТИСТИКИ */
+    max-height: 50vh !important;
+    overflow-y: auto !important;
+    padding: 10px !important;
+}
+
+.winner-stat {
+    width: 100% !important;
+    text-align: center !important;
+    padding: 15px !important;
+    background: var(--color-bg-tertiary) !important;
+    border-radius: var(--border-radius-md) !important;
+    border: 1px solid var(--color-border) !important;
+    flex-shrink: 0 !important;
+}
+
+.winner-stat-value {
+    font-size: 1.8rem !important;
+    font-weight: 900 !important;
+    font-family: monospace !important;
+    margin-bottom: 5px !important;
+}
+
+.winner-stat-label {
+    font-size: 0.9rem !important;
+    color: var(--color-text-secondary) !important;
+}
+
+#rematchBtn {
+    margin: 10px auto 30px auto !important;
+    display: block !important;
+    width: 200px !important;
+}
+
+/* МОБИЛЬНЫЕ ТЕЛЕФОНЫ */
+@media (max-width: 768px) {
+    .winner-title {
+        font-size: 2rem !important;
+        margin: 15px auto 20px auto !important;
+    }
+    
+    .winner-stats {
+        max-height: 55vh !important;
+        gap: 10px !important;
+        padding: 8px !important;
+    }
+    
+    .winner-stat {
+        padding: 12px !important;
+    }
+    
+    .winner-stat-value {
+        font-size: 1.5rem !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .winner-title {
+        font-size: 1.6rem !important;
+        margin: 10px auto 15px auto !important;
+    }
+    
+    .winner-stats {
+        max-height: 60vh !important;
+        gap: 8px !important;
+        padding: 5px !important;
+    }
+    
+    .winner-stat {
+        padding: 10px !important;
+    }
+    
+    .winner-stat-value {
+        font-size: 1.2rem !important;
+    }
+    
+    .winner-stat-label {
+        font-size: 0.8rem !important;
+    }
+    
+    #rematchBtn {
+        width: 160px !important;
+        padding: 10px !important;
+    }
+}
+
+@media (max-width: 360px) {
+    .winner-title {
+        font-size: 1.4rem !important;
+    }
+    
+    .winner-stats {
+        max-height: 65vh !important;
+    }
+    
+    .winner-stat {
+        padding: 8px !important;
+    }
+    
+    .winner-stat-value {
+        font-size: 1rem !important;
+    }
+        }
     </style>
 </head>
 <body>
