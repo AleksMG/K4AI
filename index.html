@@ -3,97 +3,695 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FURY FIST - REAL AI</title>
+    <title>FURY FIST: NEURAL ARENA [PROFESSIONAL EDITION]</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700;800&family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
-        /* СТИЛИ БЕЗ ИЗМЕНЕНИЙ - ОСТАВЬ КАК ЕСТЬ */
+        /* ============================================
+           CSS VARIABLES & THEME
+           ============================================ */
         :root {
-            --bg: #0a0a0f;
-            --fg: #e8e8e8;
-            --accent: #ff3366;
-            --accent2: #00ff88;
-            --muted: #333344;
-            --card: #15151f;
-            --border: #2a2a3a;
+            --bg-primary: #020204;
+            --bg-secondary: #08080c;
+            --bg-panel: #0d0d14;
+            --bg-card: #14141f;
+            --bg-input: #1a1a2e;
+            
+            --color-primary: #ff2a6d;
+            --color-secondary: #05d9e8;
+            --color-accent: #7b2cbf;
+            --color-success: #10b981;
+            --color-warning: #f59e0b;
+            --color-error: #ef4444;
+            --color-info: #3b82f6;
+            
+            --text-primary: #f0f0f5;
+            --text-secondary: #a0a0b0;
+            --text-muted: #606070;
+            
+            --border-default: #1f1f2e;
+            --border-highlight: #2a2a3e;
+            
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+            --shadow-md: 0 4px 8px rgba(0,0,0,0.4);
+            --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+            --shadow-glow-red: 0 0 20px rgba(255,42,109,0.4);
+            --shadow-glow-blue: 0 0 20px rgba(5,217,232,0.4);
+            
+            --transition-fast: 0.1s ease;
+            --transition-normal: 0.2s ease;
+            --transition-slow: 0.3s ease;
+            
+            --font-mono: 'JetBrains Mono', monospace;
+            --font-display: 'Orbitron', sans-serif;
         }
-        
-        * {
+
+        /* ============================================           RESET & BASE
+           ============================================ */
+        *, *::before, *::after {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
-        body {
-            font-family: 'Press Start 2P', monospace;
-            background: var(--bg);
-            color: var(--fg);
-            min-height: 100vh;
-            overflow-x: hidden;
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: var(--font-mono);
+            font-size: 14px;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
-        
-        .game-container {
+
+        ::selection {
+            background: var(--color-primary);
+            color: #fff;
+        }
+
+        /* ============================================
+           CRT & VISUAL EFFECTS
+           ============================================ */
+        .crt-overlay {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 9999;
+            background: 
+                linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.12) 50%),
+                linear-gradient(90deg, rgba(255,0,0,0.02), rgba(0,255,0,0.01), rgba(0,0,255,0.02));
+            background-size: 100% 2px, 3px 100%;
+            opacity: 0.5;
+        }
+
+        .crt-overlay::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.3) 100%);
+        }
+
+        .scanline {
+            position: fixed;            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent);
+            animation: scanlineMove 8s linear infinite;
+            pointer-events: none;
+            z-index: 9998;
+        }
+
+        @keyframes scanlineMove {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100vh); }
+        }
+
+        .vignette {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.5) 100%);
+            pointer-events: none;
+            z-index: 9997;
+        }
+
+        .chromatic-aberration {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 9996;
+            mix-blend-mode: screen;
+        }
+
+        .chromatic-aberration::before,
+        .chromatic-aberration::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            opacity: 0.03;
+        }
+
+        .chromatic-aberration::before {
+            background: rgba(255,0,0,0.1);
+            transform: translateX(-1px);
+        }
+
+        .chromatic-aberration::after {
+            background: rgba(0,255,255,0.1);
+            transform: translateX(1px);
+        }
+
+        /* ============================================
+           LAYOUT STRUCTURE
+           ============================================ */        .app-container {
+            display: grid;
+            grid-template-columns: 1fr 450px;
+            grid-template-rows: 70px 1fr 320px;
+            width: 100%;
+            height: 100vh;
+            gap: 1px;
+            background: var(--border-default);
+        }
+
+        /* ============================================
+           HEADER
+           ============================================ */
+        .app-header {
+            grid-column: 1 / -1;
+            grid-row: 1 / 2;
+            background: var(--bg-panel);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            border-bottom: 1px solid var(--border-default);
+            position: relative;
+        }
+
+        .app-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--color-primary), var(--color-secondary), transparent);
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo-main {
+            font-family: var(--font-display);
+            font-size: 1.75rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 50%, var(--color-accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 40px rgba(255,42,109,0.3);            letter-spacing: 2px;
+        }
+
+        .logo-subtitle {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            padding-left: 12px;
+            border-left: 2px solid var(--border-highlight);
+        }
+
+        .header-stats {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .header-stat {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 16px;
+            background: var(--bg-card);
+            border-radius: 4px;
+            border: 1px solid var(--border-default);
+        }
+
+        .stat-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--color-success);
+            box-shadow: 0 0 10px var(--color-success);
+            animation: statusPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes statusPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(0.9); }
+        }
+
+        .stat-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .stat-value {
+            font-family: var(--font-display);
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        /* ============================================
+           GAME SECTION
+           ============================================ */
+        .game-section {
+            grid-column: 1 / 2;
+            grid-row: 2 / 3;
+            background: var(--bg-primary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #gameCanvas {
+            width: 100%;
+            height: 100%;
             image-rendering: pixelated;
             image-rendering: crisp-edges;
+            display: block;
         }
-        
-        .scanlines {
+
+        /* ============================================
+           HUD OVERLAY
+           ============================================ */
+        .hud-overlay {
             position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            background: repeating-linear-gradient(
-                0deg,
-                rgba(0, 0, 0, 0.15) 0px,
-                rgba(0, 0, 0, 0.15) 1px,
-                transparent 1px,
-                transparent 2px
-            );
+            right: 0;
+            padding: 24px 48px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
             z-index: 100;
+            pointer-events: none;
         }
-        
-        .crt-effect {
+
+        .health-wrapper {
+            width: 38%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .health-wrapper.right {            align-items: flex-end;
+        }
+
+        .agent-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .health-wrapper.right .agent-info {
+            flex-direction: row-reverse;
+        }
+
+        .agent-icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-display);
+            font-size: 1.2rem;
+            font-weight: 900;
+            border-radius: 4px;
+            background: var(--bg-card);
+            border: 2px solid;
+        }
+
+        .agent-icon.red {
+            color: var(--color-primary);
+            border-color: var(--color-primary);
+            box-shadow: var(--shadow-glow-red);
+        }
+
+        .agent-icon.blue {
+            color: var(--color-secondary);
+            border-color: var(--color-secondary);
+            box-shadow: var(--shadow-glow-blue);
+        }
+
+        .agent-name {
+            font-family: var(--font-display);
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .agent-name.red { color: var(--color-primary); }
+        .agent-name.blue { color: var(--color-secondary); }
+        .agent-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 0.65rem;
+            color: var(--text-muted);
+        }
+
+        .health-track {
+            width: 100%;
+            height: 32px;
+            background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%);
+            border: 2px solid #2a2a3e;
+            transform: skewX(-20deg);
+            overflow: hidden;
             position: relative;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
         }
-        
-        .crt-effect::before {
+
+        .health-fill {
+            height: 100%;
+            width: 100%;
+            position: relative;
+            transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .health-fill.red {
+            background: linear-gradient(90deg, 
+                #ff0044 0%, 
+                #ff2a6d 30%, 
+                #ff4d85 50%, 
+                #ff2a6d 70%, 
+                #cc0033 100%);
+            box-shadow: 0 0 30px rgba(255,42,109,0.6);
+        }
+
+        .health-fill.blue {
+            background: linear-gradient(90deg, 
+                #0099aa 0%, 
+                #05d9e8 30%, 
+                #2ee8f9 50%, 
+                #05d9e8 70%, 
+                #006677 100%);
+            box-shadow: 0 0 30px rgba(5,217,232,0.6);
+        }
+
+        .health-fill::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;            right: 0;
+            height: 50%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.4) 0%, transparent 100%);
+        }
+
+        .health-fill::after {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.4) 100%);
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 10px,
+                rgba(0,0,0,0.1) 10px,
+                rgba(0,0,0,0.1) 20px
+            );
+        }
+
+        .health-value {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) skewX(20deg);
+            font-family: var(--font-display);
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(0,0,0,0.8);
+            z-index: 10;
+        }
+
+        .timer-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .timer-label {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .timer-display {
+            font-family: var(--font-display);            font-size: 3.5rem;
+            font-weight: 900;
+            color: #fff;
+            background: linear-gradient(180deg, #ffffff 0%, #a0a0a0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            padding: 8px 32px;
+            border: 3px solid #fff;
+            border-radius: 6px;
+            text-shadow: 0 0 30px rgba(255,255,255,0.5);
+            min-width: 140px;
+            text-align: center;
+        }
+
+        .timer-display.warning {
+            animation: timerPulse 0.5s ease-in-out infinite;
+        }
+
+        @keyframes timerPulse {
+            0%, 100% { color: #fff; border-color: #fff; }
+            50% { color: var(--color-error); border-color: var(--color-error); }
+        }
+
+        /* ============================================
+           ROUND ANNOUNCE & COMBO
+           ============================================ */
+        .round-announce {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: var(--font-display);
+            font-size: 5rem;
+            font-weight: 900;
+            text-align: center;
             pointer-events: none;
-            z-index: 99;
+            z-index: 200;
+            display: none;
+            text-shadow: 
+                0 0 50px rgba(0,0,0,0.9),
+                0 0 100px currentColor;
+            letter-spacing: 10px;
         }
-        
-        @keyframes flicker {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.98; }
+
+        .round-announce.animate {
+            animation: roundAnnounceAnim 1.5s ease-out forwards;
         }
-        
-        .game-canvas {
-            animation: flicker 0.1s infinite;
+
+        @keyframes roundAnnounceAnim {            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            20% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            40% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            80% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
         }
-        
-        .health-bar {
-            height: 20px;
-            background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%);
-            border: 2px solid var(--border);
-            position: relative;
+
+        .combo-display {
+            position: absolute;
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            font-weight: 900;
+            pointer-events: none;
+            z-index: 150;
+            text-shadow: 
+                0 0 20px rgba(0,0,0,0.9),
+                0 0 40px currentColor;
+        }
+
+        .combo-display.animate {
+            animation: comboFloat 0.8s ease-out forwards;
+        }
+
+        @keyframes comboFloat {
+            0% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
+            50% { transform: translateY(-40px) scale(1.3) rotate(-5deg); opacity: 1; }
+            100% { transform: translateY(-100px) scale(1.5) rotate(5deg); opacity: 0; }
+        }
+
+        .damage-number {
+            position: absolute;
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 900;
+            pointer-events: none;
+            z-index: 140;
+            text-shadow: 0 0 10px rgba(0,0,0,0.8);
+        }
+
+        .damage-number.animate {
+            animation: damageFloat 0.6s ease-out forwards;
+        }
+
+        @keyframes damageFloat {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-60px) scale(1.2); opacity: 0; }
+        }
+
+        /* ============================================
+           DASHBOARD PANEL           ============================================ */
+        .dashboard-panel {
+            grid-column: 2 / 3;
+            grid-row: 2 / 4;
+            background: var(--bg-panel);
+            border-left: 1px solid var(--border-default);
+            display: flex;
+            flex-direction: column;
             overflow: hidden;
         }
-        
-        .health-fill {
-            height: 100%;
-            transition: width 0.15s ease-out;
+
+        .dashboard-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .dashboard-section {
+            background: var(--bg-card);
+            border-radius: 8px;
+            border: 1px solid var(--border-default);
+            overflow: hidden;
+        }
+
+        .section-header {
+            padding: 16px 20px;
+            background: linear-gradient(180deg, var(--bg-input) 0%, transparent 100%);
+            border-bottom: 1px solid var(--border-default);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--color-secondary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .section-icon {
+            width: 20px;            height: 20px;
+            opacity: 0.8;
+        }
+
+        .section-body {
+            padding: 20px;
+        }
+
+        /* ============================================
+           STAT CARDS
+           ============================================ */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .stat-card {
+            background: var(--bg-input);
+            border-radius: 6px;
+            padding: 16px;
+            border: 1px solid var(--border-default);
+            transition: all var(--transition-normal);
+        }
+
+        .stat-card:hover {
+            border-color: var(--border-highlight);
+            transform: translateY(-2px);
+        }
+
+        .stat-card.red { border-left: 3px solid var(--color-primary); }
+        .stat-card.blue { border-left: 3px solid var(--color-secondary); }
+        .stat-card.green { border-left: 3px solid var(--color-success); }
+        .stat-card.yellow { border-left: 3px solid var(--color-warning); }
+
+        .stat-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .stat-card-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-card-icon {            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .stat-card-value {
+            font-family: var(--font-display);
+            font-size: 1.75rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .stat-card-subvalue {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* ============================================
+           PROGRESS BARS
+           ============================================ */
+        .progress-container {
+            margin-top: 12px;
+        }
+
+        .progress-track {
+            height: 8px;
+            background: var(--bg-primary);
+            border-radius: 4px;
+            overflow: hidden;
             position: relative;
         }
-        
-        .health-fill::after {
+
+        .progress-track::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 4px,
+                rgba(0,0,0,0.2) 4px,
+                rgba(0,0,0,0.2) 8px
+            );
+        }
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .progress-fill::after {
             content: '';
             position: absolute;
             top: 0;
@@ -102,1796 +700,2776 @@
             height: 50%;
             background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, transparent 100%);
         }
-        
-        .p1-health {
-            background: linear-gradient(90deg, #ff0044 0%, #ff3366 50%, #ff6699 100%);
+
+        .progress-fill.red { 
+            background: linear-gradient(90deg, var(--color-primary), #ff6b9d);
+            box-shadow: 0 0 10px var(--color-primary);
         }
-        
-        .p2-health {
-            background: linear-gradient(90deg, #00cc66 0%, #00ff88 50%, #66ffaa 100%);
+        .progress-fill.blue { 
+            background: linear-gradient(90deg, var(--color-secondary), #4ff0ff);
+            box-shadow: 0 0 10px var(--color-secondary);
         }
-        
-        .stat-panel {
-            background: linear-gradient(180deg, var(--card) 0%, #0d0d14 100%);
-            border: 2px solid var(--border);
-            border-radius: 4px;
+        .progress-fill.green { 
+            background: linear-gradient(90deg, var(--color-success), #34d399);
+            box-shadow: 0 0 10px var(--color-success);
         }
-        
-        .btn {
-            font-family: 'Press Start 2P', monospace;
-            font-size: 10px;
-            padding: 12px 20px;
-            border: none;
-            cursor: pointer;
-            transition: all 0.1s;
+        .progress-fill.yellow { 
+            background: linear-gradient(90deg, var(--color-warning), #fcd34d);
+            box-shadow: 0 0 10px var(--color-warning);
+        }
+
+        /* ============================================
+           METRICS GRID
+           ============================================ */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .metric-box {
+            background: var(--bg-primary);
+            border-radius: 6px;
+            padding: 12px;
+            text-align: center;
+            border: 1px solid var(--border-default);        }
+
+        .metric-value {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .metric-label {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 4px;
+        }
+
+        /* ============================================
+           CHART CONTAINER
+           ============================================ */
+        .chart-container {
+            background: var(--bg-primary);
+            border-radius: 6px;
+            padding: 16px;
+            border: 1px solid var(--border-default);
+            height: 200px;
+            position: relative;
+        }
+
+        /* ============================================
+           NEURAL VISUALIZATION
+           ============================================ */
+        .neural-viz-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .neural-layer {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .neural-layer-label {
+            width: 60px;
+            font-size: 0.6rem;
+            color: var(--text-muted);
             text-transform: uppercase;
         }
-        
-        .btn:active {
-            transform: scale(0.95);
+        .neuron-row {
+            display: flex;
+            gap: 3px;
+            flex: 1;
         }
-        
-        .btn-primary {
-            background: linear-gradient(180deg, var(--accent) 0%, #cc0033 100%);
-            color: white;
-            box-shadow: 0 4px 0 #990022, 0 6px 10px rgba(0,0,0,0.5);
-        }
-        
-        .btn-primary:hover {
-            background: linear-gradient(180deg, #ff4477 0%, #dd0044 100%);
-        }
-        
-        .btn-secondary {
-            background: linear-gradient(180deg, var(--accent2) 0%, #00aa66 100%);
-            color: black;
-            box-shadow: 0 4px 0 #008844, 0 6px 10px rgba(0,0,0,0.5);
-        }
-        
-        .combo-display {
-            position: absolute;
-            font-size: 24px;
-            color: var(--accent);
-            text-shadow: 2px 2px 0 black, -2px -2px 0 black, 2px -2px 0 black, -2px 2px 0 black;
-            animation: comboAnim 0.5s ease-out forwards;
-            pointer-events: none;
-        }
-        
-        @keyframes comboAnim {
-            0% { transform: scale(0.5); opacity: 0; }
-            50% { transform: scale(1.3); }
-            100% { transform: scale(1); opacity: 1; }
-        }
-        
-        .round-announce {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 32px;
-            color: var(--accent);
-            text-shadow: 3px 3px 0 black;
-            animation: roundAnim 1.5s ease-out forwards;
-            pointer-events: none;
-            z-index: 200;
-        }
-        
-        @keyframes roundAnim {
-            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
-            30% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
-            70% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-            100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
-        }
-        
-        .ai-stats {
-            font-size: 8px;
-            line-height: 1.8;
-        }
-        
-        .progress-bar {
-            height: 8px;
-            background: var(--muted);
+
+        .neuron {
+            flex: 1;
+            height: 10px;
+            background: var(--bg-input);
             border-radius: 2px;
+            transition: all 0.1s ease;
+        }
+
+        .neuron.active {
+            background: var(--color-secondary);
+            box-shadow: 0 0 8px var(--color-secondary);
+        }
+
+        .neuron.strong {
+            background: var(--color-primary);
+            box-shadow: 0 0 12px var(--color-primary);
+        }
+
+        /* ============================================
+           ACTION DISTRIBUTION
+           ============================================ */
+        .action-dist-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .action-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .action-name {
+            width: 90px;
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        .action-bar-container {
+            flex: 1;
+            height: 6px;            background: var(--bg-input);
+            border-radius: 3px;
             overflow: hidden;
         }
-        
-        .progress-fill {
+
+        .action-bar-fill {
             height: 100%;
-            background: var(--accent2);
-            transition: width 0.3s;
+            background: linear-gradient(90deg, var(--color-secondary), #4ff0ff);
+            transition: width 0.3s ease;
         }
-        
-        @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
+
+        .action-percent {
+            width: 40px;
+            text-align: right;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* ============================================
+           CONTROL BUTTONS
+           ============================================ */
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 18px;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-radius: 6px;
+            border: 1px solid var(--border-default);
+            background: var(--bg-input);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity var(--transition-normal);
+        }
+
+        .btn:hover::before {
+            opacity: 1;
+        }
+
+        .btn:hover {
+            border-color: var(--border-highlight);
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary {
+            background: linear-gradient(180deg, var(--color-primary) 0%, #cc0044 100%);
+            border-color: var(--color-primary);
+            box-shadow: 0 4px 15px rgba(255,42,109,0.3);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 6px 25px rgba(255,42,109,0.5);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(180deg, var(--color-secondary) 0%, #0099aa 100%);
+            border-color: var(--color-secondary);
+            color: #000;
+            box-shadow: 0 4px 15px rgba(5,217,232,0.3);
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 6px 25px rgba(5,217,232,0.5);
+        }
+
+        .btn-danger {
+            background: linear-gradient(180deg, var(--color-error) 0%, #b91c1c 100%);
+            border-color: var(--color-error);
+            box-shadow: 0 4px 15px rgba(239,68,68,0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-icon {
+            font-size: 1rem;
+        }
+
+        /* ============================================
+           SYSTEM LOG
+           ============================================ */
+        .log-container {
+            flex: 1;
+            min-height: 200px;
+            max-height: 280px;
+            background: #000;
+            border-radius: 6px;
+            border: 1px solid var(--border-default);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .log-header {
+            padding: 10px 16px;
+            background: var(--bg-input);
+            border-bottom: 1px solid var(--border-default);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .log-title {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .log-clear-btn {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all var(--transition-fast);
+        }
+        .log-clear-btn:hover {
+            background: var(--bg-input);
+            color: var(--text-primary);
+        }
+
+        .log-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 16px;
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            line-height: 1.8;
+        }
+
+        .log-entry {
+            padding: 3px 0;
+            border-left: 2px solid transparent;
+            padding-left: 10px;
+            margin-bottom: 4px;
+            opacity: 0.9;
+            transition: all var(--transition-fast);
+        }
+
+        .log-entry:hover {
+            opacity: 1;
+            background: rgba(255,255,255,0.02);
+        }
+
+        .log-entry.info { 
+            border-color: var(--color-info); 
+            color: #93c5fd;
+        }
+        .log-entry.success { 
+            border-color: var(--color-success); 
+            color: #6ee7b7;
+        }
+        .log-entry.warn { 
+            border-color: var(--color-warning); 
+            color: #fcd34d;
+        }
+        .log-entry.error { 
+            border-color: var(--color-error); 
+            color: #fca5a5;
+        }
+        .log-entry.system { 
+            border-color: var(--color-primary); 
+            color: #f9a8d4;
+        }
+        .log-entry.training { 
+            border-color: var(--color-secondary);             color: #67e8f9;
+        }
+
+        .log-timestamp {
+            color: var(--text-muted);
+            margin-right: 8px;
+        }
+
+        /* ============================================
+           SCROLLBAR STYLING
+           ============================================ */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-highlight);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+        @media (max-width: 1400px) {
+            .app-container {
+                grid-template-columns: 1fr 380px;
             }
         }
+
+        @media (max-width: 1200px) {
+            .app-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: 70px 500px 1fr;
+            }
+            .dashboard-panel {
+                grid-column: 1 / 2;
+                grid-row: 3 / 4;
+                border-left: none;
+                border-top: 1px solid var(--border-default);
+            }
+        }
+        /* ============================================
+           UTILITY CLASSES
+           ============================================ */
+        .text-glow-red { text-shadow: 0 0 20px rgba(255,42,109,0.5); }
+        .text-glow-blue { text-shadow: 0 0 20px rgba(5,217,232,0.5); }
+        .border-glow-red { box-shadow: 0 0 20px rgba(255,42,109,0.3); }
+        .border-glow-blue { box-shadow: 0 0 20px rgba(5,217,232,0.3); }
+        
+        .animate-pulse { animation: pulse 2s ease-in-out infinite; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .hidden { display: none !important; }
+        .pointer-events-none { pointer-events: none; }
     </style>
 </head>
-<body class="p-4">
-    <div class="max-w-6xl mx-auto">
-        <!-- Header -->
-        <header class="text-center mb-4">
-            <h1 class="text-2xl md:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-[#ff3366] to-[#ff6699] mb-2" style="font-family: 'Press Start 2P', monospace; text-shadow: none;">
-                FURY FIST
-            </h1>
-            <p class="text-xs text-gray-500">REAL DQL AI Fighting System</p>
-        </header>
-        
-        <div class="grid lg:grid-cols-[1fr_280px] gap-4">
-            <!-- Game Area -->
-            <div class="crt-effect relative">
-                <div class="scanlines"></div>
-                
-                <!-- Health Bars -->
-                <div class="flex gap-4 mb-2 px-2">
-                    <div class="flex-1">
-                        <div class="flex justify-between text-xs mb-1">
-                            <span class="text-[#ff3366]">PLAYER 1</span>
-                            <span id="p1HealthText">100%</span>
-                        </div>
-                        <div class="health-bar">
-                            <div id="p1Health" class="health-fill p1-health" style="width: 100%;"></div>
-                        </div>
-                    </div>
-                    <div class="flex items-center justify-center w-20">
-                        <span id="timer" class="text-xl text-yellow-400">99</span>
-                    </div>
-                    <div class="flex-1">
-                        <div class="flex justify-between text-xs mb-1">
-                            <span id="p2HealthText">100%</span>
-                            <span class="text-[#00ff88]">AI FIGHTER</span>
-                        </div>
-                        <div class="health-bar">
-                            <div id="p2Health" class="health-fill p2-health" style="width: 100%; margin-left: auto;"></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Canvas -->
-                <div class="game-container relative bg-gradient-to-b from-[#1a1a2e] to-[#0f0f1a] border-2 border-[#2a2a3a] rounded overflow-hidden">
-                    <canvas id="gameCanvas" width="800" height="400" class="game-canvas w-full"></canvas>
-                    <div id="comboContainer"></div>
-                    <div id="roundAnnounce"></div>
-                </div>
-                
-                <!-- Controls -->
-                <div class="flex flex-wrap gap-2 mt-4 justify-center">
-                    <button id="btnTrain" class="btn btn-primary">Train AI</button>
-                    <button id="btnSave" class="btn btn-secondary">Save Brain</button>
-                    <button id="btnLoad" class="btn btn-secondary">Load Brain</button>
-                    <button id="btnReset" class="btn btn-primary">Reset Match</button>
-                    <button id="btnToggleAI" class="btn btn-secondary">AI vs AI</button>
-                </div>
-                
-                <!-- Instructions -->
-                <div class="stat-panel p-3 mt-4 text-xs">
-                    <p class="text-[#ff3366] mb-2">CONTROLS (Player 1):</p>
-                    <div class="grid grid-cols-2 gap-2 text-gray-400">
-                        <span>A/D - Move</span>
-                        <span>W - Jump</span>
-                        <span>J - Punch</span>
-                        <span>K - Kick</span>
-                        <span>L - Spin Kick</span>
-                        <span>S+K - Crouch Kick</span>
-                        <span>SPACE - Block</span>
-                    </div>
-                </div>
+<body>
+    <!-- Visual Effects Overlay -->
+    <div class="crt-overlay"></div>
+    <div class="scanline"></div>
+    <div class="vignette"></div>
+    <div class="chromatic-aberration"></div>
+
+    <div class="app-container">
+        <!-- ============================================
+             HEADER
+             ============================================ -->
+        <header class="app-header">
+            <div class="logo-container">
+                <h1 class="logo-main">FURY FIST</h1>
+                <span class="logo-subtitle">Neural Arena v2.0</span>
             </div>
             
-            <!-- AI Stats Panel -->
-            <div class="stat-panel p-4">
-                <h2 class="text-xs text-[#00ff88] mb-4 border-b border-[#2a2a3a] pb-2">AI NEURAL NETWORK</h2>
-                
-                <div class="ai-stats space-y-4">
-                    <div>
-                        <div class="flex justify-between mb-1">
-                            <span class="text-gray-400">Episodes Trained:</span>
-                            <span id="statEpisodes" class="text-[#00ff88]">0</span>
+            <div class="header-stats">
+                <div class="header-stat">
+                    <span class="stat-indicator"></span>
+                    <span class="stat-label">Status</span>
+                    <span class="stat-value" style="color: var(--color-success)">ACTIVE</span>
+                </div>
+                <div class="header-stat">
+                    <span class="stat-label">EPSILON</span>
+                    <span class="stat-value" id="headerEpsilon">1.000</span>
+                </div>
+                <div class="header-stat">
+                    <span class="stat-label">MEMORY</span>
+                    <span class="stat-value" id="headerMemory">0</span>
+                </div>                <div class="header-stat">
+                    <span class="stat-label">SPEED</span>
+                    <span class="stat-value" id="headerSpeed">1x</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- ============================================
+             GAME SECTION
+             ============================================ -->
+        <section class="game-section">
+            <canvas id="gameCanvas"></canvas>
+            
+            <!-- HUD Overlay -->
+            <div class="hud-overlay">
+                <!-- Player 1 Health -->
+                <div class="health-wrapper">
+                    <div class="agent-info">
+                        <div class="agent-icon red">R</div>
+                        <div>
+                            <div class="agent-name red">Agent Red</div>
+                            <div class="agent-stats">
+                                <span>WIN: <span id="hudRedWins">0</span></span>
+                                <span>|</span>
+                                <span>LOSS: <span id="hudRedLosses">0</span></span>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div>
-                        <div class="flex justify-between mb-1">
-                            <span class="text-gray-400">Win Rate:</span>
-                            <span id="statWinRate" class="text-[#ff3366]">0%</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div id="winRateBar" class="progress-fill" style="width: 0%;"></div>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <div class="flex justify-between mb-1">
-                            <span class="text-gray-400">Avg Loss:</span>
-                            <span id="statAvgLoss" class="text-yellow-400">0.000</span>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <div class="flex justify-between mb-1">
-                            <span class="text-gray-400">Epsilon (Explore):</span>
-                            <span id="statEpsilon" class="text-cyan-400">1.00</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div id="epsilonBar" class="progress-fill bg-cyan-400" style="width: 100%;"></div>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <div class="flex justify-between mb-1">
-                            <span class="text-gray-400">Gradient Norm:</span>
-                            <span id="statGradNorm" class="text-purple-400">0.00</span>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <div class="flex justify-between mb-1">
-                            <span class="text-gray-400">Memory Size:</span>
-                            <span id="statMemory" class="text-orange-400">0</span>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <div class="flex justify-between mb-1">
-                            <span class="text-gray-400">P1 Wins:</span>
-                            <span id="statP1Wins" class="text-[#ff3366]">0</span>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <div class="flex justify-between mb-1">
-                            <span class="text-gray-400">AI Wins:</span>
-                            <span id="statP2Wins" class="text-[#00ff88]">0</span>
+                    <div class="health-track">
+                        <div class="health-fill red" id="p1HealthFill">
+                            <span class="health-value" id="p1HealthValue">100%</span>
                         </div>
                     </div>
                 </div>
-                
-                <div class="mt-4 pt-4 border-t border-[#2a2a3a]">
-                    <h3 class="text-xs text-gray-500 mb-2">Action Distribution</h3>
-                    <div id="actionDist" class="space-y-1 text-xs">
-                        <div class="flex justify-between"><span class="text-gray-500">Punch:</span><span>0</span></div>
-                        <div class="flex justify-between"><span class="text-gray-500">Kick:</span><span>0</span></div>
-                        <div class="flex justify-between"><span class="text-gray-500">Spin Kick:</span><span>0</span></div>
-                        <div class="flex justify-between"><span class="text-gray-500">Crouch Kick:</span><span>0</span></div>
-                        <div class="flex justify-between"><span class="text-gray-500">Block:</span><span>0</span></div>
-                        <div class="flex justify-between"><span class="text-gray-500">Move:</span><span>0</span></div>
-                    </div>
+
+                <!-- Timer -->
+                <div class="timer-container">
+                    <span class="timer-label">Round Timer</span>
+                    <div class="timer-display" id="timerDisplay">99</div>
                 </div>
-                
-                <div class="mt-4 pt-4 border-t border-[#2a2a3a]">
-                    <h3 class="text-xs text-gray-500 mb-2">Training Progress</h3>
-                    <div id="trainingLog" class="h-24 overflow-y-auto text-xs text-gray-600 space-y-1">
-                        <p>Ready to train...</p>
+
+                <!-- Player 2 Health -->
+                <div class="health-wrapper right">
+                    <div class="agent-info">
+                        <div>
+                            <div class="agent-name blue" style="text-align: right;">Agent Green</div>
+                            <div class="agent-stats">
+                                <span>WIN: <span id="hudGreenWins">0</span></span>
+                                <span>|</span>
+                                <span>LOSS: <span id="hudGreenLosses">0</span></span>                            </div>
+                        </div>
+                        <div class="agent-icon blue">G</div>
+                    </div>
+                    <div class="health-track">
+                        <div class="health-fill blue" id="p2HealthFill">
+                            <span class="health-value" id="p2HealthValue">100%</span>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+
+            <!-- Round Announcement -->
+            <div class="round-announce" id="roundAnnounce"></div>
+            
+            <!-- Combo Container -->
+            <div id="comboContainer"></div>
+            
+            <!-- Damage Numbers Container -->
+            <div id="damageContainer"></div>
+        </section>
+
+        <!-- ============================================
+             DASHBOARD PANEL
+             ============================================ -->
+        <aside class="dashboard-panel">
+            <div class="dashboard-content">
+                
+                <!-- Agent Performance Section -->
+                <div class="dashboard-section">
+                    <div class="section-header">
+                        <h3 class="section-title">
+                            <svg class="section-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                            Agent Performance
+                        </h3>
+                    </div>
+                    <div class="section-body">
+                        <div class="stats-grid">
+                            <div class="stat-card red">
+                                <div class="stat-card-header">
+                                    <span class="stat-card-label">Red Wins</span>
+                                    <div class="stat-card-icon" style="background: rgba(255,42,109,0.2); color: var(--color-primary)">🏆</div>
+                                </div>
+                                <div class="stat-card-value" style="color: var(--color-primary)" id="statRedWins">0</div>
+                                <div class="progress-container">
+                                    <div class="progress-track">
+                                        <div class="progress-fill red" id="progressRedWinRate"></div>
+                                    </div>                                </div>
+                                <div class="stat-card-subvalue" id="statRedWinRateText">0% win rate</div>
+                            </div>
+                            
+                            <div class="stat-card blue">
+                                <div class="stat-card-header">
+                                    <span class="stat-card-label">Green Wins</span>
+                                    <div class="stat-card-icon" style="background: rgba(5,217,232,0.2); color: var(--color-secondary)">🏆</div>
+                                </div>
+                                <div class="stat-card-value" style="color: var(--color-secondary)" id="statGreenWins">0</div>
+                                <div class="progress-container">
+                                    <div class="progress-track">
+                                        <div class="progress-fill blue" id="progressGreenWinRate"></div>
+                                    </div>
+                                </div>
+                                <div class="stat-card-subvalue" id="statGreenWinRateText">0% win rate</div>
+                            </div>
+                        </div>
+                        
+                        <div class="metrics-grid">
+                            <div class="metric-box">
+                                <div class="metric-value" id="metricEpisodes">0</div>
+                                <div class="metric-label">Episodes</div>
+                            </div>
+                            <div class="metric-box">
+                                <div class="metric-value" id="metricAvgLoss">0.000</div>
+                                <div class="metric-label">Avg Loss</div>
+                            </div>
+                            <div class="metric-box">
+                                <div class="metric-value" id="metricGradNorm">0.00</div>
+                                <div class="metric-label">Grad Norm</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Learning Progress Section -->
+                <div class="dashboard-section">
+                    <div class="section-header">
+                        <h3 class="section-title">
+                            <svg class="section-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+                            </svg>
+                            Learning Progress
+                        </h3>
+                    </div>
+                    <div class="section-body">
+                        <div class="chart-container">
+                            <canvas id="winRateChart"></canvas>
+                        </div>                    </div>
+                </div>
+
+                <!-- Neural Network Activity Section -->
+                <div class="dashboard-section">
+                    <div class="section-header">
+                        <h3 class="section-title">
+                            <svg class="section-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path>
+                            </svg>
+                            Network Activity
+                        </h3>
+                    </div>
+                    <div class="section-body">
+                        <div class="neural-viz-container" id="neuralVizContainer">
+                            <!-- Dynamically generated -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Distribution Section -->
+                <div class="dashboard-section">
+                    <div class="section-header">
+                        <h3 class="section-title">
+                            <svg class="section-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path>
+                                <path d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path>
+                            </svg>
+                            Action Distribution
+                        </h3>
+                    </div>
+                    <div class="section-body">
+                        <div class="action-dist-list" id="actionDistList">
+                            <!-- Dynamically generated -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Controls Section -->
+                <div class="dashboard-section">
+                    <div class="section-header">
+                        <h3 class="section-title">
+                            <svg class="section-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+                            </svg>
+                            System Controls
+                        </h3>
+                    </div>
+                    <div class="section-body">
+                        <div class="control-grid">                            <button class="btn btn-primary" id="btnToggle">
+                                <span class="btn-icon" id="btnToggleIcon">❚❚</span>
+                                <span id="btnToggleText">PAUSE</span>
+                            </button>
+                            <button class="btn btn-secondary" id="btnSpeed">
+                                <span class="btn-icon">⚡</span>
+                                <span id="btnSpeedText">1x</span>
+                            </button>
+                            <button class="btn" id="btnSave">
+                                <span class="btn-icon">💾</span>
+                                <span>SAVE</span>
+                            </button>
+                            <button class="btn" id="btnLoad">
+                                <span class="btn-icon">📂</span>
+                                <span>LOAD</span>
+                            </button>
+                            <button class="btn" id="btnExport">
+                                <span class="btn-icon">📤</span>
+                                <span>EXPORT</span>
+                            </button>
+                            <button class="btn btn-danger" id="btnReset">
+                                <span class="btn-icon">🔄</span>
+                                <span>RESET</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Log Section -->
+                <div class="dashboard-section" style="flex: 1; display: flex; flex-direction: column;">
+                    <div class="section-header">
+                        <h3 class="section-title">
+                            <svg class="section-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            System Log
+                        </h3>
+                        <button class="log-clear-btn" id="btnClearLog">CLEAR</button>
+                    </div>
+                    <div class="log-container" style="flex: 1; border: none; border-top: 1px solid var(--border-default);">
+                        <div class="log-content" id="systemLog">
+                            <div class="log-entry system">
+                                <span class="log-timestamp">[00:00:00]</span>
+                                [SYSTEM] Neural Arena initialized
+                            </div>
+                            <div class="log-entry info">
+                                <span class="log-timestamp">[00:00:00]</span>
+                                [DQL] Agent RED created [ID: 0x1A2B3C4D]
+                            </div>
+                            <div class="log-entry info">                                <span class="log-timestamp">[00:00:00]</span>
+                                [DQL] Agent GREEN created [ID: 0x5E6F7A8B]
+                            </div>
+                            <div class="log-entry success">
+                                <span class="log-timestamp">[00:00:00]</span>
+                                [READY] Self-play training started
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
     </div>
 
-    <script>
-    // ============================================
-    // REAL DEEP Q-LEARNING WITH PROPER BACKPROP
-    // ============================================
-    // АВТОР: ТЫ ЗАСТАВИЛ МЕНЯ ЭТО СДЕЛАТЬ
-    // ============================================
+<script>
+/**
+ * ============================================================================
+ * FURY FIST: NEURAL ARENA [PROFESSIONAL EDITION]
+ * Pure AI vs AI Fighting System with Dual Independent DQL Agents
+ * MoE Architecture, Prioritized Experience Replay, Full Metrics Dashboard
+ * ============================================================================
+ */
 
-    // Конфигурация
-    const CONFIG = {
-        canvasWidth: 800,
-        canvasHeight: 400,
-        groundY: 340,
-        gravity: 0.8,
-        friction: 0.85,
-        
-        learningRate: 0.001,
-        gamma: 0.99,
-        epsilonStart: 1.0,
-        epsilonEnd: 0.01,
-        epsilonDecay: 0.999,
-        batchSize: 32,
-        memorySize: 20000,
-        targetUpdateFreq: 100,
-        gradClip: 1.0,
-        
-        numExperts: 4,
-        expertHiddenSize: 64,
-        
-        roundTime: 99,
-        maxHealth: 100
-    };
+// ============================================
+// GLOBAL CONFIGURATION
+// ============================================
+const CONFIG = Object.freeze({
+    // Canvas & Display
+    canvasWidth: 960,
+    canvasHeight: 540,
+    groundY: 420,
+    
+    // Physics
+    gravity: 0.75,
+    friction: 0.87,
+    moveSpeed: 1.8,
+    jumpForce: -17,
+    
+    // Game Rules
+    roundTime: 99,
+    maxHealth: 100,
+    
+    // DQL Hyperparameters
+    learningRate: 0.0005,
+    gamma: 0.99,
+    epsilonStart: 1.0,
+    epsilonEnd: 0.01,
+    epsilonDecay: 0.9995,
+    batchSize: 64,
+    memorySize: 50000,    targetUpdateFreq: 100,
+    gradClip: 1.0,
+    
+    // MoE Architecture
+    numExperts: 4,
+    expertHidden: 128,
+    stateSize: 18,
+    
+    // Actions
+    actions: ['idle', 'left', 'right', 'jump', 'crouch', 'punch', 'kick', 'block']
+});
 
-    // ============================================
-    // НОРМАЛЬНЫЙ СЛОЙ С BACKPROP
-    // ============================================
-    class Layer {
-        constructor(inputSize, outputSize, activation = 'relu') {
-            this.inputSize = inputSize;
-            this.outputSize = outputSize;
-            this.activation = activation;
-            
-            // Xavier инициализация
-            const scale = Math.sqrt(2.0 / (inputSize + outputSize));
-            this.weights = Array(inputSize).fill().map(() => 
-                Array(outputSize).fill().map(() => (Math.random() * 2 - 1) * scale)
-            );
-            this.bias = Array(outputSize).fill(0);
-            
-            this.input = null;
-            this.output = null;
-            this.preActivation = null;
+// ============================================
+// MATH UTILITIES
+// ============================================
+const MathUtils = {
+    clamp: (value, min, max) => Math.min(Math.max(value, min), max),
+    
+    lerp: (start, end, t) => start + (end - start) * t,
+    
+    map: (value, inMin, inMax, outMin, outMax) => {
+        return (value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
+    },
+    
+    softmax: (arr) => {
+        const max = Math.max(...arr);
+        const exps = arr.map(v => Math.exp(v - max));
+        const sum = exps.reduce((a, b) => a + b, 0);
+        return exps.map(v => v / sum);
+    },
+    
+    xavierInit: (inputSize, outputSize) => {
+        const limit = Math.sqrt(6 / (inputSize + outputSize));
+        return (Math.random() * 2 - 1) * limit;
+    },
+    
+    relu: (x) => x > 0 ? x : 0,
+    
+    reluDeriv: (x) => x > 0 ? 1 : 0,
+    
+    sigmoid: (x) => 1 / (1 + Math.exp(-MathUtils.clamp(x, -500, 500))),
+    
+    sigmoidDeriv: (x) => {
+        const s = MathUtils.sigmoid(x);
+        return s * (1 - s);
+    },
+    
+    mse: (predicted, target) => {
+        return predicted.reduce((sum, v, i) => sum + Math.pow(v - target[i], 2), 0) / predicted.length;
+    },    
+    randomInt: (min, max) => Math.floor(Math.random() * (max - min + 1)) + min,
+    
+    randomFloat: (min, max) => Math.random() * (max - min) + min
+};
+
+// ============================================
+// DENSE LAYER WITH BACKPROP
+// ============================================
+class DenseLayer {
+    constructor(inputSize, outputSize, activation = 'relu') {
+        this.inputSize = inputSize;
+        this.outputSize = outputSize;
+        this.activation = activation;
+        
+        // Initialize weights with Xavier initialization
+        this.weights = [];
+        for (let i = 0; i < inputSize; i++) {
+            this.weights[i] = [];
+            for (let j = 0; j < outputSize; j++) {
+                this.weights[i][j] = MathUtils.xavierInit(inputSize, outputSize);
+            }
         }
         
-        forward(input) {
-            this.input = input.slice(); // Копируем
-            
-            // Линейное преобразование: Wx + b
-            this.preActivation = Array(this.outputSize).fill(0);
-            for (let j = 0; j < this.outputSize; j++) {
-                let sum = this.bias[j];
-                for (let i = 0; i < this.inputSize; i++) {
-                    sum += input[i] * this.weights[i][j];
-                }
-                this.preActivation[j] = sum;
-            }
-            
-            // Активация
-            this.output = this.activate(this.preActivation);
-            return this.output.slice();
-        }
+        // Initialize biases to zero
+        this.biases = new Array(outputSize).fill(0);
         
-        activate(x) {
-            if (this.activation === 'relu') {
-                return x.map(v => v > 0 ? v : 0);
-            } else if (this.activation === 'linear') {
-                return x.slice();
-            } else if (this.activation === 'sigmoid') {
-                return x.map(v => 1 / (1 + Math.exp(-Math.max(-50, Math.min(50, v)))));
-            }
-            return x;
-        }
+        // Cache for backpropagation
+        this.input = null;
+        this.output = null;
+        this.z = null; // Pre-activation values
+    }
+    
+    /**
+     * Forward pass through the layer
+     */
+    forward(input) {
+        this.input = input.slice();
+        this.z = new Array(this.outputSize).fill(0);
         
-        derivative(x) {
-            if (this.activation === 'relu') {
-                return x.map(v => v > 0 ? 1 : 0);
-            } else if (this.activation === 'linear') {
-                return x.map(() => 1);
-            } else if (this.activation === 'sigmoid') {
-                const sig = this.activate(x);
-                return sig.map((v, i) => v * (1 - v));
-            }
-            return x.map(() => 1);
-        }
-        
-        backward(gradOutput, learningRate) {
-            // Производная активации
-            const actGrad = this.derivative(this.preActivation);
-            
-            // Градиент до активации
-            const gradPre = Array(this.outputSize).fill(0);
-            for (let j = 0; j < this.outputSize; j++) {
-                gradPre[j] = gradOutput[j] * actGrad[j];
-            }
-            
-            // Градиент по входу (для предыдущего слоя)
-            const gradInput = Array(this.inputSize).fill(0);
+        // Compute z = Wx + b
+        for (let j = 0; j < this.outputSize; j++) {
+            let sum = this.biases[j];
             for (let i = 0; i < this.inputSize; i++) {
-                for (let j = 0; j < this.outputSize; j++) {
-                    gradInput[i] += gradPre[j] * this.weights[i][j];
-                }
+                sum += input[i] * this.weights[i][j];
             }
-            
-            // Обновление весов и bias
-            for (let i = 0; i < this.inputSize; i++) {
-                for (let j = 0; j < this.outputSize; j++) {
-                    const grad = gradPre[j] * this.input[i];
-                    // Clip градиент
-                    const clippedGrad = Math.max(-CONFIG.gradClip, Math.min(CONFIG.gradClip, grad));
-                    this.weights[i][j] -= learningRate * clippedGrad;
-                }
-            }
-            
+            this.z[j] = sum;
+        }
+        
+        // Apply activation function        if (this.activation === 'relu') {
+            this.output = this.z.map(MathUtils.relu);
+        } else if (this.activation === 'softmax') {
+            this.output = MathUtils.softmax(this.z);
+        } else if (this.activation === 'sigmoid') {
+            this.output = this.z.map(MathUtils.sigmoid);
+        } else if (this.activation === 'linear') {
+            this.output = this.z.slice();
+        } else {
+            this.output = this.z.slice();
+        }
+        
+        return this.output.slice();
+    }
+    
+    /**
+     * Backward pass - compute gradients and update weights
+     */
+    backward(gradOutput, learningRate) {
+        // Compute derivative of activation function
+        let dz;
+        if (this.activation === 'relu') {
+            dz = this.z.map(MathUtils.reluDeriv);
+        } else if (this.activation === 'sigmoid') {
+            dz = this.output.map(MathUtils.sigmoidDeriv);
+        } else if (this.activation === 'softmax') {
+            // For softmax with cross-entropy, gradient simplifies
+            dz = this.output.map((v, i) => v * (1 - v));
+        } else {
+            dz = new Array(this.outputSize).fill(1);
+        }
+        
+        // Compute delta = gradOutput * activation_derivative (element-wise)
+        const delta = dz.map((v, i) => v * gradOutput[i]);
+        
+        // Compute gradients for weights and update them
+        const gradInput = new Array(this.inputSize).fill(0);
+        
+        for (let i = 0; i < this.inputSize; i++) {
             for (let j = 0; j < this.outputSize; j++) {
-                const grad = gradPre[j];
-                const clippedGrad = Math.max(-CONFIG.gradClip, Math.min(CONFIG.gradClip, grad));
-                this.bias[j] -= learningRate * clippedGrad;
+                const grad = delta[j] * this.input[i];
+                // Gradient clipping to prevent exploding gradients
+                const clipped = MathUtils.clamp(grad, -CONFIG.gradClip, CONFIG.gradClip);
+                this.weights[i][j] -= learningRate * clipped;
+                gradInput[i] += delta[j] * this.weights[i][j];
             }
-            
-            return gradInput;
         }
         
-        getParams() {
-            return {
-                weights: this.weights.map(row => row.slice()),
-                bias: this.bias.slice()
-            };
+        // Update biases
+        for (let j = 0; j < this.outputSize; j++) {            const clipped = MathUtils.clamp(delta[j], -CONFIG.gradClip, CONFIG.gradClip);
+            this.biases[j] -= learningRate * clipped;
         }
         
-        setParams(params) {
-            this.weights = params.weights.map(row => row.slice());
-            this.bias = params.bias.slice();
-        }
+        return gradInput;
     }
-
-    // ============================================
-    // EXPERT NETWORK (MoE)
-    // ============================================
-    class ExpertNetwork {
-        constructor(inputSize, hiddenSize, outputSize) {
-            this.layer1 = new Layer(inputSize, hiddenSize, 'relu');
-            this.layer2 = new Layer(hiddenSize, outputSize, 'linear');
-        }
-        
-        forward(input) {
-            const hidden = this.layer1.forward(input);
-            return this.layer2.forward(hidden);
-        }
-        
-        backward(gradOutput, learningRate) {
-            let grad = this.layer2.backward(gradOutput, learningRate);
-            grad = this.layer1.backward(grad, learningRate);
-            return grad;
-        }
-        
-        getParams() {
-            return {
-                l1: this.layer1.getParams(),
-                l2: this.layer2.getParams()
-            };
-        }
-        
-        setParams(params) {
-            this.layer1.setParams(params.l1);
-            this.layer2.setParams(params.l2);
-        }
+    
+    /**
+     * Get layer parameters for serialization
+     */
+    getParams() {
+        return {
+            weights: this.weights.map(row => row.slice()),
+            biases: this.biases.slice()
+        };
     }
-
-    // ============================================
-    // GATING NETWORK (MoE)
-    // ============================================
-    class GatingNetwork {
-        constructor(inputSize, numExperts) {
-            this.layer = new Layer(inputSize, numExperts, 'softmax');
-        }
-        
-        forward(input) {
-            return this.layer.forward(input);
-        }
-        
-        backward(gradOutput, learningRate) {
-            return this.layer.backward(gradOutput, learningRate);
-        }
-        
-        getParams() {
-            return this.layer.getParams();
-        }
-        
-        setParams(params) {
-            this.layer.setParams(params);
-        }
+    
+    /**
+     * Set layer parameters from serialization
+     */
+    setParams(params) {
+        this.weights = params.weights.map(row => row.slice());
+        this.biases = params.biases.slice();
     }
+}
 
-    // ============================================
-    // MIXTURE OF EXPERTS DQN
-    // ============================================
-    class MoEDQN {
-        constructor(inputSize, outputSize, numExperts = 4, hiddenSize = 64) {
-            this.inputSize = inputSize;
-            this.outputSize = outputSize;
-            this.numExperts = numExperts;
-            
-            // Эксперты
-            this.experts = [];
-            for (let i = 0; i < numExperts; i++) {
-                this.experts.push(new ExpertNetwork(inputSize, hiddenSize, outputSize));
-            }
-            
-            // Gating network
-            this.gating = new GatingNetwork(inputSize, numExperts);
-            
-            // Target сети
-            this.targetExperts = [];
-            for (let i = 0; i < numExperts; i++) {
-                this.targetExperts.push(new ExpertNetwork(inputSize, hiddenSize, outputSize));
-            }
-            this.targetGating = new GatingNetwork(inputSize, numExperts);
-            this.updateTargetNetwork();
-            
-            // Для градиентов
-            this.lastInput = null;
-            this.lastGating = null;
-            this.lastExpertOutputs = null;
+// ============================================
+// EXPERT NETWORK (MoE)
+// ============================================
+class ExpertNetwork {
+    constructor(inputSize, hiddenSize, outputSize) {
+        this.layer1 = new DenseLayer(inputSize, hiddenSize, 'relu');
+        this.layer2 = new DenseLayer(hiddenSize, outputSize, 'linear');
+    }
+    
+    forward(input) {
+        const hidden = this.layer1.forward(input);
+        return this.layer2.forward(hidden);
+    }
+    
+    backward(gradOutput, learningRate) {
+        let grad = this.layer2.backward(gradOutput, learningRate);
+        grad = this.layer1.backward(grad, learningRate);
+        return grad;
+    }
+    
+    getParams() {
+        return {
+            l1: this.layer1.getParams(),
+            l2: this.layer2.getParams()        };
+    }
+    
+    setParams(params) {
+        this.layer1.setParams(params.l1);
+        this.layer2.setParams(params.l2);
+    }
+}
+
+// ============================================
+// GATING NETWORK (MoE)
+// ============================================
+class GatingNetwork {
+    constructor(inputSize, numExperts) {
+        this.layer = new DenseLayer(inputSize, numExperts, 'softmax');
+    }
+    
+    forward(input) {
+        return this.layer.forward(input);
+    }
+    
+    backward(gradOutput, learningRate) {
+        return this.layer.backward(gradOutput, learningRate);
+    }
+    
+    getParams() {
+        return this.layer.getParams();
+    }
+    
+    setParams(params) {
+        this.layer.setParams(params);
+    }
+}
+
+// ============================================
+// MIXTURE OF EXPERTS NETWORK
+// ============================================
+class MoENetwork {
+    constructor(inputSize, outputSize, numExperts = 4, hiddenSize = 128) {
+        this.inputSize = inputSize;
+        this.outputSize = outputSize;
+        this.numExperts = numExperts;
+        
+        // Create expert networks
+        this.experts = [];
+        for (let i = 0; i < numExperts; i++) {
+            this.experts.push(new ExpertNetwork(inputSize, hiddenSize, outputSize));
         }
         
-        forward(input, useTarget = false) {
-            this.lastInput = input.slice();
-            
-            const experts = useTarget ? this.targetExperts : this.experts;
-            const gating = useTarget ? this.targetGating : this.gating;
-            
-            // Gating weights
-            const gates = gating.forward(input);
-            this.lastGating = gates.slice();
-            
-            // Каждый эксперт
-            this.lastExpertOutputs = [];
-            const weightedSum = Array(this.outputSize).fill(0);
-            
-            for (let e = 0; e < this.numExperts; e++) {
-                const expertOut = experts[e].forward(input);
-                this.lastExpertOutputs.push(expertOut.slice());
-                
-                for (let j = 0; j < this.outputSize; j++) {
-                    weightedSum[j] += gates[e] * expertOut[j];
-                }
-            }
-            
-            return weightedSum;
-        }
+        // Create gating network        this.gating = new GatingNetwork(inputSize, numExperts);
         
-        backward(targetQ, learningRate) {
-            if (!this.lastInput) return null;
+        // Create target networks for stable training
+        this.targetExperts = [];
+        for (let i = 0; i < numExperts; i++) {
+            this.targetExperts.push(new ExpertNetwork(inputSize, hiddenSize, outputSize));
+        }
+        this.targetGating = new GatingNetwork(inputSize, numExperts);
+        
+        // Initialize target networks with current weights
+        this.updateTarget();
+        
+        // Cache for backpropagation
+        this.lastInput = null;
+        this.lastGates = null;
+        this.lastExpertOutputs = null;
+    }
+    
+    /**
+     * Forward pass through MoE
+     */
+    forward(input, useTarget = false) {
+        this.lastInput = input.slice();
+        
+        const experts = useTarget ? this.targetExperts : this.experts;
+        const gating = useTarget ? this.targetGating : this.gating;
+        
+        // Get gating weights (which expert to use)
+        this.lastGates = gating.forward(input);
+        
+        // Get output from each expert
+        this.lastExpertOutputs = [];
+        const output = new Array(this.outputSize).fill(0);
+        
+        for (let e = 0; e < this.numExperts; e++) {
+            const expertOut = experts[e].forward(input);
+            this.lastExpertOutputs.push(expertOut.slice());
             
-            // Градиент MSE loss
-            const gradOutput = Array(this.outputSize).fill(0);
-            let gradNorm = 0;
-            
-            // Предполагаем что targetQ это целевые Q-значения
-            // А lastExpertOutputs[0] это выход (но вообще надо сохранять выход forward)
-            const output = this.lastExpertOutputs.reduce((sum, out, e) => {
-                for (let j = 0; j < this.outputSize; j++) {
-                    sum[j] += this.lastGating[e] * out[j];
-                }
-                return sum;
-            }, Array(this.outputSize).fill(0));
-            
+            // Weighted sum of expert outputs
             for (let j = 0; j < this.outputSize; j++) {
-                gradOutput[j] = 2 * (output[j] - targetQ[j]) / this.outputSize;
-                gradNorm += gradOutput[j] * gradOutput[j];
+                output[j] += this.lastGates[e] * expertOut[j];
             }
-            gradNorm = Math.sqrt(gradNorm);
-            
-            // Clip градиент
-            if (gradNorm > CONFIG.gradClip) {
-                for (let j = 0; j < this.outputSize; j++) {
-                    gradOutput[j] *= CONFIG.gradClip / gradNorm;
-                }
-            }
-            
-            // Градиенты для gating network
-            const gateGrads = Array(this.numExperts).fill(0);
-            for (let e = 0; e < this.numExperts; e++) {
-                for (let j = 0; j < this.outputSize; j++) {
-                    gateGrads[e] += gradOutput[j] * this.lastExpertOutputs[e][j];
-                }
-            }
-            
-            // Backward через gating
-            this.gating.backward(gateGrads, learningRate);
-            
-            // Backward через каждого эксперта
-            for (let e = 0; e < this.numExperts; e++) {
-                const expertGrad = gradOutput.map(g => g * this.lastGating[e]);
-                this.experts[e].backward(expertGrad, learningRate);
-            }
-            
-            return gradNorm;
         }
         
-        updateTargetNetwork() {
-            for (let i = 0; i < this.numExperts; i++) {
-                this.targetExperts[i].setParams(this.experts[i].getParams());
+        return output;
+    }
+    
+    /**
+     * Backward pass through MoE
+     */    backward(targetQ, learningRate) {
+        if (!this.lastInput) return 0;
+        
+        // Recompute output for gradient calculation
+        const output = new Array(this.outputSize).fill(0);
+        for (let e = 0; e < this.numExperts; e++) {
+            for (let j = 0; j < this.outputSize; j++) {
+                output[j] += this.lastGates[e] * this.lastExpertOutputs[e][j];
             }
-            this.targetGating.setParams(this.gating.getParams());
         }
         
-        save() {
-            return {
-                experts: this.experts.map(e => e.getParams()),
-                gating: this.gating.getParams()
-            };
+        // Compute MSE gradient
+        const gradOutput = output.map((v, i) => 2 * (v - targetQ[i]) / this.outputSize);
+        
+        // Compute gradient norm for logging
+        const gradNorm = Math.sqrt(gradOutput.reduce((sum, v) => sum + v * v, 0));
+        
+        // Compute gradient for gating network
+        const gateGrads = new Array(this.numExperts).fill(0);
+        for (let e = 0; e < this.numExperts; e++) {
+            for (let j = 0; j < this.outputSize; j++) {
+                gateGrads[e] += gradOutput[j] * this.lastExpertOutputs[e][j];
+            }
         }
         
-        load(data) {
-            if (data.experts && data.gating) {
-                for (let i = 0; i < Math.min(data.experts.length, this.numExperts); i++) {
-                    this.experts[i].setParams(data.experts[i]);
-                    this.targetExperts[i].setParams(data.experts[i]);
-                }
-                this.gating.setParams(data.gating);
-                this.targetGating.setParams(data.gating);
+        // Backprop through gating network
+        this.gating.backward(gateGrads, learningRate);
+        
+        // Backprop through each expert (weighted by gate values)
+        for (let e = 0; e < this.numExperts; e++) {
+            const expertGrad = gradOutput.map(g => g * this.lastGates[e]);
+            this.experts[e].backward(expertGrad, learningRate);
+        }
+        
+        return gradNorm;
+    }
+    
+    /**
+     * Update target networks with current weights
+     */
+    updateTarget() {
+        for (let i = 0; i < this.numExperts; i++) {
+            this.targetExperts[i].setParams(this.experts[i].getParams());
+        }
+        this.targetGating.setParams(this.gating.getParams());
+    }
+    
+    /**
+     * Get all network parameters
+     */    getParams() {
+        return {
+            experts: this.experts.map(e => e.getParams()),
+            gating: this.gating.getParams()
+        };
+    }
+    
+    /**
+     * Load network parameters
+     */
+    loadParams(params) {
+        if (params.experts && params.gating) {
+            for (let i = 0; i < Math.min(params.experts.length, this.numExperts); i++) {
+                this.experts[i].setParams(params.experts[i]);
+                this.targetExperts[i].setParams(params.experts[i]);
             }
+            this.gating.setParams(params.gating);
+            this.targetGating.setParams(params.gating);
         }
     }
+}
 
-    // ============================================
-    // PRIORITIZED REPLAY MEMORY
-    // ============================================
-    class PrioritizedReplayMemory {
-        constructor(maxSize, alpha = 0.6, beta = 0.4) {
-            this.maxSize = maxSize;
-            this.memory = [];
-            this.priorities = [];
-            this.position = 0;
-            this.alpha = alpha; // Приоритизация
-            this.beta = beta;    // Importance sampling
-            this.epsilon = 1e-6; // Чтобы не было нулевых приоритетов
+// ============================================
+// PRIORITIZED EXPERIENCE REPLAY MEMORY
+// ============================================
+class PrioritizedReplayMemory {
+    constructor(maxSize, alpha = 0.6, beta = 0.4) {
+        this.maxSize = maxSize;
+        this.memory = [];
+        this.priorities = [];
+        this.position = 0;
+        this.alpha = alpha; // Priority exponent
+        this.beta = beta;   // Importance sampling exponent
+        this.epsilon = 1e-6; // Small constant to prevent zero priorities
+        this.maxPriority = 1.0;
+    }
+    
+    /**
+     * Add experience to memory
+     */
+    push(state, action, reward, nextState, done, tdError = null) {
+        // Calculate priority from TD error
+        const priority = tdError !== null
+            ? Math.pow(Math.abs(tdError) + this.epsilon, this.alpha)
+            : this.maxPriority;
+        
+        this.maxPriority = Math.max(this.maxPriority, priority);
+        
+        const experience = { state, action, reward, nextState, done };
+                if (this.memory.length < this.maxSize) {
+            this.memory.push(experience);
+            this.priorities.push(priority);
+        } else {
+            this.memory[this.position] = experience;
+            this.priorities[this.position] = priority;
         }
         
-        push(state, action, reward, nextState, done, tdError = null) {
-            const priority = tdError !== null 
-                ? Math.pow(Math.abs(tdError) + this.epsilon, this.alpha)
-                : Math.pow(1.0, this.alpha); // Максимальный приоритет для новых
+        this.position = (this.position + 1) % this.maxSize;
+    }
+    
+    /**
+     * Sample batch from memory with prioritized sampling
+     */
+    sample(batchSize) {
+        const total = this.priorities.reduce((a, b) => a + b, 0);
+        const probs = this.priorities.map(p => p / total);
+        
+        // Build cumulative distribution for binary search
+        const cumulative = [];
+        let sum = 0;
+        for (const p of probs) {
+            sum += p;
+            cumulative.push(sum);
+        }
+        
+        const indices = [];
+        const batch = [];
+        const weights = [];
+        
+        for (let i = 0; i < batchSize; i++) {
+            const rand = Math.random();
+            // Binary search for efficient sampling
+            const idx = this.binarySearch(cumulative, rand);
+            indices.push(idx);
+            batch.push(this.memory[idx]);
             
-            const experience = { state, action, reward, nextState, done };
-            
-            if (this.memory.length < this.maxSize) {
-                this.memory.push(experience);
-                this.priorities.push(priority);
+            // Calculate importance sampling weight
+            const weight = Math.pow(1 / (probs[idx] * this.memory.length), this.beta);
+            weights.push(weight);
+        }
+        
+        // Normalize weights
+        const maxWeight = Math.max(...weights);
+        const normalizedWeights = weights.map(w => w / maxWeight);
+        
+        return { batch, indices, weights: normalizedWeights };
+    }
+    
+    /**     * Binary search for cumulative distribution
+     */
+    binarySearch(cumulative, value) {
+        let left = 0;
+        let right = cumulative.length - 1;
+        
+        while (left < right) {
+            const mid = (left + right) >> 1;
+            if (cumulative[mid] < value) {
+                left = mid + 1;
             } else {
-                this.memory[this.position] = experience;
-                this.priorities[this.position] = priority;
+                right = mid;
             }
-            
-            this.position = (this.position + 1) % this.maxSize;
         }
         
-        sample(batchSize) {
-            const total = this.priorities.reduce((a, b) => a + b, 0);
-            const probs = this.priorities.map(p => p / total);
+        return left;
+    }
+    
+    /**
+     * Update priorities after training
+     */
+    updatePriorities(indices, tdErrors) {
+        for (let i = 0; i < indices.length; i++) {
+            const idx = indices[i];
+            if (idx < this.priorities.length) {
+                const priority = Math.pow(Math.abs(tdErrors[i]) + this.epsilon, this.alpha);
+                this.priorities[idx] = priority;
+                this.maxPriority = Math.max(this.maxPriority, priority);
+            }
+        }
+    }
+    
+    /**
+     * Get memory size
+     */
+    size() {
+        return this.memory.length;
+    }
+    
+    /**
+     * Clear memory
+     */
+    clear() {
+        this.memory = [];
+        this.priorities = [];
+        this.position = 0;
+        this.maxPriority = 1.0;
+    }
+}
+// ============================================
+// DQL AGENT WITH MoE
+// ============================================
+class DQLAgent {
+    constructor(id, name, color) {
+        this.id = id;
+        this.name = name;
+        this.color = color;
+        
+        // Create MoE network
+        this.network = new MoENetwork(
+            CONFIG.stateSize,
+            CONFIG.actions.length,
+            CONFIG.numExperts,
+            CONFIG.expertHidden
+        );
+        
+        // Create prioritized replay memory
+        this.memory = new PrioritizedReplayMemory(CONFIG.memorySize);
+        
+        // DQL hyperparameters
+        this.epsilon = CONFIG.epsilonStart;
+        this.gamma = CONFIG.gamma;
+        this.learningRate = CONFIG.learningRate;
+        
+        // Statistics
+        this.wins = 0;
+        this.losses = 0;
+        this.episodes = 0;
+        this.totalReward = 0;
+        this.avgLoss = 0;
+        this.lossCount = 0;
+        this.lastGradNorm = 0;
+        
+        // Action distribution tracking
+        this.actionCounts = new Array(CONFIG.actions.length).fill(0);
+        
+        // Win rate history for charting
+        this.winHistory = [];
+    }
+    
+    /**
+     * Get normalized state vector from game
+     */
+    getState(player, opponent) {
+        return [
+            // Player position (normalized)
+            player.x / CONFIG.canvasWidth,
+            player.y / CONFIG.canvasHeight,
+                        // Player health (normalized)
+            player.health / CONFIG.maxHealth,
             
-            const indices = [];
-            const batch = [];
-            const weights = [];
+            // Player velocity (normalized)
+            player.vx / 15,
+            player.vy / 20,
             
-            for (let i = 0; i < batchSize; i++) {
-                let rand = Math.random();
-                let cumSum = 0;
-                let idx = 0;
-                
-                for (let j = 0; j < probs.length; j++) {
-                    cumSum += probs[j];
-                    if (rand <= cumSum) {
-                        idx = j;
-                        break;
+            // Player state flags
+            player.isGrounded ? 1 : 0,
+            player.isBlocking ? 1 : 0,
+            player.isCrouching ? 1 : 0,
+            
+            // Opponent position (normalized)
+            opponent.x / CONFIG.canvasWidth,
+            opponent.y / CONFIG.canvasHeight,
+            
+            // Opponent health (normalized)
+            opponent.health / CONFIG.maxHealth,
+            
+            // Opponent velocity (normalized)
+            opponent.vx / 15,
+            opponent.vy / 20,
+            
+            // Opponent state flags
+            opponent.isGrounded ? 1 : 0,
+            
+            // Relative positioning
+            (opponent.x - player.x) / CONFIG.canvasWidth,
+            
+            // Distance flags
+            Math.abs(opponent.x - player.x) < 100 ? 1 : 0,
+            
+            // Combo state
+            player.combo > 0 ? 1 : 0,
+            
+            // Cooldown state
+            player.attackCooldown > 0 ? 1 : 0
+        ];
+    }
+    
+    /**
+     * Select action using epsilon-greedy policy
+     */
+    selectAction(state, training = true) {
+        if (training && Math.random() < this.epsilon) {
+            const action = MathUtils.randomInt(0, CONFIG.actions.length - 1);
+            this.actionCounts[action]++;
+            return action;
+        }
+                const qValues = this.network.forward(state, false);
+        const maxQ = Math.max(...qValues);
+        const action = qValues.indexOf(maxQ);
+        this.actionCounts[action]++;
+        return action;
+    }
+    
+    /**
+     * Train the network on a batch of experiences
+     */
+    train(batchSize = CONFIG.batchSize) {
+        if (this.memory.size() < batchSize) return null;
+        
+        const { batch, indices, weights } = this.memory.sample(batchSize);
+        let totalLoss = 0;
+        const tdErrors = [];
+        
+        for (let i = 0; i < batch.length; i++) {
+            const exp = batch[i];
+            
+            // Get current Q-values
+            const currentQ = this.network.forward(exp.state, false);
+            
+            // Double DQN: action from online, target from target network
+            const nextQ = this.network.forward(exp.nextState, false);
+            const bestAction = nextQ.indexOf(Math.max(...nextQ));
+            
+            const targetNextQ = this.network.forward(exp.nextState, true);
+            const maxNextQ = targetNextQ[bestAction];
+            
+            // Calculate target: r + γ * max(Q')
+            let target = exp.reward;
+            if (!exp.done) {
+                target += this.gamma * maxNextQ;
+            }
+            
+            // Calculate TD error for priority update
+            const tdError = target - currentQ[exp.action];
+            tdErrors.push(tdError);
+            
+            // Create target Q-vector
+            const targetQ = currentQ.slice();
+            targetQ[exp.action] = target;
+            
+            // Backprop with importance sampling weight
+            const gradNorm = this.network.backward(targetQ, this.learningRate * weights[i]);
+            this.lastGradNorm = gradNorm;
+            
+            totalLoss += Math.pow(tdError, 2);
+        }        
+        // Update priorities in replay memory
+        this.memory.updatePriorities(indices, tdErrors);
+        
+        // Decay epsilon
+        if (this.epsilon > CONFIG.epsilonEnd) {
+            this.epsilon *= CONFIG.epsilonDecay;
+        }
+        
+        const avgLoss = totalLoss / batch.length;
+        this.avgLoss = avgLoss;
+        this.lossCount++;
+        
+        return avgLoss;
+    }
+    
+    /**
+     * Store experience in replay memory
+     */
+    remember(state, action, reward, nextState, done) {
+        // Estimate TD error for priority
+        let tdError = null;
+        if (this.memory.size() > 0) {
+            const q = this.network.forward(state, false);
+            const nextQ = this.network.forward(nextState, true);
+            const maxNextQ = Math.max(...nextQ);
+            const target = reward + (done ? 0 : this.gamma * maxNextQ);
+            tdError = target - q[action];
+        }
+        
+        this.memory.push(state, action, reward, nextState, done, tdError);
+        this.totalReward += reward;
+    }
+    
+    /**
+     * Update target network
+     */
+    updateTargetNetwork() {
+        this.network.updateTarget();
+    }
+    
+    /**
+     * Get current win rate
+     */
+    getWinRate() {
+        const total = this.wins + this.losses;
+        return total > 0 ? (this.wins / total) * 100 : 0;
+    }
+    
+    /**     * Save agent state
+     */
+    save() {
+        return {
+            id: this.id,
+            name: this.name,
+            network: this.network.getParams(),
+            epsilon: this.epsilon,
+            wins: this.wins,
+            losses: this.losses,
+            episodes: this.episodes,
+            totalReward: this.totalReward,
+            actionCounts: this.actionCounts.slice(),
+            winHistory: this.winHistory.slice()
+        };
+    }
+    
+    /**
+     * Load agent state
+     */
+    load(data) {
+        if (data.network) {
+            this.network.loadParams(data.network);
+        }
+        this.epsilon = data.epsilon || this.epsilon;
+        this.wins = data.wins || 0;
+        this.losses = data.losses || 0;
+        this.episodes = data.episodes || 0;
+        this.totalReward = data.totalReward || 0;
+        this.actionCounts = data.actionCounts || this.actionCounts;
+        this.winHistory = data.winHistory || [];
+    }
+    
+    /**
+     * Reset agent statistics
+     */
+    reset() {
+        this.wins = 0;
+        this.losses = 0;
+        this.episodes = 0;
+        this.totalReward = 0;
+        this.avgLoss = 0;
+        this.lossCount = 0;
+        this.actionCounts = new Array(CONFIG.actions.length).fill(0);
+        this.winHistory = [];
+        this.epsilon = CONFIG.epsilonStart;
+    }
+}
+
+// ============================================// FIGHTER ENTITY
+// ============================================
+class Fighter {
+    constructor(x, color, isLeft) {
+        this.startX = x;
+        this.x = x;
+        this.y = CONFIG.groundY;
+        this.vx = 0;
+        this.vy = 0;
+        this.width = 55;
+        this.height = 100;
+        this.color = color;
+        this.isLeft = isLeft;
+        
+        this.health = CONFIG.maxHealth;
+        this.maxHealth = CONFIG.maxHealth;
+        this.isGrounded = true;
+        this.isCrouching = false;
+        this.isBlocking = false;
+        this.facingRight = isLeft;
+        
+        this.state = 'idle';
+        this.frame = 0;
+        this.attackCooldown = 0;
+        this.hitStun = 0;
+        this.combo = 0;
+        this.lastHitTime = 0;
+        
+        this.hitbox = null;
+    }
+    
+    /**
+     * Reset fighter to initial state
+     */
+    reset() {
+        this.x = this.startX;
+        this.y = CONFIG.groundY;
+        this.vx = 0;
+        this.vy = 0;
+        this.health = CONFIG.maxHealth;
+        this.state = 'idle';
+        this.frame = 0;
+        this.attackCooldown = 0;
+        this.hitStun = 0;
+        this.combo = 0;
+        this.facingRight = this.isLeft;
+        this.hitbox = null;
+        this.isGrounded = true;
+        this.isCrouching = false;
+        this.isBlocking = false;    }
+    
+    /**
+     * Update fighter physics and state
+     */
+    update(opponent) {
+        // Update facing direction
+        this.facingRight = opponent.x > this.x;
+        
+        // Apply hitstun decay
+        if (this.hitStun > 0) {
+            this.hitStun--;
+            this.vx *= 0.85;
+        } else {
+            this.vx *= CONFIG.friction;
+        }
+        
+        // Apply velocity
+        this.x += this.vx;
+        this.vy += CONFIG.gravity;
+        this.y += this.vy;
+        
+        // Ground collision
+        if (this.y >= CONFIG.groundY) {
+            this.y = CONFIG.groundY;
+            this.vy = 0;
+            this.isGrounded = true;
+        } else {
+            this.isGrounded = false;
+        }
+        
+        // Wall collision
+        this.x = MathUtils.clamp(this.x, 40, CONFIG.canvasWidth - 40);
+        
+        // Update cooldowns and animation frames
+        if (this.attackCooldown > 0) this.attackCooldown--;
+        if (this.frame > 0) {
+            this.frame--;
+            this.updateHitbox();
+        } else if (this.state !== 'idle' && this.state !== 'run' && this.state !== 'hit') {
+            this.state = 'idle';
+            this.hitbox = null;
+        }
+        
+        // Reset stance flags
+        if (this.state !== 'crouch' && this.state !== 'block') {
+            this.isCrouching = false;
+            this.isBlocking = false;
+        }
+    }    
+    /**
+     * Update attack hitbox
+     */
+    updateHitbox() {
+        if (this.state === 'punch' && this.frame > 8 && this.frame < 18) {
+            const dir = this.facingRight ? 1 : -1;
+            this.hitbox = {
+                x: this.x + 25 * dir,
+                y: this.y - 65,
+                w: 45,
+                h: 35,
+                damage: 7,
+                knockback: 6
+            };
+        } else if (this.state === 'kick' && this.frame > 12 && this.frame < 24) {
+            const dir = this.facingRight ? 1 : -1;
+            this.hitbox = {
+                x: this.x + 30 * dir,
+                y: this.y - 45,
+                w: 55,
+                h: 35,
+                damage: 11,
+                knockback: 9
+            };
+        } else {
+            this.hitbox = null;
+        }
+    }
+    
+    /**
+     * Perform action based on AI decision
+     */
+    performAction(actionIdx) {
+        if (this.hitStun > 0 || this.attackCooldown > 0) return;
+        
+        const action = CONFIG.actions[actionIdx];
+        
+        switch (action) {
+            case 'left':
+                this.vx -= CONFIG.moveSpeed;
+                this.state = 'run';
+                break;
+            case 'right':
+                this.vx += CONFIG.moveSpeed;
+                this.state = 'run';
+                break;
+            case 'jump':
+                if (this.isGrounded && !this.isCrouching) {
+                    this.vy = CONFIG.jumpForce;                    this.isGrounded = false;
+                    this.state = 'jump';
+                }
+                break;
+            case 'crouch':
+                this.isCrouching = true;
+                this.state = 'crouch';
+                break;
+            case 'block':
+                this.isBlocking = true;
+                this.state = 'block';
+                break;
+            case 'punch':
+                this.state = 'punch';
+                this.frame = 28;
+                this.attackCooldown = 18;
+                break;
+            case 'kick':
+                this.state = 'kick';
+                this.frame = 38;
+                this.attackCooldown = 28;
+                break;
+            default:
+                this.state = 'idle';
+        }
+    }
+    
+    /**
+     * Take damage from attack
+     */
+    takeDamage(amount, knockback) {
+        const actualDamage = this.isBlocking ? amount * 0.2 : amount;
+        const actualKnockback = this.isBlocking ? knockback * 0.25 : knockback;
+        
+        this.health = Math.max(0, this.health - actualDamage);
+        this.vx += actualKnockback * (this.facingRight ? -1 : 1);
+        
+        if (!this.isBlocking) {
+            this.hitStun = 12;
+            this.state = 'hit';
+            this.frame = 8;
+            this.combo = 0;
+        }
+        
+        return actualDamage;
+    }
+    
+    /**
+     * Draw fighter to canvas
+     */    draw(ctx) {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        
+        // Flip for left-facing
+        if (!this.facingRight) {
+            ctx.scale(-1, 1);
+        }
+        
+        const h = this.isCrouching ? this.height * 0.65 : this.height;
+        const yOff = this.isCrouching ? this.height * 0.35 : 0;
+        
+        // Shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.4)';
+        ctx.beginPath();
+        ctx.ellipse(0, 8, 35, 12, 0, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Glow effect
+        ctx.shadowColor = this.color;
+        ctx.shadowBlur = this.state === 'hit' ? 30 : 15;
+        
+        // Body
+        ctx.fillStyle = this.color;
+        ctx.fillRect(-22, -h - yOff, 44, h);
+        
+        // Chest detail
+        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+        ctx.fillRect(-15, -h - yOff + 15, 30, 25);
+        
+        // Head
+        ctx.fillStyle = '#e0c0a0';
+        ctx.fillRect(-17, -h - 30 - yOff, 34, 28);
+        
+        // Visor
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(2, -h - 20 - yOff, 18, 6);
+        ctx.fillStyle = this.color;
+        ctx.fillRect(5, -h - 19 - yOff, 12, 4);
+        
+        // Hair
+        ctx.fillStyle = this.isLeft ? '#2a0a0a' : '#0a2a0a';
+        ctx.fillRect(-18, -h - 32 - yOff, 36, 10);
+        
+        // Legs
+        ctx.fillStyle = '#1a1a2e';
+        if (this.state === 'run') {
+            const legOffset = Math.sin(Date.now() / 60) * 18;
+            ctx.fillRect(-22 + legOffset, -yOff, 18, yOff + 12);
+            ctx.fillRect(4 - legOffset, -yOff, 18, yOff + 12);        } else {
+            ctx.fillRect(-22, -yOff, 18, yOff + 12);
+            ctx.fillRect(4, -yOff, 18, yOff + 12);
+        }
+        
+        // Arms
+        ctx.fillStyle = this.color;
+        if (this.state === 'punch') {
+            ctx.fillRect(22, -h - 12 - yOff, 45, 12);
+        } else if (this.state === 'kick') {
+            ctx.fillRect(-25, -h - 12 - yOff, 12, 35);
+            ctx.fillRect(13, -h - 12 - yOff, 12, 35);
+        } else if (this.state === 'block') {
+            ctx.fillRect(15, -h - 25 - yOff, 12, 35);
+        } else {
+            ctx.fillRect(-28, -h - 12 - yOff, 12, 35);
+            ctx.fillRect(16, -h - 12 - yOff, 12, 35);
+        }
+        
+        // Hit flash effect
+        if (this.hitStun > 0 && Math.floor(Date.now() / 40) % 2 === 0) {
+            ctx.globalCompositeOperation = 'source-atop';
+            ctx.fillStyle = 'rgba(255,255,255,0.6)';
+            ctx.fillRect(-30, -h - 35 - yOff, 60, h + 35 + yOff);
+        }
+        
+        ctx.shadowBlur = 0;
+        ctx.restore();
+    }
+}
+
+// ============================================
+// PARTICLE SYSTEM
+// ============================================
+class ParticleSystem {
+    constructor() {
+        this.particles = [];
+    }
+    
+    /**
+     * Emit particles at position
+     */
+    emit(x, y, color, count = 12) {
+        for (let i = 0; i < count; i++) {
+            this.particles.push({
+                x: x,
+                y: y,
+                vx: MathUtils.randomFloat(-12, 12),
+                vy: MathUtils.randomFloat(-12, -3),
+                life: 1.0,                decay: MathUtils.randomFloat(0.03, 0.06),
+                color: color,
+                size: MathUtils.randomFloat(3, 8)
+            });
+        }
+    }
+    
+    /**
+     * Update all particles
+     */
+    update() {
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+            const p = this.particles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.4; // Gravity
+            p.life -= p.decay;
+            p.size *= 0.95;
+            
+            if (p.life <= 0 || p.size < 0.5) {
+                this.particles.splice(i, 1);
+            }
+        }
+    }
+    
+    /**
+     * Draw all particles
+     */
+    draw(ctx) {
+        for (const p of this.particles) {
+            ctx.globalAlpha = p.life;
+            ctx.fillStyle = p.color;
+            ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+        }
+        ctx.globalAlpha = 1;
+    }
+    
+    /**
+     * Clear all particles
+     */
+    clear() {
+        this.particles = [];
+    }
+}
+
+// ============================================
+// MAIN GAME ENGINE
+// ============================================
+class GameEngine {
+    constructor() {        // Canvas setup
+        this.canvas = document.getElementById('gameCanvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.canvas.width = CONFIG.canvasWidth;
+        this.canvas.height = CONFIG.canvasHeight;
+        
+        // Create two independent DQL agents
+        this.agent1 = new DQLAgent(1, 'RED', '#ff2a6d');
+        this.agent2 = new DQLAgent(2, 'GREEN', '#05d9e8');
+        
+        // Create fighters
+        this.p1 = new Fighter(250, '#ff2a6d', true);
+        this.p2 = new Fighter(710, '#05d9e8', false);
+        
+        // Game state
+        this.timer = CONFIG.roundTime;
+        this.isRunning = true;
+        this.speedMultiplier = 1;
+        this.episodeCount = 0;
+        
+        // Training state
+        this.lastState1 = null;
+        this.lastAction1 = null;
+        this.lastState2 = null;
+        this.lastAction2 = null;
+        this.prevHealth1 = CONFIG.maxHealth;
+        this.prevHealth2 = CONFIG.maxHealth;
+        
+        // Systems
+        this.particles = new ParticleSystem();
+        this.chart = null;
+        
+        // Initialize subsystems
+        this.initChart();
+        this.initNeuralViz();
+        this.initActionDist();
+        this.bindEvents();
+        
+        // Log startup
+        this.log('Neural Arena v2.0 initialized', 'system');
+        this.log(`Agent RED created [ID: 0x${this.agent1.id.toString(16).toUpperCase()}]`, 'info');
+        this.log(`Agent GREEN created [ID: 0x${this.agent2.id.toString(16).toUpperCase()}]`, 'info');
+        this.log('MoE Architecture: 4 experts, 128 hidden units', 'info');
+        this.log('Prioritized Experience Replay enabled', 'info');
+        this.log('Self-play training started', 'success');
+        
+        // Start game loop
+        this.lastTime = performance.now();
+        this.loop = this.loop.bind(this);
+        requestAnimationFrame(this.loop);    }
+    
+    /**
+     * Initialize win rate chart
+     */
+    initChart() {
+        const ctx = document.getElementById('winRateChart').getContext('2d');
+        
+        // Chart.js configuration
+        this.chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'Red Win Rate (%)',
+                        data: [],
+                        borderColor: '#ff2a6d',
+                        backgroundColor: 'rgba(255,42,109,0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'Green Win Rate (%)',
+                        data: [],
+                        borderColor: '#05d9e8',
+                        backgroundColor: 'rgba(5,217,232,0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        borderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            color: '#888',
+                            font: { family: 'JetBrains Mono', size: 10 }
+                        }
+                    }
+                },                scales: {
+                    x: {
+                        display: true,
+                        grid: { color: '#1a1a2e' },
+                        ticks: { color: '#666', font: { family: 'JetBrains Mono', size: 9 } },
+                        title: {
+                            display: true,
+                            text: 'Episodes',
+                            color: '#666',
+                            font: { family: 'JetBrains Mono', size: 10 }
+                        }
+                    },
+                    y: {
+                        min: 0,
+                        max: 100,
+                        grid: { color: '#1a1a2e' },
+                        ticks: { 
+                            color: '#666', 
+                            font: { family: 'JetBrains Mono', size: 9 },
+                            callback: (value) => value + '%'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Win Rate',
+                            color: '#666',
+                            font: { family: 'JetBrains Mono', size: 10 }
+                        }
                     }
                 }
-                
-                indices.push(idx);
-                batch.push(this.memory[idx]);
-                
-                // Importance sampling weights
-                const weight = Math.pow(1 / (probs[idx] * this.memory.length), this.beta);
-                weights.push(weight);
+            }
+        });
+    }
+    
+    /**
+     * Initialize neural network visualization
+     */
+    initNeuralViz() {
+        const container = document.getElementById('neuralVizContainer');
+        container.innerHTML = '';
+        
+        const layerNames = ['Input', 'Hidden 1', 'Hidden 2', 'Output'];
+        const neuronCounts = [18, 16, 16, 8];
+        
+        for (let i = 0; i < layerNames.length; i++) {
+            const layer = document.createElement('div');
+            layer.className = 'neural-layer';
+            
+            const label = document.createElement('span');
+            label.className = 'neural-layer-label';
+            label.textContent = layerNames[i];            layer.appendChild(label);
+            
+            const row = document.createElement('div');
+            row.className = 'neuron-row';
+            
+            for (let j = 0; j < neuronCounts[i]; j++) {
+                const neuron = document.createElement('div');
+                neuron.className = 'neuron';
+                neuron.id = `neuron-${i}-${j}`;
+                row.appendChild(neuron);
             }
             
-            // Нормализация весов
-            const maxWeight = Math.max(...weights);
-            const normalizedWeights = weights.map(w => w / maxWeight);
-            
-            return { batch, indices, weights: normalizedWeights };
-        }
-        
-        updatePriorities(indices, tdErrors) {
-            for (let i = 0; i < indices.length; i++) {
-                if (indices[i] < this.priorities.length) {
-                    this.priorities[indices[i]] = Math.pow(Math.abs(tdErrors[i]) + this.epsilon, this.alpha);
-                }
-            }
-        }
-        
-        size() {
-            return this.memory.length;
+            layer.appendChild(row);
+            container.appendChild(layer);
         }
     }
-
-    // ============================================
-    // DQL AGENT
-    // ============================================
-    class DQLAgent {
-        constructor(stateSize, actionSize) {
-            this.stateSize = stateSize;
-            this.actionSize = actionSize;
-            
-            this.dqn = new MoEDQN(stateSize, actionSize, CONFIG.numExperts, CONFIG.expertHiddenSize);
-            this.memory = new PrioritizedReplayMemory(CONFIG.memorySize);
-            
-            this.epsilon = CONFIG.epsilonStart;
-            this.epsilonEnd = CONFIG.epsilonEnd;
-            this.epsilonDecay = CONFIG.epsilonDecay;
-            this.gamma = CONFIG.gamma;
-            this.learningRate = CONFIG.learningRate;
-            
-            this.episodes = 0;
-            this.steps = 0;
-            this.wins = 0;
-            this.losses = 0;
-            this.totalReward = 0;
-            this.totalLoss = 0;
-            this.lossCount = 0;
-            this.lastGradNorm = 0;
-            
-            this.actionCounts = Array(actionSize).fill(0);
-            
-            this.targetUpdateFreq = CONFIG.targetUpdateFreq;
-        }
+    
+    /**
+     * Initialize action distribution display
+     */
+    initActionDist() {
+        const container = document.getElementById('actionDistList');
+        container.innerHTML = '';
         
-        getState(game, player, opponent) {
-            return [
-                player.x / CONFIG.canvasWidth,
-                player.y / CONFIG.canvasHeight,
-                player.health / CONFIG.maxHealth,
-                player.velocityX / 15,
-                player.velocityY / 20,
-                player.isGrounded ? 1 : 0,
-                player.isBlocking ? 1 : 0,
-                player.isCrouching ? 1 : 0,
-                player.currentMove !== 'idle' ? 1 : 0,
-                opponent.x / CONFIG.canvasWidth,
-                opponent.y / CONFIG.canvasHeight,
-                opponent.health / CONFIG.maxHealth,
-                opponent.velocityX / 15,
-                opponent.velocityY / 20,
-                opponent.isGrounded ? 1 : 0,
-                opponent.isBlocking ? 1 : 0,
-                opponent.isCrouching ? 1 : 0,
-                opponent.currentMove !== 'idle' ? 1 : 0,
-                (opponent.x - player.x) / CONFIG.canvasWidth,
-                Math.abs(opponent.x - player.x) < 80 ? 1 : 0
-            ];
-        }
+        const actionNames = [
+            'Idle', 'Left', 'Right', 'Jump', 
+            'Crouch', 'Punch', 'Kick', 'Block'
+        ];
         
-        selectAction(state, training = true) {
-            if (training && Math.random() < this.epsilon) {
-                return Math.floor(Math.random() * this.actionSize);
-            }
-            
-            const qValues = this.dqn.forward(state, false);
-            return qValues.indexOf(Math.max(...qValues));
-        }
-        
-        train(batchSize = CONFIG.batchSize) {
-            if (this.memory.size() < batchSize) return null;
-            
-            const { batch, indices, weights } = this.memory.sample(batchSize);
-            let totalLoss = 0;
-            const tdErrors = [];
-            
-            // Сначала считаем все target'ы
-            for (let i = 0; i < batch.length; i++) {
-                const exp = batch[i];
-                
-                // Current Q
-                const currentQ = this.dqn.forward(exp.state, false);
-                
-                // Double DQN: действие выбирает основная сеть, оценивает target
-                const nextQ = this.dqn.forward(exp.nextState, false);
-                const bestAction = nextQ.indexOf(Math.max(...nextQ));
-                
-                const targetNextQ = this.dqn.forward(exp.nextState, true);
-                const maxNextQ = targetNextQ[bestAction];
-                
-                // Target = r + γ * max(Q')
-                let target = exp.reward;
-                if (!exp.done) {
-                    target += this.gamma * maxNextQ;
-                }
-                
-                // TD error для приоритетов
-                const tdError = target - currentQ[exp.action];
-                tdErrors.push(tdError);
-                
-                // Создаем целевой вектор
-                const targetQ = currentQ.slice();
-                targetQ[exp.action] = target;
-                
-                // Backward с importance sampling weights
-                const gradNorm = this.dqn.backward(targetQ, this.learningRate * weights[i]);
-                this.lastGradNorm = gradNorm || 0;
-                
-                // MSE loss
-                totalLoss += Math.pow(tdError, 2);
-            }
-            
-            // Обновляем приоритеты
-            this.memory.updatePriorities(indices, tdErrors);
-            
-            // Обновляем target network
-            this.steps++;
-            if (this.steps % this.targetUpdateFreq === 0) {
-                this.dqn.updateTargetNetwork();
-            }
-            
-            // Decay epsilon
-            if (this.epsilon > this.epsilonEnd) {
-                this.epsilon *= this.epsilonDecay;
-            }
-            
-            const avgLoss = totalLoss / batch.length;
-            this.totalLoss += avgLoss;
-            this.lossCount++;
-            
-            return avgLoss;
-        }
-        
-        remember(state, action, reward, nextState, done) {
-            // Примерный TD error для приоритета
-            let tdError = null;
-            if (this.memory.size() > 0) {
-                const q = this.dqn.forward(state, false);
-                const nextQ = this.dqn.forward(nextState, true);
-                const maxNextQ = Math.max(...nextQ);
-                const target = reward + (done ? 0 : this.gamma * maxNextQ);
-                tdError = target - q[action];
-            }
-            
-            this.memory.push(state, action, reward, nextState, done, tdError);
-            this.totalReward += reward;
-            this.actionCounts[action]++;
-        }
-        
-        save() {
-            const data = {
-                dqn: this.dqn.save(),
-                epsilon: this.epsilon,
-                episodes: this.episodes,
-                steps: this.steps,
-                wins: this.wins,
-                losses: this.losses,
-                totalReward: this.totalReward,
-                actionCounts: this.actionCounts
-            };
-            localStorage.setItem('fightingAI_real', JSON.stringify(data));
-            return data;
-        }
-        
-        load() {
-            const saved = localStorage.getItem('fightingAI_real');
-            if (saved) {
-                try {
-                    const data = JSON.parse(saved);
-                    this.dqn.load(data.dqn);
-                    this.epsilon = data.epsilon || this.epsilon;
-                    this.episodes = data.episodes || 0;
-                    this.steps = data.steps || 0;
-                    this.wins = data.wins || 0;
-                    this.losses = data.losses || 0;
-                    this.totalReward = data.totalReward || 0;
-                    this.actionCounts = data.actionCounts || this.actionCounts;
-                    return true;
-                } catch (e) {
-                    console.error('Failed to load:', e);
-                }
-            }
-            return false;
+        for (let i = 0; i < actionNames.length; i++) {
+            const item = document.createElement('div');
+            item.className = 'action-item';
+            item.innerHTML = `
+                <span class="action-name">${actionNames[i]}</span>
+                <div class="action-bar-container">
+                    <div class="action-bar-fill" id="actionFill-${i}" style="width: 0%"></div>
+                </div>
+                <span class="action-percent" id="actionPct-${i}">0%</span>
+            `;
+            container.appendChild(item);
         }
     }
-
-    // ============================================
-    // FIGHTER CLASS
-    // ============================================
-    class Fighter {
-        constructor(x, isPlayer1) {
-            this.x = x;
-            this.y = CONFIG.groundY;
-            this.startX = x;
-            this.velocityX = 0;
-            this.velocityY = 0;
-            this.health = CONFIG.maxHealth;
-            this.isPlayer1 = isPlayer1;
-            this.facingRight = isPlayer1;
-            
-            this.width = 60;
-            this.height = 100;
-            this.isGrounded = true;
-            this.isBlocking = false;
-            this.isCrouching = false;
-            
-            this.currentMove = 'idle';
-            this.moveFrame = 0;
-            this.moveCooldown = 0;
-            this.hitStun = 0;
-            this.combo = 0;
-            this.lastHitTime = 0;
-            
-            this.color = isPlayer1 ? '#ff3366' : '#00ff88';
-            this.secondaryColor = isPlayer1 ? '#cc0033' : '#00aa55';
-            
-            this.hitbox = null;
-            this.hurtbox = { x: this.x, y: this.y - this.height, w: this.width, h: this.height };
+    
+    /**
+     * Bind UI event listeners
+     */
+    bindEvents() {
+        // Toggle pause/resume
+        document.getElementById('btnToggle').addEventListener('click', () => {
+            this.isRunning = !this.isRunning;            const btn = document.getElementById('btnToggle');
+            document.getElementById('btnToggleIcon').textContent = this.isRunning ? '❚❚' : '▶';
+            document.getElementById('btnToggleText').textContent = this.isRunning ? 'PAUSE' : 'RESUME';
+            this.log(this.isRunning ? 'Simulation resumed' : 'Simulation paused', 'info');
+        });
+        
+        // Speed control
+        document.getElementById('btnSpeed').addEventListener('click', () => {
+            const speeds = [1, 5, 20, 50, 100, 200];
+            const idx = speeds.indexOf(this.speedMultiplier);
+            this.speedMultiplier = speeds[(idx + 1) % speeds.length];
+            document.getElementById('btnSpeedText').textContent = `${this.speedMultiplier}x`;
+            document.getElementById('headerSpeed').textContent = `${this.speedMultiplier}x`;
+            this.log(`Training speed set to ${this.speedMultiplier}x`, 'info');
+        });
+        
+        // Save checkpoint
+        document.getElementById('btnSave').addEventListener('click', () => this.saveGame());
+        
+        // Load checkpoint
+        document.getElementById('btnLoad').addEventListener('click', () => this.loadGame());
+        
+        // Export data
+        document.getElementById('btnExport').addEventListener('click', () => this.exportData());
+        
+        // Hard reset
+        document.getElementById('btnReset').addEventListener('click', () => this.hardReset());
+        
+        // Clear log
+        document.getElementById('btnClearLog').addEventListener('click', () => {
+            document.getElementById('systemLog').innerHTML = '';
+            this.log('Log cleared', 'info');
+        });
+    }
+    
+    /**
+     * Calculate reward for agent action
+     */
+    calculateReward(agent, fighter, opponent, prevOpponentHealth, done, won) {
+        let reward = 0;
+        
+        // Damage dealt bonus
+        const damageDealt = prevOpponentHealth - opponent.health;
+        if (damageDealt > 0) reward += damageDealt * 0.8;
+        
+        // Damage taken penalty
+        const damageTaken = fighter.health - (done && !won ? 0 : fighter.health);
+        if (damageTaken > 0 && !done) reward -= damageTaken * 0.5;
+        
+        // Win/loss bonus        if (done) {
+            reward += won ? 50 : -50;
         }
         
-        reset() {
-            this.x = this.startX;
-            this.y = CONFIG.groundY;
-            this.velocityX = 0;
-            this.velocityY = 0;
-            this.health = CONFIG.maxHealth;
-            this.isGrounded = true;
-            this.isBlocking = false;
-            this.isCrouching = false;
-            this.currentMove = 'idle';
-            this.moveFrame = 0;
-            this.moveCooldown = 0;
-            this.hitStun = 0;
-            this.combo = 0;
-            this.hitbox = null;
+        // Aggression bonus (encourage attacking)
+        if (fighter.state === 'punch' || fighter.state === 'kick') {
+            reward += 0.02;
         }
         
-        update(opponent) {
-            this.facingRight = opponent.x > this.x;
+        // Distance control bonus
+        const dist = Math.abs(fighter.x - opponent.x);
+        if (dist < 120 && dist > 50) reward += 0.01;
+        
+        // Passivity penalty (discourage standing still)
+        if (fighter.state === 'idle' && dist < 200) {
+            reward -= 0.03;
+        }
+        
+        // Block spam penalty
+        if (fighter.isBlocking && opponent.state !== 'punch' && opponent.state !== 'kick') {
+            reward -= 0.02;
+        }
+        
+        return MathUtils.clamp(reward, -5, 5);
+    }
+    
+    /**
+     * Check and resolve collisions between fighters
+     */
+    checkCollisions() {
+        // Player 1 attacks Player 2
+        if (this.p1.hitbox && this.p1.hitStun === 0) {
+            const hb = this.p1.hitbox;
+            const db = { x: this.p2.x - 25, y: this.p2.y - 95, w: 50, h: 95 };
             
-            if (this.hitStun > 0) {
-                this.hitStun--;
-                this.velocityX *= 0.9;
-            }
-            
-            if (this.moveCooldown > 0) {
-                this.moveCooldown--;
-            }
-            
-            if (this.moveFrame > 0) {
-                this.moveFrame--;
-                this.updateMove();
-                if (this.moveFrame === 0) {
-                    this.currentMove = 'idle';
-                    this.hitbox = null;
-                }
-            }
-            
-            this.velocityX *= CONFIG.friction;
-            this.x += this.velocityX;
-            
-            if (!this.isGrounded) {
-                this.velocityY += CONFIG.gravity;
-                this.y += this.velocityY;
+            if (hb.x < db.x + db.w && hb.x + hb.w > db.x &&
+                hb.y < db.y + db.h && hb.y + hb.h > db.y) {
                 
-                if (this.y >= CONFIG.groundY) {
-                    this.y = CONFIG.groundY;
-                    this.velocityY = 0;
-                    this.isGrounded = true;
+                // Check facing direction
+                const facingTarget = this.p1.facingRight 
+                    ? this.p2.x > this.p1.x 
+                    : this.p2.x < this.p1.x;
+                
+                if (facingTarget) {
+                    const dmg = this.p2.takeDamage(hb.damage, hb.knockback);
+                    this.p1.hitbox = null;
+                    this.particles.emit(hb.x, hb.y, this.p2.color, 15);
+                    this.showCombo(this.p1.x, this.p1.y - 100, ++this.p1.combo);
+                    this.showDamage(hb.x, hb.y, dmg);
+                    this.prevHealth2 = this.p2.health;                }
+            }
+        }
+        
+        // Player 2 attacks Player 1
+        if (this.p2.hitbox && this.p2.hitStun === 0) {
+            const hb = this.p2.hitbox;
+            const db = { x: this.p1.x - 25, y: this.p1.y - 95, w: 50, h: 95 };
+            
+            if (hb.x < db.x + db.w && hb.x + hb.w > db.x &&
+                hb.y < db.y + db.h && hb.y + hb.h > db.y) {
+                
+                const facingTarget = this.p2.facingRight 
+                    ? this.p1.x > this.p2.x 
+                    : this.p1.x < this.p2.x;
+                
+                if (facingTarget) {
+                    const dmg = this.p1.takeDamage(hb.damage, hb.knockback);
+                    this.p2.hitbox = null;
+                    this.particles.emit(hb.x, hb.y, this.p1.color, 15);
+                    this.showCombo(this.p2.x, this.p2.y - 100, ++this.p2.combo);
+                    this.showDamage(hb.x, hb.y, dmg);
+                    this.prevHealth1 = this.p1.health;
                 }
             }
-            
-            this.x = Math.max(30, Math.min(CONFIG.canvasWidth - 30, this.x));
-            
-            this.hurtbox = {
-                x: this.x - this.width / 2,
-                y: this.y - (this.isCrouching ? this.height * 0.6 : this.height),
-                w: this.width,
-                h: this.isCrouching ? this.height * 0.6 : this.height
-            };
-        }
-        
-        updateMove() {
-            const moveData = MOVES[this.currentMove];
-            if (!moveData) return;
-            
-            const progress = 1 - (this.moveFrame / moveData.duration);
-            
-            if (progress >= moveData.hitStart && progress <= moveData.hitEnd) {
-                const hb = moveData.hitbox;
-                const dir = this.facingRight ? 1 : -1;
-                this.hitbox = {
-                    x: this.x + hb.offsetX * dir,
-                    y: this.y + hb.offsetY,
-                    w: hb.w,
-                    h: hb.h,
-                    damage: hb.damage,
-                    knockback: hb.knockback * dir
-                };
-            } else {
-                this.hitbox = null;
-            }
-        }
-        
-        performMove(moveName) {
-            if (this.moveCooldown > 0 || this.hitStun > 0 || this.currentMove !== 'idle') return false;
-            
-            const move = MOVES[moveName];
-            if (!move) return false;
-            
-            this.currentMove = moveName;
-            this.moveFrame = move.duration;
-            this.moveCooldown = move.cooldown;
-            this.isBlocking = false;
-            
-            if (moveName === 'crouchKick') {
-                this.isCrouching = true;
-            }
-            
-            return true;
-        }
-        
-        takeDamage(damage, knockback) {
-            if (this.isBlocking) {
-                damage *= 0.2;
-                knockback *= 0.3;
-            }
-            
-            this.health = Math.max(0, this.health - damage);
-            this.velocityX += knockback;
-            this.hitStun = 15;
-            this.currentMove = 'idle';
-            this.moveFrame = 0;
-            this.hitbox = null;
-            
-            return damage;
-        }
-        
-        draw(ctx) {
-            ctx.save();
-            
-            const dir = this.facingRight ? 1 : -1;
-            const baseX = this.x;
-            const baseY = this.y;
-            
-            ctx.translate(baseX, baseY);
-            ctx.scale(dir, 1);
-            ctx.translate(-baseX, -baseY);
-            
-            let drawY = baseY;
-            let legHeight = 40;
-            let torsoHeight = 35;
-            let armLength = 25;
-            
-            if (this.isCrouching) {
-                legHeight = 20;
-                torsoHeight = 25;
-            }
-            
-            // Shadow
-            ctx.fillStyle = 'rgba(0,0,0,0.3)';
-            ctx.beginPath();
-            ctx.ellipse(baseX, baseY + 5, 30, 8, 0, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Legs
-            ctx.fillStyle = this.secondaryColor;
-            const legSpread = this.currentMove.includes('kick') ? 30 : 12;
-            ctx.fillRect(baseX - legSpread, drawY - legHeight, 12, legHeight);
-            ctx.fillRect(baseX + legSpread - 12, drawY - legHeight, 12, legHeight);
-            
-            // Feet
-            ctx.fillStyle = '#222';
-            ctx.fillRect(baseX - legSpread - 3, drawY - 5, 15, 8);
-            ctx.fillRect(baseX + legSpread - 12, drawY - 5, 15, 8);
-            
-            // Torso
-            ctx.fillStyle = this.color;
-            ctx.fillRect(baseX - 20, drawY - legHeight - torsoHeight, 40, torsoHeight);
-            
-            // Belt
-            ctx.fillStyle = '#222';
-            ctx.fillRect(baseX - 22, drawY - legHeight - 5, 44, 8);
-            
-            // Arms
-            let armAngle = 0;
-            let armY = drawY - legHeight - torsoHeight + 10;
-            
-            if (this.currentMove === 'punch') {
-                armAngle = -Math.PI / 2;
-            } else if (this.currentMove === 'spinKick') {
-                armAngle = Math.PI / 4;
-            } else if (this.isBlocking) {
-                armAngle = Math.PI / 3;
-            }
-            
-            ctx.save();
-            ctx.translate(baseX + 20, armY);
-            ctx.rotate(armAngle);
-            ctx.fillStyle = this.secondaryColor;
-            ctx.fillRect(0, -6, armLength, 12);
-            ctx.fillStyle = '#ffcc99';
-            ctx.fillRect(armLength - 5, -8, 10, 16);
-            ctx.restore();
-            
-            ctx.save();
-            ctx.translate(baseX - 20, armY);
-            ctx.rotate(-armAngle);
-            ctx.fillStyle = this.secondaryColor;
-            ctx.fillRect(-armLength, -6, armLength, 12);
-            ctx.fillStyle = '#ffcc99';
-            ctx.fillRect(-armLength - 5, -8, 10, 16);
-            ctx.restore();
-            
-            // Head
-            const headY = drawY - legHeight - torsoHeight - 25;
-            ctx.fillStyle = '#ffcc99';
-            ctx.beginPath();
-            ctx.arc(baseX, headY, 18, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Hair
-            ctx.fillStyle = this.isPlayer1 ? '#440000' : '#004400';
-            ctx.beginPath();
-            ctx.arc(baseX, headY - 5, 18, Math.PI, 0, false);
-            ctx.fill();
-            
-            // Eyes
-            if (this.hitStun > 0) {
-                ctx.fillStyle = '#fff';
-                ctx.fillRect(baseX - 10, headY - 5, 6, 6);
-                ctx.fillRect(baseX + 4, headY - 5, 6, 6);
-            } else {
-                ctx.fillStyle = '#fff';
-                ctx.fillRect(baseX - 10, headY - 3, 6, 4);
-                ctx.fillRect(baseX + 4, headY - 3, 6, 4);
-                ctx.fillStyle = '#000';
-                ctx.fillRect(baseX - 8, headY - 2, 3, 3);
-                ctx.fillRect(baseX + 6, headY - 2, 3, 3);
-            }
-            
-            // Mouth
-            ctx.strokeStyle = '#000';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            if (this.hitStun > 0) {
-                ctx.arc(baseX, headY + 8, 5, 0, Math.PI, false);
-            } else {
-                ctx.moveTo(baseX - 5, headY + 8);
-                ctx.lineTo(baseX + 5, headY + 8);
-            }
-            ctx.stroke();
-            
-            // Kick animation
-            if (this.currentMove === 'kick' || this.currentMove === 'crouchKick') {
-                ctx.fillStyle = this.secondaryColor;
-                ctx.save();
-                ctx.translate(baseX + 15, drawY - (this.isCrouching ? 15 : legHeight / 2));
-                ctx.rotate(-Math.PI / 3);
-                ctx.fillRect(0, -7, 45, 14);
-                ctx.fillStyle = '#222';
-                ctx.fillRect(40, -9, 12, 18);
-                ctx.restore();
-            }
-            
-            if (this.currentMove === 'spinKick') {
-                ctx.fillStyle = this.secondaryColor;
-                ctx.save();
-                ctx.translate(baseX, drawY - 50);
-                ctx.rotate(Math.PI / 2);
-                ctx.fillRect(0, -8, 55, 16);
-                ctx.fillStyle = '#222';
-                ctx.fillRect(50, -10, 12, 20);
-                ctx.restore();
-            }
-            
-            // Block stance
-            if (this.isBlocking) {
-                ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.arc(baseX, drawY - 60, 35, -Math.PI / 3, Math.PI / 3);
-                ctx.stroke();
-            }
-            
-            // Hit stun effect
-            if (this.hitStun > 0) {
-                ctx.strokeStyle = '#ff0';
-                ctx.lineWidth = 2;
-                for (let i = 0; i < 3; i++) {
-                    const angle = Math.random() * Math.PI * 2;
-                    const dist = 30 + Math.random() * 20;
-                    ctx.beginPath();
-                    ctx.moveTo(baseX + Math.cos(angle) * dist, drawY - 50 + Math.sin(angle) * dist);
-                    ctx.lineTo(baseX + Math.cos(angle) * (dist + 15), drawY - 50 + Math.sin(angle) * (dist + 15));
-                    ctx.stroke();
-                }
-            }
-            
-            ctx.restore();
         }
     }
-
-    // ============================================
-    // MOVE DEFINITIONS
-    // ============================================
-    const MOVES = {
-        punch: {
-            duration: 20,
-            cooldown: 25,
-            damage: 8,
-            hitStart: 0.3,
-            hitEnd: 0.6,
-            hitbox: { offsetX: 35, offsetY: -60, w: 40, h: 20, damage: 8, knockback: 5 }
-        },
-        kick: {
-            duration: 25,
-            cooldown: 30,
-            damage: 12,
-            hitStart: 0.3,
-            hitEnd: 0.6,
-            hitbox: { offsetX: 40, offsetY: -40, w: 50, h: 25, damage: 12, knockback: 8 }
-        },
-        spinKick: {
-            duration: 35,
-            cooldown: 50,
-            damage: 18,
-            hitStart: 0.2,
-            hitEnd: 0.7,
-            hitbox: { offsetX: 30, offsetY: -50, w: 60, h: 40, damage: 18, knockback: 15 }
-        },
-        crouchKick: {
-            duration: 22,
-            cooldown: 28,
-            damage: 10,
-            hitStart: 0.3,
-            hitEnd: 0.6,
-            hitbox: { offsetX: 35, offsetY: -20, w: 45, h: 15, damage: 10, knockback: 6 }
-        }
-    };
-
-    // Action mapping
-    const ACTIONS = [
-        'idle',
-        'moveLeft',
-        'moveRight',
-        'jump',
-        'crouch',
-        'punch',
-        'kick',
-        'spinKick',
-        'crouchKick',
-        'block'
-    ];
-
-    // ============================================
-    // GAME CLASS
-    // ============================================
-    class FightingGame {
-        constructor(canvas) {
-            this.canvas = canvas;
-            this.ctx = canvas.getContext('2d');
-            
-            this.player1 = new Fighter(200, true);
-            this.player2 = new Fighter(600, false);
-            
-            this.timer = CONFIG.roundTime;
-            this.roundOver = false;
-            this.winner = null;
-            this.aiMode = false;
-            
-            this.shakeAmount = 0;
-            this.particles = [];
-            this.comboTexts = [];
-            
-            this.agent = new DQLAgent(20, ACTIONS.length);
-            this.isTraining = false;
-            
-            this.lastState = null;
-            this.lastAction = null;
-            this.frameCount = 0;
-            
-            this.particles = [];
-            
-            this.loadAI();
-            this.setupControls();
+    
+    /**
+     * Show combo counter
+     */
+    showCombo(x, y, count) {
+        if (count < 2) return;
+        
+        const el = document.createElement('div');
+        el.className = 'combo-display animate';
+        el.style.left = `${(x / CONFIG.canvasWidth) * 100}%`;
+        el.style.top = `${(y / CONFIG.canvasHeight) * 100}%`;
+        el.style.color = '#ffcc00';
+        el.textContent = `${count} HIT!`;
+        document.getElementById('comboContainer').appendChild(el);
+        setTimeout(() => el.remove(), 800);
+    }
+    
+    /**
+     * Show damage number
+     */
+    showDamage(x, y, amount) {
+        const el = document.createElement('div');
+        el.className = 'damage-number animate';        el.style.left = `${(x / CONFIG.canvasWidth) * 100}%`;
+        el.style.top = `${(y / CONFIG.canvasHeight) * 100}%`;
+        el.style.color = '#ff4444';
+        el.textContent = `-${Math.floor(amount)}`;
+        document.getElementById('damageContainer').appendChild(el);
+        setTimeout(() => el.remove(), 600);
+    }
+    
+    /**
+     * Show round announcement
+     */
+    announceRound(text, color) {
+        const el = document.getElementById('roundAnnounce');
+        el.textContent = text;
+        el.style.color = color;
+        el.style.display = 'block';
+        el.classList.remove('animate');
+        el.offsetHeight; // Trigger reflow
+        el.classList.add('animate');
+        setTimeout(() => el.style.display = 'none', 1500);
+    }
+    
+    /**
+     * Reset round to initial state
+     */
+    resetRound() {
+        this.p1.reset();
+        this.p2.reset();
+        this.timer = CONFIG.roundTime;
+        this.prevHealth1 = CONFIG.maxHealth;
+        this.prevHealth2 = CONFIG.maxHealth;
+        this.lastState1 = null;
+        this.lastState2 = null;
+        this.particles.clear();
+        document.getElementById('comboContainer').innerHTML = '';
+        document.getElementById('damageContainer').innerHTML = '';
+        this.updateUI();
+    }
+    
+    /**
+     * Handle end of round
+     */
+    endRound(winner) {
+        this.episodeCount++;
+        
+        const won1 = winner === this.p1;
+        const won2 = winner === this.p2;
+        
+        this.announceRound(won1 ? 'RED WINS' : 'GREEN WINS', won1 ? '#ff2a6d' : '#05d9e8');
+                // Update agent statistics
+        if (won1) {
+            this.agent1.wins++;
+            this.agent2.losses++;
+        } else {
+            this.agent2.wins++;
+            this.agent1.losses++;
         }
         
-        setupControls() {
-            const keys = {};
-            
-            document.addEventListener('keydown', (e) => {
-                keys[e.key.toLowerCase()] = true;
-                
-                if (e.key.toLowerCase() === 'j') this.player1.performMove('punch');
-                if (e.key.toLowerCase() === 'k') this.player1.performMove('kick');
-                if (e.key.toLowerCase() === 'l') this.player1.performMove('spinKick');
-                if (e.key.toLowerCase() === ' ' && this.player1.isGrounded) {
-                    this.player1.isBlocking = true;
-                }
-            });
-            
-            document.addEventListener('keyup', (e) => {
-                keys[e.key.toLowerCase()] = false;
-                if (e.key.toLowerCase() === ' ') {
-                    this.player1.isBlocking = false;
-                }
-            });
-            
-            this.keys = keys;
+        this.agent1.episodes++;
+        this.agent2.episodes++;
+        
+        // Calculate final rewards
+        const reward1 = this.calculateReward(this.agent1, this.p1, this.p2, this.prevHealth2, true, won1);
+        const reward2 = this.calculateReward(this.agent2, this.p2, this.p1, this.prevHealth1, true, won2);
+        
+        // Store final transitions in memory
+        if (this.lastState1) {
+            this.agent1.remember(this.lastState1, this.lastAction1, reward1, 
+                this.agent1.getState(this.p1, this.p2), true);
+            this.agent2.remember(this.lastState2, this.lastAction2, reward2,
+                this.agent2.getState(this.p2, this.p1), true);
         }
         
-        handleInput() {
-            if (this.roundOver) return;
-            
-            const p1 = this.player1;
-            
-            if (p1.hitStun > 0 || p1.currentMove !== 'idle') return;
-            
-            if (this.keys['a']) p1.velocityX -= 1.2;
-            if (this.keys['d']) p1.velocityX += 1.2;
-            
-            if (this.keys['w'] && p1.isGrounded && !p1.isCrouching) {
-                p1.velocityY = -15;
-                p1.isGrounded = false;
-            }
-            
-            if (this.keys['s'] && p1.isGrounded) {
-                p1.isCrouching = true;
-            } else if (!this.keys['s']) {
-                p1.isCrouching = false;
-            }
-            
-            if (this.keys['k'] && this.keys['s']) {
-                p1.performMove('crouchKick');
-            }
+        // Train both agents
+        const loss1 = this.agent1.train();
+        const loss2 = this.agent2.train();
+        
+        // Update target networks periodically
+        if (this.episodeCount % CONFIG.targetUpdateFreq === 0) {
+            this.agent1.updateTargetNetwork();
+            this.agent2.updateTargetNetwork();
+            this.log(`Target networks updated (Episode ${this.episodeCount})`, 'training');
         }
         
-        handleAI(fighter, opponent, agent) {
-            if (this.roundOver) return;
-            
-            const state = agent.getState(this, fighter, opponent);
-            const action = agent.selectAction(state, this.isTraining);
-            
-            if (fighter.hitStun > 0 || fighter.currentMove !== 'idle') {
-                if (this.lastState && this.isTraining) {
-                    const reward = this.calculateReward(fighter, opponent, 0);
-                    agent.remember(this.lastState, this.lastAction, reward, state, false);
+        // Update win history for chart
+        this.agent1.winHistory.push(this.agent1.getWinRate());
+        this.agent2.winHistory.push(this.agent2.getWinRate());
+        
+        this.log(`Episode ${this.episodeCount}: ${won1 ? 'Red' : 'Green'} victory | Loss: ${(loss1 || 0).toFixed(4)}`, 'training');
+        
+        setTimeout(() => this.resetRound(), 2000);
+    }
+    
+    /**
+     * Update game state
+     */
+    update() {
+        if (!this.isRunning) return;
+                // Run multiple simulation steps per frame for speedup
+        for (let step = 0; step < this.speedMultiplier; step++) {
+            // Check round end conditions
+            if (this.p1.health <= 0 || this.p2.health <= 0 || this.timer <= 0) {
+                if (step === 0) {
+                    const winner = this.p1.health > this.p2.health ? this.p1 : this.p2;
+                    this.endRound(winner);
                 }
-                this.lastState = state;
-                this.lastAction = action;
                 return;
             }
             
-            const actionName = ACTIONS[action];
-            
-            switch (actionName) {
-                case 'moveLeft':
-                    fighter.velocityX -= 1.5;
-                    break;
-                case 'moveRight':
-                    fighter.velocityX += 1.5;
-                    break;
-                case 'jump':
-                    if (fighter.isGrounded) {
-                        fighter.velocityY = -15;
-                        fighter.isGrounded = false;
-                    }
-                    break;
-                case 'crouch':
-                    fighter.isCrouching = true;
-                    break;
-                case 'punch':
-                    fighter.performMove('punch');
-                    break;
-                case 'kick':
-                    fighter.performMove('kick');
-                    break;
-                case 'spinKick':
-                    fighter.performMove('spinKick');
-                    break;
-                case 'crouchKick':
-                    fighter.performMove('crouchKick');
-                    break;
-                case 'block':
-                    fighter.isBlocking = true;
-                    break;
-            }
-            
-            if (actionName !== 'block') {
-                fighter.isBlocking = false;
-            }
-            if (actionName !== 'crouch' && actionName !== 'crouchKick') {
-                fighter.isCrouching = false;
-            }
-            
-            if (this.lastState && this.isTraining) {
-                const reward = this.calculateReward(fighter, opponent, 0);
-                agent.remember(this.lastState, this.lastAction, reward, state, false);
-            }
-            
-            this.lastState = state;
-            this.lastAction = action;
-        }
-        
-        calculateReward(fighter, opponent, baseReward) {
-            let reward = baseReward;
-            
-            const dist = Math.abs(fighter.x - opponent.x);
-            
-            // Награда за урон
-            const healthDiff = opponent.health - fighter.health;
-            reward += (healthDiff / CONFIG.maxHealth) * 2;
-            
-            // Награда за попадание
-            if (fighter.lastHitTime > this.frameCount - 10) {
-                reward += 1;
-            }
-            
-            // Награда за комбо
-            if (fighter.combo >= 2) {
-                reward += fighter.combo * 0.5;
-            }
-            
-            // Наказание за получение урона
-            if (opponent.lastHitTime > this.frameCount - 10) {
-                reward -= 1;
-            }
-            
-            // Награда за контроль дистанции
-            if (dist < 150 && dist > 50) {
-                reward += 0.2;
-            }
-            
-            return Math.max(-5, Math.min(5, reward));
-        }
-        
-        checkHit(attacker, defender) {
-            if (!attacker.hitbox) return false;
-            
-            const hb = attacker.hitbox;
-            const db = defender.hurtbox;
-            
-            if (hb.x < db.x + db.w &&
-                hb.x + hb.w > db.x &&
-                hb.y < db.y + db.h &&
-                hb.y + hb.h > db.y) {
-                
-                const damage = defender.takeDamage(hb.damage, hb.knockback);
-                attacker.hitbox = null;
-                
-                this.shakeAmount = 8;
-                this.spawnParticles(hb.x + hb.w / 2, hb.y + hb.h / 2, defender.color);
-                
-                const now = Date.now();
-                if (now - attacker.lastHitTime < 1000) {
-                    attacker.combo++;
-                    this.showCombo(attacker.x, attacker.y - 120, attacker.combo);
-                } else {
-                    attacker.combo = 1;
-                }
-                attacker.lastHitTime = now;
-                
-                return true;
-            }
-            
-            return false;
-        }
-        
-        spawnParticles(x, y, color) {
-            for (let i = 0; i < 8; i++) {
-                this.particles.push({
-                    x: x,
-                    y: y,
-                    vx: (Math.random() - 0.5) * 15,
-                    vy: (Math.random() - 0.5) * 15 - 5,
-                    life: 20,
-                    color: color,
-                    size: 4 + Math.random() * 6
-                });
-            }
-        }
-        
-        showCombo(x, y, count) {
-            if (count < 2) return;
-            
-            const el = document.createElement('div');
-            el.className = 'combo-display';
-            el.style.left = `${(x / CONFIG.canvasWidth) * 100}%`;
-            el.style.top = `${(y / CONFIG.canvasHeight) * 100}%`;
-            el.textContent = `${count} HIT!`;
-            document.getElementById('comboContainer').appendChild(el);
-            
-            setTimeout(() => el.remove(), 500);
-        }
-        
-        announceRound(text) {
-            const el = document.createElement('div');
-            el.className = 'round-announce';
-            el.textContent = text;
-            document.getElementById('roundAnnounce').appendChild(el);
-            setTimeout(() => el.remove(), 1500);
-        }
-        
-        update() {
-            this.frameCount++;
-            
-            if (this.frameCount % 60 === 0 && this.timer > 0 && !this.roundOver) {
+            // Update timer (approximately every 60 steps)
+            if (step % 60 === 0 && this.timer > 0) {
                 this.timer--;
-            }
-            
-            this.handleInput();
-            
-            if (this.aiMode) {
-                this.handleAI(this.player1, this.player2, this.agent);
-            }
-            
-            this.handleAI(this.player2, this.player1, this.agent);
-            
-            this.player1.update(this.player2);
-            this.player2.update(this.player1);
-            
-            this.checkHit(this.player1, this.player2);
-            this.checkHit(this.player2, this.player1);
-            
-            // Particles
-            this.particles = this.particles.filter(p => {
-                p.x += p.vx;
-                p.y += p.vy;
-                p.vy += 0.5;
-                p.life--;
-                p.size *= 0.95;
-                return p.life > 0;
-            });
-            
-            // Screen shake
-            if (this.shakeAmount > 0) {
-                this.shakeAmount *= 0.8;
-            }
-            
-            // Check round over
-            if (!this.roundOver) {
-                if (this.player1.health <= 0) {
-                    this.roundOver = true;
-                    this.winner = this.player2;
-                    this.agent.losses++;
-                    this.agent.wins++;
-                    this.announceRound('AI WINS!');
-                    this.endRound();
-                } else if (this.player2.health <= 0) {
-                    this.roundOver = true;
-                    this.winner = this.player1;
-                    this.agent.wins++;
-                    this.agent.losses++;
-                    this.announceRound('PLAYER WINS!');
-                    this.endRound();
-                } else if (this.timer <= 0) {
-                    this.roundOver = true;
-                    this.winner = this.player1.health > this.player2.health ? this.player1 : this.player2;
-                    if (this.winner === this.player1) {
-                        this.agent.losses++;
-                    } else {
-                        this.agent.wins++;
-                    }
-                    this.announceRound('TIME!');
-                    this.endRound();
+                if (this.timer <= 10) {
+                    document.getElementById('timerDisplay').classList.add('warning');
+                } else {
+                    document.getElementById('timerDisplay').classList.remove('warning');
                 }
             }
             
-            // Training step
-            if (this.isTraining && this.frameCount % 2 === 0) {
-                const loss = this.agent.train();
-                if (loss !== null) {
-                    document.getElementById('statAvgLoss').textContent = loss.toFixed(4);
-                }
+            // Get current states
+            const state1 = this.agent1.getState(this.p1, this.p2);
+            const state2 = this.agent2.getState(this.p2, this.p1);
+            
+            // Select actions using epsilon-greedy
+            const action1 = this.agent1.selectAction(state1, true);
+            const action2 = this.agent2.selectAction(state2, true);
+            
+            // Apply actions to fighters
+            if (this.p1.hitStun === 0) this.p1.performAction(action1);
+            if (this.p2.hitStun === 0) this.p2.performAction(action2);
+            
+            // Update physics
+            this.p1.update(this.p2);
+            this.p2.update(this.p1);
+            this.checkCollisions();
+            
+            // Calculate and store rewards for previous step
+            if (this.lastState1 && this.p1.health > 0 && this.p2.health > 0) {
+                const reward1 = this.calculateReward(this.agent1, this.p1, this.p2, this.prevHealth2, false, false);
+                const reward2 = this.calculateReward(this.agent2, this.p2, this.p1, this.prevHealth1, false, false);
+                
+                this.agent1.remember(this.lastState1, this.lastAction1, reward1, state1, false);
+                this.agent2.remember(this.lastState2, this.lastAction2, reward2, state2, false);
             }
             
-            this.updateUI();
+            // Store state for next step
+            this.lastState1 = state1;
+            this.lastAction1 = action1;            this.lastState2 = state2;
+            this.lastAction2 = action2;
+            this.prevHealth1 = this.p1.health;
+            this.prevHealth2 = this.p2.health;
+            
+            // Training steps (every 4 steps to balance performance)
+            if (this.episodeCount > 0 && step % 4 === 0) {
+                this.agent1.train();
+                this.agent2.train();
+            }
         }
         
-        endRound() {
-            if (this.isTraining && this.lastState) {
-                const reward = this.winner === this.player2 ? 10 : -10;
-                const finalState = this.agent.getState(this, this.player2, this.player1);
-                this.agent.remember(this.lastState, this.lastAction, reward, finalState, true);
-                this.agent.episodes++;
-                this.agent.train(CONFIG.batchSize * 2); // Дополнительное обучение в конце раунда
-            }
-            
-            this.lastState = null;
-            this.lastAction = null;
-            
-            setTimeout(() => {
-                this.resetRound();
-            }, 2000);
-        }
+        // Update particle system
+        this.particles.update();
         
-        resetRound() {
-            this.player1.reset();
-            this.player2.reset();
-            this.timer = CONFIG.roundTime;
-            this.roundOver = false;
-            this.winner = null;
-            this.particles = [];
-        }
+        // Update UI elements
+        this.updateUI();
+        this.updateNeuralViz();
+        this.updateActionDist();
+    }
+    
+    /**
+     * Render game to canvas
+     */
+    draw() {
+        const ctx = this.ctx;
         
-        draw() {
-            const ctx = this.ctx;
-            
-            ctx.save();
-            
-            if (this.shakeAmount > 0.5) {
-                ctx.translate(
-                    (Math.random() - 0.5) * this.shakeAmount,
-                    (Math.random() - 0.5) * this.shakeAmount
-                );
-            }
-            
-            // Background
-            const bgGrad = ctx.createLinearGradient(0, 0, 0, CONFIG.canvasHeight);
-            bgGrad.addColorStop(0, '#1a0a2e');
-            bgGrad.addColorStop(0.5, '#0f0520');
-            bgGrad.addColorStop(1, '#050208');
-            ctx.fillStyle = bgGrad;
-            ctx.fillRect(0, 0, CONFIG.canvasWidth, CONFIG.canvasHeight);
-            
-            // Stars
-            ctx.fillStyle = 'rgba(255,255,255,0.5)';
-            for (let i = 0; i < 50; i++) {
-                const x = (i * 73 + this.frameCount * 0.1) % CONFIG.canvasWidth;
-                const y = (i * 37) % (CONFIG.canvasHeight * 0.6);
-                ctx.fillRect(x, y, 1, 1);
-            }
-            
-            // Moon
-            ctx.fillStyle = '#ffeedd';
+        // Clear canvas
+        ctx.fillStyle = '#020204';
+        ctx.fillRect(0, 0, CONFIG.canvasWidth, CONFIG.canvasHeight);
+        
+        // Draw grid background
+        ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < CONFIG.canvasWidth; i += 60) {
             ctx.beginPath();
-            ctx.arc(650, 60, 30, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#1a0a2e';
-            ctx.beginPath();
-            ctx.arc(660, 55, 25, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Ground
-            const groundGrad = ctx.createLinearGradient(0, CONFIG.groundY, 0, CONFIG.canvasHeight);
-            groundGrad.addColorStop(0, '#2a1a3a');
-            groundGrad.addColorStop(1, '#1a0a2a');
-            ctx.fillStyle = groundGrad;
-            ctx.fillRect(0, CONFIG.groundY + 5, CONFIG.canvasWidth, CONFIG.canvasHeight - CONFIG.groundY);
-            
-            // Ground line
-            ctx.strokeStyle = '#4a2a6a';
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.moveTo(0, CONFIG.groundY + 5);
-            ctx.lineTo(CONFIG.canvasWidth, CONFIG.groundY + 5);
+            ctx.moveTo(i, 0);
+            ctx.lineTo(i, CONFIG.canvasHeight);
             ctx.stroke();
-            
-            // Floor tiles
-            ctx.strokeStyle = 'rgba(100, 50, 150, 0.3)';
-            ctx.lineWidth = 1;
-            for (let i = 0; i < 20; i++) {
-                const x = i * 50 + ((this.frameCount * 0.5) % 50) - 25;
-                ctx.beginPath();
-                ctx.moveTo(x, CONFIG.groundY + 5);
-                ctx.lineTo(x - 20, CONFIG.canvasHeight);
-                ctx.stroke();
-            }
-            
-            // Draw fighters
-            this.player1.draw(ctx);
-            this.player2.draw(ctx);
-            
-            // Particles
-            this.particles.forEach(p => {
-                ctx.fillStyle = p.color;
-                ctx.globalAlpha = p.life / 20;
-                ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
-            });
-            ctx.globalAlpha = 1;
-            
-            ctx.restore();
+        }
+        for (let i = 0; i < CONFIG.canvasHeight; i += 60) {
+            ctx.beginPath();
+            ctx.moveTo(0, i);
+            ctx.lineTo(CONFIG.canvasWidth, i);
+            ctx.stroke();
         }
         
-        updateUI() {
-            document.getElementById('p1Health').style.width = `${this.player1.health}%`;
-            document.getElementById('p2Health').style.width = `${this.player2.health}%`;
-            document.getElementById('p1HealthText').textContent = `${Math.ceil(this.player1.health)}%`;
-            document.getElementById('p2HealthText').textContent = `${Math.ceil(this.player2.health)}%`;
-            document.getElementById('timer').textContent = this.timer.toString().padStart(2, '0');
+        // Draw floor gradient
+        const floorGrad = ctx.createLinearGradient(0, CONFIG.groundY, 0, CONFIG.canvasHeight);
+        floorGrad.addColorStop(0, '#1a1a2e');        floorGrad.addColorStop(1, '#0a0a0f');
+        ctx.fillStyle = floorGrad;
+        ctx.fillRect(0, CONFIG.groundY, CONFIG.canvasWidth, CONFIG.canvasHeight - CONFIG.groundY);
+        
+        // Draw floor line with glow
+        ctx.strokeStyle = '#ff2a6d';
+        ctx.lineWidth = 3;
+        ctx.shadowColor = '#ff2a6d';
+        ctx.shadowBlur = 20;
+        ctx.beginPath();
+        ctx.moveTo(0, CONFIG.groundY);
+        ctx.lineTo(CONFIG.canvasWidth, CONFIG.groundY);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        
+        // Draw fighters
+        this.p1.draw(ctx);
+        this.p2.draw(ctx);
+        
+        // Draw particles
+        this.particles.draw(ctx);
+    }
+    
+    /**
+     * Update UI elements
+     */
+    updateUI() {
+        // Health bars
+        const p1HealthPct = Math.max(0, this.p1.health);
+        const p2HealthPct = Math.max(0, this.p2.health);
+        
+        document.getElementById('p1HealthFill').style.width = `${p1HealthPct}%`;
+        document.getElementById('p2HealthFill').style.width = `${p2HealthPct}%`;
+        document.getElementById('p1HealthValue').textContent = `${Math.ceil(p1HealthPct)}%`;
+        document.getElementById('p2HealthValue').textContent = `${Math.ceil(p2HealthPct)}%`;
+        
+        // Timer
+        document.getElementById('timerDisplay').textContent = this.timer.toString().padStart(2, '0');
+        
+        // HUD stats
+        document.getElementById('hudRedWins').textContent = this.agent1.wins;
+        document.getElementById('hudRedLosses').textContent = this.agent1.losses;
+        document.getElementById('hudGreenWins').textContent = this.agent2.wins;
+        document.getElementById('hudGreenLosses').textContent = this.agent2.losses;
+        
+        // Dashboard stats
+        document.getElementById('statRedWins').textContent = this.agent1.wins;
+        document.getElementById('statGreenWins').textContent = this.agent2.wins;
+        document.getElementById('metricEpisodes').textContent = this.episodeCount;
+        document.getElementById('metricAvgLoss').textContent = (this.agent1.avgLoss || 0).toFixed(4);        document.getElementById('metricGradNorm').textContent = (this.agent1.lastGradNorm || 0).toFixed(2);
+        
+        // Win rate progress bars
+        const total1 = this.agent1.wins + this.agent1.losses || 1;
+        const total2 = this.agent2.wins + this.agent2.losses || 1;
+        const winRate1 = (this.agent1.wins / total1) * 100;
+        const winRate2 = (this.agent2.wins / total2) * 100;
+        
+        document.getElementById('progressRedWinRate').style.width = `${winRate1}%`;
+        document.getElementById('progressGreenWinRate').style.width = `${winRate2}%`;
+        document.getElementById('statRedWinRateText').textContent = `${winRate1.toFixed(1)}% win rate`;
+        document.getElementById('statGreenWinRateText').textContent = `${winRate2.toFixed(1)}% win rate`;
+        
+        // Header stats
+        document.getElementById('headerEpsilon').textContent = this.agent1.epsilon.toFixed(3);
+        document.getElementById('headerMemory').textContent = this.agent1.memory.size();
+        
+        // Update chart every 10 episodes
+        if (this.episodeCount % 10 === 0 && this.episodeCount > 0) {
+            this.updateChart();
+        }
+    }
+    
+    /**
+     * Update win rate chart
+     */
+    updateChart() {
+        const maxPoints = 100;
+        const redHistory = this.agent1.winHistory.slice(-maxPoints);
+        const greenHistory = this.agent2.winHistory.slice(-maxPoints);
+        
+        this.chart.data.labels = redHistory.map((_, i) => i * 10);
+        this.chart.data.datasets[0].data = redHistory;
+        this.chart.data.datasets[1].data = greenHistory;
+        this.chart.update('none');
+    }
+    
+    /**
+     * Update neural network visualization
+     */
+    updateNeuralViz() {
+        // Simulate neural activity visualization
+        for (let i = 0; i < 4; i++) {
+            for (let j = 0; j < 18; j++) {
+                const neuron = document.getElementById(`neuron-${i}-${j}`);
+                if (neuron) {
+                    const activation = Math.random();
+                    neuron.classList.toggle('active', activation > 0.7);
+                    neuron.classList.toggle('strong', activation > 0.9);
+                }
+            }
+        }
+    }
+    
+    /**
+     * Update action distribution display
+     */
+    updateActionDist() {
+        const total = this.agent1.actionCounts.reduce((a, b) => a + b, 0) || 1;
+        
+        for (let i = 0; i < CONFIG.actions.length; i++) {
+            const pct = Math.round((this.agent1.actionCounts[i] / total) * 100);
+            const fill = document.getElementById(`actionFill-${i}`);
+            const pctText = document.getElementById(`actionPct-${i}`);
             
-            document.getElementById('statEpisodes').textContent = this.agent.episodes;
-            document.getElementById('statWinRate').textContent = 
-                this.agent.wins + this.agent.losses > 0 
-                    ? `${Math.round(this.agent.wins / (this.agent.wins + this.agent.losses) * 100)}%`
-                    : '0%';
-            document.getElementById('winRateBar').style.width = 
-                this.agent.wins + this.agent.losses > 0
-                    ? `${this.agent.wins / (this.agent.wins + this.agent.losses) * 100}%`
-                    : '0%';
-            document.getElementById('statAvgLoss').textContent = 
-                this.agent.lossCount > 0 
-                    ? (this.agent.totalLoss / this.agent.lossCount).toFixed(4)
-                    : '0.000';
-            document.getElementById('statEpsilon').textContent = this.agent.epsilon.toFixed(3);
-            document.getElementById('epsilonBar').style.width = `${this.agent.epsilon * 100}%`;
-            document.getElementById('statGradNorm').textContent = this.agent.lastGradNorm.toFixed(3);
-            document.getElementById('statMemory').textContent = this.agent.memory.size();
-            document.getElementById('statP1Wins').textContent = this.agent.losses;
-            document.getElementById('statP2Wins').textContent = this.agent.wins;
-            
-            const totalActions = this.agent.actionCounts.reduce((a, b) => a + b, 0) || 1;
-            const distDiv = document.getElementById('actionDist');
-            
-            const moveCounts = {
-                punch: this.agent.actionCounts[5] || 0,
-                kick: this.agent.actionCounts[6] || 0,
-                spinKick: this.agent.actionCounts[7] || 0,
-                crouchKick: this.agent.actionCounts[8] || 0,
-                block: this.agent.actionCounts[9] || 0,
-                move: (this.agent.actionCounts[1] || 0) + (this.agent.actionCounts[2] || 0)
+            if (fill) fill.style.width = `${pct}%`;
+            if (pctText) pctText.textContent = `${pct}%`;
+        }
+    }
+    
+    /**
+     * Log message to system log
+     */
+    log(message, type = 'info') {
+        const logEl = document.getElementById('systemLog');
+        const entry = document.createElement('div');
+        entry.className = `log-entry ${type}`;
+        
+        const now = new Date();
+        const timestamp = now.toTimeString().split(' ')[0];
+        
+        entry.innerHTML = `<span class="log-timestamp">[${timestamp}]</span> ${message}`;
+        logEl.insertBefore(entry, logEl.firstChild);
+        
+        // Limit log entries
+        if (logEl.children.length > 200) {
+            logEl.removeChild(logEl.lastChild);        }
+    }
+    
+    /**
+     * Save game checkpoint to localStorage
+     */
+    saveGame() {
+        try {
+            const data = {
+                version: '2.0',
+                timestamp: Date.now(),
+                episodeCount: this.episodeCount,
+                agent1: this.agent1.save(),
+                agent2: this.agent2.save(),
+                config: {
+                    speedMultiplier: this.speedMultiplier,
+                    epsilon: this.agent1.epsilon
+                }
             };
             
-            let html = '';
-            Object.entries(moveCounts).forEach(([name, count]) => {
-                const pct = Math.round(count / totalActions * 100);
-                html += `<div class="flex justify-between"><span class="text-gray-500">${name}:</span><span>${pct}%</span></div>`;
-            });
-            distDiv.innerHTML = html;
+            const jsonStr = JSON.stringify(data);
+            localStorage.setItem('furyFist_checkpoint_v2', jsonStr);
+            
+            const sizeKB = (jsonStr.length / 1024).toFixed(2);
+            this.log(`Checkpoint saved successfully (${sizeKB} KB)`, 'success');
+        } catch (error) {
+            this.log(`Save failed: ${error.message}`, 'error');
         }
-        
-        saveAI() {
-            const data = this.agent.save();
-            this.log('AI Brain Saved!');
-            return data;
-        }
-        
-        loadAI() {
-            if (this.agent.load()) {
-                this.log('AI Brain Loaded from storage!');
+    }
+    
+    /**
+     * Load game checkpoint from localStorage
+     */
+    loadGame() {
+        try {
+            const saved = localStorage.getItem('furyFist_checkpoint_v2');
+            
+            if (!saved) {
+                this.log('No checkpoint found', 'warn');
+                return;
             }
-        }
-        
-        log(message) {
-            const logDiv = document.getElementById('trainingLog');
-            const p = document.createElement('p');
-            p.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
-            logDiv.insertBefore(p, logDiv.firstChild);
-            if (logDiv.children.length > 20) {
-                logDiv.removeChild(logDiv.lastChild);
+            
+            const data = JSON.parse(saved);
+            
+            // Validate version
+            if (data.version !== '2.0') {
+                this.log(`Incompatible version: ${data.version}`, 'error');
+                return;
             }
-        }
-        
-        toggleTraining() {
-            this.isTraining = !this.isTraining;
-            return this.isTraining;
-        }
-        
-        toggleAIMode() {
-            this.aiMode = !this.aiMode;
-            return this.aiMode;
+                        // Load agents
+            this.agent1.load(data.agent1);
+            this.agent2.load(data.agent2);
+            
+            // Restore game state
+            this.episodeCount = data.episodeCount || 0;
+            this.speedMultiplier = data.config?.speedMultiplier || 1;
+            
+            // Update UI
+            document.getElementById('btnSpeedText').textContent = `${this.speedMultiplier}x`;
+            document.getElementById('headerSpeed').textContent = `${this.speedMultiplier}x`;
+            
+            this.resetRound();
+            this.updateChart();
+            
+            this.log(`Checkpoint loaded from ${new Date(data.timestamp).toLocaleString()}`, 'success');
+        } catch (error) {
+            this.log(`Load failed: ${error.message}`, 'error');
         }
     }
-
-    // ============================================
-    // MAIN INITIALIZATION
-    // ============================================
-    let game = null;
-
-    function init() {
-        const canvas = document.getElementById('gameCanvas');
-        game = new FightingGame(canvas);
-        
-        document.getElementById('btnTrain').addEventListener('click', () => {
-            const training = game.toggleTraining();
-            document.getElementById('btnTrain').textContent = training ? 'Stop Training' : 'Train AI';
-            game.log(training ? 'Training started...' : 'Training stopped.');
-        });
-        
-        document.getElementById('btnSave').addEventListener('click', () => {
-            game.saveAI();
-        });
-        
-        document.getElementById('btnLoad').addEventListener('click', () => {
-            game.loadAI();
-        });
-        
-        document.getElementById('btnReset').addEventListener('click', () => {
-            game.resetRound();
-            game.log('Round reset.');
-        });
-        
-        document.getElementById('btnToggleAI').addEventListener('click', () => {
-            const aiMode = game.toggleAIMode();
-            document.getElementById('btnToggleAI').textContent = aiMode ? 'Player vs AI' : 'AI vs AI';
-            game.log(aiMode ? 'AI vs AI mode' : 'Player vs AI mode');
-        });
-        
-        gameLoop();
+    
+    /**
+     * Export training data to JSON file
+     */
+    exportData() {
+        try {
+            const data = {
+                exportVersion: '2.0',
+                exportDate: new Date().toISOString(),
+                config: CONFIG,
+                agents: {
+                    red: this.agent1.save(),
+                    green: this.agent2.save()
+                },
+                statistics: {
+                    totalEpisodes: this.episodeCount,
+                    redWinRate: this.agent1.getWinRate(),
+                    greenWinRate: this.agent2.getWinRate(),
+                    redWinHistory: this.agent1.winHistory,
+                    greenWinHistory: this.agent2.winHistory
+                }
+            };
+            
+            const jsonStr = JSON.stringify(data, null, 2);
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `fury_fist_export_${Date.now()}.json`;            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            const sizeKB = (jsonStr.length / 1024).toFixed(2);
+            this.log(`Data exported successfully (${sizeKB} KB)`, 'success');
+        } catch (error) {
+            this.log(`Export failed: ${error.message}`, 'error');
+        }
     }
-
-    function gameLoop() {
-        game.update();
-        game.draw();
-        requestAnimationFrame(gameLoop);
+    
+    /**
+     * Hard reset - clear all training data
+     */
+    hardReset() {
+        const confirmed = confirm('⚠️ HARD RESET WARNING ⚠️\n\nThis will erase ALL training progress including:\n- Agent weights and memories\n- Win/loss statistics\n- Training history\n\nAre you sure you want to continue?');
+        
+        if (!confirmed) return;
+        
+        // Reset agents
+        this.agent1.reset();
+        this.agent2.reset();
+        
+        // Clear memories
+        this.agent1.memory.clear();
+        this.agent2.memory.clear();
+        
+        // Reset game state
+        this.episodeCount = 0;
+        this.speedMultiplier = 1;
+        
+        // Reset UI
+        document.getElementById('btnSpeedText').textContent = '1x';
+        document.getElementById('headerSpeed').textContent = '1x';
+        
+        // Clear chart
+        this.chart.data.labels = [];
+        this.chart.data.datasets[0].data = [];
+        this.chart.data.datasets[1].data = [];
+        this.chart.update();
+        
+        // Clear log
+        document.getElementById('systemLog').innerHTML = '';
+        
+        this.resetRound();
+        
+        this.log('=== HARD RESET COMPLETE ===', 'system');
+        this.log('All training data has been erased', 'warn');
+        this.log('Agents reinitialized with random weights', 'info');        this.log('Self-play training restarted', 'success');
     }
+    
+    /**
+     * Main game loop
+     */
+    loop(currentTime) {
+        const deltaTime = currentTime - this.lastTime;
+        this.lastTime = currentTime;
+        
+        // Update game state
+        this.update();
+        
+        // Render to canvas
+        this.draw();
+        
+        // Continue loop
+        requestAnimationFrame(this.loop);
+    }
+}
 
-    // Start the game
-    init();
-    </script>
+// ============================================
+// APPLICATION INITIALIZATION
+// ============================================
+
+/**
+ * Initialize the application when DOM is ready
+ */
+function initializeApplication() {
+    console.log('='.repeat(60));
+    console.log('FURY FIST: NEURAL ARENA v2.0');
+    console.log('Professional AI vs AI Fighting System');
+    console.log('='.repeat(60));
+    console.log('');
+    console.log('Architecture:');
+    console.log('  - Dual Independent DQL Agents');
+    console.log('  - Mixture of Experts (4 experts, 128 hidden)');
+    console.log('  - Prioritized Experience Replay');
+    console.log('  - Double DQN with Target Networks');
+    console.log('');
+    console.log('Configuration:');
+    console.log(`  - Canvas: ${CONFIG.canvasWidth}x${CONFIG.canvasHeight}`);
+    console.log(`  - State Size: ${CONFIG.stateSize}`);
+    console.log(`  - Actions: ${CONFIG.actions.length}`);
+    console.log(`  - Memory Size: ${CONFIG.memorySize}`);
+    console.log(`  - Batch Size: ${CONFIG.batchSize}`);
+    console.log(`  - Learning Rate: ${CONFIG.learningRate}`);
+    console.log(`  - Gamma: ${CONFIG.gamma}`);
+    console.log(`  - Epsilon: ${CONFIG.epsilonStart} -> ${CONFIG.epsilonEnd}`);
+    console.log('');    console.log('='.repeat(60));
+    
+    // Create game instance
+    window.game = new GameEngine();
+    
+    console.log('');
+    console.log('[✓] Game engine initialized');
+    console.log('[✓] Neural networks created');
+    console.log('[✓] Training started');
+    console.log('');
+    console.log('Controls:');
+    console.log('  - PAUSE/RESUME: Click PAUSE button');
+    console.log('  - SPEED: Click 1x/5x/20x/50x/100x/200x');
+    console.log('  - SAVE: Save checkpoint to localStorage');
+    console.log('  - LOAD: Load checkpoint from localStorage');
+    console.log('  - EXPORT: Download training data as JSON');
+    console.log('  - RESET: Hard reset all training data');
+    console.log('');
+    console.log('='.repeat(60));
+}
+
+// ============================================
+// ERROR HANDLING
+// ============================================
+
+window.addEventListener('error', (event) => {
+    console.error('='.repeat(60));
+    console.error('FATAL ERROR');
+    console.error('='.repeat(60));
+    console.error(`Message: ${event.message}`);
+    console.error(`File: ${event.filename}`);
+    console.error(`Line: ${event.lineno}`);
+    console.error(`Column: ${event.colno}`);
+    console.error('='.repeat(60));
+    
+    // Log to UI if game is running
+    if (window.game) {
+        window.game.log(`FATAL ERROR: ${event.message}`, 'error');
+    }
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+    console.error('Unhandled Promise Rejection:', event.reason);
+    
+    if (window.game) {
+        window.game.log(`Promise Rejection: ${event.reason}`, 'error');
+    }
+});
+
+// ============================================// PAGE VISIBILITY HANDLING
+// ============================================
+
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+        console.log('[INFO] Page hidden - continuing training in background');
+        if (window.game) {
+            window.game.log('Page hidden - training continues', 'info');
+        }
+    } else {
+        console.log('[INFO] Page visible');
+        if (window.game) {
+            window.game.log('Page visible', 'info');
+        }
+    }
+});
+
+// ============================================
+// START APPLICATION
+// ============================================
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeApplication);
+} else {
+    initializeApplication();
+}
+
+// ============================================
+// PERFORMANCE MONITORING
+// ============================================
+
+let frameCount = 0;
+let lastFpsTime = performance.now();
+let fps = 0;
+
+function monitorPerformance() {
+    frameCount++;
+    const now = performance.now();
+    
+    if (now - lastFpsTime >= 1000) {
+        fps = frameCount;
+        frameCount = 0;
+        lastFpsTime = now;
+        
+        // Log FPS every 5 seconds
+        if (fps % 5 === 0) {
+            console.log(`[PERF] FPS: ${fps}`);
+        }
+    }
+        requestAnimationFrame(monitorPerformance);
+}
+
+monitorPerformance();
+
+</script>
 </body>
-    </html>
+</html>
