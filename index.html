@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🐜⚔️ ANT COLONY WARS v3.0 — ПОЛНАЯ НЕЙРОСЕТЬ, ТЕРРИТОРИИ, ВОЙНА</title>
+    <title>🐜⚔️ ANT COLONY WARS v4.0 — ПОЛНЫЙ CORTEX-2, 64→16</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
         body {
@@ -73,7 +73,7 @@
 <body>
     <canvas id="canvas" width="1200" height="800"></canvas>
     <div id="panel">
-        <h1>🐜⚔️ ANT COLONY WARS v3.0 — ПОЛНАЯ ВЕРСИЯ</h1>
+        <h1>🐜⚔️ ANT COLONY WARS v4.0 — ПОЛНЫЙ CORTEX-2</h1>
         
         <div class="colony-panel">
             <div class="colony-card blue">
@@ -84,8 +84,6 @@
                 <div class="stat-row"><span>⚔️ В/Р/С:</span><span id="blueComposition">0/0/0</span></div>
                 <div class="progress"><div class="progress-fill blue" id="blueEnergy" style="width:100%"></div></div>
                 <div class="stat-row"><span>🗺️ Территория:</span><span id="blueTerritory">0%</span></div>
-                <div class="stat-row"><span>💀 Смертей:</span><span id="blueDeaths">0</span></div>
-                <div class="stat-row"><span>🏆 Убийств:</span><span id="blueKills">0</span></div>
             </div>
             <div class="colony-card red">
                 <div style="color:#ff5577; font-weight:bold;">🔴 КРАСНАЯ КОЛОНИЯ</div>
@@ -95,34 +93,40 @@
                 <div class="stat-row"><span>⚔️ В/Р/С:</span><span id="redComposition">0/0/0</span></div>
                 <div class="progress"><div class="progress-fill red" id="redEnergy" style="width:100%"></div></div>
                 <div class="stat-row"><span>🗺️ Территория:</span><span id="redTerritory">0%</span></div>
-                <div class="stat-row"><span>💀 Смертей:</span><span id="redDeaths">0</span></div>
-                <div class="stat-row"><span>🏆 Убийств:</span><span id="redKills">0</span></div>
             </div>
         </div>
         
         <div class="territory-grid" id="territoryGrid"></div>
         
+        <h2>🧠 CORTEX-2 АРХИТЕКТУРА</h2>
+        <div class="stat-row"><span>P-слой (проекция):</span><span>32</span></div>
+        <div class="stat-row"><span>A-слой (внимание):</span><span>64 (4 головы × 16)</span></div>
+        <div class="stat-row"><span>M-слой (память):</span><span>144 (48+48+48)</span></div>
+        <div class="stat-row"><span>C-слой (контекст):</span><span>256</span></div>
+        <div class="stat-row"><span>S-слой (состояние):</span><span>32</span></div>
+        <div class="stat-row"><span>D-слой (выход):</span><span>16</span></div>
+        
+        <h2>📊 МЕТРИКИ ОБУЧЕНИЯ</h2>
+        <div class="stat-row"><span>TD-ошибка:</span><span id="tdError">0.0000</span></div>
+        <div class="stat-row"><span>Ошибка предсказания:</span><span id="predError">0.0000</span></div>
+        <div class="stat-row"><span>Шагов обучения:</span><span id="learnSteps">0</span></div>
+        
         <h2>🎮 УПРАВЛЕНИЕ</h2>
         <div style="display:flex; gap:5px; flex-wrap:wrap;">
             <button class="btn-primary" id="btnStart">▶ СТАРТ</button>
             <button class="btn-danger" id="btnReset">🔄 СБРОС</button>
-            <button class="btn-war" id="btnWar">⚔️ ОБЪЯВИТЬ ВОЙНУ</button>
-            <button id="btnSpawnWorkerBlue">🔵 РАБОЧИЙ (10)</button>
-            <button id="btnSpawnWarriorBlue">⚔️ ВОИН (30)</button>
-            <button id="btnSpawnBuilderBlue">🏗️ СТРОИТЕЛЬ (20)</button>
+            <button class="btn-war" id="btnWar">⚔️ ВОЙНА</button>
+            <button id="btnSpawnWorkerBlue">🔵 РАБОЧИЙ</button>
+            <button id="btnSpawnWarriorBlue">⚔️ ВОИН</button>
+            <button id="btnSpawnBuilderBlue">🏗️ СТРОИТЕЛЬ</button>
             <button id="btnUpgradeBlue">🏛️ УЛУЧШИТЬ СИНИХ</button>
-            <button id="btnSpawnWorkerRed">🔴 РАБОЧИЙ (10)</button>
-            <button id="btnSpawnWarriorRed">⚔️ ВОИН (30)</button>
-            <button id="btnSpawnBuilderRed">🏗️ СТРОИТЕЛЬ (20)</button>
+            <button id="btnSpawnWorkerRed">🔴 РАБОЧИЙ</button>
+            <button id="btnSpawnWarriorRed">⚔️ ВОИН</button>
+            <button id="btnSpawnBuilderRed">🏗️ СТРОИТЕЛЬ</button>
             <button id="btnUpgradeRed">🏛️ УЛУЧШИТЬ КРАСНЫХ</button>
         </div>
         
-        <h2>📊 СТАТИСТИКА</h2>
-        <div class="stat-row"><span>⚔️ Битв:</span><span id="battles">0</span></div>
-        <div class="stat-row"><span>📈 TD-ошибка (ср):</span><span id="tdError">0.0000</span></div>
-        <div class="stat-row"><span>🧠 Обучений:</span><span id="learnSteps">0</span></div>
-        
-        <h2>📝 ЛОГ БИТВЫ</h2>
+        <h2>📝 ЛОГ</h2>
         <div class="log" id="log"></div>
     </div>
 
@@ -190,13 +194,26 @@
         
         BRAIN: {
             INPUT_DIM: 64,
-            OUTPUT_DIM: 24,
-            P_DIM: 32, A_DIM: 64, M_DIM: 144, C_DIM: 256, S_DIM: 32,
-            LR: 0.01, GAMMA: 0.99, LAMBDA: 0.95,
-            HEADS: 4, HEAD_DIM: 16
+            OUTPUT_DIM: 16,
+            P_DIM: 32,
+            A_DIM: 64,
+            M_DIM: 144,
+            C_DIM: 256,
+            S_DIM: 32,
+            HEADS: 4,
+            HEAD_DIM: 16,
+            M_WORK_START: 0,
+            M_WORK_END: 48,
+            M_PERM_START: 48,
+            M_PERM_END: 96,
+            M_PRED_START: 96,
+            M_PRED_END: 144,
+            LR: 0.01,
+            GAMMA: 0.99,
+            LAMBDA: 0.95
         },
         
-        SEED: 'ANT_WARS_V3_' + Date.now()
+        SEED: 'ANT_WARS_V4_' + Date.now()
     };
     
     // ==================== УТИЛИТЫ ====================
@@ -223,7 +240,7 @@
             for (let j=0; j<mat[0].length; j++) {
                 let sum = bias?.[j] || 0;
                 for (let i=0; i<vec.length; i++) {
-                    sum += (vec[i]||0) * (mat[i]?.[j]||0);
+                    sum += (vec[i]||0) * ((mat[i] && mat[i][j]) || 0);
                 }
                 if (act === 'relu') out[j] = Utils.leakyRelu(sum);
                 else if (act === 'tanh') out[j] = Utils.tanh(sum);
@@ -246,7 +263,7 @@
             this.seed = seed;
         }
         next() {
-            let h = this.seed.split('').reduce((a,c) => ((a<<5)-a + c.charCodeAt(0))|0, 0);
+            let h = String(this.seed).split('').reduce((a,c) => ((a<<5)-a + c.charCodeAt(0))|0, 0);
             h = Math.abs((h * 16807) % 2147483647);
             this.seed = h.toString();
             return h / 2147483647;
@@ -270,6 +287,9 @@
     }
     
     // ==================== ПОЛНАЯ НЕЙРОСЕТЬ CORTEX-2 ====================
+    // Архитектура: P32 → A64 → M144 → C256 → S32 → D16
+    // Внимание: 4 головы по 16
+    // Память: рабочая (48), постоянная (48), предсказательная (48)
     class Cortex2Brain {
         constructor(seed, type='worker') {
             this.seed = seed;
@@ -277,6 +297,8 @@
             this.rng = new RNG(seed);
             
             const D = CONFIG.BRAIN;
+            
+            // Состояния слоёв
             this.P = new Array(D.P_DIM).fill(0);
             this.A = new Array(D.A_DIM).fill(0);
             this.M = new Array(D.M_DIM).fill(0);
@@ -289,42 +311,66 @@
             this.M_prev = new Array(D.M_DIM).fill(0);
             this.C_prev = new Array(D.C_DIM).fill(0);
             this.S_prev = new Array(D.S_DIM).fill(0);
+            this.D_prev = new Array(D.OUTPUT_DIM).fill(0);
             
-            // Веса (инициализация Xavier)
-            this.W_P = this.rng.matrix(D.INPUT_DIM + D.C_DIM + D.S_DIM + 48, D.P_DIM, 0.1);
+            // ===== P-слой: проекция входов =====
+            // Вход: [inputs(64) + C(256) + S(32) + M_perm(48)] = 400
+            this.W_P = this.rng.matrix(400, D.P_DIM, 0.1);
             this.b_P = this.rng.vector(D.P_DIM, 0.05);
             
+            // ===== A-слой: многоголовое внимание =====
             this.W_A = [];
             this.b_A = [];
             for (let h=0; h<D.HEADS; h++) {
-                this.W_A.push(this.rng.matrix(D.P_DIM + 48 + 64 + D.OUTPUT_DIM, D.HEAD_DIM, 0.1));
+                // Вход: [P(32) + M_work(48) + C(64) + D(16)] = 160
+                this.W_A.push(this.rng.matrix(160, D.HEAD_DIM, 0.1));
                 this.b_A.push(this.rng.vector(D.HEAD_DIM, 0.05));
             }
             this.W_gate = this.rng.vector(D.HEADS, 0.1);
             
-            this.W_M_work = this.rng.matrix(D.P_DIM + D.A_DIM + 64, 48, 0.1);
+            // ===== M-слои: три типа памяти =====
+            // M_work: рабочая память
+            // Вход: [P(32) + A(64) + C(64)] = 160
+            this.W_M_work = this.rng.matrix(160, 48, 0.1);
             this.b_M_work = this.rng.vector(48, 0.05);
             
-            this.W_M_perm = this.rng.matrix(D.C_DIM + 48, 48, 0.1);
+            // M_perm: постоянная память
+            // Вход: [C(256) + M_perm_prev(48)] = 304
+            this.W_M_perm = this.rng.matrix(304, 48, 0.1);
             this.b_M_perm = this.rng.vector(48, 0.05);
             
-            this.W_M_pred = this.rng.matrix(D.A_DIM + 64 + 48 + D.OUTPUT_DIM, 48, 0.1);
+            // M_pred: предсказательная память
+            // Вход: [A(64) + C(64) + M_work(48) + D(16)] = 192
+            this.W_M_pred = this.rng.matrix(192, 48, 0.1);
             this.b_M_pred = this.rng.vector(48, 0.05);
             
-            this.W_C = this.rng.matrix(D.P_DIM + D.A_DIM + D.M_DIM + D.S_DIM + D.OUTPUT_DIM + 1, D.C_DIM, 0.05);
+            // ===== C-слой: контекст =====
+            // Вход: [P(32) + A(64) + M(144) + S(32) + D(16) + reward(1)] = 289
+            this.W_C = this.rng.matrix(289, D.C_DIM, 0.05);
             this.b_C = this.rng.vector(D.C_DIM, 0.02);
             
-            this.W_S = this.rng.matrix(D.P_DIM + 48 + 32 + D.OUTPUT_DIM, D.S_DIM, 0.1);
+            // ===== S-слой: состояние =====
+            // Вход: [P(32) + M_perm(48) + C(32) + D(16)] = 128
+            this.W_S = this.rng.matrix(128, D.S_DIM, 0.1);
             this.b_S = this.rng.vector(D.S_DIM, 0.05);
             
-            this.W_D = this.rng.matrix(D.C_DIM + D.S_DIM + 48, D.OUTPUT_DIM, 0.1);
+            // ===== D-слой: выход =====
+            // Вход: [C(256) + S(32) + M_pred(48)] = 336
+            this.W_D = this.rng.matrix(336, D.OUTPUT_DIM, 0.1);
             this.b_D = this.rng.vector(D.OUTPUT_DIM, 0.05);
             
+            // ===== Предсказание следующего входа =====
             this.W_pred = this.rng.matrix(48, D.INPUT_DIM, 0.05);
             this.b_pred = this.rng.vector(D.INPUT_DIM, 0.02);
             
+            // ===== Value head для обучения =====
             this.W_V = this.rng.vector(D.C_DIM, 0.1);
             this.b_V = 0;
+            
+            // ===== Следы элиджибилити для TD(λ) =====
+            this.e_P = new Array(400 * D.P_DIM).fill(0);
+            this.e_C = new Array(289 * D.C_DIM).fill(0);
+            this.e_D = new Array(336 * D.OUTPUT_DIM).fill(0);
             
             this.predictionErrors = new Array(48).fill(0);
             this.tdErrorHistory = [];
@@ -332,78 +378,132 @@
             this.cumulativeReward = 0;
         }
         
+        // Вспомогательные методы для доступа к частям M
+        getMWork() { return this.M.slice(CONFIG.BRAIN.M_WORK_START, CONFIG.BRAIN.M_WORK_END); }
+        getMPerm() { return this.M.slice(CONFIG.BRAIN.M_PERM_START, CONFIG.BRAIN.M_PERM_END); }
+        getMPred() { return this.M.slice(CONFIG.BRAIN.M_PRED_START, CONFIG.BRAIN.M_PRED_END); }
+        
+        // Прямой проход
         forward(inputs, reward=0) {
+            const D = CONFIG.BRAIN;
+            
             // Сохраняем предыдущие состояния
             this.P_prev = [...this.P];
             this.A_prev = [...this.A];
             this.M_prev = [...this.M];
             this.C_prev = [...this.C];
             this.S_prev = [...this.S];
+            this.D_prev = [...this.D_out];
             
-            // P-слой (проекция)
-            const p_in = [...inputs, ...this.C_prev, ...this.S_prev, ...this.M.slice(48,96)];
+            // ===== P-слой: проекция =====
+            const p_in = [
+                ...inputs,
+                ...this.C_prev,
+                ...this.S_prev,
+                ...this.M.slice(D.M_PERM_START, D.M_PERM_END)
+            ];
             this.P = Utils.matrixMultiply(p_in, this.W_P, this.b_P, 'relu');
             
-            // A-слой (внимание)
-            const A_new = new Array(CONFIG.BRAIN.A_DIM).fill(0);
-            const gate = Utils.softmax(this.W_gate);
-            for (let h=0; h<CONFIG.BRAIN.HEADS; h++) {
+            // ===== A-слой: многоголовое внимание =====
+            const gateProbs = Utils.softmax(this.W_gate);
+            const A_new = new Array(D.A_DIM).fill(0);
+            
+            for (let h=0; h<D.HEADS; h++) {
+                // Вход для головы: P + M_work + кусок C + D
                 const a_in = [
                     ...this.P_prev,
-                    ...this.M.slice(0,48),
-                    ...this.C_prev.slice(h*64, (h+1)*64),
-                    ...this.D_out
+                    ...this.M.slice(D.M_WORK_START, D.M_WORK_END),
+                    ...this.C_prev.slice(h*64, h*64+64),
+                    ...this.D_prev
                 ];
-                const head = Utils.matrixMultiply(a_in, this.W_A[h], this.b_A[h], 'tanh');
-                for (let i=0; i<CONFIG.BRAIN.HEAD_DIM; i++) {
-                    A_new[h*CONFIG.BRAIN.HEAD_DIM + i] = head[i] * gate[h];
+                const headOut = Utils.matrixMultiply(a_in, this.W_A[h], this.b_A[h], 'tanh');
+                
+                for (let i=0; i<D.HEAD_DIM; i++) {
+                    A_new[h*D.HEAD_DIM + i] = headOut[i] * gateProbs[h];
                 }
             }
             this.A = A_new;
             
-            // M-слои (память)
-            const m_work_in = [...this.P_prev, ...this.A_prev, ...this.C_prev.slice(0,64)];
+            // ===== M-слой: память =====
+            // Рабочая память
+            const m_work_in = [
+                ...this.P_prev,
+                ...this.A_prev,
+                ...this.C_prev.slice(0, 64)
+            ];
             const M_work = Utils.matrixMultiply(m_work_in, this.W_M_work, this.b_M_work, 'tanh');
             
-            const m_perm_in = [...this.C_prev, ...this.M.slice(48,96)];
+            // Постоянная память (с рекуррентностью)
+            const m_perm_in = [
+                ...this.C_prev,
+                ...this.M.slice(D.M_PERM_START, D.M_PERM_END)
+            ];
             const M_perm = Utils.matrixMultiply(m_perm_in, this.W_M_perm, this.b_M_perm, 'tanh');
             
-            const m_pred_in = [...this.A_prev, ...this.C_prev.slice(-64), ...this.M.slice(0,48), ...this.D_out];
+            // Предсказательная память
+            const m_pred_in = [
+                ...this.A_prev,
+                ...this.C_prev.slice(-64),
+                ...this.M.slice(D.M_WORK_START, D.M_WORK_END),
+                ...this.D_prev
+            ];
             const M_pred = Utils.matrixMultiply(m_pred_in, this.W_M_pred, this.b_M_pred, 'tanh');
             
+            // Собираем M
             for (let i=0; i<48; i++) this.M[i] = M_work[i];
             for (let i=0; i<48; i++) this.M[48+i] = M_perm[i];
             for (let i=0; i<48; i++) this.M[96+i] = M_pred[i];
             
-            // C-слой (контекст)
-            const c_in = [...this.P, ...this.A, ...this.M, ...this.S, ...this.D_out, reward/10];
+            // ===== C-слой: контекст =====
+            const c_in = [
+                ...this.P,
+                ...this.A,
+                ...this.M,
+                ...this.S_prev,
+                ...this.D_prev,
+                Utils.clamp(reward/10, -1, 1)
+            ];
             this.C = Utils.matrixMultiply(c_in, this.W_C, this.b_C, 'relu');
             
-            // S-слой (состояние)
-            const s_in = [...this.P, ...this.M.slice(48,96), ...this.C.slice(-32), ...this.D_out];
+            // ===== S-слой: состояние =====
+            const s_in = [
+                ...this.P,
+                ...this.M.slice(D.M_PERM_START, D.M_PERM_END),
+                ...this.C.slice(-32),
+                ...this.D_prev
+            ];
             this.S = Utils.matrixMultiply(s_in, this.W_S, this.b_S, 'sigmoid');
             
-            // D-слой (выход)
-            const d_in = [...this.C, ...this.S, ...this.M.slice(96,144)];
+            // ===== D-слой: выход =====
+            const d_in = [
+                ...this.C,
+                ...this.S,
+                ...this.M.slice(D.M_PRED_START, D.M_PRED_END)
+            ];
             const D_raw = Utils.matrixMultiply(d_in, this.W_D, this.b_D, 'tanh');
+            this.D_out = D_raw.map(v => Utils.sigmoid(v));
             
-            // Предсказание следующего входа
-            const pred = Utils.matrixMultiply(this.M.slice(96,144), this.W_pred, this.b_pred, 'linear');
+            // ===== Предсказание следующего входа =====
+            const pred = Utils.matrixMultiply(
+                this.M.slice(D.M_PRED_START, D.M_PRED_END),
+                this.W_pred,
+                this.b_pred,
+                'linear'
+            );
+            
+            // Обновляем ошибку предсказания
             for (let i=0; i<48; i++) {
-                const err = Math.abs(pred[i] - inputs[i]);
+                const err = Math.abs(pred[i] - (inputs[i] || 0));
                 this.predictionErrors[i] = this.predictionErrors[i]*0.9 + err*0.1;
             }
             
-            // Обучение предсказанию
+            // Обучение предсказанию (онлайн)
             for (let i=0; i<48; i++) {
-                for (let j=0; j<CONFIG.BRAIN.INPUT_DIM; j++) {
+                for (let j=0; j<D.INPUT_DIM; j++) {
                     const grad = (inputs[j] - pred[j]) * this.M[96+i] * 0.001;
                     this.W_pred[i][j] += grad;
                 }
             }
-            
-            // Формирование выходов (24 канала)
-            this.D_out = D_raw.map(v => Utils.sigmoid(v));
             
             this.step++;
             this.cumulativeReward = this.cumulativeReward*0.99 + reward*0.01;
@@ -412,21 +512,55 @@
                 output: [...this.D_out],
                 cortex: [...this.C],
                 predictionError: this.predictionErrors.reduce((a,b)=>a+b,0)/48,
+                value: this.value(),
                 emotions: {
-                    aggression: this.S[0],
-                    fear: this.S[1],
-                    curiosity: this.S[2],
+                    aggression: this.S[0] || 0,
+                    fear: this.S[1] || 0,
+                    curiosity: this.S[2] || 0,
                     satisfaction: this.cumulativeReward
                 }
             };
         }
         
+        // Оценка ценности текущего состояния
         value() {
             let v = this.b_V;
-            for (let i=0; i<this.C.length; i++) v += this.C[i] * this.W_V[i];
+            for (let i=0; i<this.C.length; i++) {
+                v += this.C[i] * this.W_V[i];
+            }
             return Utils.tanh(v);
         }
         
+        // Обновление следов элиджибилити
+        updateTraces(inputs, gamma, lambda) {
+            const decay = gamma * lambda;
+            
+            // Следы для P-слоя
+            for (let i=0; i<400; i++) {
+                for (let j=0; j<CONFIG.BRAIN.P_DIM; j++) {
+                    const idx = i * CONFIG.BRAIN.P_DIM + j;
+                    this.e_P[idx] = decay * this.e_P[idx] + (inputs[i] || 0) * this.P[j];
+                }
+            }
+            
+            // Следы для C-слоя
+            for (let i=0; i<289; i++) {
+                for (let j=0; j<CONFIG.BRAIN.C_DIM; j++) {
+                    const idx = i * CONFIG.BRAIN.C_DIM + j;
+                    this.e_C[idx] = decay * this.e_C[idx] + (inputs[i] || 0) * this.C[j];
+                }
+            }
+            
+            // Следы для D-слоя
+            for (let i=0; i<336; i++) {
+                for (let j=0; j<CONFIG.BRAIN.OUTPUT_DIM; j++) {
+                    const idx = i * CONFIG.BRAIN.OUTPUT_DIM + j;
+                    this.e_D[idx] = decay * this.e_D[idx] + (inputs[i] || 0) * this.D_out[j];
+                }
+            }
+        }
+        
+        // TD-обучение
         learn(reward, nextValue) {
             const currentValue = this.value();
             const tdError = reward + CONFIG.BRAIN.GAMMA * nextValue - currentValue;
@@ -443,36 +577,52 @@
             return tdError;
         }
         
+        // Мутация весов (для эволюции)
         mutate(rate=0.05) {
             const mutateArray = (arr) => {
-                for (let i=0; i<arr.length; i++) {
-                    if (Math.random() < rate) {
+                if (Array.isArray(arr)) {
+                    for (let i=0; i<arr.length; i++) {
                         if (Array.isArray(arr[i])) {
                             for (let j=0; j<arr[i].length; j++) {
-                                arr[i][j] += (Math.random()*2-1)*0.1;
+                                if (Math.random() < rate) {
+                                    arr[i][j] += (Math.random()*2-1)*0.1;
+                                }
                             }
                         } else {
-                            arr[i] += (Math.random()*2-1)*0.1;
+                            if (Math.random() < rate) {
+                                arr[i] += (Math.random()*2-1)*0.1;
+                            }
                         }
                     }
                 }
             };
             
             mutateArray(this.W_P);
+            mutateArray(this.b_P);
             mutateArray(this.W_A);
+            mutateArray(this.b_A);
             mutateArray(this.W_gate);
             mutateArray(this.W_M_work);
+            mutateArray(this.b_M_work);
             mutateArray(this.W_M_perm);
+            mutateArray(this.b_M_perm);
             mutateArray(this.W_M_pred);
+            mutateArray(this.b_M_pred);
             mutateArray(this.W_C);
+            mutateArray(this.b_C);
             mutateArray(this.W_S);
+            mutateArray(this.b_S);
             mutateArray(this.W_D);
+            mutateArray(this.b_D);
             mutateArray(this.W_pred);
+            mutateArray(this.b_pred);
             mutateArray(this.W_V);
         }
         
+        // Клонирование мозга
         clone() {
             const clone = new Cortex2Brain(this.seed+'_clone', this.type);
+            
             clone.W_P = JSON.parse(JSON.stringify(this.W_P));
             clone.b_P = [...this.b_P];
             clone.W_A = JSON.parse(JSON.stringify(this.W_A));
@@ -494,6 +644,7 @@
             clone.b_pred = [...this.b_pred];
             clone.W_V = [...this.W_V];
             clone.b_V = this.b_V;
+            
             return clone;
         }
         
@@ -528,8 +679,11 @@
                     const dist = Math.sqrt(dx*dx+dy*dy);
                     if (dist <= 3) {
                         const inf = strength * (1 - dist/3) * 0.5;
-                        if (team === 'blue') this.influenceBlue[nx][ny] = Utils.clamp(this.influenceBlue[nx][ny]+inf, 0, 1);
-                        else this.influenceRed[nx][ny] = Utils.clamp(this.influenceRed[nx][ny]+inf, 0, 1);
+                        if (team === 'blue') {
+                            this.influenceBlue[nx][ny] = Utils.clamp(this.influenceBlue[nx][ny]+inf, 0, 1);
+                        } else {
+                            this.influenceRed[nx][ny] = Utils.clamp(this.influenceRed[nx][ny]+inf, 0, 1);
+                        }
                     }
                 }
             }
@@ -542,7 +696,6 @@
             
             if (team === 'blue') {
                 this.influenceBlue[gx][gy] = Utils.clamp(this.influenceBlue[gx][gy] + strength, 0, 1);
-                // Распространение
                 for (let dx=-1; dx<=1; dx++) {
                     for (let dy=-1; dy<=1; dy++) {
                         if (dx===0 && dy===0) continue;
@@ -843,7 +996,6 @@
             
             this.lastPos = { x, y };
             this.stuckCounter = 0;
-            this.targetEnemy = null;
             
             this.brain = new Cortex2Brain(colony.team+'_'+id+'_'+Math.random(), type);
             
@@ -852,7 +1004,7 @@
             this.lastValue = 0;
         }
         
-        // ==================== 64 ВХОДА — ВСЕ ЗАПОЛНЕНЫ ====================
+        // 64 входа — все заполнены смыслом
         getInputs() {
             const inputs = new Array(64).fill(0);
             
@@ -944,7 +1096,9 @@
             inputs[22] = toEnemy.y;
             inputs[23] = toEnemy.score;
             
-            // [24-31] ФЕРОМОНЫ ПО 8 НАПРАВЛЕНИЯМ
+            // [24-31] ФЕРОМОНЫ ЕДЫ (8 направлений)
+            // [32-39] ФЕРОМОНЫ ОПАСНОСТИ (8 направлений)
+            // [40-47] ФЕРОМОНЫ ДОМА (8 направлений)
             const pheroFood = new Array(8).fill(0);
             const pheroDanger = new Array(8).fill(0);
             const pheroHome = new Array(8).fill(0);
@@ -1008,7 +1162,7 @@
             inputs[59] = Math.sin(this.angle);
             inputs[60] = Math.hypot(this.vx, this.vy) / this.speed;
             
-            // [61-63] ЗАПАСНЫЕ (заполняем осмысленно)
+            // [61-63] ДОПОЛНИТЕЛЬНЫЕ
             inputs[61] = this.age / 1000;
             inputs[62] = this.stuckCounter / 50;
             inputs[63] = (this.lastPos.x === this.x && this.lastPos.y === this.y) ? 1 : 0;
@@ -1022,110 +1176,101 @@
             
             const brainOut = this.brain.forward(inputs, 0);
             this.lastOutput = brainOut.output;
-            this.lastValue = this.brain.value();
+            this.lastValue = brainOut.value;
             
             const D = brainOut.output;
             
-            // Интерпретация 24 выходов
-            const moveForward = D[0];      // 0-1
-            const turn = (D[1] - 0.5) * 0.3; // -0.15..0.15
-            const speedMult = D[2] * 1.5 + 0.5; // 0.5..2.0
-            const attack = D[3] > 0.7;
-            const retreat = D[4] > 0.6;
-            const gather = D[5] > 0.6;
-            const build = D[6] > 0.7;
-            const patrol = D[7] > 0.6;
-            const markTerritory = D[8] > 0.8;
-            const callHelp = D[9] > 0.8;
-            const dropPheromone = D[10] > 0.7;
-            const rest = D[11] > 0.8;
+            // Интерпретация 16 выходов
+            const moveForward = D[0];        // движение вперед
+            const turn = (D[1] - 0.5) * 0.3; // поворот (-0.15..0.15)
+            const speedMult = D[2] * 1.5 + 0.5; // множитель скорости
+            const attack = D[3] > 0.7;       // атаковать
+            const retreat = D[4] > 0.6;      // отступать
+            const gather = D[5] > 0.6;       // собирать еду
+            const build = D[6] > 0.7;         // строить
+            const patrol = D[7] > 0.6;        // патрулировать
+            const markTerritory = D[8] > 0.8; // метить территорию
+            const callHelp = D[9] > 0.8;       // звать на помощь
+            const dropPheromone = D[10] > 0.7; // оставить феромон
+            const rest = D[11] > 0.8;          // отдыхать
+            const explore = D[12] > 0.5;       // исследовать
+            const followPheromone = D[13] > 0.6; // следовать феромонам
+            const goHome = D[14] > 0.7;         // идти домой
+            const reserve = D[15];               // запасной
             
             // Поворот
             this.angle += turn;
             
-            // Поиск цели для атаки
-            if (attack && this.attackCooldown <= 0) {
-                let bestTarget = null;
-                let bestScore = 0;
+            // Атака
+            if (attack && this.attackCooldown <= 0 && this.attackPower > 0) {
+                let nearestEnemy = null;
+                let minDist = Infinity;
                 
                 for (const ant of this.world.ants) {
                     if (ant.team !== this.team && ant.alive) {
                         const d = Utils.dist(this, ant);
-                        if (d < this.attackRange) {
-                            const score = (1 - d/this.attackRange) * (this.attackPower / ant.defense);
-                            if (score > bestScore) {
-                                bestScore = score;
-                                bestTarget = ant;
-                            }
+                        if (d < minDist && d < this.attackRange) {
+                            minDist = d;
+                            nearestEnemy = ant;
                         }
                     }
                 }
                 
-                if (bestTarget) {
-                    // Атака
+                if (nearestEnemy) {
                     const damage = this.attackPower * (0.8 + 0.4 * Math.random());
-                    bestTarget.takeDamage(damage, this);
+                    nearestEnemy.takeDamage(damage, this);
                     this.attackCooldown = this.attackCooldownMax;
                     
-                    // Феромон опасности
                     this.world.addPheromone(this.x, this.y, 'DANGER', 0.5, this.team);
                 }
             }
             
             // Движение
-            if (!retreat) {
-                let targetDx = 0, targetDy = 0;
-                
-                if (gather && this.carrying === 0) {
-                    // Идти к еде
-                    const foodX = inputs[6];
-                    const foodY = inputs[7];
-                    if (Math.abs(foodX) > 0.1 || Math.abs(foodY) > 0.1) {
-                        targetDx += foodX;
-                        targetDy += foodY;
-                    }
-                } else if (this.carrying > 0) {
-                    // Нести в гнездо
-                    targetDx += inputs[0];
-                    targetDy += inputs[1];
-                } else if (patrol) {
-                    // Патруль территории
-                    targetDx += inputs[18] * 0.5;
-                    targetDy += inputs[19] * 0.5;
-                }
-                
-                // Добавляем влияние феромонов
-                const pheroFood = inputs.slice(24, 32);
-                const pheroDanger = inputs.slice(32, 40);
-                
+            let moveDx = 0, moveDy = 0;
+            
+            if (gather && this.carrying === 0) {
+                // Идти к еде
+                moveDx += inputs[6];
+                moveDy += inputs[7];
+            } else if (this.carrying > 0 || goHome) {
+                // Нести в гнездо
+                moveDx += inputs[0];
+                moveDy += inputs[1];
+            } else if (patrol) {
+                // Патруль территории
+                moveDx += inputs[18] * 0.5;
+                moveDy += inputs[19] * 0.5;
+            } else if (explore) {
+                // Исследование (случайное блуждание)
+                moveDx += Math.cos(this.angle) * 0.5;
+                moveDy += Math.sin(this.angle) * 0.5;
+            }
+            
+            // Следование феромонам
+            if (followPheromone) {
                 for (let i=0; i<8; i++) {
-                    const angle = i * Math.PI/4 - Math.PI;
-                    if (pheroFood[i] > 0.1) {
-                        targetDx += Math.cos(angle) * pheroFood[i] * 0.3;
-                        targetDy += Math.sin(angle) * pheroFood[i] * 0.3;
-                    }
-                    if (pheroDanger[i] > 0.1 && this.type === 'WARRIOR') {
-                        targetDx += Math.cos(angle) * pheroDanger[i] * 0.5;
-                        targetDy += Math.sin(angle) * pheroDanger[i] * 0.5;
+                    if (inputs[24+i] > 0.1) { // феромоны еды
+                        const angle = i * Math.PI/4 - Math.PI;
+                        moveDx += Math.cos(angle) * inputs[24+i] * 0.3;
+                        moveDy += Math.sin(angle) * inputs[24+i] * 0.3;
                     }
                 }
-                
-                if (Math.abs(targetDx) > 0.1 || Math.abs(targetDy) > 0.1) {
-                    const targetAngle = Math.atan2(targetDy, targetDx);
-                    const angleDiff = Utils.normalizeAngle(targetAngle - this.angle);
-                    this.angle += Utils.clamp(angleDiff, -0.1, 0.1);
-                }
+            }
+            
+            // Поворот в сторону движения
+            if (Math.abs(moveDx) > 0.01 || Math.abs(moveDy) > 0.01) {
+                const targetAngle = Math.atan2(moveDy, moveDx);
+                const angleDiff = targetAngle - this.angle;
+                const normDiff = Math.atan2(Math.sin(angleDiff), Math.cos(angleDiff));
+                this.angle += normDiff * 0.1;
             }
             
             // Применяем скорость
             const moveX = Math.cos(this.angle) * moveForward * this.speed * speedMult;
             const moveY = Math.sin(this.angle) * moveForward * this.speed * speedMult;
             
-            this.vx = moveX;
-            this.vy = moveY;
-            
-            this.x += this.vx;
-            this.y += this.vy;
+            this.x += moveX;
+            this.y += moveY;
             
             // Границы
             this.x = Utils.clamp(this.x, 20, CONFIG.FIELD_WIDTH-20);
@@ -1157,7 +1302,7 @@
             if (dropPheromone && Math.random() < 0.1) {
                 if (this.carrying > 0) {
                     this.world.addPheromone(this.x, this.y, 'HOME', 0.3, this.team);
-                } else if (this.type === 'WARRIOR' && this.attackCooldown > 0) {
+                } else if (this.attackCooldown > 0) {
                     this.world.addPheromone(this.x, this.y, 'DANGER', 0.4, this.team);
                 } else {
                     this.world.addPheromone(this.x, this.y, 'FOOD', 0.2, this.team);
@@ -1177,7 +1322,6 @@
             if (this.energy <= 0) {
                 this.die(attacker);
             } else {
-                // Феромон опасности
                 this.world.addPheromone(this.x, this.y, 'DANGER', 0.8, this.team);
             }
         }
@@ -1187,12 +1331,9 @@
             if (killer) {
                 killer.kills++;
                 killer.colony.totalKills++;
-                this.world.totalKills++;
             }
             this.colony.removeAnt(this);
             this.world.ants = this.world.ants.filter(a => a.id !== this.id);
-            
-            // Феромон смерти
             this.world.addPheromone(this.x, this.y, 'DANGER', 1.0, this.team);
         }
         
@@ -1207,8 +1348,6 @@
                     food.amount -= take;
                     this.carrying += take;
                     this.foodCollected += take;
-                    
-                    // Феромон еды
                     this.world.addPheromone(this.x, this.y, 'FOOD', 0.5, this.team);
                     break;
                 }
@@ -1223,8 +1362,6 @@
                 this.colony.addFood(this.carrying * CONFIG.FOOD.ENERGY_PER_PIECE);
                 this.energy = Math.min(this.energy + this.carrying * 5, this.maxEnergy);
                 this.carrying = 0;
-                
-                // Феромон дома
                 this.world.addPheromone(this.x, this.y, 'HOME', 0.5, this.team);
             }
         }
@@ -1234,7 +1371,6 @@
             
             const d = Utils.dist(this, {x: this.colony.nestX, y: this.colony.nestY});
             if (d < CONFIG.NEST.RADIUS * 2) {
-                // Улучшение гнезда
                 if (Math.random() < CONFIG.ANTS.BUILDER.buildSpeed) {
                     if (this.colony.food >= 5) {
                         this.colony.food -= 5;
@@ -1251,7 +1387,6 @@
         }
         
         draw(ctx, showVision=false) {
-            // Тело
             ctx.save();
             ctx.translate(this.x, this.y);
             ctx.rotate(this.angle);
@@ -1266,20 +1401,17 @@
             ctx.ellipse(0, 0, 8, 4, 0, 0, Math.PI*2);
             ctx.fill();
             
-            // Голова
             ctx.fillStyle = '#553311';
             ctx.beginPath();
             ctx.arc(6, 0, 3, 0, Math.PI*2);
             ctx.fill();
             
-            // Глаза
             ctx.fillStyle = '#fff';
             ctx.beginPath();
             ctx.arc(8, -1, 1, 0, Math.PI*2);
             ctx.arc(8, 1, 1, 0, Math.PI*2);
             ctx.fill();
             
-            // Еда
             if (this.carrying > 0) {
                 ctx.fillStyle = '#00ff9d';
                 ctx.beginPath();
@@ -1289,7 +1421,6 @@
             
             ctx.restore();
             
-            // Полоска энергии
             ctx.fillStyle = '#222';
             ctx.fillRect(this.x-10, this.y-20, 20, 3);
             ctx.fillStyle = this.energy > 50 ? '#00ff9d' : '#ff5577';
@@ -1318,7 +1449,6 @@
             };
             
             this.step = 0;
-            this.battles = 0;
             this.totalKills = 0;
             this.learnSteps = 0;
             
@@ -1326,14 +1456,12 @@
         }
         
         init() {
-            // Создаем еду
             for (let i=0; i<CONFIG.FOOD.INITIAL; i++) {
                 const x = Utils.rand(200, CONFIG.FIELD_WIDTH-200);
                 const y = Utils.rand(100, CONFIG.FIELD_HEIGHT-100);
                 this.food.push(new Food(x, y, Utils.randInt(15, 30)));
             }
             
-            // Создаем начальных муравьев
             for (let i=0; i<5; i++) {
                 this.colonies.blue.spawnAnt('WORKER', this);
                 this.colonies.blue.spawnAnt('WARRIOR', this);
@@ -1358,27 +1486,21 @@
         update() {
             this.step++;
             
-            // Обновление феромонов
             this.pheromones = this.pheromones.filter(p => p.update());
-            
-            // Обновление карты территорий
             this.territoryMap.update();
             
-            // Спавн еды
             if (this.food.length < CONFIG.FOOD.MAX && Math.random() < CONFIG.FOOD.SPAWN_RATE) {
                 const x = Utils.rand(200, CONFIG.FIELD_WIDTH-200);
                 const y = Utils.rand(100, CONFIG.FIELD_HEIGHT-100);
                 this.food.push(new Food(x, y, Utils.randInt(15, 30)));
             }
             
-            // Регенерация еды
             for (const food of this.food) {
                 if (food.amount < 30 && Math.random() < 0.01) {
                     food.amount = Math.min(30, food.amount + 1);
                 }
             }
             
-            // Обновление муравьев
             const allAnts = [...this.colonies.blue.ants, ...this.colonies.red.ants];
             this.ants = allAnts;
             
@@ -1408,22 +1530,11 @@
                     const d = Utils.dist(a1, a2);
                     if (d < 40) {
                         this.territoryMap.addBattle((a1.x+a2.x)/2, (a1.y+a2.y)/2);
-                        
-                        if (Math.random() < 0.01) {
-                            this.battles++;
-                            // Случайная атака
-                            if (a1.attackCooldown <= 0 && a2.attackCooldown <= 0) {
-                                const dmg1 = a1.attackPower * (0.5 + 0.5*Math.random());
-                                const dmg2 = a2.attackPower * (0.5 + 0.5*Math.random());
-                                a1.takeDamage(dmg2, a2);
-                                a2.takeDamage(dmg1, a1);
-                            }
-                        }
                     }
                 }
             }
             
-            // Решения муравьев и обучение
+            // Решения муравьев
             for (const ant of allAnts) {
                 if (!ant.alive) continue;
                 
@@ -1437,18 +1548,15 @@
                 if (ant.energy < oldEnergy - 10) reward -= 0.5;
                 if (ant.energy <= 0) reward -= 3;
                 
-                // Обучение
                 const nextValue = ant.brain.value();
                 ant.learn(reward, nextValue);
                 this.learnSteps++;
             }
             
-            // Удаление мертвых
             this.ants = allAnts.filter(a => a.alive);
             this.colonies.blue.ants = this.colonies.blue.ants.filter(a => a.alive);
             this.colonies.red.ants = this.colonies.red.ants.filter(a => a.alive);
             
-            // Мутации (каждые 1000 шагов)
             if (this.step % 1000 === 0) {
                 for (const ant of this.ants) {
                     if (Math.random() < 0.3) {
@@ -1461,11 +1569,9 @@
         draw(ctx, showVision=false) {
             ctx.clearRect(0, 0, CONFIG.FIELD_WIDTH, CONFIG.FIELD_HEIGHT);
             
-            // Фон
             ctx.fillStyle = '#1a3a1a';
             ctx.fillRect(0, 0, CONFIG.FIELD_WIDTH, CONFIG.FIELD_HEIGHT);
             
-            // Сетка территории (полупрозрачно)
             for (let x=0; x<this.territoryMap.gridW; x++) {
                 for (let y=0; y<this.territoryMap.gridH; y++) {
                     const b = this.territoryMap.influenceBlue[x][y];
@@ -1486,7 +1592,6 @@
                 }
             }
             
-            // Феромоны
             for (const p of this.pheromones) {
                 const alpha = p.strength * 0.3;
                 ctx.fillStyle = CONFIG.PHEROMONE.TYPES[p.type]?.color || '#fff';
@@ -1497,7 +1602,6 @@
             }
             ctx.globalAlpha = 1;
             
-            // Гнезда
             for (const team of ['blue', 'red']) {
                 const col = this.colonies[team];
                 ctx.fillStyle = team === 'blue' ? 'rgba(0,212,255,0.2)' : 'rgba(255,85,119,0.2)';
@@ -1507,15 +1611,8 @@
                 ctx.strokeStyle = team === 'blue' ? '#00d4ff' : '#ff5577';
                 ctx.lineWidth = 2;
                 ctx.stroke();
-                
-                ctx.fillStyle = '#fff';
-                ctx.font = '12px monospace';
-                ctx.textAlign = 'center';
-                ctx.fillText(team.toUpperCase(), col.nestX, col.nestY-30);
-                ctx.fillText(`Lv${col.nestLevel}`, col.nestX, col.nestY-45);
             }
             
-            // Еда
             for (const f of this.food) {
                 if (f.amount <= 0) continue;
                 ctx.fillStyle = '#00ff9d';
@@ -1530,7 +1627,6 @@
                 ctx.fillText(f.amount, f.x, f.y+3);
             }
             
-            // Муравьи
             for (const ant of this.ants) {
                 ant.draw(ctx, showVision);
             }
@@ -1543,6 +1639,9 @@
             const avgTD = this.ants.length > 0 
                 ? this.ants.reduce((s,a)=>s+a.brain.getAvgTD(),0) / this.ants.length
                 : 0;
+            const avgPred = this.ants.length > 0
+                ? this.ants.reduce((s,a)=>s + (a.brain.predictionErrors.reduce((x,y)=>x+y,0)/48),0) / this.ants.length
+                : 0;
             
             return {
                 blue: {
@@ -1551,8 +1650,6 @@
                     level: blue.nestLevel,
                     comp: blue.getComposition(),
                     energy: Math.round(blue.getAvgEnergy()),
-                    deaths: blue.totalDeaths,
-                    kills: blue.totalKills,
                     territory: terr.blue
                 },
                 red: {
@@ -1561,15 +1658,12 @@
                     level: red.nestLevel,
                     comp: red.getComposition(),
                     energy: Math.round(red.getAvgEnergy()),
-                    deaths: red.totalDeaths,
-                    kills: red.totalKills,
                     territory: terr.red
                 },
-                battles: this.battles,
-                totalKills: this.totalKills,
                 step: this.step,
                 learnSteps: this.learnSteps,
                 avgTD: avgTD,
+                avgPred: avgPred,
                 territory: terr
             };
         }
@@ -1592,9 +1686,8 @@
         
         initUI() {
             this.updateUI();
-            this.log('🐜 ANT COLONY WARS v3.0 инициализирована', 'info');
-            this.log('🔵 СИНЯЯ колония', 'info');
-            this.log('🔴 КРАСНАЯ колония', 'info');
+            this.log('🐜 ANT COLONY WARS v4.0 — ПОЛНЫЙ CORTEX-2', 'info');
+            this.log('🔵 P32 → A64 → M144 → C256 → S32 → D16', 'info');
         }
         
         setupEvents() {
@@ -1619,7 +1712,7 @@
             };
             document.getElementById('btnUpgradeBlue').onclick = () => {
                 if (this.world.colonies.blue.upgradeNest()) {
-                    this.log(`🔵 Гнездо улучшено до ${this.world.colonies.blue.nestLevel} уровня`, 'success');
+                    this.log(`🔵 Гнездо улучшено до ${this.world.colonies.blue.nestLevel}`, 'success');
                 }
             };
             
@@ -1640,7 +1733,7 @@
             };
             document.getElementById('btnUpgradeRed').onclick = () => {
                 if (this.world.colonies.red.upgradeNest()) {
-                    this.log(`🔴 Гнездо улучшено до ${this.world.colonies.red.nestLevel} уровня`, 'success');
+                    this.log(`🔴 Гнездо улучшено до ${this.world.colonies.red.nestLevel}`, 'success');
                 }
             };
         }
@@ -1673,7 +1766,6 @@
             
             document.getElementById('fpsCounter').textContent = `FPS: ${this.fps}`;
             
-            // Обновление мира (3 шага за кадр для ускорения)
             for (let i=0; i<3; i++) {
                 this.world.update();
             }
@@ -1691,8 +1783,6 @@
             document.getElementById('blueFood').textContent = s.blue.food;
             document.getElementById('blueLevel').textContent = s.blue.level;
             document.getElementById('blueComposition').textContent = s.blue.comp;
-            document.getElementById('blueDeaths').textContent = s.blue.deaths;
-            document.getElementById('blueKills').textContent = s.blue.kills;
             document.getElementById('blueTerritory').textContent = s.blue.territory + '%';
             document.getElementById('blueEnergy').style.width = s.blue.energy + '%';
             
@@ -1700,16 +1790,13 @@
             document.getElementById('redFood').textContent = s.red.food;
             document.getElementById('redLevel').textContent = s.red.level;
             document.getElementById('redComposition').textContent = s.red.comp;
-            document.getElementById('redDeaths').textContent = s.red.deaths;
-            document.getElementById('redKills').textContent = s.red.kills;
             document.getElementById('redTerritory').textContent = s.red.territory + '%';
             document.getElementById('redEnergy').style.width = s.red.energy + '%';
             
-            document.getElementById('battles').textContent = s.battles;
             document.getElementById('tdError').textContent = s.avgTD.toFixed(4);
+            document.getElementById('predError').textContent = s.avgPred.toFixed(4);
             document.getElementById('learnSteps').textContent = s.learnSteps;
             
-            // Сетка территорий
             const grid = document.getElementById('territoryGrid');
             grid.innerHTML = '';
             for (let i=0; i<20; i++) {
@@ -1734,11 +1821,10 @@
         }
     }
     
-    // ==================== ЗАПУСК ====================
     window.addEventListener('load', () => {
         window.game = new Game();
-        console.log('🐜⚔️ ANT COLONY WARS v3.0 — ПОЛНАЯ ВЕРСИЯ ЗАПУЩЕНА');
-        console.log('🧠 64 входа, 24 выхода, территории, война, строительство');
+        console.log('🐜⚔️ CORTEX-2 ПОЛНОСТЬЮ РЕАЛИЗОВАН: P32 A64 M144 C256 S32 D16');
+        console.log('64 входа, 16 выходов, 4 головы внимания, 3 типа памяти');
     });
     
 })();
