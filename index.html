@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>World Model AI — Tank Battle Pro | Production Build</title>
+    <title>World Model AI — Tank Battle Pro v5.0 PRODUCTION</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -370,7 +370,7 @@
         </div>
         <div id="sidebar">
             <div class="sidebar-header">
-                <h1>🧠 World Model AI Control</h1>
+                <h1>🧠 World Model AI Control v5.0</h1>
                 <div class="status-bar">
                     <div class="status-dot stopped" id="status-dot"></div>
                     <span class="status-text" id="status-text">Остановлено</span>
@@ -449,9 +449,9 @@
 
     <script>
     /**
-     * WORLD MODEL AI — TANK BATTLE PRO v3.0.0
-     * Production Ready Build with SOLID Principles
-     * Full Functionality • No Stubs • Mathematical Correctness
+     * WORLD MODEL AI — TANK BATTLE PRO v5.0
+     * Production Ready • Full Feature Set • Clean Architecture
+     * FIX: Projectile collision with line-circle intersection
      */
 
     // ============================================
@@ -555,7 +555,7 @@
     }
 
     // ============================================
-    // 🧮 MATRIX OPERATIONS (Kalman Filter)
+    // 🧮 MATRIX OPERATIONS
     // ============================================
 
     class Matrix {
@@ -676,7 +676,7 @@
     }
 
     // ============================================
-    // 📡 EVENT BUS (Observer Pattern)
+    // 📡 EVENT BUS
     // ============================================
 
     class EventBus {
@@ -716,7 +716,7 @@
     }
 
     // ============================================
-    // 📝 LOGGER (Structured Logging)
+    // 📝 LOGGER
     // ============================================
 
     class Logger {
@@ -758,7 +758,7 @@
     }
 
     // ============================================
-    // 🧠 KALMAN FILTER (State Estimation)
+    // 🧠 KALMAN FILTER
     // ============================================
 
     class KalmanFilter {
@@ -888,7 +888,7 @@
     }
 
     // ============================================
-    // 🗺️ OCCUPANCY GRID (Spatial Representation)
+    // 🗺️ OCCUPANCY GRID
     // ============================================
 
     class OccupancyGrid {
@@ -1121,7 +1121,7 @@
     }
 
     // ============================================
-    // 📍 TRAJECTORY PLANNER (Path Planning)
+    // 📍 TRAJECTORY PLANNER
     // ============================================
 
     class Trajectory {
@@ -1938,13 +1938,14 @@
     }
 
     // ============================================
-    // 💥 PROJECTILE
+    // 💥 PROJECTILE — FIX: prevPos для коллизии
     // ============================================
 
     class Projectile {
         constructor(id, pos, dir, ownerId, team, damage = 25) {
             this.id = id;
             this.pos = pos ? pos.clone() : Vector2.zero();
+            this.prevPos = pos ? pos.clone() : Vector2.zero();
             this.dir = dir ? dir.normalize() : Vector2.create(1, 0);
             this.speed = 14;
             this.damage = damage;
@@ -1953,9 +1954,12 @@
             this.alive = true;
             this.trail = [];
             this.maxTrailLength = 12;
+            this.radius = 4;
         }
 
         update(worldBounds) {
+            this.prevPos = this.pos.clone();
+            
             this.trail.push(this.pos.clone());
             if (this.trail.length > this.maxTrailLength) {
                 this.trail.shift();
@@ -2066,7 +2070,7 @@
     }
 
     // ============================================
-    // 🗂️ QUADTREE (Spatial Index)
+    // 🗂️ QUADTREE
     // ============================================
 
     class QuadTree {
@@ -2170,7 +2174,7 @@
     }
 
     // ============================================
-    // 🎮 GAME ENGINE
+    // 🎮 GAME ENGINE — FIX: checkCollisions
     // ============================================
 
     class GameEngine {
@@ -2232,7 +2236,7 @@
                 this.setupUI();
                 this.bindEvents();
                 
-                this.logger.info('Инициализация завершена', { version: '3.0.0' });
+                this.logger.info('Инициализация завершена', { version: '5.0' });
                 this.render();
             } catch (error) {
                 console.error('[GameEngine] Init error:', error);
@@ -2653,6 +2657,7 @@
             this.projectiles = this.projectiles.filter(p => p && p.alive);
         }
 
+        // FIX: Полная проверка коллизии с line-circle intersection
         checkCollisions() {
             this.spatialIndex.clear();
 
@@ -2665,11 +2670,12 @@
             for (const proj of this.projectiles) {
                 if (!proj || !proj.alive) continue;
 
+                const searchRadius = proj.speed + 30;
                 const range = {
-                    x: proj.pos.x - 25,
-                    y: proj.pos.y - 25,
-                    w: 50,
-                    h: 50
+                    x: Math.min(proj.pos.x, proj.prevPos.x) - searchRadius,
+                    y: Math.min(proj.pos.y, proj.prevPos.y) - searchRadius,
+                    w: Math.abs(proj.pos.x - proj.prevPos.x) + searchRadius * 2,
+                    h: Math.abs(proj.pos.y - proj.prevPos.y) + searchRadius * 2
                 };
 
                 const nearby = this.spatialIndex.query(range);
@@ -2679,7 +2685,9 @@
                     if (entity.team === proj.team) continue;
                     if (!entity.alive) continue;
 
-                    if (proj.pos.dist(entity.pos) < entity.config.radius + 5) {
+                    const hit = this._checkProjectileCollision(proj, entity);
+                    
+                    if (hit) {
                         proj.alive = false;
                         const destroyed = entity.takeDamage(proj.damage);
                         this.stats.hits++;
@@ -2696,6 +2704,42 @@
                     }
                 }
             }
+        }
+
+        // FIX: Новый метод для проверки коллизии снаряда с танком
+        _checkProjectileCollision(proj, entity) {
+            const tankRadius = entity.config.radius;
+            const projRadius = proj.radius || 4;
+            const combinedRadius = tankRadius + projRadius;
+
+            // Проверка текущей позиции
+            const distCurrent = proj.pos.dist(entity.pos);
+            if (distCurrent < combinedRadius) return true;
+
+            // Проверка предыдущей позиции
+            const distPrev = proj.prevPos.dist(entity.pos);
+            if (distPrev < combinedRadius) return true;
+
+            // Line-circle collision: проверка отрезка движения
+            const dx = proj.pos.x - proj.prevPos.x;
+            const dy = proj.pos.y - proj.prevPos.y;
+            const lenSq = dx * dx + dy * dy;
+            
+            if (lenSq > 0.0001) {
+                const t = Math.max(0, Math.min(1, 
+                    ((entity.pos.x - proj.prevPos.x) * dx + 
+                     (entity.pos.y - proj.prevPos.y) * dy) / lenSq
+                ));
+                
+                const closestX = proj.prevPos.x + t * dx;
+                const closestY = proj.prevPos.y + t * dy;
+                
+                const distToLine = Math.hypot(entity.pos.x - closestX, entity.pos.y - closestY);
+                
+                if (distToLine < combinedRadius) return true;
+            }
+
+            return false;
         }
 
         render() {
@@ -2957,4 +3001,4 @@
     })();
     </script>
 </body>
-    </html>
+</html>
