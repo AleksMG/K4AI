@@ -124,6 +124,7 @@
         .log-sensor { color: #ff9900; }
         .log-safety { color: #ff6666; }
         .log-plan { color: #00ffaa; }
+        .log-fire { color: #ff9900; }
         .visualization {
             position: absolute;
             background: rgba(0, 0, 0, 0.95);
@@ -3632,28 +3633,28 @@ class Renderer {
         this.ctx.fillStyle = '#3a3a4a';
         this.ctx.fillRect(0, -3, 28, 6);
         this.ctx.beginPath();
-        this.ctx.arc(0, 0, 8, 0, Math.PI * 2);
-        this.ctx.fill();
-        
-        if (tank.muzzleFlash > 0) {
-            this.ctx.fillStyle = 'rgba(255, 200, 50, 0.8)';
-            this.ctx.beginPath();
-            this.ctx.arc(32, 0, 8, 0, Math.PI * 2);
+                    this.ctx.arc(0, 0, 8, 0, Math.PI * 2);
             this.ctx.fill();
-        }
-        this.ctx.restore();
-        
-        // Health bar
-        const hpW = 36, hpH = 3;
-        this.ctx.fillStyle = 'rgba(0,0,0,0.7)';
-        this.ctx.fillRect(tank.pos.x - 18, tank.pos.y - 22, hpW, hpH);
-        this.ctx.fillStyle = tank.getHealthPercent() > 0.5 ? '#00ff88' : '#ff4444';
-        this.ctx.fillRect(tank.pos.x - 18, tank.pos.y - 22, hpW * tank.getHealthPercent(), hpH);
-        
-        this.ctx.fillStyle = '#666';
-        this.ctx.font = '9px monospace';
-        this.ctx.textAlign = 'center';
-        this.ctx.fillText(`#${tank.id}`, tank.pos.x, tank.pos.y - 30);
+            
+            if (tank.muzzleFlash > 0) {
+                this.ctx.fillStyle = 'rgba(255, 200, 50, 0.8)';
+                this.ctx.beginPath();
+                this.ctx.arc(32, 0, 8, 0, Math.PI * 2);
+                this.ctx.fill();
+            }
+            this.ctx.restore();
+            
+            // Health bar
+            const hpW = 36, hpH = 3;
+            this.ctx.fillStyle = 'rgba(0,0,0,0.7)';
+            this.ctx.fillRect(tank.pos.x - 18, tank.pos.y - 22, hpW, hpH);
+            this.ctx.fillStyle = tank.getHealthPercent() > 0.5 ? '#00ff88' : '#ff4444';
+            this.ctx.fillRect(tank.pos.x - 18, tank.pos.y - 22, hpW * tank.getHealthPercent(), hpH);
+            
+            this.ctx.fillStyle = '#666';
+            this.ctx.font = '9px monospace';
+            this.ctx.textAlign = 'center';
+            this.ctx.fillText(`#${tank.id}`, tank.pos.x, tank.pos.y - 30);
     }
     
     drawProjectile(proj) { proj.draw(this.ctx); }
@@ -4126,4 +4127,4 @@ class GameEngine {
 })();
 </script>
 </body>
-</html>
+    </html>
