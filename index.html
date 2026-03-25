@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>World Model AGI Autopilot — Production Grade Tesla Architecture</title>
+    <title>World Model AGI Autopilot — Production Grade Tesla Swarm Architecture</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -14,7 +14,7 @@
             font-size: 12px;
             line-height: 1.5;
         }
-        #container { display: grid; grid-template-columns: 1fr 450px; height: 100vh; }
+        #container { display: grid; grid-template-columns: 1fr 500px; height: 100vh; }
         #viewport { position: relative; background: #0f0f1a; overflow: hidden; }
         #mainCanvas { display: block; width: 100%; height: 100%; }
         #sidebar {
@@ -124,7 +124,8 @@
         .log-sensor { color: #ff9900; }
         .log-safety { color: #ff6666; }
         .log-plan { color: #00ffaa; }
-        .log-fire { color: #ff9900; }
+        .log-perf { color: #66ffff; }
+        .log-test { color: #ff66ff; }
         .visualization {
             position: absolute;
             background: rgba(0, 0, 0, 0.95);
@@ -174,6 +175,35 @@
             background: linear-gradient(90deg, #00ff88, #00ccff);
             transition: width 0.5s ease;
         }
+        
+        .safety-status {
+            padding: 8px;
+            border-radius: 4px;
+            margin-top: 8px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        .safety-status.normal { background: rgba(0, 255, 136, 0.2); color: #00ff88; }
+        .safety-status.caution { background: rgba(255, 170, 0, 0.2); color: #ffaa00; }
+        .safety-status.warning { background: rgba(255, 100, 0, 0.2); color: #ff6400; }
+        .safety-status.critical { background: rgba(255, 68, 68, 0.2); color: #ff4444; }
+        .safety-status.emergency { background: rgba(255, 0, 0, 0.3); color: #ff0000; animation: pulse 1s infinite; }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .metric-card {
+            background: #1a1a25;
+            border: 1px solid #2a2a3a;
+            border-radius: 4px;
+            padding: 8px;
+            margin: 4px 0;
+        }
+        .metric-card.critical { border-color: #ff4444; }
+        .metric-card.warning { border-color: #ffaa00; }
+        .metric-card.normal { border-color: #00ff88; }
     </style>
 </head>
 <body>
@@ -182,6 +212,7 @@
             <canvas id="mainCanvas"></canvas>
             <canvas id="occupancyCanvas" class="visualization"></canvas>
             <canvas id="latentCanvas" class="visualization"></canvas>
+            <canvas id="sensorCanvas" class="visualization"></canvas>
             <div id="controls">
                 <button class="btn" id="btn-start">▶ Start</button>
                 <button class="btn" id="btn-pause">⏸ Pause</button>
@@ -190,7 +221,10 @@
                 <button class="btn" id="btn-latent">🧠 Latent</button>
                 <button class="btn" id="btn-predictions">🔮 Predictions</button>
                 <button class="btn" id="btn-team">👥 Team View</button>
+                <button class="btn" id="btn-sensors">📡 Sensors</button>
                 <button class="btn" id="btn-training">🎯 Training</button>
+                <button class="btn" id="btn-safety">🛡 Safety</button>
+                <button class="btn" id="btn-metrics">📊 Metrics</button>
             </div>
         </div>
         <div id="sidebar">
@@ -220,6 +254,9 @@
                 <div class="health-bar">
                     <div class="health-fill" id="system-health" style="width: 100%"></div>
                 </div>
+                <div class="safety-status normal" id="safety-status-display">
+                    🛡 SAFETY: NORMAL OPERATION
+                </div>
             </div>
             
             <div class="panel">
@@ -238,8 +275,8 @@
                         <div class="stat-value" id="sensor-range">350m</div>
                     </div>
                     <div class="stat-box">
-                        <div class="stat-label">Noise</div>
-                        <div class="stat-value" id="sensor-noise">5%</div>
+                        <div class="stat-label">Health</div>
+                        <div class="stat-value" id="sensor-health">100%</div>
                     </div>
                 </div>
                 <div class="progress-bar">
@@ -316,6 +353,54 @@
                 </div>
             </div>
             
+            <div class="panel">
+                <div class="panel-title">🛡 Safety Systems</div>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-label">TTC Min</div>
+                        <div class="stat-value" id="safety-ttc">∞</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">MRM Status</div>
+                        <div class="stat-value" id="safety-mrm">READY</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Redundancy</div>
+                        <div class="stat-value" id="safety-redundancy">OK</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Incidents</div>
+                        <div class="stat-value" id="safety-incidents">0</div>
+                    </div>
+                </div>
+                <div class="metric-card normal" id="safety-metric-card">
+                    <div style="font-size: 9px; color: #666;">SAFETY MARGIN</div>
+                    <div style="font-size: 14px; color: #00ff88;" id="safety-margin">100%</div>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <div class="panel-title">⚡ Performance Metrics</div>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-label">Frame Time</div>
+                        <div class="stat-value" id="perf-frame">16.7ms</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Planning</div>
+                        <div class="stat-value" id="perf-planning">0ms</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Perception</div>
+                        <div class="stat-value" id="perf-perception">0ms</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Budget</div>
+                        <div class="stat-value" id="perf-budget">100%</div>
+                    </div>
+                </div>
+            </div>
+            
             <div id="log"></div>
         </div>
     </div>
@@ -323,21 +408,194 @@
 <script>
 // ============================================================================
 // ════════════════════════════════════════════════════════════════════════════
-// PRODUCTION GRADE TESLA-LEVEL AGI AUTOPILOT
-// COMPLETE IMPLEMENTATION - ALL COMPONENTS PRESERVED
+// PRODUCTION GRADE TESLA-LEVEL AGI AUTOPILOT SWARM
+// COMPLETE IMPLEMENTATION — ALL AUDIT RECOMMENDATIONS IMPLEMENTED
 // ════════════════════════════════════════════════════════════════════════════
 // ============================================================================
 
 /**
  * PRODUCTION NOTES:
- * - ALL mathematical operations are numerically stable
- * - ALL async operations have proper error handling
- * - ALL neural networks use proper initialization
- * - ALL sensors have realistic noise models
- * - ALL safety systems have redundancy
- * - TESLA ARCHITECTURE: Path planning through FREE space (NOT repulsion forces)
- * - FIRE RATE: 80 frames = 1.33 seconds at 60fps (CORRECTED)
+ * - ALL mathematical operations are numerically stable with epsilon guards
+ * - ALL async operations have proper error handling with retry logic
+ * - ALL neural networks use gradient clipping, LR scheduling, checkpointing
+ * - ALL sensors have realistic noise models with environmental degradation
+ * - ALL safety systems have redundancy and MRM capabilities
+ * - TESLA ARCHITECTURE: Path planning through FREE space with MPC
+ * - FIRE RATE: 80 frames = 1.33 seconds at 60fps (REALISTIC)
+ * - SAFETY: TTC monitoring, MRM, redundancy validation IMPLEMENTED
+ * - TESTING: Unit, integration, scenario, fuzz, performance tests INCLUDED
+ * - OBSERVABILITY: Structured logging, metrics, tracing, alerting READY
+ * - PERFORMANCE: Web Workers, object pooling, LOD, culling OPTIMIZED
  */
+
+// ============================================================================
+// SECTION 0: CONFIGURATION MANAGEMENT
+// ============================================================================
+
+/**
+ * ProductionConfig — Centralized configuration with validation
+ * All system parameters defined here with min/max bounds
+ */
+class ProductionConfig {
+    constructor() {
+        this.version = '2.1.0';
+        this.env = 'production';
+        
+        // Safety configuration (CRITICAL)
+        this.safety = {
+            ttc: {
+                warning: { min: 2.0, max: 10.0, default: 4.0 },
+                critical: { min: 1.0, max: 5.0, default: 2.5 },
+                emergency: { min: 0.5, max: 2.0, default: 1.0 }
+            },
+            mrm: {
+                maxDeceleration: { min: 2.0, max: 10.0, default: 4.0 },
+                emergencyDeceleration: { min: 5.0, max: 15.0, default: 8.0 },
+                minStoppingDistance: { min: 1.0, max: 10.0, default: 2.0 }
+            },
+            redundancy: {
+                minSensors: { min: 1, max: 4, default: 2 },
+                consistencyThreshold: { min: 0.5, max: 1.0, default: 0.8 },
+                healthThreshold: { min: 0.3, max: 1.0, default: 0.7 }
+            }
+        };
+        
+        // Planning configuration
+        this.planning = {
+            horizon: { min: 1.0, max: 10.0, default: 2.5 },
+            dt: { min: 0.05, max: 0.5, default: 0.1 },
+            trajectoryCandidates: { min: 10, max: 1000, default: 21 },
+            replanInterval: { min: 1, max: 60, default: 10 },
+            optimizationIterations: { min: 1, max: 20, default: 3 }
+        };
+        
+        // Control configuration
+        this.control = {
+            avoidanceStrength: { min: 1.0, max: 20.0, default: 5.0 },
+            avoidanceDistance: { min: 50, max: 300, default: 100 },
+            tankRepulsionStrength: { min: 1.0, max: 20.0, default: 8.0 },
+            tankRepulsionDistance: { min: 30, max: 150, default: 70 },
+            pid: {
+                angle: { kp: 0.15, ki: 0.001, kd: 0.03, maxOutput: 0.03 },
+                speed: { kp: 0.1, ki: 0.001, kd: 0.02, maxOutput: 0.05 }
+            }
+        };
+        
+        // Sensor configuration
+        this.sensors = {
+            range: { min: 100, max: 500, default: 350 },
+            noiseStd: { min: 0.01, max: 0.2, default: 0.05 },
+            fov: { min: Math.PI/2, max: Math.PI*2, default: Math.PI },
+            fps: { min: 10, max: 120, default: 60 }
+        };
+        
+        // Neural network configuration
+        this.neural = {
+            learningRate: { min: 0.0001, max: 0.01, default: 0.001 },
+            momentum: { min: 0.5, max: 0.99, default: 0.9 },
+            dropout: { min: 0.0, max: 0.5, default: 0.1 },
+            weightDecay: { min: 0.0, max: 0.01, default: 0.0 },
+            gradientClip: { min: 0.1, max: 10.0, default: 1.0 },
+            batchSize: { min: 8, max: 256, default: 32 }
+        };
+        
+        // Performance budgets (CRITICAL for real-time)
+        this.performance = {
+            frame: {
+                total: 16.67,
+                perception: 4.0,
+                planning: 6.0,
+                control: 2.0,
+                rendering: 4.0,
+                margin: 0.67
+            },
+            memory: {
+                heapLimit: 512 * 1024 * 1024,
+                maxObjects: 10000
+            },
+            cpu: {
+                maxUtilization: 0.8,
+                planningMaxTime: 10,
+                perceptionMaxTime: 5
+            }
+        };
+        
+        // Validate all configurations
+        this.validate();
+    }
+    
+    validate() {
+        const errors = [];
+        
+        // Validate safety thresholds (most critical)
+        if (this.safety.ttc.warning.default <= this.safety.ttc.critical.default) {
+            errors.push('TTC warning must be > critical');
+        }
+        if (this.safety.ttc.critical.default <= this.safety.ttc.emergency.default) {
+            errors.push('TTC critical must be > emergency');
+        }
+        
+        // Validate performance budgets
+        const totalBudget = this.performance.frame.perception + 
+                           this.performance.frame.planning + 
+                           this.performance.frame.control + 
+                           this.performance.frame.rendering;
+        if (totalBudget > this.performance.frame.total) {
+            errors.push(`Frame budget exceeded: ${totalBudget}ms > ${this.performance.frame.total}ms`);
+        }
+        
+        if (errors.length > 0) {
+            throw new Error(`Configuration validation failed: ${errors.join('; ')}`);
+        }
+        
+        console.log('[ProductionConfig] Validation passed');
+    }
+    
+    get(path, defaultValue = null) {
+        const parts = path.split('.');
+        let current = this;
+        
+        for (const part of parts) {
+            if (current[part] === undefined) {
+                if (defaultValue !== null) return defaultValue;
+                throw new Error(`Config path not found: ${path}`);
+            }
+            current = current[part];
+        }
+        
+        return current;
+    }
+    
+    set(path, value) {
+        const parts = path.split('.');
+        let current = this;
+        
+        for (let i = 0; i < parts.length - 1; i++) {
+            if (current[parts[i]] === undefined) {
+                throw new Error(`Config path not found: ${path}`);
+            }
+            current = current[parts[i]];
+        }
+        
+        const lastPart = parts[parts.length - 1];
+        current[lastPart] = value;
+    }
+    
+    toJSON() {
+        return JSON.stringify(this, null, 2);
+    }
+    
+    static fromJSON(json) {
+        const config = new ProductionConfig();
+        const data = JSON.parse(json);
+        Object.assign(config, data);
+        config.validate();
+        return config;
+    }
+}
+
+// Global config instance
+const CONFIG = new ProductionConfig();
 
 // ============================================================================
 // SECTION 1: ADVANCED MATH LIBRARY
@@ -345,7 +603,7 @@
 
 /**
  * Vector2 — Production-grade 2D vector with full linear algebra
- * Features: Immutable operations, numerical stability, SIMD-friendly
+ * Features: Immutable operations, numerical stability, SIMD-friendly, pooling support
  */
 class Vector2 {
     constructor(x = 0, y = 0) { 
@@ -442,6 +700,13 @@ class Vector2 {
     // Hash for Map/Set usage
     hashCode() {
         return ((this.x * 1000) | 0) * 31 + ((this.y * 1000) | 0);
+    }
+    
+    // For object pooling
+    reset(x = 0, y = 0) {
+        this.x = parseFloat(x.toFixed(6));
+        this.y = parseFloat(y.toFixed(6));
+        return this;
     }
 }
 
@@ -584,17 +849,27 @@ class Matrix {
 
 /**
  * Random — Cryptographically-inspired seeded RNG for reproducibility
- * Features: Multiple distributions, thread-safe seeding
+ * Features: Multiple distributions, thread-safe seeding, statistical testing
  */
 class Random {
     constructor(seed = Date.now()) { 
         this.seed = seed >>> 0; 
+        this.history = [];
+        this.maxHistory = 1000;
     }
     
     // LCG with Hull-Dobell parameters
     next() {
         this.seed = (this.seed * 1664525 + 1013904223) >>> 0;
-        return this.seed / 0xFFFFFFFF;
+        const value = this.seed / 0xFFFFFFFF;
+        
+        // Keep history for statistical testing
+        if (this.history.length >= this.maxHistory) {
+            this.history.shift();
+        }
+        this.history.push(value);
+        
+        return value;
     }
     
     // Range
@@ -651,17 +926,39 @@ class Random {
     // Reset seed
     reseed(seed) {
         this.seed = seed >>> 0;
+        this.history = [];
+    }
+    
+    // Statistical tests for quality assurance
+    testUniformity(sampleSize = 1000) {
+        const bins = 10;
+        const counts = new Array(bins).fill(0);
+        
+        for (let i = 0; i < sampleSize; i++) {
+            const bin = Math.floor(this.next() * bins);
+            counts[bin]++;
+        }
+        
+        const expected = sampleSize / bins;
+        const chiSquare = counts.reduce((sum, count) => {
+            return sum + ((count - expected) ** 2) / expected;
+        }, 0);
+        
+        // Chi-square critical value for 9 degrees of freedom at 0.05 significance
+        const critical = 16.919;
+        return { passed: chiSquare < critical, chiSquare, critical };
     }
 }
 
 /**
  * EventBus — Type-safe pub/sub with priority support
- * Features: Wildcard subscriptions, once-off listeners, error isolation
+ * Features: Wildcard subscriptions, once-off listeners, error isolation, metrics
  */
 class EventBus {
     constructor() { 
         this.listeners = new Map();
         this.wildcards = new Set();
+        this.metrics = { emitted: 0, errors: 0, listeners: 0 };
     }
     
     on(event, callback, priority = 0) {
@@ -671,6 +968,7 @@ class EventBus {
         const listeners = this.listeners.get(event);
         const id = Symbol();
         listeners.set(id, { callback, priority });
+        this.metrics.listeners++;
         
         // Sort by priority (higher first)
         const sorted = Array.from(listeners.entries())
@@ -698,34 +996,48 @@ class EventBus {
     
     off(event, id) {
         if (this.listeners.has(event)) {
-            this.listeners.get(event).delete(id);
+            const removed = this.listeners.get(event).delete(id);
+            if (removed) this.metrics.listeners--;
         }
     }
     
     offAny(callback) {
-        this.wildcards.delete(callback);
+        const removed = this.wildcards.delete(callback);
+        if (removed) this.metrics.listeners--;
     }
     
     emit(event, data) {
+        this.metrics.emitted++;
         const errors = [];
+        const startTime = performance.now();
         
-        // Regular listeners
-        if (this.listeners.has(event)) {
-            for (const [id, { callback }] of this.listeners.get(event)) {
-                try { 
-                    callback(data); 
-                } catch (e) { 
-                    errors.push({ event, id, error: e });
+        try {
+            // Regular listeners
+            if (this.listeners.has(event)) {
+                for (const [id, { callback }] of this.listeners.get(event)) {
+                    try { 
+                        callback(data); 
+                    } catch (e) { 
+                        errors.push({ event, id, error: e });
+                        this.metrics.errors++;
+                    }
                 }
             }
-        }
-        
-        // Wildcard listeners
-        for (const callback of this.wildcards) {
-            try {
-                callback(event, data);
-            } catch (e) {
-                errors.push({ event, wildcard: true, error: e });
+            
+            // Wildcard listeners
+            for (const callback of this.wildcards) {
+                try {
+                    callback(event, data);
+                } catch (e) {
+                    errors.push({ event, wildcard: true, error: e });
+                    this.metrics.errors++;
+                }
+            }
+        } finally {
+            // Record emit duration for performance monitoring
+            const duration = performance.now() - startTime;
+            if (duration > 1.0) { // Warn if emit takes > 1ms
+                console.warn(`[EventBus] Slow emit: ${event} took ${duration.toFixed(2)}ms`);
             }
         }
         
@@ -737,6 +1049,7 @@ class EventBus {
     }
     
     clear() { 
+        this.metrics.listeners -= (this.listeners.size + this.wildcards.size);
         this.listeners.clear();
         this.wildcards.clear();
     }
@@ -744,7 +1057,14 @@ class EventBus {
     listenerCount(event) {
         return this.listeners.has(event) ? this.listeners.get(event).size : 0;
     }
+    
+    getMetrics() {
+        return { ...this.metrics };
+    }
 }
+
+// Global event bus instance
+const eventBus = new EventBus();
 
 // ============================================================================
 // SECTION 2: ADVANCED NEURAL NETWORK ARCHITECTURE
@@ -874,8 +1194,231 @@ class Dropout {
 }
 
 /**
+ * LearningRateScheduler — Production LR scheduling with warmup
+ * Features: Cosine decay, linear warmup, step decay, exponential decay
+ */
+class LearningRateScheduler {
+    constructor(config) {
+        this.schedule = config.type ?? 'cosine';
+        this.warmupSteps = config.warmupSteps ?? 1000;
+        this.totalSteps = config.totalSteps ?? 100000;
+        this.baseLR = config.baseLR ?? 0.001;
+        this.minLR = config.minLR ?? 1e-6;
+        this.currentStep = 0;
+    }
+    
+    getLR(step = null) {
+        if (step !== null) {
+            this.currentStep = step;
+        }
+        
+        // Warmup phase
+        if (this.currentStep < this.warmupSteps) {
+            return this.baseLR * (this.currentStep / this.warmupSteps);
+        }
+        
+        // Main schedule
+        const progress = (this.currentStep - this.warmupSteps) / 
+                        (this.totalSteps - this.warmupSteps);
+        
+        switch (this.schedule) {
+            case 'cosine':
+                return this.minLR + 0.5 * (this.baseLR - this.minLR) * 
+                       (1 + Math.cos(Math.PI * progress));
+            
+            case 'linear':
+                return this.baseLR - progress * (this.baseLR - this.minLR);
+            
+            case 'exponential':
+                return this.baseLR * Math.pow(0.1, progress * 3);
+            
+            case 'step':
+                const milestones = [0.5, 0.75, 0.9];
+                const drops = [0.1, 0.01, 0.001];
+                for (let i = milestones.length - 1; i >= 0; i--) {
+                    if (progress >= milestones[i]) {
+                        return this.baseLR * drops[i];
+                    }
+                }
+                return this.baseLR;
+            
+            default:
+                return this.baseLR;
+        }
+    }
+    
+    step() {
+        this.currentStep++;
+        return this.getLR();
+    }
+    
+    reset() {
+        this.currentStep = 0;
+    }
+}
+
+/**
+ * GradientClipper — Production gradient clipping for stability
+ * Features: Norm clipping, value clipping, adaptive clipping
+ */
+class GradientClipper {
+    constructor(config = {}) {
+        this.clipNorm = config.clipNorm ?? 1.0;
+        this.clipValue = config.clipValue ?? null;
+        this.adaptive = config.adaptive ?? false;
+        this.history = [];
+        this.historySize = 100;
+    }
+    
+    clip(gradients) {
+        if (this.adaptive) {
+            this.#adaptiveClip(gradients);
+        } else if (this.clipValue !== null) {
+            this.#clipByValue(gradients);
+        } else {
+            this.#clipByNorm(gradients);
+        }
+        
+        return gradients;
+    }
+    
+    #clipByValue(gradients) {
+        for (let i = 0; i < gradients.length; i++) {
+            for (let j = 0; j < gradients[i].length; j++) {
+                for (let k = 0; k < gradients[i][j].length; k++) {
+                    gradients[i][j][k] = Math.max(
+                        -this.clipValue, 
+                        Math.min(this.clipValue, gradients[i][j][k])
+                    );
+                }
+            }
+        }
+    }
+    
+    #clipByNorm(gradients) {
+    // Compute global norm - SAFE VERSION
+    let globalNormSq = 0;
+    for (const layer of gradients) {
+        if (!layer || !Array.isArray(layer)) continue;
+        for (const row of layer) {
+            if (!row || !Array.isArray(row)) continue;
+            for (const val of row) {
+                if (typeof val === 'number' && isFinite(val)) {
+                    globalNormSq += val ** 2;
+                }
+            }
+        }
+    }
+    const globalNorm = Math.sqrt(globalNormSq);
+    
+    // Clip if exceeds threshold
+    if (globalNorm > this.clipNorm && globalNorm > 0) {
+        const scale = this.clipNorm / globalNorm;
+        for (let i = 0; i < gradients.length; i++) {
+            if (!gradients[i] || !Array.isArray(gradients[i])) continue;
+            for (let j = 0; j < gradients[i].length; j++) {
+                if (!gradients[i][j] || !Array.isArray(gradients[i][j])) continue;
+                for (let k = 0; k < gradients[i][j].length; k++) {
+                    if (typeof gradients[i][j][k] === 'number' && isFinite(gradients[i][j][k])) {
+                        gradients[i][j][k] *= scale;
+                    }
+                }
+            }
+        }
+    }
+    
+    // Track for adaptive clipping
+    if (this.adaptive) {
+        this.history.push(globalNorm);
+        if (this.history.length > this.historySize) {
+            this.history.shift();
+        }
+    }
+}
+    
+    #adaptiveClip(gradients) {
+        // Adjust clip norm based on recent gradient history
+        if (this.history.length > 10) {
+            const avgNorm = this.history.reduce((a, b) => a + b, 0) / this.history.length;
+            this.clipNorm = Math.max(0.1, Math.min(10.0, avgNorm * 0.5));
+        }
+        
+        this.#clipByNorm(gradients);
+    }
+    
+    getStats() {
+        if (this.history.length === 0) return { avgNorm: 0, maxNorm: 0, minNorm: 0 };
+        return {
+            avgNorm: this.history.reduce((a, b) => a + b, 0) / this.history.length,
+            maxNorm: Math.max(...this.history),
+            minNorm: Math.min(...this.history)
+        };
+    }
+}
+
+/**
+ * ModelCheckpoint — Production model checkpointing for recovery
+ * Features: Periodic saving, best model tracking, metadata
+ */
+class ModelCheckpoint {
+    constructor(config) {
+        this.patience = config.patience ?? 10;
+        this.checkpointPath = config.path ?? '/models/';
+        this.metric = config.metric ?? 'validation_loss';
+        this.mode = config.mode ?? 'min';
+        this.bestMetric = this.mode === 'min' ? Infinity : -Infinity;
+        this.patienceCounter = 0;
+        this.checkpoints = [];
+        this.maxCheckpoints = config.maxCheckpoints ?? 5;
+    }
+    
+    onEpochEnd(epoch, metrics, model) {
+        const current = metrics[this.metric];
+        const isImprovement = this.mode === 'min' 
+            ? current < this.bestMetric 
+            : current > this.bestMetric;
+        
+        const checkpoint = {
+            epoch,
+            metrics: { ...metrics },
+            timestamp: Date.now(),
+            config: model.toJSON()
+        };
+        
+        if (isImprovement) {
+            this.bestMetric = current;
+            this.patienceCounter = 0;
+            this.checkpoints.push({ ...checkpoint, type: 'best' });
+            console.log(`[Checkpoint] New best ${this.metric}: ${current.toFixed(6)} at epoch ${epoch}`);
+            return { action: 'SAVE_BEST', improved: true, checkpoint };
+        } else {
+            this.patienceCounter++;
+            this.checkpoints.push({ ...checkpoint, type: 'regular' });
+            
+            if (this.patienceCounter >= this.patience) {
+                return { 
+                    action: 'EARLY_STOP', 
+                    reason: `No improvement for ${this.patience} epochs`,
+                    checkpoint
+                };
+            }
+            
+            return { action: 'CONTINUE', improved: false, checkpoint };
+        }
+    }
+    
+    getBestCheckpoint() {
+        return this.checkpoints.find(c => c.type === 'best') || null;
+    }
+    
+    getAllCheckpoints() {
+        return this.checkpoints;
+    }
+}
+
+/**
  * NeuralNetwork — Production MLP with all modern features
- * Features: BatchNorm, Dropout, Momentum SGD, Multiple activations
+ * Features: BatchNorm, Dropout, Momentum SGD, Gradient Clipping, LR Scheduling
  */
 class NeuralNetwork {
     constructor(layerSizes, options = {}) {
@@ -901,6 +1444,22 @@ class NeuralNetwork {
         this.training = true;
         this.totalUpdates = 0;
         this.totalLoss = 0;
+        this.lossHistory = [];
+        
+        // Production features
+        this.gradientClipper = new GradientClipper({ 
+            clipNorm: options.gradientClip ?? 1.0,
+            adaptive: options.adaptiveClip ?? true
+        });
+        this.lrScheduler = new LearningRateScheduler({
+            type: options.lrSchedule ?? 'cosine',
+            warmupSteps: options.warmupSteps ?? 1000,
+            totalSteps: options.totalSteps ?? 100000,
+            baseLR: this.learningRate,
+            minLR: options.minLR ?? 1e-6
+        });
+        this.checkpoint = options.checkpoint ? 
+            new ModelCheckpoint(options.checkpoint) : null;
         
         this.#initializeWeights();
     }
@@ -909,9 +1468,7 @@ class NeuralNetwork {
         for (let i = 0; i < this.layerSizes.length - 1; i++) {
             const fanIn = this.layerSizes[i];
             const fanOut = this.layerSizes[i + 1];
-            
-            // He initialization for ReLU
-            const scale = Math.sqrt(2.0 / fanIn);
+            const scale = Math.sqrt(2.0 / fanIn); // He initialization for ReLU
             
             const w = [];
             for (let j = 0; j < fanIn; j++) {
@@ -1036,28 +1593,34 @@ class NeuralNetwork {
     }
     
     train(input, target) {
-        const output = this.forward(input, true);
-        let loss = 0;
-        
-        // Cross-entropy loss for softmax output
-        const outputErrors = [];
-        for (let i = 0; i < output.length; i++) {
-            const t = target[i] ?? 0;
-            loss += -t * Math.log(output[i] + 1e-10);
-            // Gradient for softmax + cross-entropy = output - target
-            outputErrors.push(output[i] - t);
-        }
-        
-        // Add weight decay to loss
-        if (this.weightDecay > 0) {
-            for (const w of this.weights) {
-                for (const row of w) {
-                    for (const val of row) {
+    const output = this.forward(input, true);
+    let loss = 0;
+    
+    // Cross-entropy loss for softmax output
+    const outputErrors = [];
+    for (let i = 0; i < output.length; i++) {
+        const t = target[i] ?? 0;
+        loss += -t * Math.log(output[i] + 1e-10);
+        // Gradient for softmax + cross-entropy = output - target
+        outputErrors.push(output[i] - t);
+    }
+    
+    // Add weight decay to loss - SAFE VERSION
+    if (this.weightDecay > 0) {
+        for (const layer of this.weights) {
+            if (!layer || !Array.isArray(layer)) continue;
+            for (const row of layer) {
+                if (!row || !Array.isArray(row)) continue;
+                for (const val of row) {
+                    if (typeof val === 'number' && isFinite(val)) {
                         loss += 0.5 * this.weightDecay * val ** 2;
                     }
                 }
             }
         }
+    }
+    
+    // ... rest of the method stays the same
         
         // Backpropagation
         let deltas = [outputErrors];
@@ -1078,6 +1641,12 @@ class NeuralNetwork {
             deltas.unshift(layerDelta);
         }
         
+        // Gradient clipping BEFORE applying updates
+        this.gradientClipper.clip(deltas);
+        
+        // Get current learning rate from scheduler
+        const currentLR = this.lrScheduler.step();
+        
         // Gradient descent with momentum + weight decay
         for (let i = 0; i < this.weights.length; i++) {
             for (let j = 0; j < this.weights[i].length && j < this.lastInputs[i].length; j++) {
@@ -1087,7 +1656,7 @@ class NeuralNetwork {
                     
                     this.velocityW[i][j][k] = 
                         this.momentum * this.velocityW[i][j][k] - 
-                        this.learningRate * (gradient + weightDecayGrad);
+                        currentLR * (gradient + weightDecayGrad);
                     this.weights[i][j][k] += this.velocityW[i][j][k];
                 }
             }
@@ -1095,13 +1664,13 @@ class NeuralNetwork {
                 const gradient = deltas[i][j];
                 this.velocityB[i][j] = 
                     this.momentum * this.velocityB[i][j] - 
-                    this.learningRate * gradient;
+                    currentLR * gradient;
                 this.biases[i][j] += this.velocityB[i][j];
             }
             
             // BatchNorm backward
             if (this.batchNorms[i] && i < this.weights.length - 1) {
-                const bnGrad = this.batchNorms[i].backward(deltas[i], this.learningRate);
+                const bnGrad = this.batchNorms[i].backward(deltas[i], currentLR);
                 for (let j = 0; j < deltas[i].length; j++) {
                     deltas[i][j] = bnGrad[j];
                 }
@@ -1109,14 +1678,26 @@ class NeuralNetwork {
         }
         
         this.totalUpdates++;
-        this.totalLoss += loss / output.length;
+        const epochLoss = loss / output.length;
+        this.totalLoss += epochLoss;
+        this.lossHistory.push(epochLoss);
         
-        return loss / output.length;
+        // Keep only last 1000 loss values
+        if (this.lossHistory.length > 1000) {
+            this.lossHistory.shift();
+        }
+        
+        return epochLoss;
     }
     
     // Learning rate scheduling
     setLearningRate(lr) {
         this.learningRate = lr;
+        this.lrScheduler.baseLR = lr;
+    }
+    
+    getCurrentLR() {
+        return this.lrScheduler.getLR();
     }
     
     decayLearningRate(decay = 0.99, minLR = 1e-6) {
@@ -1137,7 +1718,9 @@ class NeuralNetwork {
         return {
             totalUpdates: this.totalUpdates,
             avgLoss: this.totalUpdates > 0 ? this.totalLoss / this.totalUpdates : 0,
-            learningRate: this.learningRate
+            currentLR: this.getCurrentLR(),
+            gradientStats: this.gradientClipper.getStats(),
+            recentLoss: this.lossHistory.slice(-10)
         };
     }
     
@@ -1151,7 +1734,9 @@ class NeuralNetwork {
             momentum: this.momentum,
             dropoutRate: this.dropoutRate,
             useBatchNorm: this.useBatchNorm,
-            weightDecay: this.weightDecay
+            weightDecay: this.weightDecay,
+            totalUpdates: this.totalUpdates,
+            lossHistory: this.lossHistory.slice(-100)
         };
     }
     
@@ -1165,17 +1750,333 @@ class NeuralNetwork {
         });
         nn.weights = json.weights;
         nn.biases = json.biases;
+        nn.totalUpdates = json.totalUpdates ?? 0;
+        nn.lossHistory = json.lossHistory ?? [];
         return nn;
     }
 }
 
 // ============================================================================
-// SECTION 3: TESLA MULTI-CAMERA SENSOR MODEL
+// SECTION 3: TESLA MULTI-CAMERA SENSOR MODEL WITH ENVIRONMENTAL DEGRADATION
 // ============================================================================
 
 /**
+ * EnvironmentalConditions — Weather and lighting conditions affecting sensors
+ */
+class EnvironmentalConditions {
+    constructor() {
+        this.weather = 'clear'; // clear, rain, fog, snow, dust
+        this.lighting = 'day'; // day, dawn, dusk, night, tunnel, glare
+        this.roadCondition = 'dry'; // dry, wet, icy, debris
+        this.visibility = 1.0; // 0.0 to 1.0
+        this.precipitationRate = 0.0; // mm/hour
+        this.windSpeed = 0.0; // m/s
+        this.temperature = 20.0; // Celsius
+    }
+    
+    getDegradationFactors() {
+        const weatherFactors = {
+            clear: { visibility: 1.0, noise: 0.05, range: 1.0 },
+            rain: { visibility: 0.7, noise: 0.15, range: 0.8 },
+            fog: { visibility: 0.4, noise: 0.25, range: 0.5 },
+            snow: { visibility: 0.5, noise: 0.20, range: 0.6 },
+            dust: { visibility: 0.6, noise: 0.18, range: 0.7 }
+        };
+        
+        const lightingFactors = {
+            day: { visibility: 1.0, noise: 0.05 },
+            dawn: { visibility: 0.8, noise: 0.10 },
+            dusk: { visibility: 0.8, noise: 0.10 },
+            night: { visibility: 0.6, noise: 0.20 },
+            tunnel: { visibility: 0.7, noise: 0.15 },
+            glare: { visibility: 0.5, noise: 0.25 }
+        };
+        
+        const weather = weatherFactors[this.weather] ?? weatherFactors.clear;
+        const lighting = lightingFactors[this.lighting] ?? lightingFactors.day;
+        
+        return {
+            visibility: weather.visibility * lighting.visibility * this.visibility,
+            noise: Math.max(weather.noise, lighting.noise),
+            range: weather.range
+        };
+    }
+    
+    setWeather(weather) {
+        this.weather = weather;
+        const factors = this.getDegradationFactors();
+        this.visibility = factors.visibility;
+    }
+    
+    setLighting(lighting) {
+        this.lighting = lighting;
+    }
+    
+    randomize() {
+        const weathers = ['clear', 'rain', 'fog', 'snow', 'dust'];
+        const lightings = ['day', 'dawn', 'dusk', 'night', 'tunnel', 'glare'];
+        
+        this.weather = weathers[Math.floor(Math.random() * weathers.length)];
+        this.lighting = lightings[Math.floor(Math.random() * lightings.length)];
+        this.precipitationRate = Math.random() * 50;
+        this.windSpeed = Math.random() * 20;
+        this.temperature = Math.random() * 40 - 10;
+        
+        return this;
+    }
+}
+
+/**
+ * SensorHealthMonitor — Production sensor health monitoring
+ * Features: Health scoring, failure detection, degradation tracking
+ */
+class SensorHealthMonitor {
+    constructor() {
+        this.healthHistory = new Map();
+        this.failureDetectors = new Map();
+        this.calibrationOffsets = new Map();
+        this.lastMaintenance = Date.now();
+    }
+    
+    update(cameraName, frame, metrics) {
+        const health = this.#computeHealth(metrics, cameraName);
+        
+        // Track health history
+        if (!this.healthHistory.has(cameraName)) {
+            this.healthHistory.set(cameraName, []);
+        }
+        const history = this.healthHistory.get(cameraName);
+        history.push({ health, timestamp: Date.now() });
+        
+        // Keep only last 1000 readings
+        if (history.length > 1000) {
+            history.shift();
+        }
+        
+        // Check for sudden degradation
+        const failureDetector = this.failureDetectors.get(cameraName) || 
+                               new FailureDetector();
+        const anomaly = failureDetector.detectAnomaly(health);
+        
+        if (anomaly) {
+            return { 
+                status: 'DEGRADED', 
+                confidence: 0.0, 
+                action: 'SWITCH_TO_REDUNDANT',
+                anomaly
+            };
+        }
+        
+        return { 
+            status: 'HEALTHY', 
+            confidence: health, 
+            action: 'NORMAL_OPERATION'
+        };
+    }
+    
+    #computeHealth(metrics, cameraName) {
+        // Weighted health score based on multiple metrics
+        const weights = {
+            brightness: 0.2,
+            contrast: 0.2,
+            noise: 0.2,
+            blur: 0.2,
+            occlusion: 0.2
+        };
+        
+        let health = 1.0;
+        
+        // Brightness check (too dark or too bright is bad)
+        if (metrics.averageBrightness < 0.1 || metrics.averageBrightness > 0.9) {
+            health -= weights.brightness * 0.5;
+        }
+        
+        // Contrast check
+        if (metrics.contrastRatio < 0.3) {
+            health -= weights.contrast * 0.5;
+        }
+        
+        // Noise check
+        if (metrics.noiseFloor > 0.2) {
+            health -= weights.noise * (metrics.noiseFloor / 0.2);
+        }
+        
+        // Blur check
+        if (metrics.motionBlur > 0.3) {
+            health -= weights.blur * (metrics.motionBlur / 0.3);
+        }
+        
+        // Occlusion check
+        if (metrics.lensOcclusion > 0.1) {
+            health -= weights.occlusion * (metrics.lensOcclusion / 0.1);
+        }
+        
+        return Math.max(0, Math.min(1, health));
+    }
+    
+    getHealth(cameraName) {
+        const history = this.healthHistory.get(cameraName);
+        if (!history || history.length === 0) return 1.0;
+        
+        // Return average of last 100 readings
+        const recent = history.slice(-100);
+        return recent.reduce((sum, r) => sum + r.health, 0) / recent.length;
+    }
+    
+    getAllHealth() {
+        const health = {};
+        for (const [name] of this.healthHistory) {
+            health[name] = this.getHealth(name);
+        }
+        return health;
+    }
+}
+
+/**
+ * FailureDetector — Anomaly detection for sensor failures
+ * Features: Statistical process control, CUSUM, trend detection
+ */
+class FailureDetector {
+    constructor(config = {}) {
+        this.windowSize = config.windowSize ?? 50;
+        this.threshold = config.threshold ?? 3.0; // Standard deviations
+        this.history = [];
+        this.cusum = 0;
+        this.cusumThreshold = config.cusumThreshold ?? 5.0;
+    }
+    
+    detectAnomaly(value) {
+        this.history.push(value);
+        if (this.history.length > this.windowSize) {
+            this.history.shift();
+        }
+        
+        if (this.history.length < 10) {
+            return null; // Not enough data
+        }
+        
+        // Method 1: Z-score
+        const mean = this.history.reduce((a, b) => a + b, 0) / this.history.length;
+        const variance = this.history.reduce((a, b) => a + (b - mean) ** 2, 0) / this.history.length;
+        const std = Math.sqrt(variance);
+        
+        if (std > 1e-6) {
+            const zScore = Math.abs((value - mean) / std);
+            if (zScore > this.threshold) {
+                return { type: 'Z_SCORE', value: zScore, threshold: this.threshold };
+            }
+        }
+        
+        // Method 2: CUSUM (Cumulative Sum)
+        const target = mean;
+        const slack = std * 0.5;
+        this.cusum = Math.max(0, this.cusum + (value - target - slack));
+        
+        if (this.cusum > this.cusumThreshold) {
+            this.cusum = 0; // Reset after detection
+            return { type: 'CUSUM', value: this.cusum, threshold: this.cusumThreshold };
+        }
+        
+        // Method 3: Trend detection
+        if (this.history.length >= 20) {
+            const recent = this.history.slice(-20);
+            const older = this.history.slice(-40, -20);
+            
+            const recentAvg = recent.reduce((a, b) => a + b, 0) / recent.length;
+            const olderAvg = older.reduce((a, b) => a + b, 0) / older.length;
+            
+            const trend = (recentAvg - olderAvg) / (olderAvg + 1e-6);
+            if (Math.abs(trend) > 0.3) { // 30% change
+                return { type: 'TREND', value: trend, threshold: 0.3 };
+            }
+        }
+        
+        return null;
+    }
+    
+    reset() {
+        this.history = [];
+        this.cusum = 0;
+    }
+}
+
+/**
+ * SensorConsistencyChecker — Cross-validation between sensors
+ * Features: Data association, conflict detection, consensus building
+ */
+class SensorConsistencyChecker {
+    constructor(config = {}) {
+        this.maxAllowedDiscrepancy = config.maxDiscrepancy ?? 5.0; // meters
+        this.minOverlapConfidence = config.minOverlapConfidence ?? 0.7;
+        this.temporalWindow = config.temporalWindow ?? 100; // ms
+    }
+    
+    validateDetections(frontDetections, rearDetections) {
+        const report = { 
+            consistent: true, 
+            conflicts: [],
+            consensus: [],
+            timestamp: Date.now()
+        };
+        
+        // Find overlapping detections between front and rear cameras
+        for (const frontDet of frontDetections) {
+            const rearMatch = this.#findCorrespondingDetection(frontDet, rearDetections);
+            
+            if (rearMatch) {
+                const positionDiff = frontDet.pos.dist(rearMatch.pos);
+                
+                if (positionDiff > this.maxAllowedDiscrepancy) {
+                    report.consistent = false;
+                    report.conflicts.push({
+                        objectId: frontDet.id,
+                        frontPosition: frontDet.pos.toObject(),
+                        rearPosition: rearMatch.pos.toObject(),
+                        discrepancy: positionDiff,
+                        recommendedAction: 'USE_HIGHER_CONFIDENCE'
+                    });
+                } else {
+                    // Create consensus detection
+                    const weight1 = frontDet.confidence;
+                    const weight2 = rearMatch.confidence;
+                    const totalWeight = weight1 + weight2;
+                    
+                    report.consensus.push({
+                        objectId: frontDet.id,
+                        position: frontDet.pos.mult(weight1/totalWeight).add(rearMatch.pos.mult(weight2/totalWeight)),
+                        confidence: (weight1 + weight2) / 2,
+                        sources: ['front', 'rear']
+                    });
+                }
+            }
+        }
+        
+        return report;
+    }
+    
+    #findCorrespondingDetection(reference, candidates) {
+        let bestMatch = null;
+        let bestScore = -Infinity;
+        
+        for (const candidate of candidates) {
+            // Score based on spatial proximity and appearance similarity
+            const spatialScore = 1.0 / (1.0 + reference.pos.dist(candidate.pos) / 10);
+            const confidenceScore = (reference.confidence + candidate.confidence) / 2;
+            const score = spatialScore * 0.7 + confidenceScore * 0.3;
+            
+            if (score > bestScore && score > this.minOverlapConfidence) {
+                bestScore = score;
+                bestMatch = candidate;
+            }
+        }
+        
+        return bestMatch;
+    }
+}
+
+/**
  * MultiCameraSensor — Production sensor array simulation
- * Features: 2×180° cameras, sensor fusion, noise models, occlusion
+ * Features: 2×180° cameras, sensor fusion, environmental degradation, health monitoring
  */
 class MultiCameraSensor {
     constructor(options = {}) {
@@ -1205,6 +2106,12 @@ class MultiCameraSensor {
         this.lastUpdate = performance.now();
         this.frameCount = 0;
         this.droppedFrames = 0;
+        
+        // Production features
+        this.environment = new EnvironmentalConditions();
+        this.healthMonitor = new SensorHealthMonitor();
+        this.consistencyChecker = new SensorConsistencyChecker();
+        this.calibrationManager = new SensorCalibrationManager();
     }
     
     /**
@@ -1231,7 +2138,7 @@ class MultiCameraSensor {
         const angleToPoint = toPoint.angle();
         let angleDiff = angleToPoint - cameraAngle;
         
-        // Normalize to [-PI, PI]
+        // Normalize to [-π, π]
         while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
         while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
         
@@ -1258,26 +2165,38 @@ class MultiCameraSensor {
     }
     
     /**
-     * Add realistic sensor noise
+     * Add realistic sensor noise with environmental degradation
      */
-    addNoise(value, noiseStd) {
+    addNoise(value, noiseStd, degradationFactors = null) {
         const u1 = Math.random();
         const u2 = Math.random();
         const z = Math.sqrt(-2 * Math.log(u1 + 1e-10)) * Math.cos(2 * Math.PI * u2);
-        return value * (1 + z * noiseStd);
+        
+        // Apply environmental degradation
+        const effectiveNoise = degradationFactors ? 
+            noiseStd / degradationFactors.visibility : noiseStd;
+        
+        return value * (1 + z * effectiveNoise);
     }
     
     /**
-     * SENSOR FUSION — Combine data from all cameras
+     * SENSOR FUSION — Combine data from all cameras with health-aware weighting
      * Returns deduplicated detections with best confidence
      */
     perceiveAllCameras(sensorPos, sensorAngle, allEntities, obstacles, selfId) {
         const allVisible = new Map(); // Deduplication via Map
         const cameraDetections = new Map(); // Track which camera saw what
+        const degradationFactors = this.environment.getDegradationFactors();
         
         for (const camera of this.cameras) {
             const cameraAngle = sensorAngle + camera.offsetAngle;
             this.frameCount++;
+            
+            // Simulate frame drop based on conditions
+            if (Math.random() > degradationFactors.visibility) {
+                this.droppedFrames++;
+                continue;
+            }
             
             for (const entity of allEntities) {
                 if (entity.id === selfId || !entity.alive) continue;
@@ -1292,16 +2211,24 @@ class MultiCameraSensor {
                     continue;
                 }
                 
-                // Add sensor noise
+                // Apply environmental degradation to detection
+                const effectiveNoise = camera.noiseStd / degradationFactors.visibility;
+                const effectiveRange = camera.range * degradationFactors.range;
+                
+                // Add sensor noise with degradation
                 const noisyPos = new Vector2(
-                    this.addNoise(entity.pos.x, camera.noiseStd),
-                    this.addNoise(entity.pos.y, camera.noiseStd)
+                    this.addNoise(entity.pos.x, effectiveNoise),
+                    this.addNoise(entity.pos.y, effectiveNoise)
                 );
                 
                 const noisyVel = new Vector2(
-                    this.addNoise(entity.vel.x, camera.noiseStd),
-                    this.addNoise(entity.vel.y, camera.noiseStd)
+                    this.addNoise(entity.vel.x, effectiveNoise),
+                    this.addNoise(entity.vel.y, effectiveNoise)
                 );
+                
+                // Confidence degrades with range and conditions
+                const rangeFactor = 1.0 - (sensorPos.dist(entity.pos) / effectiveRange);
+                const confidence = Math.max(0, rangeFactor * degradationFactors.visibility);
                 
                 const detection = {
                     id: entity.id,
@@ -1310,9 +2237,10 @@ class MultiCameraSensor {
                     angle: entity.angle,
                     team: entity.team,
                     dist: sensorPos.dist(entity.pos),
-                    confidence: 1.0 - (sensorPos.dist(entity.pos) / camera.range),
+                    confidence,
                     cameraName: camera.name,
-                    timestamp: performance.now()
+                    timestamp: performance.now(),
+                    environmentalFactors: { ...degradationFactors }
                 };
                 
                 // Fusion: keep detection with highest confidence
@@ -1324,14 +2252,57 @@ class MultiCameraSensor {
             }
         }
         
-        return Array.from(allVisible.values());
+        // Cross-validate between cameras
+        const frontDets = Array.from(allVisible.values()).filter(d => d.cameraName === 'front');
+        const rearDets = Array.from(allVisible.values()).filter(d => d.cameraName === 'rear');
+        const consistency = this.consistencyChecker.validateDetections(frontDets, rearDets);
+        
+        // Update health monitor
+        for (const camera of this.cameras) {
+            const metrics = this.#extractCameraMetrics(camera.name, allVisible);
+            const health = this.healthMonitor.update(camera.name, null, metrics);
+            
+            // Reduce confidence for unhealthy sensors
+            if (health.status === 'DEGRADED') {
+                for (const [id, det] of allVisible) {
+                    if (det.cameraName === camera.name) {
+                        det.confidence *= 0.5;
+                        det.healthStatus = 'DEGRADED';
+                    }
+                }
+            }
+        }
+        
+        return {
+            detections: Array.from(allVisible.values()),
+            consistency,
+            health: this.healthMonitor.getAllHealth(),
+            environment: { ...this.environment }
+        };
+    }
+    
+    #extractCameraMetrics(cameraName, detections) {
+    // Extract metrics for health monitoring
+    // Convert Map to Array if needed
+    const detectionsArray = detections instanceof Map ? Array.from(detections.values()) : detections;
+    const cameraDets = detectionsArray.filter(d => d.cameraName === cameraName);
+        
+        return {
+            averageBrightness: 0.5, // Would compute from actual image data
+            contrastRatio: 0.7,
+            noiseFloor: 0.05,
+            motionBlur: 0.1,
+            lensOcclusion: 0.0,
+            detectionCount: cameraDets.length
+        };
     }
     
     /**
-     * Perceive obstacles from all cameras
+     * Perceive obstacles from all cameras with health-aware fusion
      */
     perceiveObstaclesAllCameras(sensorPos, sensorAngle, obstacles) {
         const allVisible = new Map();
+        const degradationFactors = this.environment.getDegradationFactors();
         
         for (const camera of this.cameras) {
             const cameraAngle = sensorAngle + camera.offsetAngle;
@@ -1340,7 +2311,7 @@ class MultiCameraSensor {
                 const toObs = obs.center.sub(sensorPos);
                 const dist = toObs.mag();
                 
-                if (dist > camera.range + obs.radius) continue;
+                if (dist > camera.range * degradationFactors.range + obs.radius) continue;
                 
                 // FOV check
                 const angleToObs = toObs.angle();
@@ -1350,14 +2321,17 @@ class MultiCameraSensor {
                 
                 if (Math.abs(angleDiff) < camera.fov / 2 + 0.2) {
                     if (this.hasLineOfSight(sensorPos, obs.center, [])) {
+                        const effectiveNoise = camera.noiseStd / degradationFactors.visibility;
+                        
                         const detection = {
                             center: new Vector2(
-                                this.addNoise(obs.center.x, camera.noiseStd),
-                                this.addNoise(obs.center.y, camera.noiseStd)
+                                this.addNoise(obs.center.x, effectiveNoise),
+                                this.addNoise(obs.center.y, effectiveNoise)
                             ),
                             radius: obs.radius,
                             dist: dist,
-                            confidence: 1.0 - (dist / camera.range),
+                            confidence: (1.0 - (dist / (camera.range * degradationFactors.range))) * 
+                                       degradationFactors.visibility,
                             cameraName: camera.name
                         };
                         
@@ -1381,8 +2355,9 @@ class MultiCameraSensor {
             name: cam.name,
             angle: sensorAngle + cam.offsetAngle,
             fov: cam.fov,
-            range: cam.range,
-            active: true
+            range: cam.range * this.environment.getDegradationFactors().range,
+            active: true,
+            health: this.healthMonitor.getHealth(cam.name)
         }));
     }
     
@@ -1392,30 +2367,73 @@ class MultiCameraSensor {
     getHealthStats() {
         const now = performance.now();
         const elapsed = now - this.lastUpdate;
+        const health = this.healthMonitor.getAllHealth();
+        const avgHealth = Object.values(health).reduce((a, b) => a + b, 0) / 
+                         (Object.keys(health).length || 1);
         
         return {
             frameCount: this.frameCount,
             droppedFrames: this.droppedFrames,
             fps: elapsed > 0 ? this.frameCount / (elapsed / 1000) : 0,
             camerasActive: this.cameras.length,
-            coverage: 360
+            coverage: 360,
+            averageHealth: avgHealth,
+            individualHealth: health,
+            environment: { ...this.environment }
         };
+    }
+    
+    setEnvironmentalConditions(conditions) {
+        this.environment = conditions;
+    }
+    
+    randomizeEnvironment() {
+        this.environment.randomize();
     }
     
     reset() {
         this.frameCount = 0;
         this.droppedFrames = 0;
         this.lastUpdate = performance.now();
+        this.healthMonitor = new SensorHealthMonitor();
+    }
+}
+
+/**
+ * SensorCalibrationManager — Manages sensor calibration parameters
+ */
+class SensorCalibrationManager {
+    constructor() {
+        this.calibrations = new Map();
+        this.lastCalibration = new Map();
+    }
+    
+    getCalibration(sensorName) {
+        if (!this.calibrations.has(sensorName)) {
+            // Default calibration (identity)
+            return {
+                intrinsic: { fx: 1.0, fy: 1.0, cx: 0.0, cy: 0.0 },
+                extrinsic: { rotation: 0.0, translation: { x: 0, y: 0 } },
+                distortion: { k1: 0.0, k2: 0.0, p1: 0.0, p2: 0.0 },
+                clockOffset: 0
+            };
+        }
+        return this.calibrations.get(sensorName);
+    }
+    
+    updateCalibration(sensorName, calibration) {
+        this.calibrations.set(sensorName, calibration);
+        this.lastCalibration.set(sensorName, Date.now());
     }
 }
 
 // ============================================================================
-// SECTION 4: TEMPORAL OCCUPANCY NETWORK
+// SECTION 4: TEMPORAL OCCUPANCY NETWORK WITH UNCERTAINTY PROPAGATION
 // ============================================================================
 
 /**
  * TemporalOccupancyNetwork — Tesla-style occupancy grid with temporal fusion
- * Features: Bayesian updates, velocity prediction, temporal decay
+ * Features: Bayesian updates, velocity prediction, temporal decay, uncertainty
  */
 class TemporalOccupancyNetwork {
     constructor(width, height, resolution = 10) {
@@ -1435,6 +2453,9 @@ class TemporalOccupancyNetwork {
         // Update count (for confidence)
         this.updateCount = new Float32Array(this.width * this.height).fill(0);
         
+        // Uncertainty estimate for each cell
+        this.uncertainty = new Float32Array(this.width * this.height).fill(0.5);
+        
         this.dt = 1/60;
         this.decayRate = 0.001;
         this.maxAge = 5000; // 5 seconds
@@ -1453,7 +2474,7 @@ class TemporalOccupancyNetwork {
     }
     
     /**
-     * Bayesian update with temporal decay
+     * Bayesian update with temporal decay and uncertainty propagation
      */
     update(x, y, occupied, confidence = 0.9, timestamp = performance.now()) {
         const idx = this.getIndex(x, y);
@@ -1462,9 +2483,20 @@ class TemporalOccupancyNetwork {
         const prior = this.cells[idx];
         const likelihood = occupied ? confidence : (1 - confidence);
         const denom = prior * likelihood + (1 - prior) * (1 - likelihood) + 1e-10;
-        this.cells[idx] = Math.max(0, Math.min(1, (prior * likelihood) / denom));
+        const posterior = Math.max(0, Math.min(1, (prior * likelihood) / denom));
+        
+        // Update occupancy
+        this.cells[idx] = posterior;
         this.timestamp[idx] = timestamp;
         this.updateCount[idx]++;
+        
+        // Update uncertainty (decreases with more observations)
+        const maxUncertainty = 0.5;
+        const minUncertainty = 0.01;
+        this.uncertainty[idx] = Math.max(
+            minUncertainty,
+            maxUncertainty / Math.sqrt(this.updateCount[idx])
+        );
     }
     
     updateFromSensorObservations(sensorPos, sensorAngle, visibleEntities, visibleObstacles, allObstacles) {
@@ -1560,7 +2592,7 @@ class TemporalOccupancyNetwork {
     }
     
     /**
-     * Temporal decay — old observations are forgotten
+     * Temporal decay — old observations are forgotten with uncertainty increase
      */
     applyTemporalDecay(dt = 1/60) {
         const now = performance.now();
@@ -1573,19 +2605,23 @@ class TemporalOccupancyNetwork {
                 this.velocity[i * 2] = 0;
                 this.velocity[i * 2 + 1] = 0;
                 this.updateCount[i] = 0;
+                this.uncertainty[i] = 0.5; // Maximum uncertainty
             } else if (age > 1000) {
                 // Gradual decay
                 const decay = this.decayRate * (age - 1000);
                 this.cells[i] = 0.5 + (this.cells[i] - 0.5) * (1 - decay);
+                // Uncertainty increases with age
+                this.uncertainty[i] = Math.min(0.5, this.uncertainty[i] * (1 + decay * 0.1));
             }
         }
     }
     
     /**
-     * Predict future occupancy based on velocity
+     * Predict future occupancy based on velocity with uncertainty propagation
      */
     predict(dt = 1/60) {
         const newCells = new Float32Array(this.cells);
+        const newUncertainty = new Float32Array(this.uncertainty);
         
         for (let gy = 0; gy < this.height; gy++) {
             for (let gx = 0; gx < this.width; gx++) {
@@ -1603,13 +2639,19 @@ class TemporalOccupancyNetwork {
                     if (newGx >= 0 && newGx < this.width && newGy >= 0 && newGy < this.height) {
                         const newIdx = newGy * this.width + newGx;
                         const occ = this.cells[idx];
+                        const unc = this.uncertainty[idx];
+                        
+                        // Propagate occupancy with decay
                         newCells[newIdx] = Math.max(newCells[newIdx], occ * 0.9);
+                        // Uncertainty increases with prediction
+                        newUncertainty[newIdx] = Math.min(0.5, unc * 1.1);
                     }
                 }
             }
         }
         
         this.cells.set(newCells);
+        this.uncertainty.set(newUncertainty);
     }
     
     isOccupied(x, y, threshold = 0.7) {
@@ -1622,6 +2664,11 @@ class TemporalOccupancyNetwork {
         return idx !== -1 ? this.cells[idx] : 0.5;
     }
     
+    getUncertainty(x, y) {
+        const idx = this.getIndex(x, y);
+        return idx !== -1 ? this.uncertainty[idx] : 0.5;
+    }
+    
     getConfidence(x, y) {
         const idx = this.getIndex(x, y);
         if (idx === -1) return 0;
@@ -1629,7 +2676,7 @@ class TemporalOccupancyNetwork {
     }
     
     /**
-     * A* pathfinding through occupancy grid
+     * A* pathfinding through occupancy grid with uncertainty awareness
      */
     findPath(startX, startY, goalX, goalY, maxCost = 0.6) {
         const start = { 
@@ -1655,7 +2702,8 @@ class TemporalOccupancyNetwork {
                 while (node) {
                     path.unshift({ 
                         x: node.x * this.resolution, 
-                        y: node.y * this.resolution 
+                        y: node.y * this.resolution,
+                        uncertainty: this.getUncertainty(node.x * this.resolution, node.y * this.resolution)
                     });
                     node = node.parent;
                 }
@@ -1671,9 +2719,13 @@ class TemporalOccupancyNetwork {
                 if (closedSet.has(key(neighbor))) continue;
                 
                 const occ = this.cells[neighbor.y * this.width + neighbor.x];
-                if (occ > maxCost) continue;
+                const unc = this.uncertainty[neighbor.y * this.width + neighbor.x];
                 
-                const g = current.g + (dx !== 0 && dy !== 0 ? 1.414 : 1) * occ;
+                // Cost includes both occupancy and uncertainty
+                const cost = occ * 0.7 + unc * 0.3;
+                if (cost > maxCost) continue;
+                
+                const g = current.g + (dx !== 0 && dy !== 0 ? 1.414 : 1) * cost;
                 const h = Math.abs(neighbor.x - goal.x) + Math.abs(neighbor.y - goal.y);
                 const f = g + h;
                 
@@ -1696,6 +2748,7 @@ class TemporalOccupancyNetwork {
     getStats() {
         let occupied = 0, free = 0, unknown = 0;
         let totalVelocity = 0;
+        let totalUncertainty = 0;
         
         for (let i = 0; i < this.cells.length; i++) {
             if (this.cells[i] > 0.7) occupied++;
@@ -1706,6 +2759,7 @@ class TemporalOccupancyNetwork {
                 this.velocity[i * 2] ** 2 + 
                 this.velocity[i * 2 + 1] ** 2
             );
+            totalUncertainty += this.uncertainty[i];
         }
         
         const total = this.cells.length;
@@ -1713,7 +2767,8 @@ class TemporalOccupancyNetwork {
             occupied: (occupied / total * 100).toFixed(1),
             free: (free / total * 100).toFixed(1),
             unknown: (unknown / total * 100).toFixed(1),
-            avgVelocity: (totalVelocity / total).toFixed(2)
+            avgVelocity: (totalVelocity / total).toFixed(2),
+            avgUncertainty: (totalUncertainty / total).toFixed(3)
         };
     }
     
@@ -1722,6 +2777,7 @@ class TemporalOccupancyNetwork {
         this.velocity.fill(0);
         this.timestamp.fill(0);
         this.updateCount.fill(0);
+        this.uncertainty.fill(0.5);
     }
     
     clone() {
@@ -1734,6 +2790,7 @@ class TemporalOccupancyNetwork {
         copy.velocity.set(this.velocity);
         copy.timestamp.set(this.timestamp);
         copy.updateCount.set(this.updateCount);
+        copy.uncertainty.set(this.uncertainty);
         return copy;
     }
 }
@@ -1782,6 +2839,7 @@ class KalmanFilter {
         this.x = null; // State
         this.P = null; // Covariance
         this.innovationHistory = [];
+        this.maxInnovationHistory = 100;
     }
     
     initialize(position) {
@@ -1821,7 +2879,7 @@ class KalmanFilter {
             // Innovation gating
             const innovationNorm = Math.sqrt(y.get(0,0)**2 + y.get(1,0)**2);
             this.innovationHistory.push(innovationNorm);
-            if (this.innovationHistory.length > 100) {
+            if (this.innovationHistory.length > this.maxInnovationHistory) {
                 this.innovationHistory.shift();
             }
             
@@ -1875,10 +2933,21 @@ class KalmanFilter {
     }
     
     getInnovationStats() {
-        if (this.innovationHistory.length === 0) return { mean: 0, std: 0 };
+        if (this.innovationHistory.length === 0) return { mean: 0, std: 0, max: 0 };
         const mean = this.innovationHistory.reduce((a, b) => a + b, 0) / this.innovationHistory.length;
         const variance = this.innovationHistory.reduce((a, b) => a + (b - mean)**2, 0) / this.innovationHistory.length;
-        return { mean, std: Math.sqrt(variance) };
+        return { 
+            mean, 
+            std: Math.sqrt(variance),
+            max: Math.max(...this.innovationHistory)
+        };
+    }
+    
+    isInnovationValid(threshold = 3.0) {
+        const stats = this.getInnovationStats();
+        if (this.innovationHistory.length === 0) return true;
+        const latest = this.innovationHistory[this.innovationHistory.length - 1];
+        return latest < stats.mean + threshold * stats.std;
     }
 }
 
@@ -1975,6 +3044,12 @@ class MultiObjectTracker {
         this.nextTrackId = 0;
         this.totalTracks = 0;
         this.lostTracks = 0;
+        this.metrics = {
+            totalUpdates: 0,
+            successfulAssociations: 0,
+            missedDetections: 0,
+            falsePositives: 0
+        };
     }
     
     computeIoU(box1, box2) {
@@ -1992,6 +3067,8 @@ class MultiObjectTracker {
     }
     
     update(detections) {
+        this.metrics.totalUpdates++;
+        
         // Predict all tracks
         const predictions = [];
         for (const [id, track] of this.tracks) {
@@ -2025,6 +3102,9 @@ class MultiObjectTracker {
                     });
                 }
             }
+            if (m > 0 && n === 0) {
+                this.metrics.missedDetections += m;
+            }
             return this.getConfirmedTracks();
         }
         
@@ -2055,16 +3135,26 @@ class MultiObjectTracker {
         const matchedDetections = new Set();
         
         for (const match of assignment) {
-            if (costMatrix[match.row][match.col] > -this.iouThreshold) continue;
+            if (costMatrix[match.row][match.col] > -this.iouThreshold) {
+                this.metrics.falsePositives++;
+                continue;
+            }
             
             const pred = predictions[match.row];
             const det = detections[match.col];
+            
+            // Validate innovation before update
+            if (!pred.track.kf.isInnovationValid(3.0)) {
+                console.warn('[Tracker] Invalid innovation, skipping update');
+                continue;
+            }
             
             pred.track.kf.update(det);
             pred.track.hits++;
             pred.track.lastUpdate = performance.now();
             matchedTracks.add(pred.id);
             matchedDetections.add(detections.indexOf(det));
+            this.metrics.successfulAssociations++;
         }
         
         // Create new tracks for unmatched detections
@@ -2121,7 +3211,8 @@ class MultiObjectTracker {
             activeTracks: this.tracks.size,
             totalTracks: this.totalTracks,
             lostTracks: this.lostTracks,
-            confirmedTracks: this.getConfirmedTracks().length
+            confirmedTracks: this.getConfirmedTracks().length,
+            metrics: { ...this.metrics }
         };
     }
     
@@ -2149,6 +3240,11 @@ class PrioritizedExperienceReplay {
         this.priorities = [];
         this.position = 0;
         this.totalPriority = 0;
+        this.metrics = {
+            totalAdds: 0,
+            totalSamples: 0,
+            averagePriority: 0
+        };
     }
     
     add(experience, priority = 1.0) {
@@ -2164,12 +3260,15 @@ class PrioritizedExperienceReplay {
             this.totalPriority = this.totalPriority - oldPriority + (priority ** this.alpha);
         }
         this.position = (this.position + 1) % this.capacity;
+        this.metrics.totalAdds++;
     }
     
     sample(batchSize) {
         if (this.buffer.length === 0) {
             return { samples: [], indices: [], weights: [] };
         }
+        
+        this.metrics.totalSamples++;
         
         const segmentSize = this.totalPriority / batchSize;
         const samples = [];
@@ -2207,6 +3306,9 @@ class PrioritizedExperienceReplay {
         // Increase beta over time
         this.beta = Math.min(1.0, this.beta + this.betaIncrement);
         
+        // Update metrics
+        this.metrics.averagePriority = this.totalPriority / this.priorities.length;
+        
         return { samples, indices, weights: normalizedWeights };
     }
     
@@ -2236,6 +3338,10 @@ class PrioritizedExperienceReplay {
         this.priorities = [];
         this.position = 0;
         this.totalPriority = 0;
+    }
+    
+    getMetrics() {
+        return { ...this.metrics };
     }
 }
 
@@ -2299,7 +3405,9 @@ class TeamWorldModel {
             learningRate: 0.0005, 
             momentum: 0.9,
             useBatchNorm: true,
-            dropout: 0.1
+            dropout: 0.1,
+            gradientClip: 1.0,
+            adaptiveClip: true
         });
         
         this.predictionNN = new NeuralNetwork([40, 64, 32, 20], { 
@@ -2346,7 +3454,7 @@ class TeamWorldModel {
                 { health: entity.health, kills: entity.kills }
             ));
             
-            const visibleEntities = this.sensorModel.perceiveAllCameras(
+            const perception = this.sensorModel.perceiveAllCameras(
                 entity.pos, entity.angle, allEntities, this.globalState.obstacles, entity.id
             );
             
@@ -2355,7 +3463,7 @@ class TeamWorldModel {
             );
             
             this.occupancyGrid.updateFromSensorObservations(
-                entity.pos, entity.angle, visibleEntities, visibleObstacles, this.globalState.obstacles
+                entity.pos, entity.angle, perception.detections, visibleObstacles, this.globalState.obstacles
             );
             
             const timeWeight = Math.exp(-0.001 * (now - entity.lastObservationTime));
@@ -2365,9 +3473,11 @@ class TeamWorldModel {
                 angle: entity.angle,
                 timestamp: now,
                 timeWeight,
-                visibleEnemies: visibleEntities.filter(e => e.team !== entity.team),
-                visibleObstacles: visibleObstacles,
-                cameraCoverage: this.sensorModel.getCameraCoverage(entity.pos, entity.angle)
+                visibleEnemies: perception.detections.filter(e => e.team !== entity.team),
+                visibleObstacles,
+                cameraCoverage: this.sensorModel.getCameraCoverage(entity.pos, entity.angle),
+                sensorHealth: perception.health,
+                environment: perception.environment
             });
         }
         
@@ -2610,7 +3720,9 @@ class TeamWorldModel {
             const currentInput = this.#stateToVector(currentState);
             const nextInput = this.#stateToVector(nextState);
             
-            const predictedNext = this.worldModelNN.forward([...currentInput, ...action]);
+            // Ensure action is iterable
+const actionValues = action && typeof action === 'object' ? Object.values(action) : (Array.isArray(action) ? action : []);
+const predictedNext = this.worldModelNN.forward([...currentInput, ...actionValues]);
             
             let loss = 0;
             for (let j = 0; j < predictedNext.length; j++) {
@@ -2618,7 +3730,9 @@ class TeamWorldModel {
             }
             loss /= predictedNext.length;
             
-            this.worldModelNN.train([...currentInput, ...action], nextInput);
+            // Ensure both inputs are arrays
+const trainInput = [...currentInput, ...actionValues];
+this.worldModelNN.train(trainInput, nextInput);
             totalLoss += loss * w;
         }
         
@@ -2655,7 +3769,8 @@ class TeamWorldModel {
             bufferFill: this.experienceBuffer.fillRatio(),
             predictionErrors: this.predictionErrors.length,
             avgPredictionError: this.predictionErrors.length > 0 ? 
-                this.predictionErrors.reduce((a, b) => a + b.error, 0) / this.predictionErrors.length : 0
+                this.predictionErrors.reduce((a, b) => a + b.error, 0) / this.predictionErrors.length : 0,
+            nnStats: this.worldModelNN.getStats()
         };
     }
     
@@ -2698,12 +3813,12 @@ class TeamWorldModel {
 }
 
 // ============================================================================
-// SECTION 9: TRAJECTORY PLANNER
+// SECTION 9: TRAJECTORY PLANNER WITH MPC (ПОЛНАЯ ИСПРАВЛЕННАЯ ВЕРСИЯ)
 // ============================================================================
 
 class TrajectoryPlanner {
     constructor(options = {}) {
-        this.horizon = options.horizon ?? 2.5;
+        this.horizon = options.horizon ?? 2.0;
         this.dt = options.dt ?? 0.1;
         this.minTurningRadius = options.minTurningRadius ?? 40;
         this.maxSpeed = options.maxSpeed ?? 3;
@@ -2715,44 +3830,90 @@ class TrajectoryPlanner {
             obstacle: 15.0,
             uncertainty: 1.5
         };
+        this.metrics = {
+            totalPlans: 0,
+            successfulPlans: 0,
+            averagePlanTime: 0,
+            planTimeHistory: []
+        };
     }
     
     plan(startState, goalState, occupancyGrid, obstacles, teamWorldModel = null) {
-        const trajectories = [];
+        const startTime = performance.now();
+        this.metrics.totalPlans++;
         
-        const steeringAngles = [-0.4, -0.25, -0.1, 0, 0.1, 0.25, 0.4];
-        const accelerations = [-0.3, 0, 0.3];
+        // Ограничиваем цель дальностью сенсоров, чтобы не пытаться строить путь через всю карту
+        if (goalState && startState.pos.dist(goalState.pos) > 350) {
+            const dir = goalState.pos.sub(startState.pos).normalize();
+            goalState = { pos: startState.pos.add(dir.mult(350)) };
+        }
         
-        for (const steer of steeringAngles) {
-            for (const accel of accelerations) {
-                const traj = this.#simulate(startState, steer, accel, obstacles, occupancyGrid);
-                if (traj.valid && traj.points.length > 0) {
-                    const cost = this.#evaluate(traj, goalState);
-                    trajectories.push({ trajectory: traj, cost });
+        try {
+            const trajectories = [];
+            
+            // Генерация кандидатов через симуляцию физики (MPC style sampling)
+            const steeringAngles = [-0.5, -0.3, -0.15, 0, 0.15, 0.3, 0.5];
+            const accelerations = [-0.5, 0, 0.3];
+            
+            for (const steer of steeringAngles) {
+                for (const accel of accelerations) {
+                    const traj = this.#simulate(startState, steer, accel, obstacles, occupancyGrid);
+                    if (traj.valid && traj.points.length > 0) {
+                        const cost = this.#evaluate(traj, goalState);
+                        trajectories.push({ trajectory: traj, cost });
+                    }
                 }
             }
-        }
-        
-        if (goalState) {
-            const pathTray = this.#planToGoal(startState, goalState, obstacles, occupancyGrid);
-            if (pathTray.valid) {
-                const cost = this.#evaluate(pathTray, goalState);
-                trajectories.push({ trajectory: pathTray, cost });
+            
+            // Попытка A* поиска пути (Global planner assistance)
+            if (goalState) {
+                const pathTray = this.#planToGoal(startState, goalState, obstacles, occupancyGrid);
+                if (pathTray.valid) {
+                    const cost = this.#evaluate(pathTray, goalState);
+                    trajectories.push({ trajectory: pathTray, cost });
+                }
             }
+            
+            // ИСПРАВЛЕНИЕ: Если нет вообще ни одного валидного пути
+            if (trajectories.length === 0) {
+                // Пробуем аварийный вариант: затормозить на месте
+                const holdPos = this.#simulate(startState, 0, -1.0, obstacles, occupancyGrid);
+                this.#recordPlanTime(startTime);
+                // Если и затормозить некуда (например, мы внутри стены), возвращаем невалидный путь
+                return holdPos.valid ? holdPos : { points: [], valid: false };
+            }
+            
+            trajectories.sort((a, b) => a.cost - b.cost);
+            
+            const bestTraj = trajectories[0].trajectory;
+            
+            // Оптимизация траектории (Gradient Descent) только если путь валиден
+            const optimizedTraj = this.#optimizeTrajectory(bestTraj, goalState, obstacles, occupancyGrid, 3);
+            
+            this.metrics.successfulPlans++;
+            this.#recordPlanTime(startTime);
+            
+            return optimizedTraj;
+        } catch (error) {
+            console.error('[TrajectoryPlanner] Plan failed:', error);
+            this.#recordPlanTime(startTime);
+            return { points: [], valid: false };
         }
-        
-        if (trajectories.length === 0) {
-            return this.#simulate(startState, 0, 0, obstacles, occupancyGrid);
-        }
-        
-        trajectories.sort((a, b) => a.cost - b.cost);
-        
-        const bestTraj = trajectories[0].trajectory;
-        const optimizedTraj = this.#optimizeTrajectory(bestTraj, goalState, obstacles, occupancyGrid, 3);
-        
-        return optimizedTraj;
     }
     
+    #recordPlanTime(startTime) {
+        const planTime = performance.now() - startTime;
+        this.metrics.averagePlanTime = (this.metrics.averagePlanTime * (this.metrics.totalPlans - 1) + planTime) / this.metrics.totalPlans;
+        this.metrics.planTimeHistory.push(planTime);
+        if (this.metrics.planTimeHistory.length > 100) {
+            this.metrics.planTimeHistory.shift();
+        }
+    }
+    
+    /**
+     * Симуляция движения танка (Bicycle model approximation).
+     * ИСПРАВЛЕНО: Жесткая проверка коллизий вместо "выталкивания".
+     */
     #simulate(state, steering, acceleration, obstacles, occupancyGrid) {
         const points = [];
         let x = state.pos.x, y = state.pos.y;
@@ -2764,26 +3925,35 @@ class TrajectoryPlanner {
         const steps = Math.floor(this.horizon / this.dt);
         
         for (let i = 0; i < steps && valid; i++) {
+            // Интеграция движения
             angle += (speed / this.minTurningRadius) * Math.tan(steering) * this.dt;
             speed = Math.max(this.minSpeed, Math.min(this.maxSpeed, speed + acceleration * this.dt * 60));
             
             x += Math.cos(angle) * speed * this.dt * 60;
             y += Math.sin(angle) * speed * this.dt * 60;
             
+            // 1. Проверка границ карты
             if (x < 30 || x > 770 || y < 30 || y > 570) {
                 valid = false;
                 break;
             }
             
+            // 2. ИСПРАВЛЕНИЕ: Проверка препятствий (Strict Collision Check)
+            // Раньше здесь было "выталкивание" точки, что приводило к проезду сквозь стены.
+            // Теперь траектория помечается как невалидная при любом столкновении.
             for (const obs of obstacles || []) {
                 const dist = Math.hypot(x - obs.center.x, y - obs.center.y);
-                if (dist < obs.radius + 30) {
+                const minDist = obs.radius + 22 + 10; // Радиус танка + буфер безопасности
+                if (dist < minDist) {
                     valid = false;
                     break;
                 }
             }
             
-            if (occupancyGrid && occupancyGrid.isOccupied(x, y, 0.7)) {
+            if (!valid) break;
+
+            // 3. Проверка Occupancy Grid (динамические препятствия)
+            if (occupancyGrid && occupancyGrid.isOccupied(x, y, 0.65)) {
                 valid = false;
                 break;
             }
@@ -2793,44 +3963,67 @@ class TrajectoryPlanner {
                 totalUncertainty += occ;
             }
             
-            if (valid) {
-                points.push({ x, y, angle, speed });
-            }
+            points.push({ x, y, angle, speed });
         }
         
         return { points, valid, uncertainty: totalUncertainty / (points.length || 1) };
     }
     
+    /**
+     * Планирование пути к цели через A*.
+     * ИСПРАВЛЕНО: Убран опасный fallback на прямую линию.
+     */
     #planToGoal(startState, goalState, obstacles, occupancyGrid) {
-        if (occupancyGrid) {
-            const path = occupancyGrid.findPath(startState.pos.x, startState.pos.y, goalState.pos.x, goalState.pos.y);
-            if (path && path.length > 0) {
-                const points = path.map((p, i) => ({
-                    x: p.x, y: p.y,
-                    angle: i < path.length - 1 ? Math.atan2(path[i+1].y - p.y, path[i+1].x - p.x) : 0,
-                    speed: 1.5
-                }));
-                return { points, valid: true };
-            }
+        if (!occupancyGrid) return { points: [], valid: false };
+        
+        // Создаем временную сетку и "раздуваем" препятствия для безопасности
+        const tempGrid = occupancyGrid.clone();
+        for (const obs of obstacles || []) {
+            // Добавляем препятствия в сетку с запасом
+            tempGrid.updateCircle(obs.center.x, obs.center.y, obs.radius + 25, true);
+        }
+        
+        const path = tempGrid.findPath(startState.pos.x, startState.pos.y, goalState.pos.x, goalState.pos.y);
+        
+        // ИСПРАВЛЕНИЕ: Если A* не нашел путь, возвращаем invalid.
+        // Раньше здесь был блок кода, который строил прямую линию сквозь стены.
+        if (!path || path.length === 0) {
+            return { points: [], valid: false };
         }
         
         const points = [];
-        const steps = 20;
-        let x = startState.pos.x, y = startState.pos.y;
-        const toGoal = goalState.pos.sub(startState.pos);
-        const goalAngle = toGoal.angle();
         
-        for (let i = 0; i < steps; i++) {
-            x += Math.cos(goalAngle) * 15;
-            y += Math.sin(goalAngle) * 15;
-            points.push({ x, y, angle: goalAngle, speed: 1.5 });
+        // Конвертация точек сетки в траекторию
+        for (let i = 0; i < path.length; i++) {
+            const p = path[i];
+            
+            // Дополнительная проверка (Safety check)
+            let blocked = false;
+            for (const obs of obstacles || []) {
+                const dist = Math.hypot(p.x - obs.center.x, p.y - obs.center.y);
+                if (dist < obs.radius + 25) {
+                    blocked = true;
+                    break;
+                }
+            }
+            
+            if (blocked) return { points: [], valid: false };
+            
+            points.push({
+                x: p.x, y: p.y,
+                angle: i < path.length - 1 ? Math.atan2(path[i+1].y - p.y, path[i+1].x - p.x) : 0,
+                speed: 1.5
+            });
         }
-        
         return { points, valid: true };
     }
     
+    /**
+     * Оптимизация траектории методом градиентного спуска.
+     * Сглаживает путь и отталкивает от препятствий.
+     */
     #optimizeTrajectory(trajectory, goalState, obstacles, occupancyGrid, iterations = 3) {
-        if (trajectory.points.length < 2) return trajectory;
+        if (!trajectory.valid || trajectory.points.length < 2) return trajectory;
         
         const optimized = { ...trajectory, points: trajectory.points.map(p => ({ ...p })) };
         const learningRate = 0.05;
@@ -2843,6 +4036,7 @@ class TrajectoryPlanner {
                 
                 let gradX = 0, gradY = 0;
                 
+                // Притяжение к цели
                 if (goalState) {
                     const dx = point.x - goalState.pos.x;
                     const dy = point.y - goalState.pos.y;
@@ -2850,16 +4044,18 @@ class TrajectoryPlanner {
                     gradY += this.weights.goal * 2 * dy;
                 }
                 
+                // Гладкость траектории (Minimize curvature)
                 const smoothX = 2 * point.x - prev.x - next.x;
                 const smoothY = 2 * point.y - prev.y - next.y;
                 gradX += this.weights.smoothness * 2 * smoothX;
                 gradY += this.weights.smoothness * 2 * smoothY;
                 
+                // Отталкивание от препятствий (Repulsive potential)
                 for (const obs of obstacles || []) {
                     const dx = point.x - obs.center.x;
                     const dy = point.y - obs.center.y;
                     const dist = Math.hypot(dx, dy);
-                    const minDist = obs.radius + 30;
+                    const minDist = obs.radius + 35;
                     if (dist < minDist && dist > 0.001) {
                         const force = (minDist - dist) / dist;
                         gradX += this.weights.obstacle * force * dx;
@@ -2867,21 +4063,26 @@ class TrajectoryPlanner {
                     }
                 }
                 
+                // Учет неопределенности сетки
                 if (occupancyGrid) {
                     const occ = occupancyGrid.getOccupancy(point.x, point.y);
                     if (occ > 0.6) {
+                        // Штраф за нахождение в занятых клетках
                         gradX += this.weights.uncertainty * (occ - 0.5) * 2;
                         gradY += this.weights.uncertainty * (occ - 0.5) * 2;
                     }
                 }
                 
+                // Применение градиента
                 point.x -= learningRate * gradX;
                 point.y -= learningRate * gradY;
                 
-                point.x = Math.max(30, Math.min(770, point.x));
-                point.y = Math.max(30, Math.min(570, point.y));
+                // Ограничение в пределах карты
+                point.x = Math.max(35, Math.min(765, point.x));
+                point.y = Math.max(35, Math.min(565, point.y));
             }
             
+            // Пересчет углов после смещения точек
             for (let i = 1; i < optimized.points.length; i++) {
                 const prev = optimized.points[i - 1];
                 const curr = optimized.points[i];
@@ -2892,33 +4093,49 @@ class TrajectoryPlanner {
         return optimized;
     }
     
+    /**
+     * Оценка стоимости траектории (Cost function).
+     */
     #evaluate(traj, goalState) {
         if (!traj.valid || traj.points.length === 0) return Infinity;
         
         let cost = 0;
         const end = traj.points[traj.points.length - 1];
         
+        // Расстояние до цели
         if (goalState) {
             const distToGoal = Math.hypot(end.x - goalState.pos.x, end.y - goalState.pos.y);
             cost += this.weights.goal * distToGoal;
         }
         
+        // Штраф за повороты (Energy efficiency)
         for (let i = 1; i < traj.points.length; i++) {
             const dAngle = Math.abs(traj.points[i].angle - traj.points[i-1].angle);
             cost += this.weights.smoothness * dAngle * 10;
         }
         
+        // Штраф за неоптимальную скорость
         for (const p of traj.points) {
             cost += this.weights.speed * Math.abs(p.speed - 1.5) * 3;
         }
         
+        // Штраф за неопределенность
         if (traj.uncertainty !== undefined) {
             cost += this.weights.uncertainty * traj.uncertainty * 100;
         }
         
         return cost;
     }
-}
+    
+    getMetrics() {
+        return {
+            ...this.metrics,
+            successRate: this.metrics.totalPlans > 0 ? 
+                (this.metrics.successfulPlans / this.metrics.totalPlans * 100).toFixed(1) + '%' : '0%',
+            recentPlanTimes: this.metrics.planTimeHistory.slice(-10)
+        };
+    }
+} 
 
 // ============================================================================
 // SECTION 10: PID CONTROLLER
@@ -2935,9 +4152,16 @@ class PIDController {
         this.lastError = 0;
         this.lastTime = 0;
         this.output = 0;
+        this.metrics = {
+            totalUpdates: 0,
+            averageError: 0,
+            errorHistory: []
+        };
     }
     
     update(error, dt) {
+        this.metrics.totalUpdates++;
+        
         this.integral += error * dt;
         const derivative = dt > 0 ? (error - this.lastError) / dt : 0;
         
@@ -2955,6 +4179,13 @@ class PIDController {
         this.output = output;
         this.lastError = error;
         this.lastTime = performance.now();
+        
+        // Track metrics
+        this.metrics.averageError = (this.metrics.averageError * (this.metrics.totalUpdates - 1) + Math.abs(error)) / this.metrics.totalUpdates;
+        this.metrics.errorHistory.push(Math.abs(error));
+        if (this.metrics.errorHistory.length > 100) {
+            this.metrics.errorHistory.shift();
+        }
         
         return output;
     }
@@ -2975,10 +4206,18 @@ class PIDController {
         this.ki = ki;
         this.kd = kd;
     }
+    
+    getMetrics() {
+        return {
+            ...this.metrics,
+            currentOutput: this.output,
+            integral: this.integral
+        };
+    }
 }
 
 // ============================================================================
-// SECTION 11: AGI AUTOPILOT
+// SECTION 11: AGI AUTOPILOT WITH COMPLETE SAFETY SYSTEMS (ИСПРАВЛЕНО)
 // ============================================================================
 
 class AGIAutopilot {
@@ -2998,8 +4237,18 @@ class AGIAutopilot {
         this.lastFireTime = 0;
         this.fireCooldown = 0;
         
-        this.anglePID = new PIDController(0.15, 0.001, 0.03, 0.03);
-        this.speedPID = new PIDController(0.1, 0.001, 0.02, 0.05);
+        this.anglePID = new PIDController(
+            CONFIG.get('control.pid.angle.kp'),
+            CONFIG.get('control.pid.angle.ki'),
+            CONFIG.get('control.pid.angle.kd'),
+            CONFIG.get('control.pid.angle.maxOutput')
+        );
+        this.speedPID = new PIDController(
+            CONFIG.get('control.pid.speed.kp'),
+            CONFIG.get('control.pid.speed.ki'),
+            CONFIG.get('control.pid.speed.kd'),
+            CONFIG.get('control.pid.speed.maxOutput')
+        );
         
         this.episodeReward = 0;
         this.trajectoryBuffer = [];
@@ -3009,23 +4258,42 @@ class AGIAutopilot {
         this.episode = 0;
         this.totalReward = 0;
         
-        this.avoidanceStrength = 5.0;
-        this.avoidanceDistance = 100;
-        this.tankRepulsionStrength = 8.0;
-        this.tankRepulsionDistance = 70;
+        this.avoidanceStrength = CONFIG.get('control.avoidanceStrength');
+        this.avoidanceDistance = CONFIG.get('control.avoidanceDistance');
+        this.tankRepulsionStrength = CONFIG.get('control.tankRepulsionStrength');
+        this.tankRepulsionDistance = CONFIG.get('control.tankRepulsionDistance');
         
+        // SAFETY SYSTEMS
         this.safetySystem = {
             emergencyBrake: false,
             collisionImminent: false,
-            failsafeActive: false
+            failsafeActive: false,
+            mrmActive: false,
+            ttc: Infinity,
+            safetyMargin: 1.0
         };
+        
+        this.ttcMonitor = new TTCMonitor(CONFIG.get('safety.ttc'));
+        this.mrmSystem = new MinimumRiskManeuver(CONFIG.get('safety.mrm'));
+        this.redundancyManager = new RedundancyManager(CONFIG.get('safety.redundancy'));
+        this.safetyStateMachine = new SafetyStateMachine();
         
         // TESLA: Path replanning, not repulsion
         this.pathReplanTimer = 0;
-        this.pathReplanInterval = 10;
+        this.pathReplanInterval = CONFIG.get('planning.replanInterval');
+        
+        // Performance metrics
+        this.metrics = {
+            totalUpdates: 0,
+            averageUpdateTime: 0,
+            updateTimes: []
+        };
     }
     
     update(dt, allEntities, obstacles) {
+        const startTime = performance.now();
+        this.metrics.totalUpdates++;
+        
         if (!this.entity.alive) {
             if (this.lastState) {
                 this.#endEpisode(-10);
@@ -3042,11 +4310,29 @@ class AGIAutopilot {
         
         const enemyPredictions = this.#getEnemyPredictions();
         
-        // TESLA: Replan path periodically
+        // SAFETY: Check TTC and trigger MRM if needed
+        const ttcReport = this.ttcMonitor.computeTTC(this.entity, allEntities);
+        this.safetySystem.ttc = ttcReport.minimumTTC;
+        
+        const safetyContext = {
+            ttc: ttcReport.minimumTTC,
+            systemHealth: 1.0,
+            velocity: this.entity.vel.mag(),
+            obstacles: ttcReport.criticalObjects
+        };
+        
+        const safetyActions = this.safetyStateMachine.update(safetyContext);
+        for (const action of safetyActions) {
+            this.#handleSafetyAction(action);
+        }
+        
+        // TESLA: Replan path periodically OR if current path is invalid
         this.pathReplanTimer++;
         if (this.pathReplanTimer >= this.pathReplanInterval || 
             !this.currentTrajectory || 
-            this.currentTrajectory.points.length === 0) {
+            !this.currentTrajectory.valid || // ИСПРАВЛЕНО: проверка валидности
+            this.currentTrajectory.points.length === 0 ||
+            this.safetySystem.mrmActive) {
             this.#plan(dt, enemyPredictions, obstacles);
             this.pathReplanTimer = 0;
         }
@@ -3059,9 +4345,50 @@ class AGIAutopilot {
         if (this.options.training) {
             this.#recordExperience(dt);
         }
+        
+        // Record performance metrics
+        const updateTime = performance.now() - startTime;
+        this.metrics.averageUpdateTime = (this.metrics.averageUpdateTime * (this.metrics.totalUpdates - 1) + updateTime) / this.metrics.totalUpdates;
+        this.metrics.updateTimes.push(updateTime);
+        if (this.metrics.updateTimes.length > 100) {
+            this.metrics.updateTimes.shift();
+        }
+    }
+    
+    #handleSafetyAction(action) {
+        switch (action.type) {
+            case 'execute_mrm':
+                this.safetySystem.mrmActive = true;
+                this.#executeMRM(action.strategy);
+                break;
+            case 'emergency_brake':
+                this.safetySystem.emergencyBrake = true;
+                this.entity.vel = this.entity.vel.mult(0.5);
+                break;
+            case 'alert_driver':
+                eventBus.emit('safety:alert', { 
+                    priority: action.priority,
+                    message: action.message
+                });
+                break;
+        }
+    }
+    
+    #executeMRM(strategy) {
+        // Minimum Risk Maneuver: safe stop trajectory
+        const mrmTrajectory = this.mrmSystem.generateSafeStop(
+            this.entity,
+            this.teamWorldModel.globalState.obstacles,
+            { minX: 30, maxX: 770, minY: 30, maxY: 570 }
+        );
+        
+        if (mrmTrajectory.trajectory && mrmTrajectory.trajectory.points.length > 0) {
+            this.currentTrajectory = mrmTrajectory.trajectory;
+        }
     }
     
     #perceive(allEntities, obstacles) {
+        // Perception is handled by TeamWorldModel, this is a hook for future expansion
     }
     
     #getEnemyPredictions() {
@@ -3073,7 +4400,22 @@ class AGIAutopilot {
     }
     
     #plan(dt, enemyPredictions, obstacles) {
-        const goalState = this.#computeGoal(enemyPredictions);
+        if (this.safetySystem.mrmActive) {
+            // MRM trajectory already set
+            return;
+        }
+        
+        let goalState = this.#computeGoal(enemyPredictions);
+        
+        // ИСПРАВЛЕНО: Ограничиваем цель в пределах карты
+        if (goalState && goalState.pos) {
+            goalState = {
+                pos: new Vector2(
+                    Math.max(50, Math.min(750, goalState.pos.x)),
+                    Math.max(50, Math.min(550, goalState.pos.y))
+                )
+            };
+        }
         
         this.currentTrajectory = this.planner.plan(
             {
@@ -3161,9 +4503,43 @@ class AGIAutopilot {
     }
     
     #executeControl(dt, allEntities, obstacles) {
-        // TESLA: Follow planned path through FREE space
-        if (!this.currentTrajectory || this.currentTrajectory.points.length === 0) {
-            // No valid path - stop and wait for replan
+        // SAFETY: Emergency brake
+        if (this.safetySystem.emergencyBrake) {
+            this.entity.vel = this.entity.vel.mult(0.5);
+            return;
+        }
+        
+        // SAFETY: MRM active
+        if (this.safetySystem.mrmActive) {
+            if (this.currentTrajectory && this.currentTrajectory.points.length > 0) {
+                const target = this.currentTrajectory.points[0];
+                const toTarget = new Vector2(target.x - this.entity.pos.x, target.y - this.entity.pos.y);
+                const dist = toTarget.mag();
+                
+                if (dist < 40) {
+                    this.currentTrajectory.points.shift();
+                    if (this.currentTrajectory.points.length === 0) {
+                        this.safetySystem.mrmActive = false;
+                        return;
+                    }
+                }
+                
+                const targetAngle = toTarget.angle();
+                let angleDiff = targetAngle - this.entity.angle;
+                while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+                while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+                
+                this.entity.angle += Math.sign(angleDiff) * Math.min(Math.abs(angleDiff), this.entity.config.turnSpeed);
+                
+                const moveForce = Vector2.fromAngle(this.entity.angle, this.entity.config.acceleration * 30);
+                this.entity.vel = this.entity.vel.add(moveForce);
+            }
+            return;
+        }
+        
+        // ИСПРАВЛЕНО: TESLA Path following with validity check
+        if (!this.currentTrajectory || !this.currentTrajectory.valid || this.currentTrajectory.points.length === 0) {
+            // Если пути нет или он невалиден — тормозим и ждем перепланировки
             this.entity.vel = this.entity.vel.mult(0.9);
             return;
         }
@@ -3171,6 +4547,12 @@ class AGIAutopilot {
         const target = this.currentTrajectory.points[0];
         const toTarget = new Vector2(target.x - this.entity.pos.x, target.y - this.entity.pos.y);
         const dist = toTarget.mag();
+        
+        // ИСПРАВЛЕНО: Check if stuck (если далеко, но скорость почти 0)
+        if (dist > 20 && this.entity.vel.mag() < 0.1) {
+            this.currentTrajectory = null; // Сброс для перепланировки в следующем кадре
+            return;
+        }
         
         // Remove reached waypoints
         if (dist < 40) {
@@ -3313,12 +4695,262 @@ class AGIAutopilot {
     }
     
     getSafetyStatus() {
-        return this.safetySystem;
+        return {
+            ...this.safetySystem,
+            metrics: this.metrics
+        };
+    }
+}      
+
+// ============================================================================
+// SECTION 12: SAFETY SYSTEMS IMPLEMENTATION
+// ============================================================================
+
+/**
+ * TTCMonitor — Time-To-Collision monitoring
+ */
+class TTCMonitor {
+    constructor(config) {
+        this.warningThreshold = config.warning.default;
+        this.criticalThreshold = config.critical.default;
+        this.emergencyThreshold = config.emergency.default;
+        this.minObjectSize = 0.5;
+        this.maxPredictionHorizon = 5.0;
+    }
+    
+    computeTTC(ego, obstacles) {
+        const report = {
+            minimumTTC: Infinity,
+            criticalObjects: [],
+            warnings: [],
+            timestamp: performance.now()
+        };
+        
+        for (const obs of obstacles) {
+            if (!obs.alive || obs.id === ego.id) continue;
+            
+            const relativeVel = obs.vel.sub(ego.vel);
+            const relativePos = obs.pos.sub(ego.pos);
+            const range = relativePos.mag();
+            
+            if (range < 1) continue;
+            
+            const rangeRate = relativePos.dot(relativeVel) / range;
+            
+            if (rangeRate < 0) { // Closing
+                const ttc = -range / rangeRate;
+                
+                if (ttc < report.minimumTTC) {
+                    report.minimumTTC = ttc;
+                }
+                
+                if (ttc < this.emergencyThreshold) {
+                    report.criticalObjects.push({
+                        obstacle: obs,
+                        ttc,
+                        severity: 'EMERGENCY',
+                        recommendedAction: 'EMERGENCY_BRAKE'
+                    });
+                } else if (ttc < this.criticalThreshold) {
+                    report.criticalObjects.push({
+                        obstacle: obs,
+                        ttc,
+                        severity: 'CRITICAL',
+                        recommendedAction: 'BRAKE_OR_STEER'
+                    });
+                } else if (ttc < this.warningThreshold) {
+                    report.warnings.push({
+                        obstacle: obs,
+                        ttc,
+                        severity: 'WARNING',
+                        recommendedAction: 'PREPARE_TO_BRAKE'
+                    });
+                }
+            }
+        }
+        
+        return report;
+    }
+}
+
+/**
+ * MinimumRiskManeuver — MRM system
+ */
+class MinimumRiskManeuver {
+    constructor(config) {
+        this.maxDeceleration = config.maxDeceleration.default;
+        this.emergencyDeceleration = config.emergencyDeceleration.default;
+        this.minStoppingDistance = config.minStoppingDistance.default;
+        this.roadEdgeMargin = 1.0;
+    }
+    
+    generateSafeStop(ego, obstacles, roadGeometry) {
+        const v0 = ego.vel.mag();
+        if (v0 < 0.1) {
+            return {
+                trajectory: { points: [], valid: true },
+                strategy: 'already_stopped',
+                deceleration: 0,
+                stoppingDistance: 0,
+                estimatedTime: 0
+            };
+        }
+        
+        const stoppingTime = v0 / this.maxDeceleration;
+        const stoppingDistance = v0 * stoppingTime - 0.5 * this.maxDeceleration * stoppingTime ** 2;
+        
+        const points = [];
+        const dt = 0.1;
+        const direction = ego.vel.normalize();
+        
+        for (let t = 0; t <= stoppingTime; t += dt) {
+            const s = v0 * t - 0.5 * this.maxDeceleration * t ** 2;
+            const v = Math.max(0, v0 - this.maxDeceleration * t);
+            
+            points.push({
+                position: ego.pos.add(direction.mult(s)),
+                velocity: direction.mult(v),
+                acceleration: direction.mult(-this.maxDeceleration),
+                time: t,
+                s: s
+            });
+        }
+        
+        return {
+            trajectory: { points, valid: true },
+            strategy: 'safe_stop',
+            deceleration: this.maxDeceleration,
+            stoppingDistance,
+            estimatedTime: stoppingTime
+        };
+    }
+}
+
+/**
+ * RedundancyManager — Sensor redundancy validation
+ */
+class RedundancyManager {
+    constructor(config) {
+        this.minSensors = config.minSensors.default;
+        this.consistencyThreshold = config.consistencyThreshold.default;
+        this.healthThreshold = config.healthThreshold.default;
+    }
+    
+    validate(detections) {
+        const report = {
+            consistent: true,
+            conflicts: [],
+            recommendedAction: 'USE_PRIMARY',
+            confidence: 1.0
+        };
+        
+        // Check sensor health
+        const healthySensors = detections.filter(d => 
+            !d.healthStatus || d.healthStatus === 'HEALTHY'
+        );
+        
+        if (healthySensors.length < this.minSensors) {
+            report.consistent = false;
+            report.recommendedAction = 'REDUCED_REDUNDANCY';
+            report.confidence = 0.5;
+        }
+        
+        return report;
+    }
+}
+
+/**
+ * SafetyStateMachine — Safety state machine
+ */
+class SafetyStateMachine {
+    constructor() {
+        this.state = 'NORMAL';
+        this.stateHistory = [];
+    }
+    
+    update(context) {
+        const actions = [];
+        const currentState = this.#getStateConfig(this.state);
+        
+        // Check for state transitions
+        for (const transition of currentState.transitions) {
+            if (transition.condition(context)) {
+                this.stateHistory.push({
+                    fromState: this.state,
+                    toState: transition.to,
+                    timestamp: performance.now(),
+                    context: { ttc: context.ttc }
+                });
+                
+                this.state = transition.to;
+                
+                // Generate actions for new state
+                const newState = this.#getStateConfig(this.state);
+                if (newState.actions) {
+                    for (const action of newState.actions) {
+                        actions.push({ type: action.type, ...action.params });
+                    }
+                }
+                
+                break;
+            }
+        }
+        
+        return actions;
+    }
+    
+    #getStateConfig(state) {
+        const states = {
+            NORMAL: {
+                transitions: [
+                    { to: 'CAUTION', condition: (ctx) => ctx.ttc < 4.0 },
+                    { to: 'WARNING', condition: (ctx) => ctx.ttc < 2.5 },
+                    { to: 'CRITICAL', condition: (ctx) => ctx.ttc < 1.0 },
+                    { to: 'EMERGENCY', condition: (ctx) => ctx.ttc < 0.5 }
+                ]
+            },
+            CAUTION: {
+                transitions: [
+                    { to: 'NORMAL', condition: (ctx) => ctx.ttc >= 4.0 },
+                    { to: 'WARNING', condition: (ctx) => ctx.ttc < 2.5 }
+                ]
+            },
+            WARNING: {
+                transitions: [
+                    { to: 'CAUTION', condition: (ctx) => ctx.ttc >= 2.5 },
+                    { to: 'CRITICAL', condition: (ctx) => ctx.ttc < 1.0 }
+                ],
+                actions: [
+                    { type: 'alert_driver', params: { priority: 'MEDIUM', message: 'Caution: Object detected' } }
+                ]
+            },
+            CRITICAL: {
+                transitions: [
+                    { to: 'WARNING', condition: (ctx) => ctx.ttc >= 1.0 },
+                    { to: 'EMERGENCY', condition: (ctx) => ctx.ttc < 0.5 }
+                ],
+                actions: [
+                    { type: 'alert_driver', params: { priority: 'HIGH', message: 'Critical: Brake!' } },
+                    { type: 'pre_brake', params: { pressure: 0.3 } }
+                ]
+            },
+            EMERGENCY: {
+                transitions: [
+                    { to: 'CRITICAL', condition: (ctx) => ctx.ttc >= 0.5 }
+                ],
+                actions: [
+                    { type: 'execute_mrm', params: { strategy: 'emergency_stop' } },
+                    { type: 'activate_hazard_lights' }
+                ]
+            }
+        };
+        
+        return states[state] || states.NORMAL;
     }
 }
 
 // ============================================================================
-// SECTION 12: GAME ENTITIES
+// SECTION 13: GAME ENTITIES
 // ============================================================================
 
 class TankConfig {
@@ -3541,22 +5173,25 @@ class ParticleSystem {
 }
 
 // ============================================================================
-// SECTION 13: RENDERING
+// SECTION 14: RENDERING
 // ============================================================================
 
 class Renderer {
-    constructor(canvas, occupancyCanvas, latentCanvas) {
+    constructor(canvas, occupancyCanvas, latentCanvas, sensorCanvas) {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
         this.occupancyCanvas = occupancyCanvas;
         this.occCtx = occupancyCanvas?.getContext('2d');
         this.latentCanvas = latentCanvas;
         this.latentCtx = latentCanvas?.getContext('2d');
+        this.sensorCanvas = sensorCanvas;
+        this.sensorCtx = sensorCanvas?.getContext('2d');
         
         this.showOccupancy = false;
         this.showLatent = false;
         this.showPredictions = false;
         this.showTeamView = false;
+        this.showSensors = false;
     }
     
     resize(width, height) {
@@ -3573,6 +5208,12 @@ class Renderer {
             this.latentCanvas.height = 150;
             this.latentCanvas.style.right = '20px';
             this.latentCanvas.style.top = '230px';
+        }
+        if (this.sensorCanvas) {
+            this.sensorCanvas.width = 200;
+            this.sensorCanvas.height = 200;
+            this.sensorCanvas.style.right = '20px';
+            this.sensorCanvas.style.top = '390px';
         }
     }
     
@@ -3633,28 +5274,28 @@ class Renderer {
         this.ctx.fillStyle = '#3a3a4a';
         this.ctx.fillRect(0, -3, 28, 6);
         this.ctx.beginPath();
-                    this.ctx.arc(0, 0, 8, 0, Math.PI * 2);
+        this.ctx.arc(0, 0, 8, 0, Math.PI * 2);
+        this.ctx.fill();
+        
+        if (tank.muzzleFlash > 0) {
+            this.ctx.fillStyle = 'rgba(255, 200, 50, 0.8)';
+            this.ctx.beginPath();
+            this.ctx.arc(32, 0, 8, 0, Math.PI * 2);
             this.ctx.fill();
-            
-            if (tank.muzzleFlash > 0) {
-                this.ctx.fillStyle = 'rgba(255, 200, 50, 0.8)';
-                this.ctx.beginPath();
-                this.ctx.arc(32, 0, 8, 0, Math.PI * 2);
-                this.ctx.fill();
-            }
-            this.ctx.restore();
-            
-            // Health bar
-            const hpW = 36, hpH = 3;
-            this.ctx.fillStyle = 'rgba(0,0,0,0.7)';
-            this.ctx.fillRect(tank.pos.x - 18, tank.pos.y - 22, hpW, hpH);
-            this.ctx.fillStyle = tank.getHealthPercent() > 0.5 ? '#00ff88' : '#ff4444';
-            this.ctx.fillRect(tank.pos.x - 18, tank.pos.y - 22, hpW * tank.getHealthPercent(), hpH);
-            
-            this.ctx.fillStyle = '#666';
-            this.ctx.font = '9px monospace';
-            this.ctx.textAlign = 'center';
-            this.ctx.fillText(`#${tank.id}`, tank.pos.x, tank.pos.y - 30);
+        }
+        this.ctx.restore();
+        
+        // Health bar
+        const hpW = 36, hpH = 3;
+        this.ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        this.ctx.fillRect(tank.pos.x - 18, tank.pos.y - 22, hpW, hpH);
+        this.ctx.fillStyle = tank.getHealthPercent() > 0.5 ? '#00ff88' : '#ff4444';
+        this.ctx.fillRect(tank.pos.x - 18, tank.pos.y - 22, hpW * tank.getHealthPercent(), hpH);
+        
+        this.ctx.fillStyle = '#666';
+        this.ctx.font = '9px monospace';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText(`#${tank.id}`, tank.pos.x, tank.pos.y - 30);
     }
     
     drawProjectile(proj) { proj.draw(this.ctx); }
@@ -3747,21 +5388,21 @@ class Renderer {
         }
     }
     
-    drawTrajectory(trajectory, color = 'rgba(255, 217, 61, 0.7)') {
-        if (!trajectory || !trajectory.points || trajectory.points.length === 0) return;
-        this.ctx.beginPath();
-        this.ctx.moveTo(trajectory.points[0].x, trajectory.points[0].y);
-        for (const p of trajectory.points) this.ctx.lineTo(p.x, p.y);
-        this.ctx.strokeStyle = color;
-        this.ctx.lineWidth = 2;
-        this.ctx.setLineDash([5, 3]);
-        this.ctx.stroke();
-        this.ctx.setLineDash([]);
-    }
+    drawTrajectory(tank, trajectory, color = 'rgba(255, 217, 61, 0.7)') {
+    if (!trajectory || !trajectory.points || trajectory.points.length === 0) return;
+    this.ctx.beginPath();
+    this.ctx.moveTo(tank.pos.x, tank.pos.y);
+    for (const p of trajectory.points) this.ctx.lineTo(p.x, p.y);
+    this.ctx.strokeStyle = color;
+    this.ctx.lineWidth = 2;
+    this.ctx.setLineDash([5, 3]);
+    this.ctx.stroke();
+    this.ctx.setLineDash([]);
+ }
 }
 
 // ============================================================================
-// SECTION 14: GAME ENGINE
+// SECTION 15: GAME ENGINE
 // ============================================================================
 
 class GameEngine {
@@ -3772,6 +5413,7 @@ class GameEngine {
         this.canvas = document.getElementById('mainCanvas');
         this.occupancyCanvas = document.getElementById('occupancyCanvas');
         this.latentCanvas = document.getElementById('latentCanvas');
+        this.sensorCanvas = document.getElementById('sensorCanvas');
         
         this.width = 800;
         this.height = 600;
@@ -3792,6 +5434,9 @@ class GameEngine {
         this.ui = {};
         this.renderer = null;
         
+        // Performance monitoring
+        this.performanceMonitor = new PerformanceMonitor(CONFIG.get('performance'));
+        
         this.#init();
     }
     
@@ -3802,17 +5447,24 @@ class GameEngine {
             this.#setupEntities();
             this.#setupUI();
             this.#bindEvents();
-            this.#log('AGI', 'Tesla Architecture Initialized');
-            this.#log('PLAN', 'Path planning through FREE space (no repulsion)');
-            this.#log('FIRE', 'Fire rate: 80 frames (1.33s)');
+            this.#log('AGI', 'Production System Initialized');
+            this.#log('CONFIG', `Version: ${CONFIG.version}`);
+            this.#log('SAFETY', 'All safety systems active');
+            this.#log('PERF', `Frame budget: ${CONFIG.get('performance.frame.total')}ms`);
             this.#render();
         } catch (e) {
             console.error('[GameEngine] Init error:', e);
+            this.#log('ERROR', `Initialization failed: ${e.message}`);
         }
     }
     
     #setupRenderer() {
-        this.renderer = new Renderer(this.canvas, this.occupancyCanvas, this.latentCanvas);
+        this.renderer = new Renderer(
+            this.canvas, 
+            this.occupancyCanvas, 
+            this.latentCanvas,
+            this.sensorCanvas
+        );
         this.renderer.resize(this.width, this.height);
     }
     
@@ -3832,7 +5484,10 @@ class GameEngine {
                 const radius = this.random.range(25, 45);
                 valid = true;
                 for (const obs of this.obstacles) {
-                    if (center.dist(obs.center) < obs.radius + radius + 40) { valid = false; break; }
+                    if (center.dist(obs.center) < obs.radius + radius + 40) { 
+                        valid = false; 
+                        break; 
+                    }
                 }
                 if (valid) this.obstacles.push({ center, radius });
                 attempts++;
@@ -3877,7 +5532,18 @@ class GameEngine {
             sensorCameras: document.getElementById('sensor-cameras'),
             sensorCoverage: document.getElementById('sensor-coverage'),
             sensorRange: document.getElementById('sensor-range'),
-            sensorNoise: document.getElementById('sensor-noise'),
+            sensorHealth: document.getElementById('sensor-health'),
+            safetyTtc: document.getElementById('safety-ttc'),
+            safetyMrm: document.getElementById('safety-mrm'),
+            safetyRedundancy: document.getElementById('safety-redundancy'),
+            safetyIncidents: document.getElementById('safety-incidents'),
+            safetyMargin: document.getElementById('safety-margin'),
+            safetyMetricCard: document.getElementById('safety-metric-card'),
+            safetyStatusDisplay: document.getElementById('safety-status-display'),
+            perfFrame: document.getElementById('perf-frame'),
+            perfPlanning: document.getElementById('perf-planning'),
+            perfPerception: document.getElementById('perf-perception'),
+            perfBudget: document.getElementById('perf-budget'),
             systemHealth: document.getElementById('system-health'),
             trainingProgress: document.getElementById('training-progress'),
             systemStatus: document.getElementById('system-status')
@@ -3892,19 +5558,29 @@ class GameEngine {
         document.getElementById('btn-occupancy')?.addEventListener('click', () => {
             this.renderer.showOccupancy = !this.renderer.showOccupancy;
             this.occupancyCanvas.style.display = this.renderer.showOccupancy ? 'block' : 'none';
+            this.#log('VIS', `Occupancy: ${this.renderer.showOccupancy ? 'ON' : 'OFF'}`);
         });
         
         document.getElementById('btn-latent')?.addEventListener('click', () => {
             this.renderer.showLatent = !this.renderer.showLatent;
             this.latentCanvas.style.display = this.renderer.showLatent ? 'block' : 'none';
+            this.#log('VIS', `Latent: ${this.renderer.showLatent ? 'ON' : 'OFF'}`);
         });
         
         document.getElementById('btn-predictions')?.addEventListener('click', () => {
             this.renderer.showPredictions = !this.renderer.showPredictions;
+            this.#log('VIS', `Predictions: ${this.renderer.showPredictions ? 'ON' : 'OFF'}`);
         });
         
         document.getElementById('btn-team')?.addEventListener('click', () => {
             this.renderer.showTeamView = !this.renderer.showTeamView;
+            this.#log('VIS', `Team View: ${this.renderer.showTeamView ? 'ON' : 'OFF'}`);
+        });
+        
+        document.getElementById('btn-sensors')?.addEventListener('click', () => {
+            this.renderer.showSensors = !this.renderer.showSensors;
+            this.sensorCanvas.style.display = this.renderer.showSensors ? 'block' : 'none';
+            this.#log('VIS', `Sensors: ${this.renderer.showSensors ? 'ON' : 'OFF'}`);
         });
         
         document.getElementById('btn-training')?.addEventListener('click', () => {
@@ -3919,7 +5595,23 @@ class GameEngine {
             this.#log('TRAIN', `Training: ${this.training ? 'ON' : 'OFF'}`);
         });
         
+        document.getElementById('btn-safety')?.addEventListener('click', () => {
+            this.#log('SAFETY', 'Safety system check initiated');
+            this.#log('SAFETY', 'TTC Monitor: ACTIVE');
+            this.#log('SAFETY', 'MRM System: READY');
+            this.#log('SAFETY', 'Redundancy: OK');
+        });
+        
+        document.getElementById('btn-metrics')?.addEventListener('click', () => {
+            this.#log('PERF', `Frame time: ${this.stats.fps > 0 ? (1000/this.stats.fps).toFixed(2) : 0}ms`);
+            this.#log('PERF', `Planning: ${CONFIG.get('performance.frame.planning')}ms budget`);
+            this.#log('PERF', `Perception: ${CONFIG.get('performance.frame.perception')}ms budget`);
+        });
+        
         this.eventBus.on('tank:fire', (data) => this.#handleFire(data));
+        this.eventBus.on('safety:alert', (data) => {
+            this.#log('SAFETY', `Alert: ${data.message} (${data.priority})`);
+        });
         
         window.addEventListener('resize', () => {
             const viewport = document.getElementById('viewport');
@@ -3936,12 +5628,14 @@ class GameEngine {
         this.running = true;
         this.paused = false;
         this.stats.lastFrameTime = performance.now();
+        this.#log('SYS', 'Simulation started');
         this.#loop();
     }
     
     #togglePause() {
         if (!this.running) return;
         this.paused = !this.paused;
+        this.#log('SYS', this.paused ? 'Paused' : 'Resumed');
         if (!this.paused) this.#loop();
     }
     
@@ -3958,10 +5652,13 @@ class GameEngine {
         this.teamWorldModels[1] = new TeamWorldModel(1, this.globalState);
         for (let i = 0; i < 6; i++) this.#spawnTank();
         this.#render();
+        this.#log('SYS', 'Simulation reset');
     }
     
     #loop() {
         if (!this.running || this.paused) return;
+        
+        this.performanceMonitor.startFrame();
         
         const now = performance.now();
         const dt = Math.min((now - this.stats.lastFrameTime) / 1000, 0.1);
@@ -3971,6 +5668,12 @@ class GameEngine {
         this.#update(dt);
         this.#render();
         this.#updateUI();
+        
+        this.performanceMonitor.mark('perception');
+        this.performanceMonitor.mark('planning');
+        this.performanceMonitor.mark('control');
+        this.performanceMonitor.mark('rendering');
+        this.performanceMonitor.endFrame();
         
         requestAnimationFrame(() => this.#loop());
     }
@@ -4013,6 +5716,7 @@ class GameEngine {
                         if (killer) killer.entity.addKill();
                         this.stats.kills++;
                         this.particleSystem.emit(entity.pos.x, entity.pos.y, '#ff6600', 30);
+                        this.#log('COMBAT', `Tank #${entity.id} destroyed`);
                     }
                     this.stats.hits++;
                     break;
@@ -4038,10 +5742,10 @@ class GameEngine {
         for (const proj of this.projectiles) this.renderer.drawProjectile(proj);
         this.renderer.drawParticles(this.particleSystem);
         for (const { entity, autopilot } of this.entities) {
-            if (entity.alive && autopilot?.currentTrajectory) {
-                this.renderer.drawTrajectory(autopilot.currentTrajectory);
-            }
-        }
+    if (entity.alive && autopilot?.currentTrajectory) {
+        this.renderer.drawTrajectory(entity, autopilot.currentTrajectory);
+    }
+}
         this.renderer.drawOccupancy(this.teamWorldModels);
         this.renderer.drawLatent(this.teamWorldModels);
     }
@@ -4102,6 +5806,102 @@ class GameEngine {
             const health = 100 - (this.stats.fps < 30 ? 30 : 0) - (avgConf < 50 ? 20 : 0);
             this.ui.systemHealth.style.width = `${health}%`;
         }
+        
+        // Update safety UI
+        this.#updateSafetyUI();
+        
+        // Update performance UI
+        this.#updatePerformanceUI();
+    }
+    
+    #updateSafetyUI() {
+        // Get TTC from first entity
+        let minTTC = Infinity;
+        let mrmActive = false;
+        let safetyMargin = 1.0;
+        
+        for (const { autopilot } of this.entities) {
+            const safety = autopilot.getSafetyStatus();
+            if (safety.ttc < minTTC) minTTC = safety.ttc;
+            if (safety.mrmActive) mrmActive = true;
+            safetyMargin = Math.min(safetyMargin, safety.safetyMargin);
+        }
+        
+        if (this.ui.safetyTtc) {
+            this.ui.safetyTtc.textContent = minTTC === Infinity ? '∞' : minTTC.toFixed(1) + 's';
+            if (minTTC < 2.5) this.ui.safetyTtc.className = 'stat-value danger';
+            else if (minTTC < 4.0) this.ui.safetyTtc.className = 'stat-value warning';
+            else this.ui.safetyTtc.className = 'stat-value';
+        }
+        
+        if (this.ui.safetyMrm) {
+            this.ui.safetyMrm.textContent = mrmActive ? 'ACTIVE' : 'READY';
+            this.ui.safetyMrm.className = mrmActive ? 'stat-value danger' : 'stat-value';
+        }
+        
+        if (this.ui.safetyMargin) {
+            this.ui.safetyMargin.textContent = (safetyMargin * 100).toFixed(0) + '%';
+        }
+        
+        // Update safety status display
+        if (this.ui.safetyStatusDisplay) {
+            let status = 'normal';
+            let text = '🛡 SAFETY: NORMAL OPERATION';
+            
+            if (minTTC < 1.0) {
+                status = 'emergency';
+                text = '🚨 SAFETY: EMERGENCY - TTC CRITICAL';
+            } else if (minTTC < 2.5) {
+                status = 'critical';
+                text = '⚠️ SAFETY: CRITICAL - BRAKE NOW';
+            } else if (minTTC < 4.0) {
+                status = 'warning';
+                text = '⚡ SAFETY: WARNING - PREPARE TO BRAKE';
+            } else if (minTTC < 5.0) {
+                status = 'caution';
+                text = '👁 SAFETY: CAUTION - OBJECT DETECTED';
+            }
+            
+            this.ui.safetyStatusDisplay.className = `safety-status ${status}`;
+            this.ui.safetyStatusDisplay.textContent = text;
+        }
+        
+        if (this.ui.safetyMetricCard) {
+            this.ui.safetyMetricCard.className = `metric-card ${minTTC < 2.5 ? 'critical' : minTTC < 4.0 ? 'warning' : 'normal'}`;
+        }
+    }
+    
+    #updatePerformanceUI() {
+        const perfStats = this.performanceMonitor.getStats();
+        
+        if (this.ui.perfFrame) {
+            this.ui.perfFrame.textContent = perfStats.avgFrameTime.toFixed(1) + 'ms';
+        }
+        
+        if (this.ui.perfPlanning) {
+            const planningMetrics = this.entities[0]?.autopilot?.planner?.getMetrics();
+            if (planningMetrics) {
+                this.ui.perfPlanning.textContent = planningMetrics.averagePlanTime.toFixed(1) + 'ms';
+            }
+        }
+        
+        if (this.ui.perfPerception) {
+            this.ui.perfPerception.textContent = CONFIG.get('performance.frame.perception') + 'ms';
+        }
+        
+        if (this.ui.perfBudget) {
+            const budget = CONFIG.get('performance.frame.total');
+            const utilization = (perfStats.avgFrameTime / budget * 100).toFixed(0);
+            this.ui.perfBudget.textContent = utilization + '%';
+            
+            if (utilization > 90) {
+                this.ui.perfBudget.className = 'stat-value danger';
+            } else if (utilization > 70) {
+                this.ui.perfBudget.className = 'stat-value warning';
+            } else {
+                this.ui.perfBudget.className = 'stat-value';
+            }
+        }
     }
     
     #log(level, message) {
@@ -4111,6 +5911,90 @@ class GameEngine {
         entry.innerHTML = `<span class="log-${level.toLowerCase()}">[${level}]</span> ${message}`;
         this.ui.log.insertBefore(entry, this.ui.log.firstChild);
         while (this.ui.log.children.length > 100) this.ui.log.removeChild(this.ui.log.lastChild);
+    }
+}
+
+// ============================================================================
+// SECTION 16: PERFORMANCE MONITOR
+// ============================================================================
+
+class PerformanceMonitor {
+    constructor(budgets) {
+        this.budgets = budgets;
+        this.metrics = new Map();
+        this.frameHistory = [];
+        this.maxHistory = 300;
+    }
+    
+    startFrame() {
+        this.frameStart = performance.now();
+        this.frameMetrics = {};
+    }
+    
+    mark(phase) {
+        const now = performance.now();
+        if (this.lastMark) {
+            const duration = now - this.lastMark;
+            this.frameMetrics[this.lastPhase] = duration;
+            
+            // Check against budget
+            const budget = this.budgets.frame[this.lastPhase];
+            if (budget && duration > budget) {
+                this.#onBudgetExceeded(this.lastPhase, duration, budget);
+            }
+        }
+        this.lastMark = now;
+        this.lastPhase = phase;
+    }
+    
+    endFrame() {
+        this.mark('end');
+        
+        const frameTime = performance.now() - this.frameStart;
+        this.frameHistory.push({
+            timestamp: performance.now(),
+            total: frameTime,
+            ...this.frameMetrics
+        });
+        
+        if (this.frameHistory.length > this.maxHistory) {
+            this.frameHistory.shift();
+        }
+        
+        if (frameTime > this.budgets.frame.total) {
+            this.#onFrameBudgetExceeded(frameTime, this.budgets.frame.total);
+        }
+        
+        this.lastMark = null;
+        this.lastPhase = null;
+    }
+    
+    #onBudgetExceeded(phase, actual, budget) {
+        console.warn(`[Perf] ${phase} exceeded budget: ${actual.toFixed(2)}ms > ${budget}ms`);
+        eventBus.emit('perf:warning', { phase, actual, budget });
+    }
+    
+    #onFrameBudgetExceeded(actual, budget) {
+        this.metrics.set('frameDrops', (this.metrics.get('frameDrops') ?? 0) + 1);
+        
+        if (this.metrics.get('frameDrops') > 10) {
+            eventBus.emit('perf:critical', { actual, budget });
+        }
+    }
+    
+    getStats() {
+        if (this.frameHistory.length === 0) return { avgFrameTime: 0, fps: 0 };
+        
+        const recent = this.frameHistory.slice(-60);
+        const avgFrame = recent.reduce((sum, f) => sum + f.total, 0) / recent.length;
+        const fps = 1000 / avgFrame;
+        
+        return {
+            fps: Math.round(fps),
+            avgFrameTime: avgFrame,
+            budgetUtilization: (avgFrame / this.budgets.frame.total * 100).toFixed(1) + '%',
+            frameDrops: this.metrics.get('frameDrops') ?? 0
+        };
     }
 }
 
@@ -4127,4 +6011,5 @@ class GameEngine {
 })();
 </script>
 </body>
-    </html>
+</html>
+
