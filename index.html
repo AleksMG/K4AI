@@ -1,817 +1,1060 @@
-<!DOCTYPE html>
-<html lang="ru" data-theme="paper">
+<!doctype html>
+<html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ПРЯЛКА — полевой буквенный шифр</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jacobian Neural Cipher</title>
 <style>
-:root{
-  --paper:#efe9dc;--surface:#fffdf6;--surface2:#f7f2e6;--raised:#fffefb;
-  --line:#d5cdb9;--line2:#e6dfd0;--ink:#191d24;--ink2:#4c545f;--ink3:#877f6d;
-  --brass:#8a6a12;--brass-soft:#efe1c0;--verm:#a8321e;--verd:#1f6b4a;--azure:#2b4f9e;--plum:#6f3577;
-  --ok:var(--verd);--warn:var(--brass);--err:var(--verm);--info:var(--azure);--feed:var(--plum);
-  --grid:rgba(138,106,18,.055);
-  --mono:ui-monospace,SFMono-Regular,"Cascadia Mono",Consolas,"Liberation Mono",monospace;
-  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
-  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
-}
-html[data-theme="night"]{
-  --paper:#12151b;--surface:#191d24;--surface2:#1f242d;--raised:#242a34;
-  --line:#313945;--line2:#282f39;--ink:#e7e2d5;--ink2:#a6adb7;--ink3:#767d89;
-  --brass:#d7a343;--brass-soft:#39311f;--verm:#e8705a;--verd:#4ec48b;--azure:#7ba8f1;--plum:#c58ad0;
-  --grid:rgba(215,163,67,.05);
-}
-*{box-sizing:border-box}
-html,body{margin:0}
-body{background:var(--paper);color:var(--ink);font:13px/1.5 var(--sans);-webkit-font-smoothing:antialiased;
-  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
-  background-size:26px 26px}
-h1,h2,h3,h4{margin:0;font-weight:600}
-h2{font-size:13px}
-h3{font-size:11px;color:var(--ink2);text-transform:uppercase;letter-spacing:.08em}
-h4{font-size:12px;margin:12px 0 5px}
-button,input,select,textarea{font:inherit;color:inherit}
-:focus-visible{outline:2px solid var(--azure);outline-offset:1px}
-.mono{font-family:var(--mono)}.mu{color:var(--ink2)}.dim{color:var(--ink3)}
-.err{color:var(--err)}.ok{color:var(--ok)}.warn{color:var(--warn)}.info{color:var(--info)}
-*{scrollbar-width:thin;scrollbar-color:var(--brass) var(--surface2)}
-::-webkit-scrollbar{width:12px;height:12px}
-::-webkit-scrollbar-track{background:var(--surface2);border-left:1px solid var(--line2)}
-::-webkit-scrollbar-thumb{background:var(--brass);border:3px solid var(--surface2);border-radius:8px}
-::-webkit-scrollbar-thumb:hover{background:var(--verm)}
-::-webkit-scrollbar-corner{background:var(--surface2)}
+  :root {
+    color-scheme: dark;
+  }
 
-header.top{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
-  padding:9px 16px;background:var(--surface);border-bottom:2px solid var(--brass);box-shadow:0 1px 0 var(--line)}
-.brand{display:flex;align-items:baseline;gap:10px}
-.brand b{font-family:var(--serif);font-size:18px;letter-spacing:.24em;color:var(--brass)}
-.brand span{font-size:11px;color:var(--ink3)}
-.grow{flex:1}
-fieldset{display:flex;margin:0;padding:0;border:1px solid var(--line);border-radius:4px;overflow:hidden}
-fieldset legend{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
-fieldset label{padding:5px 13px;font-size:12px;cursor:pointer;border-right:1px solid var(--line);background:var(--surface)}
-fieldset label:last-child{border-right:0}
-fieldset input{position:absolute;opacity:0;width:0;height:0}
-fieldset label:has(input:checked){background:var(--brass-soft)}
-fieldset input:checked+span{color:var(--brass);font-weight:700}
-.btn{padding:5px 11px;font-size:12px;background:var(--surface);border:1px solid var(--line);border-radius:4px;cursor:pointer}
-.btn:hover{border-color:var(--brass);color:var(--brass)}
-.btn:disabled{opacity:.45;cursor:default;border-color:var(--line);color:inherit}
-.btn.sm{padding:3px 8px;font-size:11px}
+  * {
+    box-sizing: border-box;
+  }
 
-main{max-width:1520px;margin:0 auto;padding:14px 16px 36px}
-.block{background:var(--surface);border:1px solid var(--line);border-radius:4px;margin-bottom:14px}
-.block>header{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--surface2);
-  border-bottom:1px solid var(--line);flex-wrap:wrap}
-.num{font-family:var(--mono);font-size:10px;color:var(--brass);letter-spacing:.16em}
-.body{padding:12px}
-.work{display:grid;grid-template-columns:296px minmax(0,1fr);gap:14px;align-items:start}
-@media(max-width:920px){.work{grid-template-columns:minmax(0,1fr)}}
-.set{display:flex;flex-direction:column;gap:11px}
-.fld label{display:block;font-size:10.5px;color:var(--ink2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px}
-.fld .row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-.fld .row em{font-style:normal;font-family:var(--mono);font-size:11px;color:var(--brass)}
-input[type=text],select,textarea{width:100%;padding:6px 8px;background:var(--raised);border:1px solid var(--line);
-  border-radius:3px;font-family:var(--mono);font-size:12.5px}
-textarea{font-size:13.5px;line-height:1.7;resize:vertical}
-input.bad{border-color:var(--err)}
-.note{font-size:10.5px;color:var(--ink3);margin-top:3px;font-family:var(--mono);min-height:14px}
-.chk{display:flex;align-items:flex-start;gap:7px;font-size:12px;cursor:pointer;padding:2px 0}
-.chk input{margin:2px 0 0;accent-color:var(--brass)}
-.sep{height:1px;background:var(--line2)}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.io{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media(max-width:1150px){.io{grid-template-columns:1fr}}
-.io .col{display:flex;flex-direction:column;gap:5px;min-width:0}
-.io .head{display:flex;align-items:center;gap:6px}
-.io .head h3{flex:1}
-#inputText,#outputText{min-height:208px}
-#outputText{background:var(--surface2);color:var(--brass);font-weight:600;letter-spacing:.04em}
-.bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-.status{font-family:var(--mono);font-size:11px;color:var(--ink2);padding:4px 0;min-height:19px}
-.alert{border:1px solid var(--warn);border-left-width:3px;border-radius:3px;padding:7px 9px;font-size:12px;
-  color:var(--warn);background:var(--surface2);margin-bottom:8px}
-.alert.e{border-color:var(--err);color:var(--err)}
-.stamp{display:inline-block;border:1.5px solid var(--verm);color:var(--verm);font-family:var(--mono);
-  font-size:10px;letter-spacing:.14em;padding:2px 7px;border-radius:2px;text-transform:uppercase}
-.scroll{overflow:auto;max-height:330px;border:1px solid var(--line2);border-radius:3px;background:var(--raised)}
-.scroll.x{max-height:none}
-.scroll.sm{max-height:240px}
-table{border-collapse:separate;border-spacing:0;width:100%;font-family:var(--mono);font-size:11.5px}
-th,td{border-bottom:1px solid var(--line2);border-right:1px solid var(--line2);padding:3px 7px;text-align:right;white-space:nowrap}
-thead th{position:sticky;top:0;z-index:3;background:var(--surface2);color:var(--ink2);font-weight:600;
-  font-size:10px;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--line)}
-td.l{font-weight:700;color:var(--ink)}
-td.res{color:var(--brass);font-weight:700}
-td.feed{color:var(--feed);font-weight:700}
-td.odd{background:var(--brass-soft)}
-table.ring{width:auto}
-table.ring td,table.ring th{border:1px solid var(--line2);text-align:center;min-width:30px}
-table.ring th{background:var(--surface2);color:var(--ink2);font-size:10px;text-transform:uppercase}
-table.ring tr.let td{font-size:14px;font-weight:700}
-.empty{padding:18px;text-align:center;color:var(--ink3);font-family:var(--mono);font-size:12px}
-.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
-@media(max-width:1000px){.grid2{grid-template-columns:minmax(0,1fr)}}
-.kv{display:grid;grid-template-columns:1fr auto;gap:2px 10px;font-family:var(--mono);font-size:12px;margin:0}
-.kv dt{color:var(--ink2);padding:3px 0;border-bottom:1px solid var(--line2)}
-.kv dd{margin:0;padding:3px 0;text-align:right;border-bottom:1px solid var(--line2);font-weight:600}
-.mini{display:inline-block;height:7px;background:var(--azure);vertical-align:middle;border-radius:1px}
-.spec{font-family:var(--mono);font-size:12px;background:var(--surface2);border:1px solid var(--line2);
-  border-left:3px solid var(--brass);border-radius:3px;padding:8px 10px;line-height:1.8;overflow-x:auto}
-.spec .f{color:var(--feed)}
-p.t{margin:8px 0 0;font-size:12.5px;color:var(--ink2)}
-.scheme{width:100%;height:auto;display:block;margin:4px 0 2px}
-.scheme text{font-family:var(--mono);fill:var(--ink2)}
-.scheme .cell{fill:var(--surface2);stroke:var(--line)}
-.scheme .fw{stroke:var(--brass);fill:none;stroke-width:1.6}
-.scheme .bw{stroke:var(--feed);fill:none;stroke-width:1.6}
-.scheme .lab{font-size:10px}
-.scheme .big{font-size:12px;fill:var(--ink)}
-footer{max-width:1520px;margin:0 auto;padding:0 16px 30px;font-size:11.5px;color:var(--ink3)}
-@media print{
-  header.top,.set,.noprint{display:none!important}
-  body{background:#fff;color:#000;background-image:none}
-  .block{border:1px solid #999;break-inside:avoid}
-  .work,.io,.grid2{display:block}
-  th{background:#eee}
-  #outputText{border:1px solid #999;color:#000}
-}
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
+  }
+
+  .app {
+    max-width: 1000px;
+    margin: 28px auto;
+    padding: 0 16px 40px;
+  }
+
+  h1 {
+    margin: 0 0 6px;
+    font-size: 26px;
+  }
+
+  .sub {
+    color: #94a3b8;
+    margin-bottom: 18px;
+    line-height: 1.35;
+  }
+
+  .panel {
+    background: #111827;
+    border: 1px solid #1f2937;
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 16px;
+  }
+
+  label {
+    display: block;
+    font-weight: 650;
+    margin-bottom: 8px;
+  }
+
+  input,
+  textarea {
+    width: 100%;
+    background: #0b1220;
+    color: #e5e7eb;
+    border: 1px solid #334155;
+    border-radius: 10px;
+    padding: 11px 12px;
+    font: inherit;
+    outline: none;
+  }
+
+  input:focus,
+  textarea:focus {
+    border-color: #60a5fa;
+  }
+
+  textarea {
+    min-height: 180px;
+    resize: vertical;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  .row {
+    display: flex;
+    gap: 10px;
+  }
+
+  .row input {
+    flex: 1;
+  }
+
+  .buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 12px;
+  }
+
+  button {
+    border: 0;
+    border-radius: 10px;
+    padding: 11px 14px;
+    font-weight: 650;
+    cursor: pointer;
+    background: #2563eb;
+    color: white;
+  }
+
+  button.secondary {
+    background: #334155;
+  }
+
+  button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  #status {
+    margin-top: 12px;
+    padding: 11px 12px;
+    border-radius: 10px;
+    background: #0b1220;
+    border: 1px solid #334155;
+    min-height: 1.3em;
+    white-space: pre-wrap;
+  }
+
+  #status.error {
+    border-color: #b91c1c;
+    color: #fecaca;
+  }
+
+  .meta,
+  footer {
+    color: #94a3b8;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  code {
+    color: #cbd5e1;
+  }
 </style>
 </head>
 <body>
-
-<header class="top">
-  <div class="brand"><b>ПРЯЛКА</b><span>полевой буквенный шифр · бумага, карандаш, одно слово-пароль</span></div>
-  <div class="grow"></div>
-  <fieldset>
-    <legend>Режим</legend>
-    <label><input type="radio" name="mode" value="enc" checked><span>Шифровать</span></label>
-    <label><input type="radio" name="mode" value="dec"><span>Расшифровать</span></label>
-  </fieldset>
-  <button class="btn" id="printBtn">Печать</button>
-  <button class="btn" id="themeBtn">Ночь</button>
-</header>
-
-<main>
-
-<section class="block">
-  <header><span class="num">01</span><h2>Работа</h2><div class="grow"></div><span class="mu mono" id="headInfo">—</span></header>
-  <div class="body">
-    <div class="work">
-      <div class="set">
-        <div class="fld">
-          <div class="row"><label for="preset">Алфавит</label><em id="alphaN">N = 33</em></div>
-          <select id="preset"></select>
-        </div>
-        <div class="fld">
-          <label for="alphabet">Строка алфавита</label>
-          <input type="text" id="alphabet" spellcheck="false" autocomplete="off">
-          <div class="note" id="alphaNote"></div>
-        </div>
-        <div class="fld">
-          <div class="row"><label for="password">Пароль — одно слово</label><em id="passLen"></em></div>
-          <input type="text" id="password" spellcheck="false" autocomplete="off">
-          <div class="note" id="passNote"></div>
-        </div>
-        <div class="sep"></div>
-        <div class="two">
-          <div class="fld"><label for="group">Группы по</label>
-            <select id="group"><option value="0">нет</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="8">8</option></select></div>
-          <div class="fld"><label for="outCase">Регистр</label>
-            <select id="outCase"><option value="upper">ВЕРХНИЙ</option><option value="lower">нижний</option><option value="alpha">как в алфавите</option></select></div>
-        </div>
-        <label class="chk"><input type="checkbox" id="preserve"><span>Сохранять пробелы и знаки</span></label>
-        <div class="fld"><label for="traceLimit">Витков в разборе</label>
-          <select id="traceLimit"><option value="60">60</option><option value="150" selected>150</option><option value="400">400</option></select></div>
-        <div class="note" id="optNote"></div>
-        <div class="sep"></div>
-        <div class="bar">
-          <button class="btn sm" id="randPass">Случайный пароль</button>
-          <button class="btn sm" id="sample">Пример</button>
-          <button class="btn sm" id="reset">Сброс</button>
-        </div>
-      </div>
-      <div>
-        <div id="alertBox"></div>
-        <div class="io">
-          <div class="col">
-            <div class="head"><h3 id="inTitle">Открытый текст</h3>
-              <button class="btn sm" id="undo" disabled>Вернуть</button>
-              <button class="btn sm" id="clear">Очистить</button></div>
-            <textarea id="inputText" spellcheck="false"></textarea>
-            <div class="status" id="inStat">—</div>
-          </div>
-          <div class="col">
-            <div class="head"><h3 id="outTitle">Шифровка</h3>
-              <button class="btn sm" id="swap">⇄ Во вход</button>
-              <button class="btn sm" id="copy">Копировать</button>
-              <button class="btn sm" id="save">.txt</button></div>
-            <textarea id="outputText" readonly spellcheck="false"></textarea>
-            <div class="status" id="outStat" aria-live="polite">—</div>
-          </div>
-        </div>
-      </div>
-    </div>
+<main class="app">
+  <h1>Jacobian Neural Cipher</h1>
+  <div class="sub">
+    Экспериментальный нейросетевой шифр на обратимых якобиан-блоках.
+    Шифрование выполняет сеть, веса детерминированно выводятся из ключа.
+    Режим текста: аддитивный CBC без XOR. Целостность: HMAC-SHA-256.
   </div>
-</section>
 
-<section class="block">
-  <header><span class="num">02</span><h2>Кольцо и правило</h2><div class="grow"></div>
-    <span class="stamp">кольцо = ключ</span><span class="mu mono" id="keyInfo">—</span></header>
-  <div class="body">
-    <div class="scroll x" style="margin-bottom:10px"><table class="ring" id="ringTable"></table></div>
-    <div class="grid2">
-      <div>
-        <h3 style="margin-bottom:5px">Полоса пароля</h3>
-        <div class="scroll x"><table class="ring" id="passTable"></table></div>
-        <h3 style="margin:10px 0 5px">Два движения на одну букву</h3>
-        <svg class="scheme" viewBox="0 0 660 132" role="img" aria-label="Схема: подача с хвоста и виток слева направо">
-          <defs>
-            <marker id="ab" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0 L7 3.5 L0 7 z" fill="var(--brass)"/></marker>
-            <marker id="am" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0 L7 3.5 L0 7 z" fill="var(--feed)"/></marker>
-          </defs>
-          <text class="lab" x="0" y="14">подача T — справа налево: один взгляд на кольцо, одно сложение</text>
-          <text class="lab" x="0" y="126">виток — слева направо: шифровка пишется сразу под буквой</text>
-          <g id="schemeCells"></g>
-        </svg>
-      </div>
-      <div>
-        <h3 style="margin-bottom:5px">Формулы</h3>
-        <div class="spec"><span class="f">T[n−1] = 0;  T[i] = (T[i+1] + №кольца(P[i+1])) mod N</span><br>
-w = (v + №k_j + <span class="f">T[i]</span>) mod N<br>
-a = (№P + u) mod N;  L = кольцо[a]<br>
-b = (№L + w) mod N;  C = кольцо[b]<br>
-ход: u ← u + Δu(C);  v ← v + b;  j ← j + (b нечётно ? 2 : 1)</div>
-        <p class="t">Кольцевая перестановка σ применяется дважды за виток: <span class="mono">C = σ(σ(p+u) + w)</span>. Между применениями — сдвиг, поэтому виток не сводится к сложению ключа с буквой. Подача <span class="mono">T</span> тянет влияние буквы влево, ход стрелок от шифробуквы — вправо. Отсюда лавина в обе стороны за один виток.</p>
-        <p class="t">Никаких байтов: только номера букв и сложение по модулю N. Служебных букв нет — длина шифровки равна длине текста по буквам.</p>
-      </div>
+  <section class="panel">
+    <label for="key">Ключ</label>
+    <div class="row">
+      <input id="key" type="password" placeholder="Введите ключ" autocomplete="off" spellcheck="false">
+      <button id="toggleKey" class="secondary" type="button">Показать</button>
     </div>
-  </div>
-</section>
-
-<section class="block">
-  <header><span class="num">03</span><h2>Разбор</h2><div class="grow"></div>
-    <button class="btn sm" id="checkBtn">Проверить текст</button>
-    <button class="btn sm" id="testBtn">Самопроверка</button>
-    <span class="mu mono" id="testSum">не запускалась</span></header>
-  <div class="body">
-    <div class="grid2">
-      <div>
-        <h3 style="margin-bottom:6px">Лавина и нелинейность</h3>
-        <dl class="kv" id="metrics"></dl>
-        <div class="status" id="checkResult"></div>
-      </div>
-      <div>
-        <h3 style="margin-bottom:6px">Частоты (12 самых частых букв)</h3>
-        <div class="scroll sm"><table>
-          <thead><tr><th>буква</th><th>откр. шт</th><th>%</th><th>шифр. шт</th><th>%</th><th style="text-align:left">доля шифровки</th></tr></thead>
-          <tbody id="freqBody"></tbody>
-        </table></div>
-      </div>
+    <div class="meta" style="margin-top:8px">
+      Параметры сети: блок 16 байт, 8 слоёв, скрытая ширина 64.
+      Формат пакета: <code>base64(version || nonce || ciphertext || hmac)</code>.
     </div>
-    <h4>Витки и подача</h4>
-    <div class="scroll"><table>
-      <thead><tr><th>№</th><th>T</th><th>вход</th><th>u</th><th>v</th><th>j</th><th>k_j</th><th>w</th><th>a</th><th>№L</th><th>b</th><th>выход</th><th>u′</th><th>v′</th><th>j′</th></tr></thead>
-      <tbody id="traceBody"></tbody>
-    </table></div>
-    <div class="status" id="traceInfo">—</div>
-    <h4>Результаты самопроверки</h4>
-    <div class="scroll sm"><table><tbody id="testBody">
-      <tr><td class="empty">Сверка с эталонной формулой, обратимость, лавина в обе стороны, отсутствие периода.</td></tr>
-    </tbody></table></div>
-  </div>
-</section>
+  </section>
 
-<section class="block">
-  <header><span class="num">04</span><h2>Полевые заметки</h2></header>
-  <div class="body">
-    <div class="grid2">
-      <div>
-        <p class="t"><b>Пароль.</b> Одно слово, не менее пяти букв и четырёх разных. Согласуется устно, на посылку — один пароль. Кольцо строится из пароля и является ключом: носить его вместе с шифровкой нельзя.</p>
-        <p class="t"><b>Счёт.</b> Две строки на бумаге: подача <span class="mono">T</span> под открытым текстом, шифровка под ней. Три счётчика <span class="mono">u</span>, <span class="mono">v</span>, <span class="mono">j</span> ведутся скрепками по полосам чисел. Шаг <span class="mono">Δu</span> и чётность позиции напечатаны в таблице кольца — считать их в уме не нужно.</p>
-        <p class="t"><b>Объём.</b> До двухсот букв на пароль. Пишите телеграфно: «СНЕГ СЕВЕР ВЫХОД ЗАВТРА» вместо фразы. Ошибка в одной букве портит текст в обе стороны — это цена полной лавины.</p>
-      </div>
-      <div>
-        <p class="t"><b>Чего здесь нет намеренно.</b> Ни контрольных букв, ни замков, ни служебных полей: всё это давало взломщику готовые пары «открытый–шифр» в предсказуемых местах. Проверки целостности нет — неверный пароль или искажение дадут мусор без предупреждения. Сверяйте смысл полученного текста.</p>
-        <p class="t"><b>Стойкость.</b> Против частотного анализа, Касиски и линейных систем по известному открытому тексту конструкция держится: гамма непериодична, виток неаффинен. Против машинного анализа на больших объёмах гарантий нет — это ручной шифр, а не замена современной криптографии.</p>
-        <p class="t"><b>Для квеста.</b> Распечатайте страницу: кольцо и шифровка уйдут на лист, пароль передайте отдельно. Алфавит можно задать свой — хоть из символов карты или значков легенды.</p>
-      </div>
+  <section class="panel">
+    <label for="input">Вход</label>
+    <textarea id="input" placeholder="Для шифрования введите текст. Для расшифровки вставьте base64-пакет." spellcheck="false"></textarea>
+
+    <div class="buttons">
+      <button id="encrypt" type="button">Зашифровать</button>
+      <button id="decrypt" type="button">Расшифровать</button>
+      <button id="selftest" type="button" class="secondary">Самопроверка</button>
+      <button id="copy" type="button" class="secondary">Копировать результат</button>
+      <button id="download" type="button" class="secondary">Скачать результат</button>
+      <button id="clear" type="button" class="secondary">Очистить</button>
     </div>
-  </div>
-</section>
 
+    <div id="status" role="status"></div>
+  </section>
+
+  <section class="panel">
+    <label for="output">Результат</label>
+    <textarea id="output" readonly spellcheck="false"></textarea>
+  </section>
+
+  <footer>
+    Конструкция исследовательская и не является аудированным криптографическим стандартом.
+    Для продакшена используйте проверенные стандарты.
+  </footer>
 </main>
-<footer>ПРЯЛКА · встречная подача с хвоста · ход стрелок от шифробуквы · без служебных букв</footer>
 
 <script>
-(function(){
-"use strict";
-const $=id=>document.getElementById(id);
-const mod=(x,n)=>((x%n)+n)%n;
-const clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
-const chars=s=>Array.from(String(s));
-const up=ch=>{const u=ch.toUpperCase();return u.length>1?u[0]:u;};
-const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-const fmt=n=>String(n).replace(/\B(?=(\d{3})+(?!\d))/g," ");
-const sum=a=>a.reduce((x,y)=>x+y,0);
+(() => {
+  "use strict";
 
-const PRESETS=[
- {id:"ru33",name:"Русский · 33",value:"АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"},
- {id:"ru32",name:"Русский без Ё · 32",value:"АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"},
- {id:"en26",name:"English · 26",value:"ABCDEFGHIJKLMNOPQRSTUVWXYZ"},
- {id:"en36",name:"Латиница + цифры · 36",value:"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"},
- {id:"ru39",name:"Русский + пробел и знаки · 39",value:"АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ .,!?-"},
- {id:"mix69",name:"Кириллица + латиница + цифры · 69",value:"АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"},
- {id:"ua33",name:"Українська · 33",value:"АБВГҐДЕЄЖЗИІЇЙКЛМНОПРСТУФХЦЧШЩЬЮЯ"},
- {id:"de29",name:"Deutsch + Umlaute · 29",value:"ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜ"},
- {id:"custom",name:"Свой алфавит",value:""}
-];
-const SAMPLE="Снег идёт с севера. Ёлка, съешь ещё этих мягких французских булок да выпей чаю!";
-const DEFAULTS={preset:"ru33",alphabet:PRESETS[0].value,password:"ПРЯЛКА",group:5,outCase:"upper",
-  preserve:false,traceLimit:150,mode:"enc",theme:"paper",text:SAMPLE};
-const STORE="pryalka.field.v1";
+  // ============================================================
+  // Константы
+  // ============================================================
 
-/* ---------- ключ ---------- */
-function normalizeAlphabet(raw){
-  const seen=new Set(),out=[];let dropped=0;
-  for(const ch of chars(raw)){const u=up(ch);if(seen.has(u)){dropped++;continue;}seen.add(u);out.push(u);}
-  return {letters:out,dropped};
-}
-function ringBits(N){let s=0;for(let i=2;i<=N;i++)s+=Math.log2(i);return s;}
-function affineAgreement(perm,N){
-  let best=0;
-  for(let a=0;a<N;a++){
-    const cnt=new Array(N).fill(0);
-    for(let x=0;x<N;x++)cnt[mod(perm[x]-a*x,N)]++;
-    for(let b=0;b<N;b++)if(cnt[b]>best)best=cnt[b];
-  }
-  return best;
-}
-function buildKey(al,pw){
-  const na=normalizeAlphabet(al),A=na.letters,N=A.length;
-  if(N<6)throw new Error("Алфавит: нужно не менее 6 разных знаков (сейчас "+N+").");
-  if(N>128)throw new Error("Алфавит: не более 128 знаков (сейчас "+N+").");
-  const pos=new Map(A.map((c,i)=>[c,i]));
-  const word=[];let rejected=0;
-  for(const ch of chars(pw)){const u=up(ch);if(pos.has(u))word.push(u);else if(u.trim()!=="")rejected++;}
-  const minL=N>=12?5:3,minD=N>=12?4:2;
-  if(word.length<minL)throw new Error("Пароль: нужно не менее "+minL+" букв алфавита (сейчас "+word.length+").");
-  const distinct=[...new Set(word)];
-  if(distinct.length<minD)throw new Error("Пароль: нужно не менее "+minD+" разных букв (сейчас "+distinct.length+").");
-  const ring=distinct.concat(A.filter(c=>!distinct.includes(c)));
-  const sigma=ring.map(c=>pos.get(c)),sigmaInv=new Array(N);
-  ring.forEach((c,i)=>{sigmaInv[pos.get(c)]=i;});
-  const tau=sigma.map(x=>sigma[x]);
-  const kp=word.map(c=>pos.get(c));
-  const u0=sum(kp)%N,v0=mod(u0+kp[kp.length-1]+word.length,N);
-  const affS=affineAgreement(sigma,N),affT=affineAgreement(tau,N);
-  return {A,N,pos,ring:ring.join(""),sigma,sigmaInv,tau,kp,m:word.length,u0,v0,rejected,
-    dropped:na.dropped,distinct:distinct.length,bits:ringBits(N),affS,affT,affine:affS===N,hasSpace:pos.has(" ")};
-}
+  const VERSION = 1;
+  const BLOCK_SIZE = 16;
+  const LAYERS = 8;
+  const HIDDEN = 64;
 
-/* ---------- ядро ---------- */
-function feed(stream,key){
-  const n=stream.length,T=new Array(n);
-  if(n)T[n-1]=0;
-  for(let i=n-2;i>=0;i--)T[i]=mod(T[i+1]+key.sigmaInv[stream[i+1]],key.N);
-  return T;
-}
-function encryptStream(stream,key,sink){
-  const N=key.N,sigma=key.sigma,kp=key.kp,m=key.m,n=stream.length;
-  const T=feed(stream,key),out=new Array(n);
-  let u=key.u0,v=key.v0,j=0;
-  for(let i=0;i<n;i++){
-    const kj=kp[j],w=mod(v+kj+T[i],N),a=mod(stream[i]+u,N),t=sigma[a],b=mod(t+w,N),c=sigma[b];
-    out[i]=c;
-    const nu=mod(u+1+(c%3),N),nv=mod(v+b,N),nj=mod(j+1+(b%2),m);
-    if(sink)sink.push({i,T:T[i],inp:stream[i],u,v,j,kj,w,a,t,b,out:c,nu,nv,nj});
-    u=nu;v=nv;j=nj;
-  }
-  return out;
-}
-function decryptStream(rec,key,sink){
-  const N=key.N,sigmaInv=key.sigmaInv,kp=key.kp,m=key.m,n=rec.length;
-  const st=new Array(n);
-  let u=key.u0,v=key.v0,j=0;
-  for(let i=0;i<n;i++){
-    st[i]={u,v,j};
-    const b=sigmaInv[rec[i]];
-    u=mod(u+1+(rec[i]%3),N);v=mod(v+b,N);j=mod(j+1+(b%2),m);
-  }
-  const out=new Array(n);let T=0;
-  for(let i=n-1;i>=0;i--){
-    const s=st[i],kj=kp[s.j],w=mod(s.v+kj+T,N),b=sigmaInv[rec[i]];
-    const t=mod(b-w,N),a=sigmaInv[t],p=mod(a-s.u,N);
-    out[i]=p;
-    if(sink)sink.push({i,T,inp:rec[i],u:s.u,v:s.v,j:s.j,kj,w,a,t,b,out:p,
-      nu:mod(s.u+1+(rec[i]%3),N),nv:mod(s.v+b,N),nj:mod(s.j+1+(b%2),m)});
-    T=mod(T+sigmaInv[p],N);
-  }
-  if(sink)sink.sort((x,y)=>x.i-y.i);
-  return out;
-}
-function refEncrypt(body,key){
-  const n=body.length,out=[];
-  let u=key.u0,v=key.v0,j=0;
-  for(let i=0;i<n;i++){
-    let T=0;
-    for(let k=i+1;k<n;k++)T=(T+key.sigmaInv[body[k]])%key.N;
-    const w=(v+key.kp[j]+T)%key.N;
-    const a=(body[i]+u)%key.N;
-    const t=key.pos.get(key.ring[a]);
-    const b=(t+w)%key.N;
-    const c=key.pos.get(key.ring[b]);
-    out.push(c);
-    u=(u+1+(c%3))%key.N;v=(v+b)%key.N;j=(j+1+(b%2))%key.m;
-  }
-  return out;
-}
+  // Запас потока весов на один блок.
+  // Реальное потребление около 45-50 КБ, берём с запасом.
+  const STREAM_BYTES = 131072;
 
-/* ---------- текст ---------- */
-function extract(text,key){
-  const letters=[],slots=[];
-  chars(text).forEach((ch,i)=>{const p=key.pos.get(up(ch));if(p!==undefined){letters.push(p);slots.push(i);}});
-  return{letters,slots};
-}
-function groupStr(s,g){if(!g)return s;const o=[];for(let i=0;i<s.length;i+=g)o.push(s.slice(i,i+g));return o.join(" ");}
-function format(letters,text,ex,key,cfg){
-  let r;
-  if(cfg.preserve){
-    const arr=chars(text);
-    ex.slots.forEach((s,i)=>{arr[s]=letters[i]!==undefined?key.A[letters[i]]:"";});
-    r=arr.join("");
-  }else{
-    r=letters.map(i=>key.A[i]).join("");
-    if(cfg.group>0&&!key.hasSpace)r=groupStr(r,cfg.group);
-  }
-  if(cfg.outCase==="lower")r=r.toLowerCase();
-  return r;
-}
-function encryptText(text,key,cfg,sink){
-  const ex=extract(text,key),body=ex.letters;
-  const ct=encryptStream(body,key,sink);
-  return{text:format(ct,text,ex,key,cfg),plain:body,cipher:ct};
-}
-function decryptText(text,key,cfg,sink){
-  const ex=extract(text,key),rec=ex.letters;
-  const body=decryptStream(rec,key,sink);
-  return{text:format(body,text,ex,key,cfg),plain:body,cipher:rec};
-}
+  const enc = new TextEncoder();
+  const dec = new TextDecoder("utf-8", { fatal: true });
 
-/* ---------- статистика ---------- */
-function counts(s,N){const c=new Array(N).fill(0);for(const x of s)c[x]++;return c;}
-function ic(s,N){const n=s.length;if(n<2)return 0;const c=counts(s,N);let t=0;for(let i=0;i<N;i++)t+=c[i]*(c[i]-1);return t/(n*(n-1));}
-function entropy(s,N){const n=s.length;if(!n)return 0;const c=counts(s,N);let h=0;for(let i=0;i<N;i++)if(c[i]){const p=c[i]/n;h-=p*Math.log2(p);}return h;}
-function autocorr(s){
-  const n=s.length,lim=Math.min(40,Math.floor(n/3));let best=0,shift=0;
-  for(let d=1;d<=lim;d++){let hit=0;for(let i=0;i+d<n;i++)if(s[i]===s[i+d])hit++;const r=hit/(n-d);if(r>best){best=r;shift=d;}}
-  return{best,shift,limit:lim};
-}
-const lettersOnly=(s,key)=>chars(s).filter(ch=>key.pos.has(up(ch))).map(ch=>key.pos.get(up(ch)));
+  // ============================================================
+  // DOM
+  // ============================================================
 
-/* ---------- состояние ---------- */
-let S=Object.assign({},DEFAULTS);
-let key=null,keyError=null,res=null,resError=null,trace=[],undoStack=[];
-function load(){
-  try{
-    const o=JSON.parse(localStorage.getItem(STORE)||"null");if(!o)return;
-    for(const k of["preset","alphabet","password","outCase","mode","theme","text"])if(typeof o[k]==="string")S[k]=o[k];
-    for(const k of["group","traceLimit"])if(Number.isFinite(o[k]))S[k]=o[k];
-    if(typeof o.preserve==="boolean")S.preserve=o.preserve;
-    S.group=[0,3,4,5,6,8].includes(S.group)?S.group:5;
-    S.traceLimit=[60,150,400].includes(S.traceLimit)?S.traceLimit:150;
-    if(!["upper","lower","alpha"].includes(S.outCase))S.outCase="upper";
-    if(!["enc","dec"].includes(S.mode))S.mode="enc";
-    if(!["paper","night"].includes(S.theme))S.theme="paper";
-    if(!PRESETS.some(p=>p.id===S.preset))S.preset="custom";
-  }catch(e){}
-}
-function save(){try{localStorage.setItem(STORE,JSON.stringify(S));}catch(e){}}
-const cfg=()=>({group:S.group,outCase:S.outCase,preserve:S.preserve});
-let timer=null;
-function schedule(){clearTimeout(timer);timer=setTimeout(compute,140);}
-function pushUndo(label){undoStack.push({text:S.text,mode:S.mode,label});if(undoStack.length>12)undoStack.shift();
-  $("undo").disabled=false;$("undo").title="Вернуть: "+label;}
-function popUndo(){const u=undoStack.pop();if(!u)return;S.text=u.text;S.mode=u.mode;$("inputText").value=S.text;
-  document.querySelector('input[name=mode][value="'+S.mode+'"]').checked=true;
-  $("undo").disabled=undoStack.length===0;compute();}
-function compute(){
-  key=null;keyError=null;res=null;resError=null;trace=[];
-  try{key=buildKey(S.alphabet,S.password);}catch(e){keyError=e.message;}
-  if(key){
-    const sink=[];
-    try{res=S.mode==="enc"?encryptText(S.text,key,cfg(),sink):decryptText(S.text,key,cfg(),sink);trace=sink;}
-    catch(e){resError=e.message;}
-  }
-  render();save();
-}
+  const $ = (id) => document.getElementById(id);
 
-/* ---------- отрисовка ---------- */
-function render(){
-  const N=key?key.N:0;
-  document.documentElement.dataset.theme=S.theme;
-  $("themeBtn").textContent=S.theme==="paper"?"Ночь":"Бумага";
-  $("alphaN").textContent="N = "+N;
-  $("passLen").textContent=key?key.m+" букв":"";
-  $("headInfo").textContent=key?"N="+N+" · состояний "+fmt(N*N*key.m)+" · кольцо ≈"+Math.round(key.bits)+" бит":"ключ не построен";
-  const aBad=!key&&/Алфавит/.test(keyError||""),pBad=!key&&/Пароль/.test(keyError||"");
-  $("alphabet").classList.toggle("bad",aBad);$("password").classList.toggle("bad",pBad);
-  $("alphaNote").textContent=aBad?keyError:key?[key.dropped?"повторов отброшено: "+key.dropped:null,
-    "регистр не различается",key.hasSpace?"пробел — буква алфавита":null].filter(Boolean).join(" · "):"";
-  $("alphaNote").className="note"+(aBad?" err":"");
-  $("passNote").textContent=pBad?keyError:key?"кольцо начинается с "+key.distinct+" букв пароля"+(key.rejected?" · вне алфавита: "+key.rejected:""):"";
-  $("passNote").className="note"+(pBad?" err":(key&&key.rejected?" warn":""));
-  const noGroup=!key||key.hasSpace||S.preserve;
-  $("group").disabled=noGroup;
-  $("optNote").textContent=noGroup?(S.preserve?"Группировка выключена: знаки на местах.":"Группировка выключена: пробел в алфавите.")
-    :"Служебных букв нет: длина шифровки равна длине текста по буквам.";
-  $("inTitle").textContent=S.mode==="enc"?"Открытый текст":"Шифровка";
-  $("outTitle").textContent=S.mode==="enc"?"Шифровка":"Открытый текст";
-  const box=$("alertBox");box.innerHTML="";
-  if(!key)box.innerHTML='<div class="alert e">'+esc(keyError)+'</div>';
-  else if(resError)box.innerHTML='<div class="alert e">'+esc(resError)+'</div>';
-  else if(S.mode==="dec")box.innerHTML='<div class="alert">Проверки целостности нет: чужой пароль или искажение дадут мусор без предупреждения. Сверяйте смысл текста.</div>';
-  $("outputText").value=(key&&res&&!resError)?res.text:"";
-  if(key){const ex=extract(S.text,key),o=chars(S.text).length-ex.letters.length;
-    $("inStat").textContent=fmt(ex.letters.length)+" букв алфавита · "+fmt(o)+" прочих знаков"+(S.preserve?" (сохраняются)":" (отбрасываются)");
-  }else $("inStat").textContent="—";
-  if(key&&res&&!resError){
-    const c=S.mode==="enc"?res.cipher.length:res.plain.length,p=[fmt(c)+" букв"];
-    if(S.group>0&&!S.preserve&&!key.hasSpace)p.push(Math.ceil(c/S.group)+" групп");
-    p.push("без служебных букв");
-    $("outStat").textContent=p.join(" · ");
-  }else $("outStat").textContent="—";
-  $("keyInfo").textContent=key?"u₀="+key.u0+" · v₀="+key.v0+" · j₀=0 · m="+key.m:"—";
-  renderRing();renderPass();renderScheme();renderStats();renderTrace();
-}
-function renderRing(){
-  const t=$("ringTable");
-  if(!key){t.innerHTML='<tr><td class="empty">Кольцо не построено.</td></tr>';return;}
-  let p="",l="",n="",d="";
-  for(let i=0;i<key.N;i++){
-    const odd=i%2?' class="odd"':"";
-    p+="<td"+odd+">"+i+"</td>";
-    l+="<td"+odd+"><b>"+esc(key.ring[i])+"</b></td>";
-    n+="<td"+odd+">"+key.sigma[i]+"</td>";
-    d+="<td>"+(1+(key.sigma[i]%3))+"</td>";
+  const statusEl = $("status");
+  const keyEl = $("key");
+  const inputEl = $("input");
+  const outputEl = $("output");
+
+  const buttonIds = [
+    "toggleKey",
+    "encrypt",
+    "decrypt",
+    "selftest",
+    "copy",
+    "download",
+    "clear"
+  ];
+
+  function setStatus(message, isError = false) {
+    statusEl.textContent = message;
+    statusEl.classList.toggle("error", isError);
   }
-  t.innerHTML='<tr><th>позиция</th>'+p+'</tr><tr class="let"><th>буква</th>'+l+
-    '</tr><tr><th>обычный №</th>'+n+'</tr><tr><th>шаг Δu</th>'+d+'</tr>';
-}
-function renderPass(){
-  const t=$("passTable");
-  if(!key){t.innerHTML='<tr><td class="empty">—</td></tr>';return;}
-  let j="",l="",n="";
-  for(let i=0;i<key.m;i++){j+="<td>"+i+"</td>";l+="<td><b>"+esc(key.A[key.kp[i]])+"</b></td>";n+="<td>"+key.kp[i]+"</td>";}
-  t.innerHTML='<tr><th>j</th>'+j+'</tr><tr class="let"><th>буква</th>'+l+'</tr><tr><th>№ k_j</th>'+n+'</tr>';
-}
-function renderScheme(){
-  const g=$("schemeCells");if(!g)return;
-  const n=6,x0=70,dx=94,yTop=44,yBot=88;let s="";
-  for(let i=0;i<n;i++){
-    const x=x0+i*dx;
-    s+='<rect class="cell" x="'+x+'" y="'+yTop+'" width="62" height="26" rx="3"/>';
-    s+='<text class="big" x="'+(x+31)+'" y="'+(yTop+18)+'" text-anchor="middle">P'+i+'</text>';
-    s+='<rect class="cell" x="'+x+'" y="'+yBot+'" width="62" height="20" rx="3"/>';
-    s+='<text class="lab" x="'+(x+31)+'" y="'+(yBot+14)+'" text-anchor="middle">T'+i+'</text>';
-    if(i<n-1){
-      s+='<path class="fw" d="M'+(x+62)+' '+(yTop+13)+' L'+(x+dx-4)+' '+(yTop+13)+'" marker-end="url(#ab)"/>';
-      s+='<path class="bw" d="M'+(x+dx)+' '+(yBot+10)+' L'+(x+66)+' '+(yBot+10)+'" marker-end="url(#am)"/>';
+
+  function setBusy(busy) {
+    for (const id of buttonIds) {
+      const el = $(id);
+      if (el) el.disabled = busy;
     }
-    s+='<path class="bw" d="M'+(x+31)+' '+(yBot)+' L'+(x+31)+' '+(yTop+30)+'" marker-end="url(#am)" stroke-dasharray="3 3"/>';
   }
-  g.innerHTML=s;
-}
-function metric(n,v,c){return '<dt>'+n+'</dt><dd'+(c?' class="'+c+'"':'')+'>'+v+'</dd>';}
-function renderStats(){
-  const m=$("metrics"),fb=$("freqBody");
-  if(!key||!res||resError){m.innerHTML=metric("Состояние","ключ не построен","err");
-    fb.innerHTML='<tr><td colspan="6" class="empty">Нет данных.</td></tr>';return;}
-  const N=key.N,pl=res.plain,ci=res.cipher,icp=ic(pl,N),icc=ic(ci,N),rnd=1/N;
-  const c2={group:0,outCase:"upper",preserve:false};
-  let ava="—",ac="";const ex=extract(S.text,key);
-  if(S.mode==="enc"&&ex.letters.length>=8){
-    try{
-      const b1=encryptText(S.text,key,c2,null).cipher,arr=chars(S.text);
-      const mi=Math.floor(ex.slots.length/2),mid=ex.slots[mi];
-      arr[mid]=key.A[mod(key.pos.get(up(arr[mid]))+1,N)];
-      const b2=encryptText(arr.join(""),key,c2,null).cipher,n=Math.min(b1.length,b2.length);
-      let head=0,tail=0,d=0;
-      for(let i=0;i<n;i++)if(b1[i]!==b2[i]){d++;if(i<mi)head++;else tail++;}
-      const hp=mi?head/mi:0,tp=n-mi?tail/(n-mi):0;
-      ava=(100*d/n).toFixed(1)+" % · влево "+(100*hp).toFixed(0)+" % · вправо "+(100*tp).toFixed(0)+" %";
-      ac=hp>0.8&&tp>0.8?"ok":"warn";
-    }catch(e){}
-  }else ava=S.mode==="dec"?"измеряется при шифровании":"нужно ≥ 8 букв";
-  let rep="—",rc="";
-  try{
-    const bl=Math.min(12,N),block=key.A.slice(0,bl).join("");
-    const f1=key.A[0].repeat(40),f2=key.A[Math.min(1,N-1)].repeat(37);
-    const c=encryptText(block+f1+block+f2+block,key,c2,null).text;
-    const s1=c.slice(0,bl),s2=c.slice(bl+40,bl+40+bl),s3=c.slice(2*bl+77,2*bl+77+bl);
-    const same=(s1===s2&&s2===s3);rep=same?"повтор найден":"повторов нет";rc=same?"err":"ok";
-  }catch(e){}
-  const a=autocorr(ci);
-  m.innerHTML=metric("Алфавит N",N)+metric("Букв: вход → выход",fmt(pl.length)+" → "+fmt(ci.length))+
-    metric("Лавина в обе стороны",ava,ac)+
-    metric("Аффинное приближение σ",key.affS+" / "+N+" ("+(100*key.affS/N).toFixed(1)+" %)",key.affine?"err":"ok")+
-    metric("Аффинное приближение σ∘σ",key.affT+" / "+N+" ("+(100*key.affT/N).toFixed(1)+" %)",key.affT===N?"err":"ok")+
-    metric("Применений σ на букву","2")+
-    metric("Индекс совпадения, открытый",icp.toFixed(4))+
-    metric("Индекс совпадения, шифровка",icc.toFixed(4),icc<rnd*1.6?"ok":"")+
-    metric("Случайный уровень 1/N",rnd.toFixed(4))+
-    metric("Энтропия шифровки",entropy(ci,N).toFixed(3)+" бит")+
-    metric("Максимум log₂N",Math.log2(N).toFixed(3)+" бит")+
-    metric("Разных букв в шифровке",counts(ci,N).filter(x=>x>0).length+" / "+N)+
-    metric("Касиски: повтор блока",rep,rc)+
-    metric("Макс. автокорреляция",a.limit<3?"мало данных":a.best.toFixed(4)+" (сдвиг "+a.shift+")",a.limit<3?"":(a.best<rnd*2.2?"ok":"err"))+
-    metric("Состояний N²·m",fmt(N*N*key.m))+metric("Кольцо, log₂(N!)",Math.round(key.bits)+" бит");
-  if(!pl.length||!ci.length){fb.innerHTML='<tr><td colspan="6" class="empty">Нет букв для сравнения.</td></tr>';return;}
-  const cp=counts(pl,N),cc=counts(ci,N);
-  const idx=Array.from({length:N},(_,i)=>i).sort((a,b)=>(cp[b]+cc[b])-(cp[a]+cc[a])).slice(0,12);
-  const maxP=Math.max(...idx.map(i=>cc[i]/ci.length),1/N);
-  fb.innerHTML=idx.map(i=>{
-    const pp=cp[i]/pl.length*100,pc=cc[i]/ci.length*100,w=Math.round((cc[i]/ci.length)/maxP*70);
-    return '<tr><td class="l">'+esc(key.A[i])+'</td><td>'+cp[i]+'</td><td>'+pp.toFixed(2)+
-      '</td><td>'+cc[i]+'</td><td>'+pc.toFixed(2)+'</td><td style="text-align:left"><span class="mini" style="width:'+w+'px"></span></td></tr>';
-  }).join("");
-}
-function renderTrace(){
-  const b=$("traceBody"),lim=S.traceLimit;
-  $("traceInfo").textContent=trace.length?("показано "+Math.min(lim,trace.length)+" из "+fmt(trace.length)+" витков · T — подача с хвоста"):"нет витков";
-  if(!trace.length){b.innerHTML='<tr><td colspan="15" class="empty">'+(key?"Введите текст.":"Исправьте алфавит или пароль.")+'</td></tr>';return;}
-  b.innerHTML=trace.slice(0,lim).map(r=>'<tr><td>'+(r.i+1)+'</td><td class="feed">'+r.T+'</td><td class="l">'+esc(key.A[r.inp])+
-    '</td><td>'+r.u+'</td><td>'+r.v+'</td><td>'+r.j+'</td><td>'+r.kj+'</td><td>'+r.w+'</td><td>'+r.a+'</td><td>'+r.t+
-    '</td><td>'+r.b+'</td><td class="res">'+esc(key.A[r.out])+'</td><td>'+r.nu+'</td><td>'+r.nv+'</td><td>'+r.nj+'</td></tr>').join("");
-}
 
-/* ---------- проверки ---------- */
-function checkCurrent(){
-  const el=$("checkResult");
-  if(!key||!res||resError){el.textContent="Ключ не построен.";el.className="status err";return;}
-  const c2={group:0,outCase:"upper",preserve:false};
-  try{
-    const a=S.mode==="enc"?S.text:decryptText(S.text,key,c2,null).text;
-    const back=decryptText(encryptText(a,key,c2,null).text,key,c2,null).text;
-    const ok=lettersOnly(back,key).join()===lettersOnly(a,key).join();
-    el.textContent=ok?"Обратимость текущего текста: OK":"Обратимость текущего текста: ОШИБКА";
-    el.className="status "+(ok?"ok":"err");
-  }catch(e){el.textContent="Ошибка проверки: "+e.message;el.className="status err";}
-}
-function runTests(){
-  const out=[],t0=performance.now(),RU=PRESETS[0].value;
-  const add=(n,ok,d)=>out.push({n,ok:!!ok,d:d||""});
-  const rnd=(s)=>{let x=s;return()=>{x=(x*1103515245+12345)&0x7fffffff;return x/0x7fffffff;};};
-  const R=rnd(20261122);
-  try{
-    const k=buildKey(RU,"ПРЯЛКА"),c={group:0,outCase:"upper",preserve:false};
-    const kat=encryptText("СНЕГ",k,c,null).cipher;
-    add("Виток сверен с эталоном: СНЕГ → "+kat.map(i=>k.A[i]).join(""),kat.join()===refEncrypt([18,14,5,3],k).join(),
-      "один виток, подача с хвоста, без служебных букв");
-    add("Начальные стрелки u₀=22, v₀=28",k.u0===22&&k.v0===28,"выведены из пароля");
-    const als=[RU,PRESETS[2].value,PRESETS[3].value,PRESETS[4].value,"АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЩЭЮЯ★№"];
-    const pws=["ПРЯЛКА","СВЕЧА","ЗИМНИЙВЕЧЕР","KEYWORD","АБВГДЕЖ"];
-    let diff=true,dn=0;
-    for(const al of als)for(const pw of pws){
-      let kk;try{kk=buildKey(al,pw);}catch(e){continue;}
-      for(let t=0;t<10;t++){
-        const len=Math.floor(R()*45),body=[];
-        for(let i=0;i<len;i++)body.push(Math.floor(R()*kk.N));
-        const fast=encryptStream(body,kk,null),slow=refEncrypt(body,kk);
-        dn++;if(fast.join()!==slow.join())diff=false;
+  let busy = false;
+
+  async function run(action) {
+    if (busy) return;
+    busy = true;
+    setBusy(true);
+
+    try {
+      await action();
+    } catch (err) {
+      console.error(err);
+      setStatus("Ошибка: " + (err && err.message ? err.message : String(err)), true);
+    } finally {
+      busy = false;
+      setBusy(false);
+    }
+  }
+
+  // ============================================================
+  // Байтовые утилиты
+  // ============================================================
+
+  function concatBytes(...arrays) {
+    let total = 0;
+    for (const a of arrays) total += a.length;
+
+    const out = new Uint8Array(total);
+    let offset = 0;
+
+    for (const a of arrays) {
+      out.set(a, offset);
+      offset += a.length;
+    }
+
+    return out;
+  }
+
+  function equalBytes(a, b) {
+    if (a.length !== b.length) return false;
+
+    let diff = 0;
+    for (let i = 0; i < a.length; i++) {
+      diff |= a[i] ^ b[i];
+    }
+
+    return diff === 0;
+  }
+
+  function randomBytes(n) {
+    const out = new Uint8Array(n);
+    crypto.getRandomValues(out);
+    return out;
+  }
+
+  function bytesToBase64(bytes) {
+    let binary = "";
+    const chunk = 16384;
+
+    for (let i = 0; i < bytes.length; i += chunk) {
+      binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+    }
+
+    return btoa(binary);
+  }
+
+  function base64ToBytes(b64) {
+    const cleaned = b64.replace(/\s+/g, "");
+    const binary = atob(cleaned);
+    const bytes = new Uint8Array(binary.length);
+
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+
+    return bytes;
+  }
+
+  async function sha256(data) {
+    return new Uint8Array(await crypto.subtle.digest("SHA-256", data));
+  }
+
+  // ============================================================
+  // Детерминированный поток весов
+  //
+  // Ключ -> SHA-256 domain separation -> secret.
+  // Для каждого блока сети:
+  //   counterBlock = SHA-256(secret || label)[0..15]
+  //   keystream = AES-CTR(secret, counterBlock, zeros)
+  //
+  // AES-CTR здесь используется только как детерминированный
+  // генератор весов из ключа, не как шифр текста.
+  // ============================================================
+
+  class KeyStream {
+    constructor(bytes) {
+      this.bytes = bytes;
+      this.pos = 0;
+    }
+
+    static async create(aesKey, secret, label) {
+      const labelHash = await sha256(concatBytes(secret, enc.encode(label)));
+      const counter = labelHash.slice(0, 16);
+
+      const zeros = new Uint8Array(STREAM_BYTES);
+      const ct = await crypto.subtle.encrypt(
+        {
+          name: "AES-CTR",
+          counter,
+          length: 64
+        },
+        aesKey,
+        zeros
+      );
+
+      return new KeyStream(new Uint8Array(ct));
+    }
+
+    byte() {
+      if (this.pos >= this.bytes.length) {
+        throw new Error("key stream exhausted");
+      }
+      return this.bytes[this.pos++];
+    }
+
+    below(m) {
+      if (m <= 1) return 0;
+
+      // Отсечение остатка для равномерности по модулю m.
+      const limit = 0x100000000 - (0x100000000 % m);
+
+      for (;;) {
+        const b0 = this.byte();
+        const b1 = this.byte();
+        const b2 = this.byte();
+        const b3 = this.byte();
+
+        const v = ((b0 << 24) | (b1 << 16) | (b2 << 8) | b3) >>> 0;
+
+        if (v < limit) {
+          return v % m;
+        }
       }
     }
-    add("Сверка с эталонной формулой",diff,dn+" посылок · 5 алфавитов");
-    let rt=true,rn=0;
-    for(const al of als)for(const pw of pws){
-      let kk;try{kk=buildKey(al,pw);}catch(e){continue;}
-      for(const pres of[false,true])for(let t=0;t<6;t++){
-        const len=Math.floor(R()*60);let txt="";
-        for(let i=0;i<len;i++)txt+=kk.A[Math.floor(R()*kk.N)];
-        const cc={group:0,outCase:"upper",preserve:pres};
-        const d=decryptText(encryptText(txt,kk,cc,null).text,kk,cc,null).text;
-        rn++;if(lettersOnly(d,kk).join()!==lettersOnly(txt,kk).join())rt=false;
+  }
+
+  // ============================================================
+  // Обратимые матрицы по модулю 256
+  // ============================================================
+
+  function invOdd(a) {
+    a &= 255;
+
+    let t = 0;
+    let nt = 1;
+    let r = 256;
+    let nr = a;
+
+    while (nr !== 0) {
+      const q = Math.floor(r / nr);
+
+      const tmpT = t;
+      t = nt;
+      nt = tmpT - q * nt;
+
+      const tmpR = r;
+      r = nr;
+      nr = tmpR - q * nr;
+    }
+
+    if (r !== 1) {
+      throw new Error("элемент не обратим по модулю 256");
+    }
+
+    return t & 255;
+  }
+
+  const INV_ODD = new Uint8Array(256);
+  for (let a = 1; a < 256; a += 2) {
+    INV_ODD[a] = invOdd(a);
+  }
+
+  function randomInvertiblePair(ks, n) {
+    const P = new Uint8Array(n * n);
+    const Q = new Uint8Array(n * n);
+
+    for (let i = 0; i < n; i++) {
+      P[i * n + i] = 1;
+      Q[i * n + i] = 1;
+    }
+
+    const ops = 12 * n * n;
+
+    for (let op = 0; op < ops; op++) {
+      const typ = ks.below(3);
+      const i = ks.below(n);
+      const j = ks.below(n);
+
+      if (typ !== 2) {
+        // row_i += c * row_j
+        if (i === j) continue;
+
+        const c = ks.byte();
+        const ri = i * n;
+        const rj = j * n;
+
+        for (let k = 0; k < n; k++) {
+          P[ri + k] = (P[ri + k] + c * P[rj + k]) & 255;
+        }
+
+        // Q = Q * E^{-1}: column_j -= c * column_i
+        for (let r = 0; r < n; r++) {
+          Q[r * n + j] = (Q[r * n + j] - c * Q[r * n + i]) & 255;
+        }
+      } else {
+        // row_i *= odd a
+        const a = ks.byte() | 1;
+        if (a === 1) continue;
+
+        const inva = INV_ODD[a];
+        const ri = i * n;
+
+        for (let k = 0; k < n; k++) {
+          P[ri + k] = (a * P[ri + k]) & 255;
+        }
+
+        // Q = Q * E^{-1}: column_i *= inv(a)
+        for (let r = 0; r < n; r++) {
+          Q[r * n + i] = (inva * Q[r * n + i]) & 255;
+        }
       }
     }
-    add("Обратимость на случайных посылках",rt,rn+" циклов · знаки в обоих режимах");
-    add("Длина сохраняется",encryptText("СНЕГ",k,c,null).cipher.length===4,"служебных букв нет");
-    add("Пустой текст → пустая шифровка",encryptText("",k,c,null).text==="","нет служебного хвоста");
-    let lg="";for(let i=0;i<300;i++)lg+=k.A[Math.floor(R()*k.N)];
-    const b1=encryptText(lg,k,c,null).cipher,a2=chars(lg);
-    a2[150]=k.A[mod(k.pos.get(a2[150])+1,k.N)];
-    const b2=encryptText(a2.join(""),k,c,null).cipher;
-    let head=0,tail=0;
-    for(let i=0;i<b1.length;i++)if(b1[i]!==b2[i]){if(i<150)head++;else tail++;}
-    add("Лавина влево и вправо > 90 %",head/150>0.9&&tail/(b1.length-150)>0.9,
-      "влево "+(100*head/150).toFixed(1)+" % · вправо "+(100*tail/(b1.length-150)).toFixed(1)+" %");
-    let lastFirst=0,trials=20;
-    for(let t=0;t<trials;t++){
-      let txt="";for(let i=0;i<24;i++)txt+=k.A[Math.floor(R()*k.N)];
-      const c1=encryptText(txt,k,c,null).cipher,arr=chars(txt);
-      arr[23]=k.A[mod(k.pos.get(arr[23])+1,k.N)];
-      const c2=encryptText(arr.join(""),k,c,null).cipher;
-      if(c1[0]!==c2[0])lastFirst++;
-    }
-    add("Последняя буква влияет на первую",lastFirst>=trials-1,lastFirst+" из "+trials+" посылок");
-    let per=true;
-    for(let t=0;t<8;t++){
-      const bl=k.A.slice(0,10).join(""),f=k.A[0].repeat(30);
-      const cc=encryptText(bl+f+bl+f+bl,k,c,null).text;
-      if(cc.slice(0,10)===cc.slice(40,50))per=false;
-    }
-    add("Периода гаммы нет",per,"повтор блока не даёт повтора шифровки");
-    add("σ не аффинна",!k.affine,"лучшее приближение "+k.affS+"/"+k.N);
-    const sp=buildKey(PRESETS[4].value,"ПРЯЛКА"),st="КОТ ИДЁТ ДОМОЙ. СНЕГ.";
-    const spc={group:0,outCase:"upper",preserve:true};
-    add("Пробел внутри алфавита обратим",decryptText(encryptText(st,sp,spc,null).text,sp,spc,null).text===st,"алфавит 39 знаков");
-    let weak=false;try{buildKey(RU,"АААААА");}catch(e){weak=true;}
-    add("Слабый пароль отвергается",weak,"менее 4 разных букв");
-  }catch(e){add("Ошибка выполнения",false,String(e&&e.message||e));}
-  const ms=performance.now()-t0,passed=out.filter(o=>o.ok).length;
-  $("testBody").innerHTML=out.map(o=>'<tr><td class="'+(o.ok?"ok":"err")+'" style="width:64px">'+(o.ok?"PASS":"FAIL")+
-    '</td><td style="text-align:left">'+esc(o.n)+'</td><td style="text-align:left" class="mu">'+esc(o.d)+'</td></tr>').join("");
-  $("testSum").textContent=passed+" / "+out.length+" · "+ms.toFixed(0)+" мс";
-  $("testSum").className="mono "+(passed===out.length?"ok":"err");
-}
 
-/* ---------- действия ---------- */
-function copyOut(){
-  const txt=$("outputText").value;
-  if(!txt){$("outStat").textContent="Нечего копировать.";return;}
-  const done=()=>{$("outStat").textContent="Скопировано: "+fmt(chars(txt).length)+" знаков.";};
-  const fb=()=>{const ta=$("outputText");ta.removeAttribute("readonly");ta.select();
-    try{document.execCommand("copy");done();}catch(e){$("outStat").textContent="Выделите и скопируйте вручную";}
-    ta.setAttribute("readonly","");window.getSelection().removeAllRanges();};
-  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(done,fb);else fb();
-}
-function saveTxt(){
-  const txt=$("outputText").value;if(!txt)return;
-  const head="ПРЯЛКА · полевой буквенный шифр\n"+(S.mode==="enc"?"шифровка":"открытый текст")+
-    "\nалфавит ("+(key?key.N:0)+"): "+(key?key.A.join(""):"")+
-    "\nзнаки: "+(S.preserve?"сохранены":"отброшены")+"\nпароль: [передайте отдельно]\n\n";
-  const url=URL.createObjectURL(new Blob([head+txt],{type:"text/plain;charset=utf-8"})),a=document.createElement("a");
-  a.href=url;a.download="pryalka-"+(S.mode==="enc"?"shifrovka":"tekst")+".txt";
-  document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(()=>URL.revokeObjectURL(url),1500);
-}
-function swap(){
-  const t=$("outputText").value;if(!t)return;
-  pushUndo("обмен вход/выход");
-  S.text=t;S.mode=S.mode==="enc"?"dec":"enc";
-  $("inputText").value=t;document.querySelector('input[name=mode][value="'+S.mode+'"]').checked=true;compute();
-}
-function randomPassword(){
-  const A=key?key.A:normalizeAlphabet(S.alphabet).letters;
-  if(A.length<6){$("passNote").textContent="Сначала задайте алфавит из 6+ знаков.";$("passNote").className="note err";return;}
-  const len=clamp(6+Math.floor(Math.random()*7),5,Math.min(14,A.length)),pool=A.slice(),o=[];
-  for(let i=0;i<len&&pool.length;i++)o.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);
-  S.password=o.join("");$("password").value=S.password;compute();
-}
-function sync(){
-  $("preset").value=S.preset;$("alphabet").value=S.alphabet;$("password").value=S.password;
-  $("group").value=String(S.group);$("outCase").value=S.outCase;$("traceLimit").value=String(S.traceLimit);
-  $("preserve").checked=S.preserve;$("inputText").value=S.text;
-  document.querySelector('input[name=mode][value="'+S.mode+'"]').checked=true;
-}
-function bind(){
-  $("preset").innerHTML=PRESETS.map(p=>'<option value="'+p.id+'">'+esc(p.name)+'</option>').join("");
-  $("preset").addEventListener("change",e=>{
-    S.preset=e.target.value;
-    const p=PRESETS.find(x=>x.id===S.preset);
-    if(p&&p.value){S.alphabet=p.value;$("alphabet").value=S.alphabet;}
-    const set=new Set(normalizeAlphabet(S.alphabet).letters);
-    const kept=chars(S.password).filter(c=>set.has(up(c))).join("");
-    if(kept.length<3&&set.size>=6){S.password=[...set].slice(0,Math.min(7,set.size)).join("");$("password").value=S.password;}
-    else if(kept!==S.password){S.password=kept;$("password").value=kept;}
-    compute();
+    return [P, Q];
+  }
+
+  function verifyInverse(A, B, n) {
+    // Проверяет A * B == I mod 256.
+    for (let i = 0; i < n; i++) {
+      for (let j = 0; j < n; j++) {
+        let s = 0;
+        for (let k = 0; k < n; k++) {
+          s += A[i * n + k] * B[k * n + j];
+        }
+
+        const expected = i === j ? 1 : 0;
+        if ((s & 255) !== expected) return false;
+      }
+    }
+
+    return true;
+  }
+
+  function matVec(mat, vec, n) {
+    const out = new Uint8Array(n);
+
+    for (let i = 0; i < n; i++) {
+      let s = 0;
+      const base = i * n;
+
+      for (let j = 0; j < n; j++) {
+        s += mat[base + j] * vec[j];
+      }
+
+      out[i] = s & 255;
+    }
+
+    return out;
+  }
+
+  // ============================================================
+  // Нелинейная сеть внутри блока
+  // ============================================================
+
+  function act(z) {
+    // Перестановка на байте:
+    // z -> z + 2 z^2 mod 256
+    return (z + 2 * z * z) & 255;
+  }
+
+  class MLP {
+    constructor(ks, din, dout, hidden) {
+      this.din = din;
+      this.dout = dout;
+      this.hidden = hidden;
+
+      this.W1 = new Uint8Array(hidden * din);
+      this.b1 = new Uint8Array(hidden);
+
+      this.W2 = new Uint8Array(hidden * hidden);
+      this.b2 = new Uint8Array(hidden);
+
+      this.W3 = new Uint8Array(dout * hidden);
+      this.b3 = new Uint8Array(dout);
+
+      for (let i = 0; i < this.W1.length; i++) this.W1[i] = ks.byte();
+      for (let i = 0; i < this.b1.length; i++) this.b1[i] = ks.byte();
+
+      for (let i = 0; i < this.W2.length; i++) this.W2[i] = ks.byte();
+      for (let i = 0; i < this.b2.length; i++) this.b2[i] = ks.byte();
+
+      for (let i = 0; i < this.W3.length; i++) this.W3[i] = ks.byte();
+      for (let i = 0; i < this.b3.length; i++) this.b3[i] = ks.byte();
+    }
+
+    forward(x) {
+      const h = new Uint8Array(this.hidden);
+
+      for (let i = 0; i < this.hidden; i++) {
+        let s = this.b1[i];
+        const base = i * this.din;
+
+        for (let j = 0; j < this.din; j++) {
+          s += this.W1[base + j] * x[j];
+        }
+
+        h[i] = act(s & 255);
+      }
+
+      const h2 = new Uint8Array(this.hidden);
+
+      for (let i = 0; i < this.hidden; i++) {
+        let s = this.b2[i];
+        const base = i * this.hidden;
+
+        for (let j = 0; j < this.hidden; j++) {
+          s += this.W2[base + j] * h[j];
+        }
+
+        h2[i] = act(s & 255);
+      }
+
+      const out = new Uint8Array(this.dout);
+
+      for (let i = 0; i < this.dout; i++) {
+        let s = this.b3[i];
+        const base = i * this.hidden;
+
+        for (let j = 0; j < this.hidden; j++) {
+          s += this.W3[base + j] * h2[j];
+        }
+
+        out[i] = s & 255;
+      }
+
+      return out;
+    }
+  }
+
+  // ============================================================
+  // Обратимый нейросетевой блок
+  //
+  // z = P x
+  // z = (a, b)
+  // b' = b + MLP(a) mod 256
+  // y = P_inv (a, b')
+  //
+  // Обратный проход точный.
+  // ============================================================
+
+  class InvertibleBlock {
+    constructor(ks, n, hidden) {
+      this.n = n;
+      this.m = n >> 1;
+
+      const [P, Pinv] = randomInvertiblePair(ks, n);
+
+      this.P = P;
+      this.Pinv = Pinv;
+
+      if (!verifyInverse(Pinv, P, n)) {
+        throw new Error("матрица P_inv не является обратной к P");
+      }
+
+      this.mlp = new MLP(ks, this.m, n - this.m, hidden);
+    }
+
+    forward(x) {
+      const z = matVec(this.P, x, this.n);
+
+      const a = z.subarray(0, this.m);
+      const upd = this.mlp.forward(a);
+
+      const z2 = new Uint8Array(z);
+
+      for (let k = 0; k < upd.length; k++) {
+        z2[this.m + k] = (z2[this.m + k] + upd[k]) & 255;
+      }
+
+      return matVec(this.Pinv, z2, this.n);
+    }
+
+    inverse(y) {
+      const z = matVec(this.P, y, this.n);
+
+      const a = z.subarray(0, this.m);
+      const upd = this.mlp.forward(a);
+
+      const z2 = new Uint8Array(z);
+
+      for (let k = 0; k < upd.length; k++) {
+        z2[this.m + k] = (z2[this.m + k] - upd[k]) & 255;
+      }
+
+      return matVec(this.Pinv, z2, this.n);
+    }
+  }
+
+  class JacobianNetCipher {
+    constructor(layers) {
+      this.layers = layers;
+    }
+
+    encryptBlock(block) {
+      let x = new Uint8Array(block);
+
+      for (const layer of this.layers) {
+        x = layer.forward(x);
+      }
+
+      return x;
+    }
+
+    decryptBlock(block) {
+      let x = new Uint8Array(block);
+
+      for (let i = this.layers.length - 1; i >= 0; i--) {
+        x = this.layers[i].inverse(x);
+      }
+
+      return x;
+    }
+  }
+
+  async function buildCipher(aesKey, secret) {
+    const layers = [];
+
+    for (let r = 0; r < LAYERS; r++) {
+      const label = `block:${r}:layers=${LAYERS}:hidden=${HIDDEN}:block=${BLOCK_SIZE}`;
+      const ks = await KeyStream.create(aesKey, secret, label);
+      layers.push(new InvertibleBlock(ks, BLOCK_SIZE, HIDDEN));
+    }
+
+    return new JacobianNetCipher(layers);
+  }
+
+  // ============================================================
+  // Ключевая деривация и кэш
+  // ============================================================
+
+  let authCache = null;
+  let authCacheKey = null;
+
+  let cipherCache = null;
+  let cipherCacheKey = null;
+
+  async function getAuth(keyText) {
+    if (!keyText) {
+      throw new Error("введите ключ");
+    }
+
+    if (authCache && authCacheKey === keyText) {
+      return authCache;
+    }
+
+    setStatus("Деривация ключа...");
+
+    const keyBytes = enc.encode(keyText);
+
+    const root = await sha256(
+      concatBytes(enc.encode("JacobianNetCipher v1 root"), keyBytes)
+    );
+
+    const cipherSecret = await sha256(
+      concatBytes(root, enc.encode("cipher-secret"))
+    );
+
+    const macSecret = await sha256(
+      concatBytes(root, enc.encode("mac-secret"))
+    );
+
+    const hmacKey = await crypto.subtle.importKey(
+      "raw",
+      macSecret,
+      {
+        name: "HMAC",
+        hash: "SHA-256"
+      },
+      false,
+      ["sign", "verify"]
+    );
+
+    authCache = {
+      cipherSecret,
+      hmacKey
+    };
+
+    authCacheKey = keyText;
+
+    return authCache;
+  }
+
+  async function getCipher(keyText) {
+    if (cipherCache && cipherCacheKey === keyText) {
+      return cipherCache;
+    }
+
+    const auth = await getAuth(keyText);
+
+    setStatus("Генерация весов нейросети...");
+
+    const aesKey = await crypto.subtle.importKey(
+      "raw",
+      auth.cipherSecret,
+      { name: "AES-CTR" },
+      false,
+      ["encrypt"]
+    );
+
+    const cipher = await buildCipher(aesKey, auth.cipherSecret);
+
+    // Быстрая самопроверка обратимости на случайном блоке.
+    const sample = randomBytes(BLOCK_SIZE);
+    const sampleCt = cipher.encryptBlock(sample);
+    const sampleRt = cipher.decryptBlock(sampleCt);
+
+    if (!equalBytes(sample, sampleRt)) {
+      throw new Error("самопроверка нейросетевого блока не пройдена");
+    }
+
+    cipherCache = cipher;
+    cipherCacheKey = keyText;
+
+    return cipher;
+  }
+
+  // ============================================================
+  // PKCS#7
+  // ============================================================
+
+  function pkcs7Pad(bytes) {
+    const pad = BLOCK_SIZE - (bytes.length % BLOCK_SIZE);
+    const out = new Uint8Array(bytes.length + pad);
+
+    out.set(bytes);
+    out.fill(pad, bytes.length);
+
+    return out;
+  }
+
+  function pkcs7Unpad(bytes) {
+    const len = bytes.length;
+
+    if (len === 0 || len % BLOCK_SIZE !== 0) {
+      throw new Error("некорректная длина данных");
+    }
+
+    const pad = bytes[len - 1];
+
+    if (pad < 1 || pad > BLOCK_SIZE) {
+      throw new Error("некорректная дополняющая схема");
+    }
+
+    for (let i = len - pad; i < len; i++) {
+      if (bytes[i] !== pad) {
+        throw new Error("некорректная дополняющая схема");
+      }
+    }
+
+    return bytes.subarray(0, len - pad);
+  }
+
+  // ============================================================
+  // Шифрование и расшифрование текста
+  //
+  // Режим без XOR:
+  //   input_block = plaintext_block + prev mod 256
+  //   ciphertext_block = E(input_block)
+  //   prev = ciphertext_block
+  //
+  // Расшифрование:
+  //   x = D(ciphertext_block)
+  //   plaintext_block = x - prev mod 256
+  // ============================================================
+
+  async function encryptText(keyText, plainText) {
+    const auth = await getAuth(keyText);
+    const cipher = await getCipher(keyText);
+
+    const plain = enc.encode(plainText);
+    const padded = pkcs7Pad(plain);
+
+    const nonce = randomBytes(BLOCK_SIZE);
+    const ct = new Uint8Array(padded.length);
+
+    const input = new Uint8Array(BLOCK_SIZE);
+    let prev = nonce;
+
+    for (let i = 0; i < padded.length; i += BLOCK_SIZE) {
+      for (let j = 0; j < BLOCK_SIZE; j++) {
+        input[j] = (padded[i + j] + prev[j]) & 255;
+      }
+
+      const c = cipher.encryptBlock(input);
+
+      ct.set(c, i);
+      prev = c;
+    }
+
+    const header = concatBytes(
+      new Uint8Array([VERSION]),
+      nonce,
+      ct
+    );
+
+    const tag = new Uint8Array(
+      await crypto.subtle.sign(
+        { name: "HMAC" },
+        auth.hmacKey,
+        header
+      )
+    );
+
+    return bytesToBase64(concatBytes(header, tag));
+  }
+
+  async function decryptText(keyText, b64) {
+    const auth = await getAuth(keyText);
+
+    const blob = base64ToBytes(b64);
+
+    const minLen = 1 + BLOCK_SIZE + 32 + BLOCK_SIZE;
+
+    if (blob.length < minLen) {
+      throw new Error("пакет слишком короткий");
+    }
+
+    const version = blob[0];
+
+    if (version !== VERSION) {
+      throw new Error("неподдерживаемая версия пакета");
+    }
+
+    const nonce = blob.subarray(1, 1 + BLOCK_SIZE);
+    const tag = blob.subarray(blob.length - 32);
+    const ct = blob.subarray(1 + BLOCK_SIZE, blob.length - 32);
+
+    if (ct.length % BLOCK_SIZE !== 0) {
+      throw new Error("длина шифротекста не кратна блоку");
+    }
+
+    const header = blob.subarray(0, blob.length - 32);
+
+    const ok = await crypto.subtle.verify(
+      { name: "HMAC" },
+      auth.hmacKey,
+      tag,
+      header
+    );
+
+    if (!ok) {
+      throw new Error("неверный ключ, данные повреждены или пакет подменён");
+    }
+
+    // Только после проверки MAC строим тяжёлую нейросеть.
+    const cipher = await getCipher(keyText);
+
+    const padded = new Uint8Array(ct.length);
+    let prev = nonce;
+
+    for (let i = 0; i < ct.length; i += BLOCK_SIZE) {
+      const c = ct.subarray(i, i + BLOCK_SIZE);
+      const x = cipher.decryptBlock(c);
+
+      for (let j = 0; j < BLOCK_SIZE; j++) {
+        padded[i + j] = (x[j] - prev[j] + 256) & 255;
+      }
+
+      prev = c;
+    }
+
+    const plain = pkcs7Unpad(padded);
+
+    try {
+      return dec.decode(plain);
+    } catch {
+      throw new Error("расшифрованные байты не являются корректным UTF-8 текстом");
+    }
+  }
+
+  // ============================================================
+  // Обработчики интерфейса
+  // ============================================================
+
+  $("toggleKey").addEventListener("click", () => {
+    keyEl.type = keyEl.type === "password" ? "text" : "password";
+    $("toggleKey").textContent = keyEl.type === "password" ? "Показать" : "Скрыть";
   });
-  $("alphabet").addEventListener("input",e=>{S.alphabet=e.target.value;S.preset="custom";$("preset").value="custom";schedule();});
-  $("password").addEventListener("input",e=>{S.password=e.target.value;schedule();});
-  $("group").addEventListener("change",e=>{S.group=parseInt(e.target.value,10);compute();});
-  $("outCase").addEventListener("change",e=>{S.outCase=e.target.value;compute();});
-  $("traceLimit").addEventListener("change",e=>{S.traceLimit=parseInt(e.target.value,10);renderTrace();save();});
-  $("preserve").addEventListener("change",e=>{S.preserve=e.target.checked;compute();});
-  $("inputText").addEventListener("input",e=>{S.text=e.target.value;schedule();});
-  document.querySelectorAll('input[name=mode]').forEach(r=>r.addEventListener("change",()=>{S.mode=r.value;compute();}));
-  $("themeBtn").addEventListener("click",()=>{S.theme=S.theme==="paper"?"night":"paper";render();save();});
-  $("printBtn").addEventListener("click",()=>window.print());
-  $("clear").addEventListener("click",()=>{if(!S.text)return;pushUndo("очистка");S.text="";$("inputText").value="";compute();$("inputText").focus();});
-  $("undo").addEventListener("click",popUndo);
-  $("copy").addEventListener("click",copyOut);
-  $("save").addEventListener("click",saveTxt);
-  $("swap").addEventListener("click",swap);
-  $("randPass").addEventListener("click",randomPassword);
-  $("sample").addEventListener("click",()=>{
-    pushUndo("пример");
-    let k2=null;try{k2=buildKey(S.alphabet,S.password);}catch(e){}
-    S.text=(S.mode==="dec"&&k2)?encryptText(SAMPLE,k2,cfg(),null).text:SAMPLE;
-    $("inputText").value=S.text;compute();
+
+  $("encrypt").addEventListener("click", () => run(async () => {
+    const key = keyEl.value;
+    const text = inputEl.value;
+
+    if (!key) {
+      throw new Error("введите ключ");
+    }
+
+    setStatus("Шифрование...");
+
+    const out = await encryptText(key, text);
+
+    outputEl.value = out;
+    setStatus(`Зашифровано. Результат: ${out.length} символов base64.`);
+  }));
+
+  $("decrypt").addEventListener("click", () => run(async () => {
+    const key = keyEl.value;
+    const data = inputEl.value.trim();
+
+    if (!key) {
+      throw new Error("введите ключ");
+    }
+
+    if (!data) {
+      throw new Error("вставьте base64-пакет для расшифровки");
+    }
+
+    setStatus("Расшифрование...");
+
+    const out = await decryptText(key, data);
+
+    outputEl.value = out;
+    setStatus("Расшифровано успешно.");
+  }));
+
+  $("selftest").addEventListener("click", () => run(async () => {
+    const key = keyEl.value || "self-test-key";
+
+    const msg =
+      "Самопроверка обратимости. " +
+      "Время: " + new Date().toISOString() + ". " +
+      "Символы: кириллица, latin, 1234567890, !@#$%^&*.";
+
+    setStatus("Самопроверка: шифрование...");
+    const packet = await encryptText(key, msg);
+
+    setStatus("Самопроверка: расшифрование...");
+    const back = await decryptText(key, packet);
+
+    if (back !== msg) {
+      throw new Error("самопроверка не пройдена: текст не совпал");
+    }
+
+    outputEl.value = packet;
+    setStatus("Самопроверка пройдена: шифрование и расшифрование совпадают.");
+  }));
+
+  $("copy").addEventListener("click", () => run(async () => {
+    const out = outputEl.value;
+
+    if (!out) {
+      throw new Error("результат пуст");
+    }
+
+    try {
+      await navigator.clipboard.writeText(out);
+      setStatus("Скопировано в буфер обмена.");
+    } catch {
+      outputEl.focus();
+      outputEl.select();
+      document.execCommand("copy");
+      setStatus("Скопировано через fallback.");
+    }
+  }));
+
+  $("download").addEventListener("click", () => {
+    const out = outputEl.value;
+
+    if (!out) {
+      setStatus("Результат пуст.", true);
+      return;
+    }
+
+    const blob = new Blob([out], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "neural-cipher-output.txt";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    URL.revokeObjectURL(url);
+
+    setStatus("Файл скачан.");
   });
-  $("reset").addEventListener("click",()=>{pushUndo("сброс");try{localStorage.removeItem(STORE);}catch(e){}S=Object.assign({},DEFAULTS);sync();compute();});
-  $("checkBtn").addEventListener("click",checkCurrent);
-  $("testBtn").addEventListener("click",()=>{const b=$("testBtn");b.disabled=true;b.textContent="Считает…";
-    setTimeout(()=>{runTests();b.disabled=false;b.textContent="Самопроверка";},20);});
-}
-load();bind();sync();compute();
+
+  $("clear").addEventListener("click", () => {
+    inputEl.value = "";
+    outputEl.value = "";
+    setStatus("Очищено.");
+  });
+
+  // ============================================================
+  // Инициализация
+  // ============================================================
+
+  if (!globalThis.crypto || !globalThis.crypto.subtle) {
+    setStatus(
+      "WebCrypto недоступен. Откройте страницу через HTTPS, localhost или используйте браузер с поддержкой WebCrypto.",
+      true
+    );
+    setBusy(true);
+  } else {
+    setStatus("Готово. Введите ключ и текст.");
+  }
 })();
 </script>
 </body>
