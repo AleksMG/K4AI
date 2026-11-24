@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Jacobian Neural Cipher</title>
+<title>Transformer Neural Cipher</title>
 <style>
 :root{color-scheme:dark}
 *{box-sizing:border-box}
@@ -17,6 +17,8 @@ label{display:block;font-weight:650;margin-bottom:7px}
 input,textarea,select{width:100%;background:#0b1220;color:#e5e7eb;border:1px solid #334155;border-radius:10px;padding:10px 12px;font:inherit;outline:none}
 input:focus,textarea:focus,select:focus{border-color:#60a5fa}
 textarea{min-height:130px;resize:vertical;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;line-height:1.45}
+input[type=range]{padding:0;height:24px;background:none;border:none;accent-color:#2563eb}
+input[type=checkbox]{width:auto;accent-color:#2563eb}
 .row{display:flex;gap:10px;flex-wrap:wrap}
 .row>*{flex:1;min-width:220px}
 .buttons{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
@@ -37,6 +39,13 @@ canvas{background:#0b1220;border:1px solid #334155;border-radius:10px;width:100%
 .diff{color:#ef4444;font-weight:700}
 .same{color:#94a3b8}
 .warn{color:#fbbf24}
+.checks{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.checks span{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;padding:4px 8px;border-radius:6px;border:1px solid #334155;color:#94a3b8}
+.checks span[data-ok="true"]{border-color:#10b981;color:#10b981}
+.checks span[data-ok="false"]{border-color:#ef4444;color:#ef4444}
+.switchrow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px}
+.switchrow label{margin:0}
+.val{color:#60a5fa;font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:700}
 *{scrollbar-width:thin;scrollbar-color:#2563eb #0b1220}
 ::-webkit-scrollbar{width:11px;height:11px}
 ::-webkit-scrollbar-track{background:#0b1220;border-left:1px solid #1f2937}
@@ -47,9 +56,10 @@ canvas{background:#0b1220;border:1px solid #334155;border-radius:10px;width:100%
 </head>
 <body>
 <main class="app">
-  <h1>Jacobian Neural Cipher</h1>
+  <h1>Transformer Neural Cipher</h1>
   <div class="sub">
-    Нейросетевой шифр на обратимых якобиан-блоках. Шифрование выполняется сетью, веса детерминированно выводятся из ключа.
+    Нейросетевой шифр: обратимая трансформер-сеть над байтами. Шифрует сама сеть, веса детерминированно выводятся из ключа.
+    Состояние сети — байты сообщения, поэтому длина выхода равна длине входа: без блоков, паддинга, nonce и CBC.
     Сырые байты шифротекста показываются в HEX и доступны для скачивания как .bin.
     Анализ выполняется над сырыми байтами, а не над Base64.
   </div>
@@ -61,31 +71,94 @@ canvas{background:#0b1220;border:1px solid #334155;border-radius:10px;width:100%
       <button id="toggleKey" class="secondary" type="button">Показать</button>
     </div>
     <div class="meta" style="margin-top:8px">
-      Параметры сети: блок 16 байт, 8 слоёв, скрытая ширина 64, две побитовые ротации в каждом слое.
-      Формат пакета: version || nonce || ciphertext || HMAC-SHA-256.
+      Эмбеддинг, многоголовое внимание и FFN находятся внутри функции обновления coupling и никогда не обращаются.
+      Побитовые ротации разрывают 2-адичность арифметики по модулю 256.
     </div>
+    <div class="stats">
+      <div class="card"><div><b>Параметров сети</b></div><div id="paramCount" class="mono">—</div></div>
+      <div class="card"><div><b>Отпечаток ключа</b></div><div id="fingerprint" class="mono">—</div></div>
+      <div class="card"><div><b>Операций на байт</b></div><div id="opsPerByte" class="mono">—</div></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Архитектура сети</h2>
+    <div class="row">
+      <div>
+        <label for="preset">Пресет</label>
+        <select id="preset">
+          <option value="compact">compact · d64 / 4 головы</option>
+          <option value="base" selected>base · d128 / 8 голов</option>
+          <option value="large">large · d256 / 8 голов</option>
+          <option value="custom">custom</option>
+        </select>
+      </div>
+      <div>
+        <label for="dim">Размерность модели</label>
+        <select id="dim"><option>64</option><option selected>128</option><option>256</option></select>
+      </div>
+      <div>
+        <label for="heads">Голов внимания</label>
+        <select id="heads"><option>4</option><option selected>8</option><option>16</option></select>
+      </div>
+      <div>
+        <label for="budget">Бюджет анализа</label>
+        <select id="budget"><option value="6000">6 секунд</option><option value="15000" selected>15 секунд</option><option value="40000">40 секунд</option></select>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:12px">
+      <div>
+        <label for="ffn">Ширина FFN <span class="val" id="ffnV">×2</span></label>
+        <input id="ffn" type="range" min="2" max="4" step="1" value="2">
+      </div>
+      <div>
+        <label for="blocks">Трансформер-блоков <span class="val" id="blocksV">2</span></label>
+        <input id="blocks" type="range" min="1" max="4" step="1" value="2">
+      </div>
+      <div>
+        <label for="rounds">Coupling-раундов <span class="val" id="roundsV">4</span></label>
+        <input id="rounds" type="range" min="2" max="8" step="1" value="4">
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:12px">
+      <div>
+        <label for="win">Окно внимания <span class="val" id="winV">32</span></label>
+        <input id="win" type="range" min="8" max="64" step="8" value="32">
+      </div>
+      <div>
+        <label for="glob">Глобальных токенов <span class="val" id="globV">8</span></label>
+        <input id="glob" type="range" min="0" max="16" step="2" value="8">
+      </div>
+    </div>
+
+    <div class="switchrow">
+      <label for="rot">Побитовые ротации</label>
+      <input id="rot" type="checkbox" checked>
+    </div>
+    <div class="meta">Выключите — вернётся 2-адическая пила с периодом 8 на графике лавины.</div>
   </section>
 
   <section class="panel">
     <h2>Вход и выход</h2>
 
     <label for="input">Вход</label>
-    <textarea id="input" spellcheck="false" placeholder="Для шифрования введите текст. Для расшифровки вставьте Base64 или HEX пакета."></textarea>
+    <textarea id="input" spellcheck="false" placeholder="Для шифрования введите текст. Для расшифровки вставьте Base64 или HEX шифротекста."></textarea>
 
     <div class="row" style="margin-top:10px">
       <div>
         <label for="outputFormat">Формат выхода при шифровании</label>
         <select id="outputFormat">
-          <option value="base64" selected>Base64 пакет</option>
-          <option value="hex_packet">HEX пакет</option>
-          <option value="hex_ct">HEX только сырой шифротекст</option>
+          <option value="base64" selected>Base64</option>
+          <option value="hex">HEX сырой шифротекст</option>
         </select>
       </div>
       <div>
         <label for="inputFormat">Формат входа при расшифровке</label>
         <select id="inputFormat">
-          <option value="base64" selected>Base64 пакет</option>
-          <option value="hex">HEX пакет</option>
+          <option value="base64" selected>Base64</option>
+          <option value="hex">HEX</option>
           <option value="auto">Auto</option>
         </select>
       </div>
@@ -96,9 +169,10 @@ canvas{background:#0b1220;border:1px solid #334155;border-radius:10px;width:100%
       <button id="decrypt" type="button">Расшифровать</button>
       <button id="selftest" type="button" class="secondary">Самопроверка</button>
       <button id="copyOutput" type="button" class="secondary">Копировать выход</button>
-      <button id="downloadPacket" type="button" class="secondary">Скачать пакет .bin</button>
-      <button id="downloadCt" type="button" class="secondary">Скачать сырой шифротекст .bin</button>
+      <button id="downloadCt" type="button" class="secondary">Скачать шифротекст .bin</button>
+      <button id="swap" type="button" class="secondary">Выход → вход</button>
       <button id="clear" type="button" class="secondary">Очистить</button>
+      <button id="cancel" type="button" class="secondary" disabled>Отменить</button>
     </div>
 
     <div style="margin-top:12px">
@@ -108,31 +182,32 @@ canvas{background:#0b1220;border:1px solid #334155;border-radius:10px;width:100%
 
     <div class="rawgrid">
       <div>
-        <label for="nonceHex">Nonce, сырые байты, HEX</label>
-        <textarea id="nonceHex" readonly spellcheck="false"></textarea>
+        <label for="inputHex">Вход, сырые байты, HEX</label>
+        <textarea id="inputHex" readonly spellcheck="false"></textarea>
       </div>
       <div>
         <label for="ctHex">Сырой шифротекст, байты, HEX</label>
         <textarea id="ctHex" readonly spellcheck="false"></textarea>
       </div>
       <div>
-        <label for="tagHex">HMAC tag, сырые байты, HEX</label>
-        <textarea id="tagHex" readonly spellcheck="false"></textarea>
+        <label for="lengthInfo">Длины</label>
+        <textarea id="lengthInfo" readonly spellcheck="false"></textarea>
       </div>
       <div>
-        <label for="packetHex">Весь пакет, сырые байты, HEX</label>
-        <textarea id="packetHex" readonly spellcheck="false"></textarea>
+        <label for="modeInfo">Режим</label>
+        <textarea id="modeInfo" readonly spellcheck="false"></textarea>
       </div>
     </div>
 
     <div id="status" role="status"></div>
+    <div class="checks" id="checks"><span>Проверка длин не запускалась</span></div>
   </section>
 
   <section class="panel">
     <h2>Анализ сырых байтов</h2>
     <div class="meta">
-      Анализ выполняется над Uint8Array шифротекста до Base64.
-      Для длинных сообщений используйте скачивание .bin и внешний анализатор при необходимости.
+      Анализ выполняется над Uint8Array выхода сети: без Base64, без обёрток и без дополнения.
+      Объём выборки подстраивается под бюджет и скорость сети, фактические counts показаны ниже.
     </div>
 
     <div class="buttons">
@@ -157,8 +232,8 @@ canvas{background:#0b1220;border:1px solid #334155;border-radius:10px;width:100%
   <section class="panel">
     <h2>Сравнение двух текстов</h2>
     <div class="meta">
-      Сравнение использует детерминированный режим с нулевым nonce только для наглядности.
-      Реальное шифрование использует случайный nonce.
+      Сравнение использует чистый детерминированный выход сети: без nonce и без дополнения,
+      поэтому длина шифротекста равна длине текста в байтах.
     </div>
 
     <div class="row" style="margin-top:10px">
@@ -186,11 +261,440 @@ canvas{background:#0b1220;border:1px solid #334155;border-radius:10px;width:100%
 (() => {
   "use strict";
 
-  const VERSION = 1;
-  const BLOCK_SIZE = 16;
-  const LAYERS = 8;
-  const HIDDEN = 64;
-  const STREAM_BYTES = 131072;
+  /* ======================= примитивы ======================= */
+
+  const S = (v) => ((v + 128) & 255) - 128;
+  const rotl8 = (v, s) => { const b = v & 255; return s === 0 ? b : ((b << s) | (b >>> (8 - s))) & 255; };
+  const rotr8 = (v, s) => rotl8(v, (8 - s) & 7);
+
+  function invOdd(a) {
+    let t = 0, nt = 1, r = 256, nr = a & 255;
+    while (nr !== 0) {
+      const q = Math.floor(r / nr);
+      const pt = t; t = nt; nt = pt - q * nt;
+      const pr = r; r = nr; nr = pr - q * nr;
+    }
+    if (r !== 1) throw new Error("элемент не обратим по модулю 256");
+    return t & 255;
+  }
+
+  const POP8 = new Uint8Array(256);
+  for (let i = 1; i < 256; i++) POP8[i] = POP8[i >> 1] + (i & 1);
+
+  const EXP = new Int32Array(65);
+  for (let i = 0; i <= 64; i++) EXP[i] = Math.max(1, Math.round(256 * Math.pow(2, -i / 8)));
+
+  function sha256(bytes) {
+    const K = [0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+    0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+    0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+    0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+    0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+    0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+    0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+    0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+    const H = [0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+    const total = (((bytes.length + 8) >> 6) + 1) << 6;
+    const buf = new Uint8Array(total);
+    buf.set(bytes);
+    buf[bytes.length] = 0x80;
+    const view = new DataView(buf.buffer);
+    view.setUint32(total - 4, (bytes.length * 8) >>> 0, false);
+    view.setUint32(total - 8, Math.floor(bytes.length / 536870912), false);
+    const w = new Uint32Array(64);
+    const rr = (x, n) => ((x >>> n) | (x << (32 - n))) >>> 0;
+    for (let off = 0; off < total; off += 64) {
+      for (let i = 0; i < 16; i++) w[i] = view.getUint32(off + i * 4, false);
+      for (let i = 16; i < 64; i++) {
+        const x = w[i - 15], y = w[i - 2];
+        const s0 = (rr(x,7) ^ rr(x,18) ^ (x >>> 3)) >>> 0;
+        const s1 = (rr(y,17) ^ rr(y,19) ^ (y >>> 10)) >>> 0;
+        w[i] = (w[i-16] + s0 + w[i-7] + s1) >>> 0;
+      }
+      let a=H[0],b=H[1],c=H[2],d=H[3],e=H[4],f=H[5],g=H[6],h=H[7];
+      for (let i = 0; i < 64; i++) {
+        const s1 = (rr(e,6) ^ rr(e,11) ^ rr(e,25)) >>> 0;
+        const ch = ((e & f) ^ (~e & g)) >>> 0;
+        const t1 = (h + s1 + ch + K[i] + w[i]) >>> 0;
+        const s0 = (rr(a,2) ^ rr(a,13) ^ rr(a,22)) >>> 0;
+        const mj = ((a & b) ^ (a & c) ^ (b & c)) >>> 0;
+        const t2 = (s0 + mj) >>> 0;
+        h=g; g=f; f=e; e=(d+t1)>>>0; d=c; c=b; b=a; a=(t1+t2)>>>0;
+      }
+      H[0]=(H[0]+a)>>>0; H[1]=(H[1]+b)>>>0; H[2]=(H[2]+c)>>>0; H[3]=(H[3]+d)>>>0;
+      H[4]=(H[4]+e)>>>0; H[5]=(H[5]+f)>>>0; H[6]=(H[6]+g)>>>0; H[7]=(H[7]+h)>>>0;
+    }
+    const out = new Uint8Array(32);
+    const ov = new DataView(out.buffer);
+    for (let i = 0; i < 8; i++) ov.setUint32(i * 4, H[i], false);
+    return out;
+  }
+
+  class Rng {
+    constructor(seed) {
+      this.a = seed[0] >>> 0; this.b = seed[1] >>> 0;
+      this.c = seed[2] >>> 0; this.d = seed[3] >>> 0;
+      if ((this.a | this.b | this.c | this.d) === 0) this.a = 1;
+    }
+    u32() {
+      const rl = (x, k) => ((x << k) | (x >>> (32 - k))) >>> 0;
+      const result = (rl((this.b * 5) >>> 0, 7) * 9) >>> 0;
+      const t = (this.b << 9) >>> 0;
+      this.c = (this.c ^ this.a) >>> 0;
+      this.d = (this.d ^ this.b) >>> 0;
+      this.b = (this.b ^ this.c) >>> 0;
+      this.a = (this.a ^ this.d) >>> 0;
+      this.c = (this.c ^ t) >>> 0;
+      this.d = rl(this.d, 11);
+      return result;
+    }
+    byte() { return this.u32() & 255; }
+    weight() { return this.byte() - 128; }
+    below(m) {
+      const limit = 0x100000000 - (0x100000000 % m);
+      for (;;) { const v = this.u32(); if (v < limit) return v % m; }
+    }
+    rotation(enabled) { const r = 1 + this.below(7); return enabled ? r : 0; }
+    odd() { return (this.byte() | 1) & 255; }
+  }
+
+  class Task {
+    constructor(onProgress, shared) {
+      this.on = onProgress || null;
+      this.shared = shared || { cancelled: false };
+      this.slice = performance.now();
+    }
+    get cancelled() { return this.shared.cancelled; }
+    cancel() { this.shared.cancelled = true; }
+    child() { return new Task(null, this.shared); }
+    async step() {
+      if (this.shared.cancelled) throw new Error("CANCELLED");
+      if (performance.now() - this.slice > 12) {
+        await new Promise((r) => setTimeout(r, 0));
+        this.slice = performance.now();
+      }
+    }
+    progress(f, label) { if (this.on) this.on(Math.max(0, Math.min(1, f)), label); }
+  }
+
+  /* ======================= слои сети ======================= */
+
+  class Linear {
+    constructor(rng, din, dout) {
+      this.din = din; this.dout = dout;
+      this.w = new Int8Array(din * dout);
+      for (let i = 0; i < this.w.length; i++) this.w[i] = rng.weight();
+      this.b = new Int32Array(dout);
+      for (let i = 0; i < dout; i++) this.b[i] = rng.weight();
+      this.shift = Math.max(0, Math.round(Math.log2(Math.sqrt(din) * 5476 / 64)));
+    }
+    async apply(input, output, n, task) {
+      let token = 0;
+      while (token < n) {
+        const end = Math.min(n, token + 8);
+        for (let t = token; t < end; t++) {
+          const ib = t * this.din, ob = t * this.dout;
+          for (let r = 0; r < this.dout; r++) {
+            const wb = r * this.din;
+            let acc = this.b[r];
+            for (let c = 0; c < this.din; c++) acc += this.w[wb + c] * input[ib + c];
+            output[ob + r] = S(acc >> this.shift);
+          }
+        }
+        token = end;
+        await task.step();
+      }
+    }
+    get size() { return this.w.length + this.b.length; }
+  }
+
+  class Attention {
+    constructor(rng, cfg) {
+      this.d = cfg.modelDimension;
+      this.h = cfg.headCount;
+      this.dh = this.d / this.h;
+      this.win = cfg.attentionWindow;
+      this.glob = cfg.globalTokenCount;
+      this.q = new Linear(rng, this.d, this.d);
+      this.k = new Linear(rng, this.d, this.d);
+      this.v = new Linear(rng, this.d, this.d);
+      this.o = new Linear(rng, this.d, this.d);
+      this.shift = Math.max(0, Math.round(Math.log2(Math.sqrt(this.dh) * 4096 / 8)));
+    }
+    neighbors(i, n) {
+      const half = this.win >> 1;
+      const lo = Math.max(0, i - half), hi = Math.min(n - 1, i + half);
+      const out = [];
+      for (let j = lo; j <= hi; j++) out.push(j);
+      for (let g = 0; g < this.glob; g++) {
+        const j = Math.floor(g * n / this.glob);
+        if (j < lo || j > hi) out.push(j);
+      }
+      return out;
+    }
+    async apply(x, out, n, task) {
+      const d = this.d, dh = this.dh, size = n * d;
+      const q = new Int8Array(size), k = new Int8Array(size), v = new Int8Array(size);
+      await this.q.apply(x, q, n, task);
+      await this.k.apply(x, k, n, task);
+      await this.v.apply(x, v, n, task);
+
+      const att = new Int8Array(size);
+      let token = 0;
+      while (token < n) {
+        const end = Math.min(n, token + 8);
+        for (let t = token; t < end; t++) {
+          const nb = this.neighbors(t, n), count = nb.length;
+          const scores = new Int32Array(count), weights = new Int32Array(count);
+          for (let head = 0; head < this.h; head++) {
+            const off = head * dh;
+            let max = -2147483647;
+            for (let i = 0; i < count; i++) {
+              const j = nb[i];
+              let s = 0;
+              for (let c = 0; c < dh; c++) s += q[t*d+off+c] * k[j*d+off+c];
+              s >>= this.shift;
+              scores[i] = s;
+              if (s > max) max = s;
+            }
+            let den = 0;
+            for (let i = 0; i < count; i++) {
+              const diff = max - scores[i];
+              const w = EXP[diff < 0 ? 0 : diff > 64 ? 64 : diff];
+              weights[i] = w; den += w;
+            }
+            for (let c = 0; c < dh; c++) {
+              let acc = 0;
+              for (let i = 0; i < count; i++) acc += weights[i] * v[nb[i]*d+off+c];
+              att[t*d+off+c] = S(Math.floor(acc / den));
+            }
+          }
+        }
+        token = end;
+        await task.step();
+      }
+      await this.o.apply(att, out, n, task);
+    }
+    get size() { return this.q.size + this.k.size + this.v.size + this.o.size; }
+  }
+
+  class TransformerBlock {
+    constructor(rng, cfg) {
+      this.d = cfg.modelDimension;
+      this.hd = this.d * cfg.ffnMultiplier;
+      this.att = new Attention(rng, cfg);
+      this.up = new Linear(rng, this.d, this.hd);
+      this.down = new Linear(rng, this.hd, this.d);
+      this.rot = rng.rotation(cfg.rotationsEnabled);
+    }
+    async apply(x, n, task) {
+      const size = n * this.d;
+      const a = new Int8Array(size);
+      await this.att.apply(x, a, n, task);
+
+      const res = new Int8Array(size);
+      for (let i = 0; i < size; i++) res[i] = S(x[i] + a[i]);
+
+      const hid = new Int8Array(n * this.hd);
+      await this.up.apply(res, hid, n, task);
+
+      let p = 0;
+      while (p < hid.length) {
+        const end = Math.min(hid.length, p + 4096);
+        for (let i = p; i < end; i++) {
+          const v = hid[i];
+          hid[i] = rotl8((S(v + 2 * v * v) + 128) & 255, this.rot) - 128;
+        }
+        p = end;
+        await task.step();
+      }
+
+      const f = new Int8Array(size);
+      await this.down.apply(hid, f, n, task);
+
+      const out = new Int8Array(size);
+      for (let i = 0; i < size; i++) out[i] = S(res[i] + f[i]);
+      return out;
+    }
+    get size() { return this.att.size + this.up.size + this.down.size; }
+  }
+
+  class UpdateNetwork {
+    constructor(rng, cfg, embedding, positional) {
+      this.cfg = cfg;
+      this.embedding = embedding;
+      this.positional = positional;
+      this.blocks = [];
+      for (let i = 0; i < cfg.blockCount; i++) this.blocks.push(new TransformerBlock(rng, cfg));
+      this.proj = new Linear(rng, cfg.modelDimension, 1);
+      this.rot = rng.rotation(cfg.rotationsEnabled);
+    }
+    async run(bytes, positions, task) {
+      const n = bytes.length;
+      if (n === 0) return new Uint8Array(0);
+      const d = this.cfg.modelDimension;
+      let x = new Int8Array(n * d);
+      for (let t = 0; t < n; t++) {
+        const row = this.embedding[bytes[t]];
+        const pv = this.positional(positions[t]);
+        for (let c = 0; c < d; c++) x[t*d+c] = ((row[c] + pv[c]) & 255) - 128;
+      }
+      await task.step();
+      for (const block of this.blocks) x = await block.apply(x, n, task);
+      const projected = new Int8Array(n);
+      await this.proj.apply(x, projected, n, task);
+      const out = new Uint8Array(n);
+      for (let t = 0; t < n; t++) out[t] = rotl8((projected[t] + 128) & 255, this.rot);
+      return out;
+    }
+    get size() {
+      let s = this.proj.size;
+      for (const b of this.blocks) s += b.size;
+      return s;
+    }
+  }
+
+  class CouplingRound {
+    constructor(rng, cfg, embedding, positional, index) {
+      this.parity = index & 1;
+      this.first = new UpdateNetwork(rng, cfg, embedding, positional);
+      this.second = new UpdateNetwork(rng, cfg, embedding, positional);
+      this.r1 = rng.rotation(cfg.rotationsEnabled);
+      this.r2 = rng.rotation(cfg.rotationsEnabled);
+      this.mul = rng.odd();
+      this.inv = invOdd(this.mul);
+      this.off = rng.byte();
+      this.rs = rng.rotation(cfg.rotationsEnabled);
+    }
+    split(n) {
+      const A = [], B = [];
+      for (let i = 0; i < n; i++) ((i & 1) === this.parity ? A : B).push(i);
+      return [A, B];
+    }
+    async forward(state, task) {
+      if (state.length === 1) {
+        state[0] = rotl8((this.mul * state[0] + this.off) & 255, this.rs);
+        return;
+      }
+      const [A, B] = this.split(state.length);
+      if (!A.length || !B.length) return;
+
+      const av = new Uint8Array(A.length);
+      for (let i = 0; i < A.length; i++) av[i] = state[A[i]];
+      const au = await this.first.run(av, A, task);
+      for (let i = 0; i < B.length; i++) {
+        state[B[i]] = (state[B[i]] + rotl8(au[Math.min(i, au.length - 1)], this.r1)) & 255;
+      }
+
+      const bv = new Uint8Array(B.length);
+      for (let i = 0; i < B.length; i++) bv[i] = state[B[i]];
+      const bu = await this.second.run(bv, B, task);
+      for (let i = 0; i < A.length; i++) {
+        state[A[i]] = (state[A[i]] + rotl8(bu[Math.min(i, bu.length - 1)], this.r2)) & 255;
+      }
+    }
+    async inverse(state, task) {
+      if (state.length === 1) {
+        state[0] = (((rotr8(state[0], this.rs) - this.off + 256) & 255) * this.inv) & 255;
+        return;
+      }
+      const [A, B] = this.split(state.length);
+      if (!A.length || !B.length) return;
+
+      const bv = new Uint8Array(B.length);
+      for (let i = 0; i < B.length; i++) bv[i] = state[B[i]];
+      const bu = await this.second.run(bv, B, task);
+      for (let i = 0; i < A.length; i++) {
+        state[A[i]] = (state[A[i]] - rotl8(bu[Math.min(i, bu.length - 1)], this.r2) + 256) & 255;
+      }
+
+      const av = new Uint8Array(A.length);
+      for (let i = 0; i < A.length; i++) av[i] = state[A[i]];
+      const au = await this.first.run(av, A, task);
+      for (let i = 0; i < B.length; i++) {
+        state[B[i]] = (state[B[i]] - rotl8(au[Math.min(i, au.length - 1)], this.r1) + 256) & 255;
+      }
+    }
+    get size() { return this.first.size + this.second.size; }
+  }
+
+  class NeuralCipher {
+    constructor(cfg, digest, rng) {
+      this.cfg = cfg;
+      this.embedding = [];
+      for (let s = 0; s < 256; s++) {
+        const row = new Uint8Array(cfg.modelDimension);
+        for (let i = 0; i < row.length; i++) row[i] = rng.byte();
+        this.embedding.push(row);
+      }
+      const seed = (digest[16] | (digest[17] << 8) | (digest[18] << 16) | (digest[19] << 24)) >>> 0;
+      const cache = new Map();
+      this.positional = (index) => {
+        const hit = cache.get(index);
+        if (hit) return hit;
+        const v = new Uint8Array(cfg.modelDimension);
+        let h = (seed ^ Math.imul(index + 1, 0x9E3779B1)) >>> 0;
+        for (let k = 0; k < v.length; k++) {
+          h ^= h << 13; h >>>= 0;
+          h ^= h >>> 17;
+          h ^= h << 5; h >>>= 0;
+          v[k] = h & 255;
+        }
+        cache.set(index, v);
+        return v;
+      };
+      this.rounds = [];
+      for (let i = 0; i < cfg.couplingRounds; i++) {
+        this.rounds.push(new CouplingRound(rng, cfg, this.embedding, this.positional, i));
+      }
+    }
+    async encrypt(bytes, task) {
+      const state = new Uint8Array(bytes);
+      for (let i = 0; i < this.rounds.length; i++) {
+        await this.rounds[i].forward(state, task);
+        task.progress((i + 1) / this.rounds.length, "раунд " + (i + 1) + "/" + this.rounds.length);
+      }
+      return state;
+    }
+    async decrypt(bytes, task) {
+      const state = new Uint8Array(bytes);
+      for (let i = this.rounds.length - 1; i >= 0; i--) {
+        await this.rounds[i].inverse(state, task);
+        task.progress((this.rounds.length - i) / this.rounds.length, "раунд " + i);
+      }
+      return state;
+    }
+    get parameters() {
+      let p = 256 * this.cfg.modelDimension;
+      for (const r of this.rounds) p += r.size;
+      return p;
+    }
+    get operationsPerByte() {
+      const d = this.cfg.modelDimension;
+      const perBlock = 4 * d * d + 2 * d * d * this.cfg.ffnMultiplier;
+      return perBlock * this.cfg.blockCount * this.cfg.couplingRounds;
+    }
+  }
+
+  /* ======================= состояние ======================= */
+
+  const PRESETS = {
+    compact: { modelDimension:64, headCount:4, ffnMultiplier:2, blockCount:2, couplingRounds:3, attentionWindow:24, globalTokenCount:6, rotationsEnabled:true },
+    base:    { modelDimension:128, headCount:8, ffnMultiplier:2, blockCount:2, couplingRounds:4, attentionWindow:32, globalTokenCount:8, rotationsEnabled:true },
+    large:   { modelDimension:256, headCount:8, ffnMultiplier:2, blockCount:3, couplingRounds:4, attentionWindow:32, globalTokenCount:8, rotationsEnabled:true }
+  };
+
+  const app = {
+    key: "",
+    cfg: Object.assign({}, PRESETS.base),
+    cipher: null,
+    fingerprint: "—",
+    task: null,
+    busy: false,
+    lastCt: null,
+    lastInput: null,
+    rebuildTimer: null
+  };
 
   const enc = new TextEncoder();
   const dec = new TextDecoder("utf-8", { fatal: true });
@@ -199,77 +703,57 @@ canvas{background:#0b1220;border:1px solid #334155;border-radius:10px;width:100%
   const statusEl = $("status");
   const analysisStatusEl = $("analysisStatus");
 
-  const POP8 = new Uint8Array(256);
-  for (let i = 1; i < 256; i++) POP8[i] = POP8[i >> 1] + (i & 1);
-
   function setStatus(message, isError) {
     statusEl.textContent = message;
     statusEl.classList.toggle("error", Boolean(isError));
   }
-
   function setAnalysisStatus(message, isError) {
     analysisStatusEl.textContent = message;
     analysisStatusEl.classList.toggle("error", Boolean(isError));
   }
 
-  const BUTTON_IDS = [
-    "toggleKey", "encrypt", "decrypt", "selftest", "copyOutput",
-    "downloadPacket", "downloadCt", "clear",
-    "analyzeQuick", "analyzeDeep", "analyzeCurrent", "compare"
-  ];
-
-  let busy = false;
+  const BUTTONS = ["toggleKey","encrypt","decrypt","selftest","copyOutput","downloadCt","swap","clear",
+                   "analyzeQuick","analyzeDeep","analyzeCurrent","compare"];
 
   function setBusy(value) {
-    busy = value;
-    for (const id of BUTTON_IDS) {
-      const node = $(id);
-      if (node) node.disabled = value;
-    }
+    app.busy = value;
+    for (const id of BUTTONS) { const n = $(id); if (n) n.disabled = value; }
+    $("cancel").disabled = !value;
   }
 
-  async function run(action) {
-    if (busy) return;
+  async function run(label, action) {
+    if (app.busy) return;
+    const task = new Task((f, detail) => {
+      setStatus(label + " · " + Math.round(f * 100) + "%" + (detail ? " · " + detail : ""));
+    });
+    app.task = task;
     setBusy(true);
+    setStatus(label + "...");
     try {
-      await action();
+      await action(task);
     } catch (error) {
-      console.error(error);
-      setStatus("Ошибка: " + (error && error.message ? error.message : String(error)), true);
+      if (String(error.message) === "CANCELLED") setStatus("Операция отменена.");
+      else {
+        console.error(error);
+        setStatus("Ошибка: " + (error && error.message ? error.message : String(error)), true);
+      }
     } finally {
+      app.task = null;
       setBusy(false);
     }
   }
 
-  function yieldUI() {
-    return new Promise((resolve) => setTimeout(resolve, 0));
-  }
+  $("cancel").addEventListener("click", () => { if (app.task) app.task.cancel(); });
 
-  /* ------------------------- утилиты ------------------------- */
+  /* ======================= утилиты вывода ======================= */
 
-  function concatBytes(...arrays) {
-    let total = 0;
-    for (const array of arrays) total += array.length;
-    const out = new Uint8Array(total);
-    let offset = 0;
-    for (const array of arrays) {
-      out.set(array, offset);
-      offset += array.length;
-    }
-    return out;
-  }
+  function randomBytes(n) { const b = new Uint8Array(n); crypto.getRandomValues(b); return b; }
 
   function equalBytes(a, b) {
     if (a.length !== b.length) return false;
-    let difference = 0;
-    for (let i = 0; i < a.length; i++) difference |= a[i] ^ b[i];
-    return difference === 0;
-  }
-
-  function randomBytes(length) {
-    const out = new Uint8Array(length);
-    crypto.getRandomValues(out);
-    return out;
+    let d = 0;
+    for (let i = 0; i < a.length; i++) d |= a[i] ^ b[i];
+    return d === 0;
   }
 
   function bytesToBase64(bytes) {
@@ -283,9 +767,9 @@ canvas{background:#0b1220;border:1px solid #334155;border-radius:10px;width:100%
 
   function base64ToBytes(text) {
     const binary = atob(text.replace(/\s+/g, ""));
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-    return bytes;
+    const out = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) out[i] = binary.charCodeAt(i);
+    return out;
   }
 
   function bytesToHex(bytes, separator) {
@@ -306,487 +790,133 @@ canvas{background:#0b1220;border:1px solid #334155;border-radius:10px;width:100%
     return out;
   }
 
-  function downloadBytes(filename, bytes) {
-    const blob = new Blob([bytes], { type: "application/octet-stream" });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = filename;
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-    URL.revokeObjectURL(url);
-  }
-
-  async function sha256(data) {
-    return new Uint8Array(await crypto.subtle.digest("SHA-256", data));
-  }
-
-  /* --------- побитовые ротации блока: ломают 2-адичность mod 256 --------- */
-
-  function rotl128(bytes, shift) {
-    const out = new Uint8Array(16);
-    const byteShift = shift >> 3;
-    const bitShift = shift & 7;
-    for (let i = 0; i < 16; i++) {
-      const source = bytes[(i - byteShift) & 15];
-      const previous = bytes[(i - byteShift - 1) & 15];
-      out[i] = ((source << bitShift) | (previous >>> (8 - bitShift))) & 255;
-    }
-    return out;
-  }
-
-  function rotr128(bytes, shift) {
-    return rotl128(bytes, (128 - shift) & 127);
-  }
-
-  /* ------------------------- поток ключа ------------------------- */
-
-  class KeyStream {
-    constructor(bytes) {
-      this.bytes = bytes;
-      this.position = 0;
-    }
-
-    static async create(aesKey, secret, label) {
-      const labelHash = await sha256(concatBytes(secret, enc.encode(label)));
-      const counter = labelHash.slice(0, 16);
-      const zeros = new Uint8Array(STREAM_BYTES);
-      const stream = await crypto.subtle.encrypt(
-        { name: "AES-CTR", counter, length: 64 },
-        aesKey,
-        zeros
-      );
-      return new KeyStream(new Uint8Array(stream));
-    }
-
-    byte() {
-      if (this.position >= this.bytes.length) throw new Error("key stream exhausted");
-      return this.bytes[this.position++];
-    }
-
-    below(bound) {
-      if (bound <= 1) return 0;
-      const limit = 0x100000000 - (0x100000000 % bound);
-      for (;;) {
-        const b0 = this.byte();
-        const b1 = this.byte();
-        const b2 = this.byte();
-        const b3 = this.byte();
-        const value = ((b0 << 24) | (b1 << 16) | (b2 << 8) | b3) >>> 0;
-        if (value < limit) return value % bound;
-      }
-    }
-
-    rotation() {
-      let value = this.below(127) + 1;
-      if (value % 8 === 0) value += 1;
-      return value;
-    }
-  }
-
-  /* ------------------- обратимые матрицы mod 256 ------------------- */
-
-  function invOdd(value) {
-    let a = value & 255;
-    let t = 0, nt = 1, r = 256, nr = a;
-    while (nr !== 0) {
-      const quotient = Math.floor(r / nr);
-      const previousT = t;
-      t = nt;
-      nt = previousT - quotient * nt;
-      const previousR = r;
-      r = nr;
-      nr = previousR - quotient * nr;
-    }
-    if (r !== 1) throw new Error("элемент не обратим по модулю 256");
-    return t & 255;
-  }
-
-  const INV_ODD = new Uint8Array(256);
-  for (let a = 1; a < 256; a += 2) INV_ODD[a] = invOdd(a);
-
-  function randomInvertiblePair(ks, n) {
-    const P = new Uint8Array(n * n);
-    const Q = new Uint8Array(n * n);
-
-    for (let i = 0; i < n; i++) {
-      P[i * n + i] = 1;
-      Q[i * n + i] = 1;
-    }
-
-    const operations = 12 * n * n;
-
-    for (let operation = 0; operation < operations; operation++) {
-      const type = ks.below(3);
-      const i = ks.below(n);
-      const j = ks.below(n);
-
-      if (type !== 2) {
-        if (i === j) continue;
-        const coefficient = ks.byte();
-        const rowI = i * n;
-        const rowJ = j * n;
-
-        for (let k = 0; k < n; k++) {
-          P[rowI + k] = (P[rowI + k] + coefficient * P[rowJ + k]) & 255;
-        }
-        for (let r = 0; r < n; r++) {
-          Q[r * n + j] = (Q[r * n + j] - coefficient * Q[r * n + i]) & 255;
-        }
-      } else {
-        const multiplier = ks.byte() | 1;
-        if (multiplier === 1) continue;
-        const inverse = INV_ODD[multiplier];
-        const rowI = i * n;
-
-        for (let k = 0; k < n; k++) {
-          P[rowI + k] = (multiplier * P[rowI + k]) & 255;
-        }
-        for (let r = 0; r < n; r++) {
-          Q[r * n + i] = (inverse * Q[r * n + i]) & 255;
-        }
-      }
-    }
-
-    return [P, Q];
-  }
-
-  function verifyInverse(A, B, n) {
-    for (let i = 0; i < n; i++) {
-      for (let j = 0; j < n; j++) {
-        let sum = 0;
-        for (let k = 0; k < n; k++) sum += A[i * n + k] * B[k * n + j];
-        if ((sum & 255) !== (i === j ? 1 : 0)) return false;
-      }
-    }
-    return true;
-  }
-
-  function matVec(matrix, vector, n) {
-    const out = new Uint8Array(n);
-    for (let i = 0; i < n; i++) {
-      let sum = 0;
-      const base = i * n;
-      for (let j = 0; j < n; j++) sum += matrix[base + j] * vector[j];
-      out[i] = sum & 255;
-    }
-    return out;
-  }
-
-  function act(z) {
-    return (z + 2 * z * z) & 255;
-  }
-
-  /* ------------------------- компоненты сети ------------------------- */
-
-  class MLP {
-    constructor(ks, din, dout, hidden) {
-      this.din = din;
-      this.dout = dout;
-      this.hidden = hidden;
-
-      this.W1 = new Uint8Array(hidden * din);
-      this.b1 = new Uint8Array(hidden);
-      this.W2 = new Uint8Array(hidden * hidden);
-      this.b2 = new Uint8Array(hidden);
-      this.W3 = new Uint8Array(dout * hidden);
-      this.b3 = new Uint8Array(dout);
-
-      for (let i = 0; i < this.W1.length; i++) this.W1[i] = ks.byte();
-      for (let i = 0; i < this.b1.length; i++) this.b1[i] = ks.byte();
-      for (let i = 0; i < this.W2.length; i++) this.W2[i] = ks.byte();
-      for (let i = 0; i < this.b2.length; i++) this.b2[i] = ks.byte();
-      for (let i = 0; i < this.W3.length; i++) this.W3[i] = ks.byte();
-      for (let i = 0; i < this.b3.length; i++) this.b3[i] = ks.byte();
-    }
-
-    forward(x) {
-      const h = new Uint8Array(this.hidden);
-      for (let i = 0; i < this.hidden; i++) {
-        let sum = this.b1[i];
-        const base = i * this.din;
-        for (let j = 0; j < this.din; j++) sum += this.W1[base + j] * x[j];
-        h[i] = act(sum & 255);
-      }
-
-      const h2 = new Uint8Array(this.hidden);
-      for (let i = 0; i < this.hidden; i++) {
-        let sum = this.b2[i];
-        const base = i * this.hidden;
-        for (let j = 0; j < this.hidden; j++) sum += this.W2[base + j] * h[j];
-        h2[i] = act(sum & 255);
-      }
-
-      const out = new Uint8Array(this.dout);
-      for (let i = 0; i < this.dout; i++) {
-        let sum = this.b3[i];
-        const base = i * this.hidden;
-        for (let j = 0; j < this.hidden; j++) sum += this.W3[base + j] * h2[j];
-        out[i] = sum & 255;
-      }
-      return out;
-    }
-  }
-
-  class InvertibleBlock {
-    constructor(ks, n, hidden) {
-      this.n = n;
-      this.m = n >> 1;
-
-      const pair = randomInvertiblePair(ks, n);
-      this.P = pair[0];
-      this.Pinv = pair[1];
-
-      if (!verifyInverse(this.Pinv, this.P, n)) {
-        throw new Error("P_inv не является обратной к P");
-      }
-
-      this.mlp = new MLP(ks, this.m, n - this.m, hidden);
-
-      this.r1 = ks.rotation();
-      this.r2 = ks.rotation();
-    }
-
-    forward(x) {
-      let z = matVec(this.P, x, this.n);
-      z = rotl128(z, this.r1);
-
-      const a = z.subarray(0, this.m);
-      const update = this.mlp.forward(a);
-
-      const z2 = new Uint8Array(z);
-      for (let k = 0; k < update.length; k++) {
-        z2[this.m + k] = (z2[this.m + k] + update[k]) & 255;
-      }
-
-      const z3 = rotl128(z2, this.r2);
-      return matVec(this.Pinv, z3, this.n);
-    }
-
-    inverse(y) {
-      const z3 = matVec(this.P, y, this.n);
-      const z2 = rotr128(z3, this.r2);
-
-      const a = z2.subarray(0, this.m);
-      const update = this.mlp.forward(a);
-
-      const z1 = new Uint8Array(z2);
-      for (let k = 0; k < update.length; k++) {
-        z1[this.m + k] = (z2[this.m + k] - update[k] + 256) & 255;
-      }
-
-      const z0 = rotr128(z1, this.r1);
-      return matVec(this.Pinv, z0, this.n);
-    }
-  }
-
-  class JacobianNetCipher {
-    constructor(layers) {
-      this.layers = layers;
-    }
-
-    encryptBlock(block) {
-      let x = new Uint8Array(block);
-      for (const layer of this.layers) x = layer.forward(x);
-      return x;
-    }
-
-    decryptBlock(block) {
-      let x = new Uint8Array(block);
-      for (let i = this.layers.length - 1; i >= 0; i--) x = this.layers[i].inverse(x);
-      return x;
-    }
-  }
-
-  async function buildCipher(aesKey, secret) {
-    const layers = [];
-    for (let r = 0; r < LAYERS; r++) {
-      const label = "block:" + r + ":layers=" + LAYERS + ":hidden=" + HIDDEN + ":block=" + BLOCK_SIZE + ":rot2";
-      const ks = await KeyStream.create(aesKey, secret, label);
-      layers.push(new InvertibleBlock(ks, BLOCK_SIZE, HIDDEN));
-    }
-    return new JacobianNetCipher(layers);
-  }
-
-  /* ------------------------- деривация и кэш ------------------------- */
-
-  let authCache = null;
-  let authCacheKey = null;
-  let cipherCache = null;
-  let cipherCacheKey = null;
-
-  async function getAuth(keyText) {
-    if (!keyText) throw new Error("введите ключ");
-    if (authCache && authCacheKey === keyText) return authCache;
-
-    setStatus("Деривация ключа...");
-
-    const keyBytes = enc.encode(keyText);
-    const root = await sha256(concatBytes(enc.encode("JacobianNetCipher v2 root"), keyBytes));
-    const cipherSecret = await sha256(concatBytes(root, enc.encode("cipher-secret")));
-    const macSecret = await sha256(concatBytes(root, enc.encode("mac-secret")));
-
-    const hmacKey = await crypto.subtle.importKey(
-      "raw", macSecret, { name: "HMAC", hash: "SHA-256" }, false, ["sign", "verify"]
-    );
-
-    authCache = { cipherSecret, hmacKey };
-    authCacheKey = keyText;
-    return authCache;
-  }
-
-  async function getCipher(keyText) {
-    if (cipherCache && cipherCacheKey === keyText) return cipherCache;
-
-    const auth = await getAuth(keyText);
-    setStatus("Генерация весов нейросети...");
-
-    const aesKey = await crypto.subtle.importKey(
-      "raw", auth.cipherSecret, { name: "AES-CTR" }, false, ["encrypt"]
-    );
-
-    const cipher = await buildCipher(aesKey, auth.cipherSecret);
-
-    const sample = randomBytes(BLOCK_SIZE);
-    const encrypted = cipher.encryptBlock(sample);
-    const recovered = cipher.decryptBlock(encrypted);
-    if (!equalBytes(sample, recovered)) {
-      throw new Error("самопроверка нейросетевого блока не пройдена");
-    }
-
-    cipherCache = cipher;
-    cipherCacheKey = keyText;
-    return cipher;
-  }
-
-  /* ------------------------- пакетный режим ------------------------- */
-
-  function pkcs7Pad(bytes) {
-    const padding = BLOCK_SIZE - (bytes.length % BLOCK_SIZE);
-    const out = new Uint8Array(bytes.length + padding);
-    out.set(bytes);
-    out.fill(padding, bytes.length);
-    return out;
-  }
-
-  function pkcs7Unpad(bytes) {
-    const length = bytes.length;
-    if (length === 0 || length % BLOCK_SIZE !== 0) throw new Error("некорректная длина данных");
-    const padding = bytes[length - 1];
-    if (padding < 1 || padding > BLOCK_SIZE) throw new Error("некорректное дополнение");
-    for (let i = length - padding; i < length; i++) {
-      if (bytes[i] !== padding) throw new Error("некорректное дополнение");
-    }
-    return bytes.subarray(0, length - padding);
-  }
-
-  async function encryptPacket(keyText, plainText) {
-    const auth = await getAuth(keyText);
-    const cipher = await getCipher(keyText);
-
-    const padded = pkcs7Pad(enc.encode(plainText));
-    const nonce = randomBytes(BLOCK_SIZE);
-    const ct = new Uint8Array(padded.length);
-
-    const input = new Uint8Array(BLOCK_SIZE);
-    let previous = nonce;
-
-    for (let i = 0; i < padded.length; i += BLOCK_SIZE) {
-      for (let j = 0; j < BLOCK_SIZE; j++) {
-        input[j] = (padded[i + j] + previous[j]) & 255;
-      }
-      const encrypted = cipher.encryptBlock(input);
-      ct.set(encrypted, i);
-      previous = encrypted;
-    }
-
-    const header = concatBytes(new Uint8Array([VERSION]), nonce, ct);
-    const tag = new Uint8Array(await crypto.subtle.sign({ name: "HMAC" }, auth.hmacKey, header));
-    const packet = concatBytes(header, tag);
-
-    return { packet, nonce, ct, tag, b64: bytesToBase64(packet) };
-  }
-
-  async function decryptPacket(keyText, packet) {
-    const auth = await getAuth(keyText);
-
-    const minimum = 1 + BLOCK_SIZE + 32 + BLOCK_SIZE;
-    if (packet.length < minimum) throw new Error("пакет слишком короткий");
-    if (packet[0] !== VERSION) throw new Error("неподдерживаемая версия пакета");
-
-    const nonce = new Uint8Array(packet.subarray(1, 1 + BLOCK_SIZE));
-    const tag = new Uint8Array(packet.subarray(packet.length - 32));
-    const ct = new Uint8Array(packet.subarray(1 + BLOCK_SIZE, packet.length - 32));
-
-    if (ct.length % BLOCK_SIZE !== 0) throw new Error("длина шифротекста не кратна блоку");
-
-    const header = packet.subarray(0, packet.length - 32);
-    const valid = await crypto.subtle.verify({ name: "HMAC" }, auth.hmacKey, tag, header);
-    if (!valid) throw new Error("неверный ключ, данные повреждены или пакет подменён");
-
-    const cipher = await getCipher(keyText);
-    const padded = new Uint8Array(ct.length);
-    let previous = nonce;
-
-    for (let i = 0; i < ct.length; i += BLOCK_SIZE) {
-      const block = ct.subarray(i, i + BLOCK_SIZE);
-      const decrypted = cipher.decryptBlock(block);
-      for (let j = 0; j < BLOCK_SIZE; j++) {
-        padded[i + j] = (decrypted[j] - previous[j] + 256) & 255;
-      }
-      previous = block;
-    }
-
-    return { text: dec.decode(pkcs7Unpad(padded)), packet, nonce, ct, tag };
-  }
-
-  function parsePacketInput(text, format) {
+  function parseInput(text, format) {
     const trimmed = text.trim();
     if (format === "hex") return hexToBytes(trimmed);
     if (format === "base64") return base64ToBytes(trimmed);
-
     const compact = trimmed.replace(/\s+/g, "");
-    if (/^[0-9a-fA-F]+$/.test(compact) && compact.length % 2 === 0 && compact.length >= 98) {
-      return hexToBytes(compact);
-    }
+    if (/^[0-9a-fA-F]+$/.test(compact) && compact.length % 2 === 0 && compact.length >= 32) return hexToBytes(compact);
     return base64ToBytes(trimmed);
   }
 
-  /* ------------------------- состояние вывода ------------------------- */
-
-  let lastPacket = null;
-  let lastCt = null;
-
-  function setRawFields(result) {
-    $("nonceHex").value = bytesToHex(result.nonce, " ");
-    $("ctHex").value = bytesToHex(result.ct, " ");
-    $("tagHex").value = bytesToHex(result.tag, " ");
-    $("packetHex").value = bytesToHex(result.packet, " ");
-    lastPacket = result.packet;
-    lastCt = result.ct;
+  function downloadBytes(filename, bytes) {
+    const url = URL.createObjectURL(new Blob([bytes], { type: "application/octet-stream" }));
+    const a = document.createElement("a");
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
-  function clearRawFields() {
-    $("nonceHex").value = "";
-    $("ctHex").value = "";
-    $("tagHex").value = "";
-    $("packetHex").value = "";
-    lastPacket = null;
-    lastCt = null;
+  function setRawFields(inputBytes, ctBytes) {
+    app.lastInput = inputBytes;
+    app.lastCt = ctBytes;
+    $("inputHex").value = bytesToHex(inputBytes, " ");
+    $("ctHex").value = bytesToHex(ctBytes, " ");
+    $("lengthInfo").value = "вход: " + inputBytes.length + " байт\nвыход: " + ctBytes.length + " байт";
+    $("modeInfo").value =
+      "соотношение: " + (inputBytes.length === ctBytes.length ? "1:1" : "нарушено") +
+      "\nрежим: детерминированный, без nonce и MAC\nравные сообщения дают равный шифротекст";
   }
 
-  /* ------------------------- анализ сырых байтов ------------------------- */
+  /* ======================= сборка сети ======================= */
+
+  function normalizeConfig() {
+    const c = app.cfg;
+    if (c.modelDimension % c.headCount !== 0) {
+      c.headCount = [16, 8, 4, 2, 1].find((v) => c.modelDimension % v === 0 && v <= c.headCount) || 4;
+      $("heads").value = String(c.headCount);
+    }
+  }
+
+  function syncControls() {
+    const c = app.cfg;
+    $("dim").value = String(c.modelDimension);
+    $("heads").value = String(c.headCount);
+    $("ffn").value = String(c.ffnMultiplier);
+    $("blocks").value = String(c.blockCount);
+    $("rounds").value = String(c.couplingRounds);
+    $("win").value = String(c.attentionWindow);
+    $("glob").value = String(c.globalTokenCount);
+    $("rot").checked = c.rotationsEnabled;
+    $("ffnV").textContent = "×" + c.ffnMultiplier;
+    $("blocksV").textContent = String(c.blockCount);
+    $("roundsV").textContent = String(c.couplingRounds);
+    $("winV").textContent = String(c.attentionWindow);
+    $("globV").textContent = String(c.globalTokenCount);
+  }
+
+  async function buildCipher(task) {
+    normalizeConfig();
+    const material = new Uint8Array(32 + enc.encode(app.key).length);
+    material.set(enc.encode("TransformerNeuralCipher/v1"), 0);
+    material.set(enc.encode(app.key), 32);
+    const digest = sha256(material.subarray(0, 26 + enc.encode(app.key).length));
+
+    const seed = new Uint32Array(4);
+    for (let i = 0; i < 4; i++) {
+      seed[i] = (digest[i*4] | (digest[i*4+1] << 8) | (digest[i*4+2] << 16) | (digest[i*4+3] << 24)) >>> 0;
+    }
+    await task.step();
+
+    const rng = new Rng(seed);
+    const cipher = new NeuralCipher(app.cfg, digest, rng);
+    await task.step();
+
+    const probe = randomBytes(6);
+    const ct = await cipher.encrypt(probe, task.child());
+    const back = await cipher.decrypt(ct, task.child());
+    if (!equalBytes(probe, back)) throw new Error("самопроверка обратимости не пройдена");
+
+    app.cipher = cipher;
+    app.fingerprint = bytesToHex(digest.subarray(0, 4));
+    $("paramCount").textContent = cipher.parameters.toLocaleString("ru-RU");
+    $("fingerprint").textContent = app.fingerprint;
+    $("opsPerByte").textContent = cipher.operationsPerByte.toLocaleString("ru-RU");
+  }
+
+  async function rebuild(reason) {
+    const task = new Task((f) => setStatus("Сборка сети · " + Math.round(f * 100) + "%"));
+    app.task = task;
+    setBusy(true);
+    setStatus("Генерация весов из ключа...");
+    try {
+      await buildCipher(task);
+      setStatus(reason || "Сеть готова. Параметров: " + app.cipher.parameters.toLocaleString("ru-RU"));
+    } catch (error) {
+      if (String(error.message) === "CANCELLED") setStatus("Сборка отменена.");
+      else {
+        console.error(error);
+        setStatus("Ошибка сборки: " + error.message, true);
+      }
+    } finally {
+      app.task = null;
+      setBusy(false);
+    }
+  }
+
+  function scheduleRebuild() {
+    if (app.rebuildTimer) clearTimeout(app.rebuildTimer);
+    setStatus("Параметры изменены, пересборка...");
+    app.rebuildTimer = setTimeout(() => {
+      app.rebuildTimer = null;
+      if (app.busy) { scheduleRebuild(); return; }
+      if (!app.key) { setStatus("Введите ключ.", true); return; }
+      rebuild();
+    }, 420);
+  }
+
+  function requireCipher() {
+    if (!app.cipher) throw new Error("сеть не готова: введите ключ и дождитесь сборки");
+  }
+
+  /* ======================= анализ ======================= */
 
   function entropyFromCounts(counts, total) {
-    let entropy = 0;
+    let e = 0;
     for (let i = 0; i < counts.length; i++) {
-      if (counts[i] > 0) {
-        const p = counts[i] / total;
-        entropy -= p * Math.log2(p);
-      }
+      if (counts[i] > 0) { const p = counts[i] / total; e -= p * Math.log2(p); }
     }
-    return entropy;
+    return e;
   }
 
   function entropyFromBytes(bytes) {
@@ -795,144 +925,171 @@ canvas{background:#0b1220;border:1px solid #334155;border-radius:10px;width:100%
     return { entropy: entropyFromCounts(counts, bytes.length), counts, total: bytes.length };
   }
 
-  async function avalancheAnalysisRaw(cipher, iterations) {
-    const totalBits = BLOCK_SIZE * 8;
-    const sums = new Float64Array(totalBits);
+  async function runAnalysis(mode) {
+    requireCipher();
+    const cipher = app.cipher;
+    const N = 16, BITS = 128;
+    const budget = Number($("budget").value) * (mode === "deep" ? 1 : 0.4);
 
-    for (let iteration = 0; iteration < iterations; iteration++) {
-      const base = randomBytes(BLOCK_SIZE);
-      const baseCt = cipher.encryptBlock(base);
+    const task = new Task((f, detail) => {
+      setAnalysisStatus("Анализ · " + Math.round(f * 100) + "%" + (detail ? " · " + detail : ""));
+    });
+    app.task = task;
+    setBusy(true);
+    setAnalysisStatus("Калибровка скорости сети...");
 
-      for (let bit = 0; bit < totalBits; bit++) {
-        const modified = new Uint8Array(base);
-        modified[bit >> 3] ^= 1 << (bit & 7);
-        const modifiedCt = cipher.encryptBlock(modified);
+    try {
+      const t0 = performance.now();
+      await cipher.encrypt(randomBytes(N), task.child());
+      const per = Math.max(1, performance.now() - t0);
+      const afford = Math.max(20, Math.floor(budget / per));
 
-        let difference = 0;
-        for (let i = 0; i < BLOCK_SIZE; i++) difference += POP8[baseCt[i] ^ modifiedCt[i]];
-        sums[bit] += difference;
-      }
+      const trials = mode === "deep" ? 8 : 4;
+      let rows = Math.floor(afford * 0.72 / trials);
+      rows = Math.max(8, Math.min(BITS, rows));
+      const entropyBlocks = Math.max(8, Math.min(500, Math.floor(afford * 0.28)));
+      const planned = rows * trials + trials + entropyBlocks;
+      let done = 0;
+      const tick = (label) => { done++; task.progress(done / planned, label); };
 
-      if ((iteration & 3) === 0) {
-        setAnalysisStatus("Лавинный эффект: итерация " + (iteration + 1) + "/" + iterations);
-        await yieldUI();
-      }
-    }
+      const rowBits = [];
+      for (let i = 0; i < rows; i++) rowBits.push(Math.round(i * (BITS - 1) / Math.max(1, rows - 1)));
+      const uniqueBits = Array.from(new Set(rowBits));
 
-    const rates = Array.from(sums, (value) => value / (iterations * totalBits));
-    let minimum = 1, maximum = 0, sum = 0;
-    for (const rate of rates) {
-      if (rate < minimum) minimum = rate;
-      if (rate > maximum) maximum = rate;
-      sum += rate;
-    }
+      const matrix = new Float32Array(uniqueBits.length * BITS);
+      const avalancheSum = new Float64Array(uniqueBits.length);
 
-    return { rates, min: minimum, max: maximum, mean: sum / rates.length };
-  }
-
-  async function entropyAnalysisRaw(cipher, iterations) {
-    const counts = new Array(256).fill(0);
-    const totalBytes = iterations * BLOCK_SIZE;
-
-    for (let iteration = 0; iteration < iterations; iteration++) {
-      const ct = cipher.encryptBlock(randomBytes(BLOCK_SIZE));
-      for (let i = 0; i < BLOCK_SIZE; i++) counts[ct[i]]++;
-
-      if ((iteration & 127) === 0) {
-        setAnalysisStatus("Энтропия: блок " + (iteration + 1) + "/" + iterations);
-        await yieldUI();
-      }
-    }
-
-    const entropy = entropyFromCounts(counts, totalBytes);
-    return { entropy, expected: 8.0, deviation: Math.abs(entropy - 8.0), counts, totalBytes };
-  }
-
-  async function diffusionMatrixRaw(cipher, iterations) {
-    const size = BLOCK_SIZE * 8;
-    const matrix = new Float32Array(size * size);
-
-    for (let iteration = 0; iteration < iterations; iteration++) {
-      const base = randomBytes(BLOCK_SIZE);
-      const baseCt = cipher.encryptBlock(base);
-
-      for (let inputBit = 0; inputBit < size; inputBit++) {
-        const modified = new Uint8Array(base);
-        modified[inputBit >> 3] ^= 1 << (inputBit & 7);
-        const modifiedCt = cipher.encryptBlock(modified);
-
-        for (let outputByte = 0; outputByte < BLOCK_SIZE; outputByte++) {
-          const difference = baseCt[outputByte] ^ modifiedCt[outputByte];
-          if (difference === 0) continue;
-          const rowBase = inputBit * size + outputByte * 8;
-          if (difference & 0x01) matrix[rowBase + 0]++;
-          if (difference & 0x02) matrix[rowBase + 1]++;
-          if (difference & 0x04) matrix[rowBase + 2]++;
-          if (difference & 0x08) matrix[rowBase + 3]++;
-          if (difference & 0x10) matrix[rowBase + 4]++;
-          if (difference & 0x20) matrix[rowBase + 5]++;
-          if (difference & 0x40) matrix[rowBase + 6]++;
-          if (difference & 0x80) matrix[rowBase + 7]++;
-        }
-
-        if ((inputBit & 31) === 0) {
-          setAnalysisStatus("Матрица диффузии: итерация " + (iteration + 1) + "/" + iterations + ", бит " + inputBit + "/" + size);
-          await yieldUI();
+      for (let t = 0; t < trials; t++) {
+        const base = randomBytes(N);
+        const baseCt = await cipher.encrypt(base, task.child());
+        tick("диффузия: базовый блок");
+        for (let r = 0; r < uniqueBits.length; r++) {
+          const bit = uniqueBits[r];
+          const modified = new Uint8Array(base);
+          modified[bit >> 3] ^= 1 << (bit & 7);
+          const modCt = await cipher.encrypt(modified, task.child());
+          let changed = 0;
+          for (let ob = 0; ob < N; ob++) {
+            const x = baseCt[ob] ^ modCt[ob];
+            if (!x) continue;
+            changed += POP8[x];
+            const rb = r * BITS + ob * 8;
+            for (let c = 0; c < 8; c++) if (x & (1 << c)) matrix[rb + c]++;
+          }
+          avalancheSum[r] += changed;
+          tick("диффузия: бит " + bit);
+          await task.step();
         }
       }
-    }
+      for (let i = 0; i < matrix.length; i++) matrix[i] /= trials;
 
-    for (let i = 0; i < matrix.length; i++) matrix[i] /= iterations;
-    return matrix;
+      const rates = new Array(BITS).fill(null);
+      let min = 1, max = 0, sum = 0;
+      for (let r = 0; r < uniqueBits.length; r++) {
+        const rate = avalancheSum[r] / (trials * BITS);
+        rates[uniqueBits[r]] = rate;
+        if (rate < min) min = rate;
+        if (rate > max) max = rate;
+        sum += rate;
+      }
+      const avalanche = { rates, min, max, mean: sum / uniqueBits.length };
+
+      const counts = new Array(256).fill(0);
+      for (let i = 0; i < entropyBlocks; i++) {
+        const ct = await cipher.encrypt(randomBytes(N), task.child());
+        for (let j = 0; j < N; j++) counts[ct[j]]++;
+        tick("энтропия: блок " + (i + 1));
+        await task.step();
+      }
+      const totalBytes = entropyBlocks * N;
+      const entropyValue = entropyFromCounts(counts, totalBytes);
+      const entropy = {
+        entropy: entropyValue,
+        expected: 8,
+        deviation: Math.abs(entropyValue - 8),
+        counts, totalBytes
+      };
+
+      drawAvalanche(avalanche.rates);
+      drawEntropyHistogram(entropy.counts, entropy.totalBytes);
+      drawDiffusion(uniqueBits.length, matrix);
+
+      $("analysisResults").innerHTML =
+        '<div class="stats">' +
+          '<div class="card"><div><b>Лавинный эффект</b></div>' +
+            '<div>Минимум: <b>' + (avalanche.min * 100).toFixed(2) + '%</b></div>' +
+            '<div>Максимум: <b>' + (avalanche.max * 100).toFixed(2) + '%</b></div>' +
+            '<div>Среднее: <b>' + (avalanche.mean * 100).toFixed(2) + '%</b></div>' +
+            '<div class="meta">Идеал: 50.00%</div></div>' +
+          '<div class="card"><div><b>Энтропия сырых байтов</b></div>' +
+            '<div>Измерено: <b>' + entropy.entropy.toFixed(4) + ' бит/байт</b></div>' +
+            '<div>Ожидается: <b>8.0000 бит/байт</b></div>' +
+            '<div>Отклонение: <b>' + entropy.deviation.toFixed(4) + '</b></div>' +
+            '<div class="meta">Объём: ' + entropy.totalBytes + ' байт</div></div>' +
+          '<div class="card"><div><b>Параметры анализа</b></div>' +
+            '<div>Лавина: <b>' + trials + '</b> итераций</div>' +
+            '<div>Энтропия: <b>' + entropyBlocks + '</b> блоков</div>' +
+            '<div>Диффузия: <b>' + trials + '</b> итераций</div>' +
+            '<div class="meta">Выборка ' + uniqueBits.length + ' входных бит из 128 · ' + per.toFixed(0) + ' мс на блок</div></div>' +
+        '</div>';
+
+      setAnalysisStatus("Анализ завершён.");
+      setStatus("Анализ завершён.");
+    } catch (error) {
+      if (String(error.message) === "CANCELLED") setAnalysisStatus("Анализ отменён.");
+      else {
+        console.error(error);
+        setAnalysisStatus("Ошибка анализа: " + error.message, true);
+      }
+    } finally {
+      app.task = null;
+      setBusy(false);
+    }
   }
 
   function drawAvalanche(rates) {
     const canvas = $("avalancheCanvas");
-    const context = canvas.getContext("2d");
-    context.clearRect(0, 0, canvas.width, canvas.height);
-
-    const barWidth = canvas.width / rates.length;
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const slot = canvas.width / rates.length;
     for (let i = 0; i < rates.length; i++) {
-      const rate = Math.max(0, Math.min(1, rates[i]));
-      const height = rate * canvas.height;
-      const deviation = Math.abs(rates[i] - 0.5);
-      context.fillStyle = deviation < 0.05 ? "#10b981" : deviation < 0.10 ? "#f59e0b" : "#ef4444";
-      context.fillRect(i * barWidth, canvas.height - height, Math.max(1, barWidth - 1), height);
+      const rate = rates[i];
+      if (rate === null) continue;
+      const h = Math.max(1, Math.max(0, Math.min(1, rate)) * canvas.height);
+      const dev = Math.abs(rate - 0.5);
+      ctx.fillStyle = dev < 0.05 ? "#10b981" : dev < 0.10 ? "#f59e0b" : "#ef4444";
+      ctx.fillRect(i * slot, canvas.height - h, Math.max(2, slot - 1), h);
     }
-
-    context.strokeStyle = "#60a5fa";
-    context.lineWidth = 1;
-    context.beginPath();
-    context.moveTo(0, canvas.height / 2);
-    context.lineTo(canvas.width, canvas.height / 2);
-    context.stroke();
+    ctx.strokeStyle = "#60a5fa";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, canvas.height / 2);
+    ctx.lineTo(canvas.width, canvas.height / 2);
+    ctx.stroke();
   }
 
   function drawEntropyHistogram(counts, total) {
     const canvas = $("entropyCanvas");
-    const context = canvas.getContext("2d");
-    context.clearRect(0, 0, canvas.width, canvas.height);
-
-    let maximum = 1;
-    for (const count of counts) if (count > maximum) maximum = count;
-
-    const barWidth = canvas.width / 256;
-    context.fillStyle = "#38bdf8";
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    let max = 1;
+    for (const c of counts) if (c > max) max = c;
+    const bw = canvas.width / 256;
+    ctx.fillStyle = "#38bdf8";
     for (let i = 0; i < 256; i++) {
-      const height = (counts[i] / maximum) * canvas.height;
-      context.fillRect(i * barWidth, canvas.height - height, Math.max(1, barWidth - 1), height);
+      const h = (counts[i] / max) * canvas.height;
+      ctx.fillRect(i * bw, canvas.height - h, Math.max(1, bw - 1), h);
     }
-
-    const idealHeight = ((total / 256) / maximum) * canvas.height;
-    context.strokeStyle = "#f59e0b";
-    context.lineWidth = 1;
-    context.beginPath();
-    context.moveTo(0, canvas.height - idealHeight);
-    context.lineTo(canvas.width, canvas.height - idealHeight);
-    context.stroke();
+    const ideal = ((total / 256) / max) * canvas.height;
+    ctx.strokeStyle = "#f59e0b";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, canvas.height - ideal);
+    ctx.lineTo(canvas.width, canvas.height - ideal);
+    ctx.stroke();
   }
 
-  function mixColor(a, b, t) {
+  function mix(a, b, t) {
     return [
       Math.round(a[0] + (b[0] - a[0]) * t),
       Math.round(a[1] + (b[1] - a[1]) * t),
@@ -940,136 +1097,47 @@ canvas{background:#0b1220;border:1px solid #334155;border-radius:10px;width:100%
     ];
   }
 
-  function drawDiffusion(matrix) {
+  function drawDiffusion(rows, matrix) {
     const canvas = $("diffusionCanvas");
-    const context = canvas.getContext("2d");
-    const size = 128;
-    const image = context.createImageData(size, size);
-
-    const green = [16, 185, 129];
-    const blue = [59, 130, 246];
-    const red = [239, 68, 68];
-
-    for (let i = 0; i < size; i++) {
-      for (let j = 0; j < size; j++) {
-        const value = matrix[i * size + j];
-        const color = value <= 0.5
-          ? mixColor(green, blue, Math.min(1, (0.5 - value) * 2))
-          : mixColor(green, red, Math.min(1, (value - 0.5) * 2));
-        const offset = (i * size + j) * 4;
-        image.data[offset] = color[0];
-        image.data[offset + 1] = color[1];
-        image.data[offset + 2] = color[2];
-        image.data[offset + 3] = 255;
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const green = [16,185,129], blue = [59,130,246], red = [239,68,68];
+    const cw = canvas.width / 128;
+    const ch = canvas.height / rows;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < 128; c++) {
+        const v = matrix[r * 128 + c];
+        const t = Math.min(1, Math.abs(v - 0.5) * 2);
+        const color = v <= 0.5 ? mix(green, blue, t) : mix(green, red, t);
+        ctx.fillStyle = "rgb(" + color[0] + "," + color[1] + "," + color[2] + ")";
+        ctx.fillRect(c * cw, r * ch, Math.ceil(cw), Math.ceil(ch));
       }
     }
-
-    context.putImageData(image, 0, 0);
-  }
-
-  function renderAnalysis(avalanche, entropy, parameters) {
-    $("analysisResults").innerHTML =
-      '<div class="stats">' +
-        '<div class="card">' +
-          '<div><b>Лавинный эффект</b></div>' +
-          '<div>Минимум: <b>' + (avalanche.min * 100).toFixed(2) + '%</b></div>' +
-          '<div>Максимум: <b>' + (avalanche.max * 100).toFixed(2) + '%</b></div>' +
-          '<div>Среднее: <b>' + (avalanche.mean * 100).toFixed(2) + '%</b></div>' +
-          '<div class="meta">Идеал: 50.00%</div>' +
-        '</div>' +
-        '<div class="card">' +
-          '<div><b>Энтропия сырых байтов</b></div>' +
-          '<div>Измерено: <b>' + entropy.entropy.toFixed(4) + ' бит/байт</b></div>' +
-          '<div>Ожидается: <b>8.0000 бит/байт</b></div>' +
-          '<div>Отклонение: <b>' + entropy.deviation.toFixed(4) + '</b></div>' +
-          '<div class="meta">Объём: ' + entropy.totalBytes + ' байт</div>' +
-        '</div>' +
-        '<div class="card">' +
-          '<div><b>Параметры анализа</b></div>' +
-          '<div>Лавина: <b>' + parameters.avalanche + '</b> итераций</div>' +
-          '<div>Энтропия: <b>' + parameters.entropy + '</b> блоков</div>' +
-          '<div>Диффузия: <b>' + parameters.diffusion + '</b> итераций</div>' +
-          '<div class="meta">Анализ по сырым байтам шифротекста</div>' +
-        '</div>' +
-      '</div>';
-  }
-
-  async function runAnalysis(mode) {
-    const keyText = $("key").value || "analysis-key";
-
-    setStatus("Подготовка анализа...");
-    setAnalysisStatus("Подготовка нейросети...");
-
-    const cipher = await getCipher(keyText);
-
-    const parameters = mode === "deep"
-      ? { avalanche: 80, entropy: 2000, diffusion: 18 }
-      : { avalanche: 16, entropy: 500, diffusion: 5 };
-
-    const avalanche = await avalancheAnalysisRaw(cipher, parameters.avalanche);
-    drawAvalanche(avalanche.rates);
-
-    const entropy = await entropyAnalysisRaw(cipher, parameters.entropy);
-    drawEntropyHistogram(entropy.counts, entropy.totalBytes);
-
-    const diffusion = await diffusionMatrixRaw(cipher, parameters.diffusion);
-    drawDiffusion(diffusion);
-
-    renderAnalysis(avalanche, entropy, parameters);
-    setAnalysisStatus("Анализ завершён.");
-    setStatus("Анализ завершён.");
   }
 
   function analyzeCurrentCiphertext() {
-    if (!lastCt || lastCt.length === 0) {
-      throw new Error("нет текущего сырого шифротекста: сначала зашифруйте или расшифруйте пакет");
+    if (!app.lastCt || app.lastCt.length === 0) {
+      throw new Error("нет текущего сырого шифротекста: сначала зашифруйте или расшифруйте");
     }
-
-    const result = entropyFromBytes(lastCt);
+    const result = entropyFromBytes(app.lastCt);
     drawEntropyHistogram(result.counts, result.total);
-
     const warning = result.total < 1024
       ? '<div class="warn">Мало данных для устойчивой оценки энтропии. Рекомендуется не менее 1024 байт.</div>'
       : "";
-
     $("analysisResults").innerHTML =
-      '<div class="stats">' +
-        '<div class="card">' +
-          '<div><b>Текущий сырой шифротекст</b></div>' +
-          '<div>Длина: <b>' + result.total + ' байт</b></div>' +
-          '<div>Энтропия: <b>' + result.entropy.toFixed(4) + ' бит/байт</b></div>' +
-          '<div>Идеал: <b>8.0000 бит/байт</b></div>' +
-          warning +
-        '</div>' +
-      '</div>';
-
+      '<div class="stats"><div class="card"><div><b>Текущий сырой шифротекст</b></div>' +
+      '<div>Длина: <b>' + result.total + ' байт</b></div>' +
+      '<div>Энтропия: <b>' + result.entropy.toFixed(4) + ' бит/байт</b></div>' +
+      '<div>Идеал: <b>8.0000 бит/байт</b></div>' + warning + '</div></div>';
     setAnalysisStatus("Анализ текущего сырого шифротекста завершён.");
     setStatus("Анализ текущего сырого шифротекста завершён.");
   }
 
-  /* ------------------------- сравнение текстов ------------------------- */
-
-  function deterministicEncryptBytes(cipher, plainBytes) {
-    const padded = pkcs7Pad(plainBytes);
-    const out = new Uint8Array(padded.length);
-    const input = new Uint8Array(BLOCK_SIZE);
-    let previous = new Uint8Array(BLOCK_SIZE);
-
-    for (let i = 0; i < padded.length; i += BLOCK_SIZE) {
-      for (let j = 0; j < BLOCK_SIZE; j++) {
-        input[j] = (padded[i + j] + previous[j]) & 255;
-      }
-      const encrypted = cipher.encryptBlock(input);
-      out.set(encrypted, i);
-      previous = encrypted;
-    }
-    return out;
-  }
+  /* ======================= сравнение ======================= */
 
   function hexDumpHighlighted(a, b, maxBytes) {
     const limit = Math.min(maxBytes, Math.max(a.length, b.length));
     let html = "";
-
     for (let i = 0; i < limit; i += 16) {
       html += '<div>' + i.toString(16).padStart(6, "0") + ": ";
       for (let j = 0; j < 16; j++) {
@@ -1077,66 +1145,17 @@ canvas{background:#0b1220;border:1px solid #334155;border-radius:10px;width:100%
         if (index >= limit) break;
         const av = index < a.length ? a[index] : 0;
         const bv = index < b.length ? b[index] : 0;
-        html += '<span class="' + (av === bv ? "same" : "diff") + '">' +
-                bv.toString(16).padStart(2, "0") + "</span> ";
+        html += '<span class="' + (av === bv ? "same" : "diff") + '">' + bv.toString(16).padStart(2, "0") + "</span> ";
       }
       html += "</div>";
     }
-
     if (Math.max(a.length, b.length) > maxBytes) {
       html += '<div class="meta">показаны первые ' + maxBytes + " байт из " + Math.max(a.length, b.length) + "</div>";
     }
     return html;
   }
 
-  async function runComparison() {
-    const keyText = $("key").value || "comparison-key";
-    const text1 = $("compareInput1").value;
-    const text2 = $("compareInput2").value;
-
-    if (!text1 || !text2) throw new Error("введите оба текста");
-
-    setStatus("Сравнение: подготовка нейросети...");
-    const cipher = await getCipher(keyText);
-
-    const ct1 = deterministicEncryptBytes(cipher, enc.encode(text1));
-    const ct2 = deterministicEncryptBytes(cipher, enc.encode(text2));
-
-    const length = Math.max(ct1.length, ct2.length);
-    let difference = 0;
-    for (let i = 0; i < length; i++) {
-      const a = i < ct1.length ? ct1[i] : 0;
-      const b = i < ct2.length ? ct2[i] : 0;
-      difference += POP8[a ^ b];
-    }
-
-    const totalBits = length * 8;
-    const percent = totalBits ? (difference / totalBits * 100).toFixed(2) : "0.00";
-
-    $("comparisonResults").innerHTML =
-      '<div class="stats">' +
-        '<div class="card">' +
-          '<div><b>Различия сырых шифротекстов</b></div>' +
-          '<div>' + difference + " / " + totalBits + " бит</div>" +
-          '<div><b>' + percent + '%</b></div>' +
-          '<div class="meta">Идеал для одного блока: около 50%</div>' +
-        '</div>' +
-        '<div class="card">' +
-          '<div><b>Длины</b></div>' +
-          '<div>Текст 1: <b>' + ct1.length + " байт</b></div>" +
-          '<div>Текст 2: <b>' + ct2.length + " байт</b></div>" +
-          '<div class="meta">Длины включают PKCS#7-дополнение</div>' +
-        '</div>' +
-      '</div>' +
-      '<div class="card" style="margin-top:12px">' +
-        '<div><b>Шифротекст 2, отличия от шифротекста 1 подсвечены</b></div>' +
-        '<div class="mono" style="margin-top:8px">' + hexDumpHighlighted(ct1, ct2, 256) + "</div>" +
-      "</div>";
-
-    setStatus("Сравнение завершено.");
-  }
-
-  /* ------------------------- обработчики ------------------------- */
+  /* ======================= обработчики ======================= */
 
   $("toggleKey").addEventListener("click", () => {
     const input = $("key");
@@ -1144,87 +1163,104 @@ canvas{background:#0b1220;border:1px solid #334155;border-radius:10px;width:100%
     $("toggleKey").textContent = input.type === "password" ? "Показать" : "Скрыть";
   });
 
-  $("encrypt").addEventListener("click", () => run(async () => {
-    const keyText = $("key").value;
-    const format = $("outputFormat").value;
-    if (!keyText) throw new Error("введите ключ");
+  $("key").addEventListener("change", () => {
+    app.key = $("key").value;
+    if (!app.key) { setStatus("Введите ключ.", true); return; }
+    scheduleRebuild();
+  });
 
-    setStatus("Шифрование...");
-    const result = await encryptPacket(keyText, $("input").value);
+  $("preset").addEventListener("change", () => {
+    const p = PRESETS[$("preset").value];
+    if (!p) return;
+    app.cfg = Object.assign({}, p);
+    syncControls();
+    scheduleRebuild();
+  });
 
-    if (format === "base64") {
-      $("output").value = result.b64;
-      setStatus("Зашифровано. Выход: Base64 пакет.");
-    } else if (format === "hex_packet") {
-      $("output").value = bytesToHex(result.packet);
-      setStatus("Зашифровано. Выход: HEX пакет.");
-    } else {
-      $("output").value = bytesToHex(result.ct);
-      setStatus("Зашифровано. Выход: HEX только сырой шифротекст. Расшифровать этот выход нельзя: нет nonce и tag.", true);
+  function bindControl(node, key, label, formatter) {
+    node.addEventListener("input", () => {
+      app.cfg[key] = Number(node.value);
+      if (label) label.textContent = formatter ? formatter(app.cfg[key]) : String(app.cfg[key]);
+      $("preset").value = "custom";
+      normalizeConfig();
+      scheduleRebuild();
+    });
+  }
+
+  bindControl($("dim"), "modelDimension");
+  bindControl($("heads"), "headCount");
+  bindControl($("ffn"), "ffnMultiplier", $("ffnV"), (v) => "×" + v);
+  bindControl($("blocks"), "blockCount", $("blocksV"));
+  bindControl($("rounds"), "couplingRounds", $("roundsV"));
+  bindControl($("win"), "attentionWindow", $("winV"));
+  bindControl($("glob"), "globalTokenCount", $("globV"));
+
+  $("rot").addEventListener("change", () => {
+    app.cfg.rotationsEnabled = $("rot").checked;
+    $("preset").value = "custom";
+    scheduleRebuild();
+  });
+
+  $("encrypt").addEventListener("click", () => run("Шифрование", async (task) => {
+    requireCipher();
+    const plain = enc.encode($("input").value);
+    if (plain.length === 0) throw new Error("вход пуст");
+    if (plain.length > 2048) throw new Error("максимум 2048 байт для отзывчивости интерфейса");
+    const ct = await app.cipher.encrypt(plain, task);
+    $("output").value = $("outputFormat").value === "base64" ? bytesToBase64(ct) : bytesToHex(ct);
+    setRawFields(plain, ct);
+    setStatus("Зашифровано: " + ct.length + " байт, соотношение 1:1.");
+  }));
+
+  $("decrypt").addEventListener("click", () => run("Расшифрование", async (task) => {
+    requireCipher();
+    const ct = parseInput($("input").value, $("inputFormat").value);
+    if (ct.length === 0) throw new Error("вход пуст");
+    const plain = await app.cipher.decrypt(ct, task);
+    let text;
+    try {
+      text = dec.decode(plain);
+    } catch (error) {
+      $("output").value = bytesToHex(plain, " ");
+      setRawFields(plain, ct);
+      setStatus("Байты восстановлены, но это не UTF-8: показан HEX.", true);
+      return;
     }
-
-    setRawFields(result);
+    $("output").value = text;
+    setRawFields(plain, ct);
+    setStatus("Расшифровано: " + plain.length + " байт.");
   }));
 
-  $("decrypt").addEventListener("click", () => run(async () => {
-    const keyText = $("key").value;
-    const data = $("input").value;
-    if (!keyText) throw new Error("введите ключ");
-    if (!data.trim()) throw new Error("вставьте пакет для расшифровки");
+  $("selftest").addEventListener("click", () => run("Самопроверка", async (task) => {
+    requireCipher();
+    const message = "Самопроверка обратимости. " + new Date().toISOString() + " · кириллица, latin, 1234567890, !@#$%^&*.";
+    const plain = enc.encode(message);
+    const ct = await app.cipher.encrypt(plain, task.child());
+    const back = await app.cipher.decrypt(ct, task.child());
+    if (dec.decode(back) !== message) throw new Error("текст не совпал");
+    if (ct.length !== plain.length) throw new Error("длина не сохранена");
 
-    setStatus("Расшифрование...");
-    const packet = parsePacketInput(data, $("inputFormat").value);
-    const result = await decryptPacket(keyText, packet);
-
-    $("output").value = result.text;
-    setRawFields(result);
-    setStatus("Расшифровано успешно.");
-  }));
-
-  $("selftest").addEventListener("click", () => run(async () => {
-    const keyText = $("key").value || "self-test-key";
-    const message =
-      "Самопроверка обратимости. Время: " + new Date().toISOString() +
-      ". Символы: кириллица, latin, 1234567890, !@#$%^&*.";
-
-    setStatus("Самопроверка: шифрование...");
-    const encrypted = await encryptPacket(keyText, message);
-
-    setStatus("Самопроверка: расшифрование...");
-    const decrypted = await decryptPacket(keyText, encrypted.packet);
-
-    if (decrypted.text !== message) throw new Error("самопроверка не пройдена: текст не совпал");
-    if (!equalBytes(encrypted.ct, decrypted.ct)) throw new Error("самопроверка не пройдена: сырые шифротексты не совпали");
-
-    const cipher = await getCipher(keyText);
-    const lengths = [1, 2, 3, 15, 16, 17, 31, 32, 33, 64, 255];
-    for (const length of lengths) {
-      const sample = randomBytes(length);
-      const ct = deterministicEncryptBytes(cipher, sample);
-      const back = new Uint8Array(sample.length);
-      let previous = new Uint8Array(BLOCK_SIZE);
-      const padded = pkcs7Pad(sample);
-      for (let i = 0; i < ct.length; i += BLOCK_SIZE) {
-        const block = ct.subarray(i, i + BLOCK_SIZE);
-        const decoded = cipher.decryptBlock(block);
-        for (let j = 0; j < BLOCK_SIZE; j++) {
-          const value = (decoded[j] - previous[j] + 256) & 255;
-          if (i + j < back.length) back[i + j] = value;
-        }
-        previous = block;
-      }
-      if (padded.length - sample.length !== pkcs7Pad(sample).length - sample.length) {
-        throw new Error("несогласованное дополнение");
-      }
-      for (let i = 0; i < sample.length; i++) {
-        if (back[i] !== sample[i]) throw new Error("обратимость нарушена на длине " + length);
-      }
+    const lengths = [0,1,2,3,5,7,16,17,31,32,33,64,100,257];
+    const box = $("checks");
+    box.innerHTML = "";
+    for (let i = 0; i < lengths.length; i++) {
+      const n = lengths[i];
+      const sample = randomBytes(n);
+      const c = await app.cipher.encrypt(sample, task.child());
+      const r = await app.cipher.decrypt(c, task.child());
+      const ok = c.length === n && equalBytes(sample, r);
+      const chip = document.createElement("span");
+      chip.dataset.ok = String(ok);
+      chip.textContent = n + " Б " + (ok ? "✓" : "✕");
+      box.appendChild(chip);
+      task.progress((i + 1) / lengths.length, "длина " + n);
+      await task.step();
+      if (!ok) throw new Error("обратимость нарушена на длине " + n);
     }
-
-    setStatus("Самопроверка пройдена: текст, сырые байты и длины " + lengths.join(", ") + " совпадают.");
+    setStatus("Самопроверка пройдена: текст, длины и сырые байты совпадают.");
   }));
 
-  $("copyOutput").addEventListener("click", () => run(async () => {
+  $("copyOutput").addEventListener("click", () => run("Копирование", async () => {
     const value = $("output").value;
     if (!value) throw new Error("выход пуст");
     try {
@@ -1238,45 +1274,93 @@ canvas{background:#0b1220;border:1px solid #334155;border-radius:10px;width:100%
     }
   }));
 
-  $("downloadPacket").addEventListener("click", () => {
-    if (!lastPacket) {
-      setStatus("Нет пакета для скачивания. Сначала зашифруйте или расшифруйте.", true);
-      return;
-    }
-    downloadBytes("packet.bin", lastPacket);
-    setStatus("Пакет сохранён как packet.bin");
+  $("downloadCt").addEventListener("click", () => {
+    if (!app.lastCt) { setStatus("Нет сырого шифротекста для скачивания.", true); return; }
+    downloadBytes("ciphertext.bin", app.lastCt);
+    setStatus("Сырой шифротекст сохранён как ciphertext.bin");
   });
 
-  $("downloadCt").addEventListener("click", () => {
-    if (!lastCt) {
-      setStatus("Нет сырого шифротекста для скачивания. Сначала зашифруйте или расшифруйте.", true);
-      return;
-    }
-    downloadBytes("ciphertext.bin", lastCt);
-    setStatus("Сырой шифротекст сохранён как ciphertext.bin");
+  $("swap").addEventListener("click", () => {
+    if (!$("output").value) { setStatus("Выход пуст.", true); return; }
+    $("input").value = $("output").value;
+    $("inputFormat").value = $("outputFormat").value === "hex" ? "hex" : "base64";
+    setStatus("Выход перенесён во вход.");
   });
 
   $("clear").addEventListener("click", () => {
     $("input").value = "";
     $("output").value = "";
-    clearRawFields();
+    $("inputHex").value = "";
+    $("ctHex").value = "";
+    $("lengthInfo").value = "";
+    $("modeInfo").value = "";
+    app.lastCt = null;
+    app.lastInput = null;
     setStatus("Очищено.");
   });
 
-  $("analyzeQuick").addEventListener("click", () => run(() => runAnalysis("quick")));
-  $("analyzeDeep").addEventListener("click", () => run(() => runAnalysis("deep")));
-  $("analyzeCurrent").addEventListener("click", () => run(async () => analyzeCurrentCiphertext()));
-  $("compare").addEventListener("click", () => run(runComparison));
+  $("analyzeQuick").addEventListener("click", () => runAnalysis("quick"));
+  $("analyzeDeep").addEventListener("click", () => runAnalysis("deep"));
+  $("analyzeCurrent").addEventListener("click", () => run("Анализ", async () => analyzeCurrentCiphertext()));
 
-  /* ------------------------- инициализация ------------------------- */
+  $("compare").addEventListener("click", () => run("Сравнение", async (task) => {
+    requireCipher();
+    const t1 = $("compareInput1").value;
+    const t2 = $("compareInput2").value;
+    if (!t1 || !t2) throw new Error("введите оба текста");
 
-  if (!globalThis.crypto || !globalThis.crypto.subtle) {
-    setStatus("WebCrypto недоступен. Откройте страницу через HTTPS или localhost.", true);
-    setBusy(true);
-  } else {
-    setStatus("Готово. Введите ключ.");
+    const a = await app.cipher.encrypt(enc.encode(t1), task.child());
+    const b = await app.cipher.encrypt(enc.encode(t2), task.child());
+
+    const length = Math.max(a.length, b.length);
+    let difference = 0;
+    for (let i = 0; i < length; i++) {
+      const x = i < a.length ? a[i] : 0;
+      const y = i < b.length ? b[i] : 0;
+      difference += POP8[x ^ y];
+    }
+    const totalBits = length * 8;
+    const percent = totalBits ? (difference / totalBits * 100).toFixed(2) : "0.00";
+
+    $("comparisonResults").innerHTML =
+      '<div class="stats">' +
+        '<div class="card"><div><b>Различия сырых шифротекстов</b></div>' +
+          '<div>' + difference + " / " + totalBits + " бит</div>" +
+          '<div><b>' + percent + '%</b></div>' +
+          '<div class="meta">Идеал: около 50%</div></div>' +
+        '<div class="card"><div><b>Длины</b></div>' +
+          '<div>Текст 1: <b>' + a.length + " байт</b></div>" +
+          '<div>Текст 2: <b>' + b.length + " байт</b></div>" +
+          '<div class="meta">Без дополнения: длина равна длине текста</div></div>' +
+      '</div>' +
+      '<div class="card" style="margin-top:12px">' +
+        '<div><b>Шифротекст 2, отличия от шифротекста 1 подсвечены</b></div>' +
+        '<div class="mono" style="margin-top:8px">' + hexDumpHighlighted(a, b, 256) + "</div>" +
+      "</div>";
+
+    setStatus("Сравнение завершено.");
+  }));
+
+  /* ======================= запуск ======================= */
+
+  (async function bootstrap() {
+    syncControls();
+    $("input").value = "Привет! Это обратимая трансформер-сеть. Длина выхода равна длине входа.";
+    app.key = "cipher-lab-demo";
+    $("key").value = app.key;
+    await rebuild();
+    if (!app.cipher) return;
+    await run("Стартовое шифрование", async (task) => {
+      const plain = enc.encode($("input").value);
+      const ct = await app.cipher.encrypt(plain, task);
+      $("output").value = bytesToBase64(ct);
+      setRawFields(plain, ct);
+      const back = await app.cipher.decrypt(ct, task.child());
+      if (dec.decode(back) !== $("input").value) throw new Error("стартовая проверка не пройдена");
+      setStatus("Сеть готова. Параметров: " + app.cipher.parameters.toLocaleString("ru-RU"));
+    });
     setAnalysisStatus("Анализ не запущен.");
-  }
+  })();
 })();
 </script>
 </body>
